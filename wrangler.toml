@@ -1,0 +1,58 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "erp-refine"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+assets = { directory = "frontend/dist", binding = "ASSETS", not_found_handling = "single-page-application" }
+
+[vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+RATE_LIMIT_REQUESTS = "100"
+RATE_LIMIT_PERIOD = "60"
+
+# Supabase
+# SUPABASE_URL = ""          # Set via wrangler secret or vars
+# SUPABASE_ANON_KEY = ""     # Set via wrangler secret
+
+# AI / LLM
+# AI_MODEL_PRIMARY = "claude-sonnet-4-6"
+# AI_MODEL_FAST = "claude-haiku-4-5-20251001"
+
+# CORS
+# ALLOWED_ORIGINS = ""
+
+# Secrets (use `wrangler secret put`):
+# SUPABASE_SERVICE_ROLE_KEY
+# AI_API_KEY
+# JWT_SECRET
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = ""  # Fill after `wrangler kv namespace create CACHE`
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = ""  # Fill after `wrangler kv namespace create SESSIONS`
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "erp-refine-storage"
+
+[[queues.producers]]
+binding = "EVENT_BUS"
+queue = "erp-refine-events"
+
+[[queues.consumers]]
+queue = "erp-refine-events"
+
+[durable_objects]
+bindings = [
+  { name = "CHAT_DO", class_name = "ERPChatAgent" },
+  { name = "RATE_LIMITER_DO", class_name = "RateLimiterDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ERPChatAgent", "RateLimiterDO"]
