@@ -1,43 +1,72 @@
 // src/index.ts
-// Worker entry point — Hono app with middleware and routes
+// Worker entry point — Hono app with middleware, routes, DOs, and Queue consumer
 
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import type { Env } from './types/env';
+import { errorHandler } from './middleware/error-handler';
+import { corsMiddleware } from './middleware/cors';
+import { requestIdMiddleware } from './middleware/request-id';
+import { rateLimitMiddleware } from './middleware/rate-limit';
+
+// Routes
+import authRoutes from './routes/auth';
+import chatRoutes from './routes/chat';
+import schemaRoutes from './routes/schema';
+import procurementRoutes from './routes/procurement';
+import salesRoutes from './routes/sales';
+import inventoryRoutes from './routes/inventory';
+import financeRoutes from './routes/finance';
+import masterDataRoutes from './routes/master-data';
+
+// Policy rules (register on startup)
+import './policy/rules/procurement-rules';
+import './policy/rules/sales-rules';
+import './policy/rules/finance-rules';
+
+// Queue consumer
+import { handleQueueBatch } from './queues/event-consumer';
+import type { ERPEvent } from './queues/event-consumer';
+
+// Durable Objects (must be exported for wrangler)
+export { ERPChatAgent } from './do/chat-agent-do';
+export { RateLimiterDO } from './do/rate-limiter-do';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// --- Middleware ---
+// --- Global Middleware ---
+app.use('*', corsMiddleware());
+app.use('*', requestIdMiddleware());
+app.use('/api/*', rateLimitMiddleware());
 
-// CORS
-app.use('*', async (c, next) => {
-  const origins = c.env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()) || ['*'];
-  return cors({ origin: origins, credentials: true })(c, next);
-});
+// --- Health ---
+app.get('/health', (c) =>
+  c.json({ status: 'ok', version: '0.1.0', env: c.env.ENVIRONMENT })
+);
 
-// Request ID
-app.use('*', async (c, next) => {
-  const requestId = crypto.randomUUID();
-  c.header('X-Request-Id', requestId);
-  c.set('requestId' as never, requestId);
-  await next();
-});
+// --- API Routes ---
+app.route('/api/auth', authRoutes);
+app.route('/api/chat', chatRoutes);
+app.route('/api/schema', schemaRoutes);
+app.route('/api', procurementRoutes);
+app.route('/api', salesRoutes);
+app.route('/api', inventoryRoutes);
+app.route('/api', financeRoutes);
+app.route('/api', masterDataRoutes);
 
-// --- Health check ---
-app.get('/health', (c) => c.json({ status: 'ok', version: '0.1.0' }));
+// --- Error handler ---
+app.onError(errorHandler);
 
-// --- API routes (to be implemented) ---
-app.get('/api/ping', (c) => c.json({ message: 'pong', env: c.env.ENVIRONMENT }));
-
-// --- Catch-all: serve SPA ---
+// --- SPA fallback ---
 app.get('*', async (c) => {
   return c.env.ASSETS.fetch(c.req.raw);
 });
 
-// --- Error handler ---
-app.onError((err, c) => {
-  console.error(`[${c.get('requestId' as never)}] Error:`, err.message);
-  return c.json({ error: err.message }, 500);
-});
+// --- Default export: Worker fetch handler ---
+export default {
+  fetch: app.fetch,
 
-export default app;
+  // Queue consumer
+  async queue(batch: MessageBatch<ERPEvent>, env: Env): Promise<void> {
+    await handleQueueBatch(batch, env);
+  },
+};

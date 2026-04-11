@@ -1,0 +1,79 @@
+// src/tools/master-data-tools.ts
+// Master data lookup tools
+
+import { tool } from 'ai';
+import { z } from 'zod';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+export function createMasterDataTools(db: SupabaseClient, organizationId: string) {
+  return {
+    list_products: tool({
+      description: 'List products with optional search',
+      parameters: z.object({
+        search: z.string().optional(),
+        categoryId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ search, categoryId, limit }) => {
+        let query = db
+          .from('products')
+          .select('id, name, code, description, category:product_categories(id,name), uom:uoms(id,name)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (search) query = query.or(`name.ilike.%${search}%,code.ilike.%${search}%`);
+        if (categoryId) query = query.eq('category_id', categoryId);
+
+        const { data, error } = await query.order('name').limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_currencies: tool({
+      description: 'List available currencies',
+      parameters: z.object({}),
+      execute: async () => {
+        const { data, error } = await db
+          .from('currencies')
+          .select('code, name, symbol')
+          .order('code');
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_departments: tool({
+      description: 'List organization departments',
+      parameters: z.object({}),
+      execute: async () => {
+        const { data, error } = await db
+          .from('departments')
+          .select('id, name, code, parent_id')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .order('name');
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_employees: tool({
+      description: 'List active employees',
+      parameters: z.object({ search: z.string().optional() }),
+      execute: async ({ search }) => {
+        let query = db
+          .from('employees')
+          .select('id, employee_number, first_name, last_name, email, department:departments(id,name)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (search) query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+
+        const { data, error } = await query.order('last_name').limit(50);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+  };
+}
