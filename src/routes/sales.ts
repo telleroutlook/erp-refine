@@ -199,7 +199,7 @@ sales.get('/sales-shipments', async (c) => {
   const { data, count, error } = await db
     .from('sales_shipments')
     .select(
-      'id, shipment_number, shipment_date, tracking_number, status, carrier:carriers(id,name), sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
+      'id, shipment_number, shipment_date, tracking_number, status, carrier, sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -218,7 +218,7 @@ sales.get('/sales-shipments/:id', async (c) => {
 
   const { data, error } = await db
     .from('sales_shipments')
-    .select('*, items:sales_shipment_items(*, product:products(id,name,code)), carrier:carriers(id,name,code), sales_order:sales_orders(id,order_number), warehouse:warehouses(id,name,code)')
+    .select('*, items:sales_shipment_items(*, product:products(id,name,code)), sales_order:sales_orders(id,order_number), warehouse:warehouses(id,name,code)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
