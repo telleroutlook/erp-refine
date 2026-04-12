@@ -20,12 +20,19 @@ interface MasterDataSet {
   'fixed-assets'?: Record<string, unknown>[];
 }
 
+/** Employee-to-auth-user mapping for RLS linkage */
+export interface EmployeeAuthMapping {
+  employee_email: string;
+  auth_email: string;
+}
+
 export async function runPhase1(
   client: SeedApiClient,
   registry: IdRegistry,
   progress: SeedProgress,
   masterData: MasterDataSet,
-  orgName: string
+  orgName: string,
+  employeeAuthMappings?: EmployeeAuthMapping[]
 ): Promise<void> {
   // Count total records
   const totalRecords = Object.values(masterData).reduce((s, arr) => s + (arr?.length ?? 0), 0);
@@ -54,6 +61,22 @@ export async function runPhase1(
       options: { upsert: true, dry_run: false, on_error: 'skip' },
     });
     logSingleResult(resp, progress);
+  }
+
+  // Step 2b: Link employees to auth users (needed for RLS to work)
+  if (employeeAuthMappings && employeeAuthMappings.length > 0) {
+    console.log('\n  Linking employees to auth users...');
+    try {
+      const linkResp = await client.post('/api/admin/link-employees', {
+        mappings: employeeAuthMappings,
+      });
+      const linkData = linkResp?.data;
+      if (linkData) {
+        console.log(`    Linked: ${linkData.linked}, Errors: ${linkData.errors?.length ?? 0}`);
+      }
+    } catch (err) {
+      console.log(`    WARNING: Failed to link employees: ${(err as Error).message}`);
+    }
   }
 
   // Step 3: Import partners

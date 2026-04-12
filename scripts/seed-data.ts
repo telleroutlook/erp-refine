@@ -12,7 +12,7 @@ import { SeedProgress } from './seed/progress';
 import { createEmptyContext, type SeedConfig, type OrgConfig, type SeedReport } from './seed/types';
 
 // Phase imports
-import { runPhase1 } from './seed/phases/phase1-master-data';
+import { runPhase1, type EmployeeAuthMapping } from './seed/phases/phase1-master-data';
 import { runPhase2 } from './seed/phases/phase2-opening-stock';
 import { runPhase3 } from './seed/phases/phase3-documents';
 import { runPhase4 } from './seed/phases/phase4-workflows';
@@ -161,10 +161,17 @@ async function seedOrganization(
         'defect-codes': org1DefectCodes(),
         'exchange-rates': org1ExchangeRates(),
         'fixed-assets': org1FixedAssets(),
-      }, org.name);
+      }, org.name, [
+        // Map seed employees to auth users for RLS
+        { employee_email: 'zhangwei@demo.com', auth_email: 'admin@erp.demo' },
+        { employee_email: 'lina@demo.com', auth_email: 'finance@erp.demo' },
+        { employee_email: 'wangqiang@demo.com', auth_email: 'sales@erp.demo' },
+        { employee_email: 'zhaomin@demo.com', auth_email: 'purchasing@erp.demo' },
+        { employee_email: 'chengang@demo.com', auth_email: 'warehouse@erp.demo' },
+        { employee_email: 'liuyang@demo.com', auth_email: 'manager@erp.demo' },
+      ]);
     } else {
       await runPhase1(client, registry, progress, {
-        departments: org2Departments(),
         employees: org2Employees(),
         'product-categories': org2ProductCategories(),
         products: org2Products() as any,
@@ -174,7 +181,11 @@ async function seedOrganization(
         'account-subjects': org2AccountSubjects(),
         'cost-centers': org2CostCenters(),
         'exchange-rates': org2ExchangeRates(),
-      }, org.name);
+      }, org.name, [
+        { employee_email: 'alex@tech.demo', auth_email: 'admin@tech.demo' },
+        { employee_email: 'sarah@tech.demo', auth_email: 'sales@tech.demo' },
+        { employee_email: 'jenny@tech.demo', auth_email: 'finance@tech.demo' },
+      ]);
     }
   } else {
     // Even if skipping phase 1, we still need ID maps for later phases

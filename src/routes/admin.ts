@@ -108,6 +108,45 @@ admin.put('/notifications/:id/read', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// Link Employees to Auth Users — needed for RLS to work after seed import
+// ---------------------------------------------------------------------------
+admin.post('/link-employees', async (c) => {
+  const { user, requestId } = getDbAndUser(c);
+  const serviceDb = createServiceClient(c.env);
+  const body = await c.req.json();
+
+  const mappings: Array<{ employee_email: string; auth_email: string }> = body.mappings ?? [];
+  if (!Array.isArray(mappings) || mappings.length === 0) {
+    throw new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail: "Request body must contain a 'mappings' array of { employee_email, auth_email }.",
+      requestId,
+    });
+  }
+
+  let linked = 0;
+  const errors: Array<{ employee_email: string; message: string }> = [];
+
+  for (const m of mappings) {
+    const { data, error } = await serviceDb.rpc('link_employee_to_auth', {
+      p_employee_email: m.employee_email,
+      p_auth_email: m.auth_email,
+      p_org_id: user.organizationId,
+    });
+
+    if (error) {
+      errors.push({ employee_email: m.employee_email, message: error.message });
+    } else if (!data) {
+      errors.push({ employee_email: m.employee_email, message: `Auth user '${m.auth_email}' not found` });
+    } else {
+      linked++;
+    }
+  }
+
+  return c.json({ data: { linked, errors } });
+});
+
+// ---------------------------------------------------------------------------
 // Data Import — uses service role client to bypass RLS for bulk operations
 // ---------------------------------------------------------------------------
 import {
