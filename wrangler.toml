@@ -21,8 +21,8 @@ SUPABASE_URL = "https://teebltzefrkaedrufsuz.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlZWJsdHplZnJrYWVkcnVmc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzY4NDYsImV4cCI6MjA5MTAxMjg0Nn0.uXEh5YmZ2qV-lJ3qHhIAENpqC59kDd6uh6BLD7fubuQ"
 
 # AI (Zhipu GLM)
-AI_MODEL_PRIMARY = "GLM-4.5-Air"
-AI_MODEL_FAST = "GLM-4.5-Air"
+AI_MODEL_PRIMARY = "glm-4-airx"
+AI_MODEL_FAST = "glm-4-airx"
 AI_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4"
 
 # CORS

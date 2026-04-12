@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Card, Space, Typography, Spin, Alert } from 'antd';
+import { Input, Button, Card, Space, Typography, Spin } from 'antd';
 import { SendOutlined, RobotOutlined } from '@ant-design/icons';
+import ReactMarkdown from 'react-markdown';
 
 const { Text } = Typography;
 
@@ -9,19 +10,48 @@ interface Message {
   content: string;
   timestamp: Date;
   requiresConfirmation?: boolean;
-  confirmationPrompt?: string;
+  originalUserMessage?: string;
 }
 
 interface ChatPanelProps {
   sessionId?: string;
-  onConfirm?: (sessionId: string, originalMessage: string) => void;
+}
+
+/** Extract the human-readable text from the orchestrator response */
+function extractContent(response: Record<string, unknown>): string {
+  if (response.error) return `错误: ${response.error}`;
+
+  if (response.requiresConfirmation) {
+    return (response.confirmationPrompt as string) ?? '需要确认此操作，请点击"确认执行"按钮继续。';
+  }
+
+  if (response.schemaOutput) {
+    const s = response.schemaOutput as Record<string, unknown>;
+    return `已生成表单: **${s.schemaName}**\n\n${s.description ?? ''}`;
+  }
+
+  if (response.executionResult) {
+    const er = response.executionResult as Record<string, unknown>;
+    if (!er.success) return `执行失败: ${er.error ?? '未知错误'}`;
+    const result = er.result as Record<string, unknown> | undefined;
+    if (result?.text && typeof result.text === 'string' && result.text.trim()) {
+      return result.text.trim();
+    }
+      if (result) return JSON.stringify(result, null, 2);
+  }
+
+  if (response.pipeline === 'clarification') {
+    return (response.confirmationPrompt as string) ?? '请提供更多信息以便我理解您的需求。';
+  }
+
+  return JSON.stringify(response, null, 2);
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sid, setSid] = useState(initialSessionId ?? crypto.randomUUID());
+  const [sid] = useState(initialSessionId ?? crypto.randomUUID());
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,9 +61,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
   const sendMessage = async (text: string, confirmed = false) => {
     if (!text.trim()) return;
 
-    const userMsg: Message = { role: 'user', content: text, timestamp: new Date() };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+    if (!confirmed) {
+      setMessages((prev) => [...prev, { role: 'user', content: text, timestamp: new Date() }]);
+      setInput('');
+    }
     setLoading(true);
 
     try {
@@ -48,35 +79,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
       });
 
       const data = await res.json();
-      const response = data.data;
+      const response = data.data as Record<string, unknown>;
+      const content = extractContent(response);
 
-      let content = '';
-      if (response.error) {
-        content = `错误: ${response.error}`;
-      } else if (response.requiresConfirmation) {
-        content = response.confirmationPrompt ?? '需要确认此操作';
-      } else if (response.executionResult) {
-        content = typeof response.executionResult === 'string'
-          ? response.executionResult
-          : JSON.stringify(response.executionResult, null, 2);
-      } else if (response.schemaOutput) {
-        content = `已生成表单: ${response.schemaOutput.schemaName}`;
-      } else {
-        content = JSON.stringify(response, null, 2);
-      }
-
-      const assistantMsg: Message = {
+      setMessages((prev) => [...prev, {
         role: 'assistant',
         content,
         timestamp: new Date(),
-        requiresConfirmation: response.requiresConfirmation,
-        confirmationPrompt: response.confirmationPrompt,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err) {
+        requiresConfirmation: !!response.requiresConfirmation,
+        originalUserMessage: text,
+      }]);
+    } catch {
       setMessages((prev) => [...prev, {
         role: 'assistant',
-        content: '发生错误，请重试',
+        content: '发生网络错误，请重试',
         timestamp: new Date(),
       }]);
     } finally {
@@ -87,35 +103,56 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
   return (
     <Card
       title={<Space><RobotOutlined /> AI 助手</Space>}
-      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-      bodyStyle={{ flex: 1, overflow: 'auto', padding: '12px' }}
+      styles={{ body: { padding: '12px', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)' } }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 200, maxHeight: 500, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
         {messages.length === 0 && (
           <Text type="secondary" style={{ textAlign: 'center', paddingTop: 32 }}>
-            您好！我是 ERP AI 助手。请告诉我您需要什么帮助。
+            您好！我是 ERP AI 助手。请告诉我您需要什么帮助。<br />
+            <small>例如：查看采购订单、销售分析、库存情况...</small>
           </Text>
         )}
         {messages.map((msg, idx) => (
           <div key={idx} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
             <div
               style={{
-                maxWidth: '80%',
+                maxWidth: '85%',
                 padding: '8px 12px',
                 borderRadius: 8,
                 background: msg.role === 'user' ? '#1677ff' : '#f5f5f5',
                 color: msg.role === 'user' ? '#fff' : '#000',
-                whiteSpace: 'pre-wrap',
                 fontSize: 13,
+                lineHeight: 1.6,
               }}
             >
-              {msg.content}
-              {msg.requiresConfirmation && (
-                <div style={{ marginTop: 8 }}>
-                  <Button size="small" type="primary" onClick={() => sendMessage(messages.find(m => m.role === 'user')?.content ?? '', true)}>
-                    确认执行
-                  </Button>
+              {msg.role === 'assistant' ? (
+                <div style={{ overflowX: 'auto' }}>
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p style={{ margin: '4px 0' }}>{children}</p>,
+                      h3: ({ children }) => <h3 style={{ margin: '8px 0 4px', fontSize: 14 }}>{children}</h3>,
+                      h4: ({ children }) => <h4 style={{ margin: '6px 0 2px', fontSize: 13 }}>{children}</h4>,
+                      ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ul>,
+                      li: ({ children }) => <li style={{ margin: '2px 0' }}>{children}</li>,
+                      strong: ({ children }) => <strong>{children}</strong>,
+                      code: ({ children }) => <code style={{ background: '#e8e8e8', padding: '1px 4px', borderRadius: 3, fontSize: 12 }}>{children}</code>,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                  {msg.requiresConfirmation && (
+                    <Button
+                      size="small"
+                      type="primary"
+                      style={{ marginTop: 8 }}
+                      onClick={() => sendMessage(msg.originalUserMessage ?? '', true)}
+                    >
+                      确认执行
+                    </Button>
+                  )}
                 </div>
+              ) : (
+                <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
               )}
             </div>
           </div>
@@ -123,7 +160,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: 8 }}>
-              <Spin size="small" /> 思考中...
+              <Spin size="small" /> <span style={{ marginLeft: 8, fontSize: 13 }}>思考中...</span>
             </div>
           </div>
         )}
@@ -134,7 +171,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onPressEnter={() => sendMessage(input)}
-          placeholder="输入您的问题或指令..."
+          placeholder="输入您的问题或指令，例如：销售分析、查看采购订单..."
           disabled={loading}
         />
         <Button

@@ -1,0 +1,46 @@
+import React from 'react';
+import { useShow } from '@refinedev/core';
+import { Show, DateField } from '@refinedev/antd';
+import { Descriptions, Table, Divider } from 'antd';
+import { StatusTag } from '../../../components/shared/StatusTag';
+import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+
+export const SupplierInvoiceShow: React.FC = () => {
+  const { queryResult } = useShow({ resource: 'supplier-invoices' });
+  const record = queryResult.data?.data as any;
+
+  return (
+    <Show title={`供应商发票 ${record?.invoice_number ?? ''}`} isLoading={queryResult.isLoading}>
+      <Descriptions bordered size="small" column={2}>
+        <Descriptions.Item label="发票号">{record?.invoice_number}</Descriptions.Item>
+        <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
+        <Descriptions.Item label="供应商">{record?.supplier?.name}</Descriptions.Item>
+        <Descriptions.Item label="货币">{record?.currency}</Descriptions.Item>
+        <Descriptions.Item label="发票日期">
+          <DateField value={record?.invoice_date} format="YYYY-MM-DD" />
+        </Descriptions.Item>
+        <Descriptions.Item label="到期日">
+          <DateField value={record?.due_date} format="YYYY-MM-DD" />
+        </Descriptions.Item>
+        <Descriptions.Item label="合计">
+          <AmountDisplay value={record?.total_amount} currency={record?.currency} />
+        </Descriptions.Item>
+        {record?.notes && <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>}
+      </Descriptions>
+
+      {record?.items?.length > 0 && (
+        <>
+          <Divider>发票行</Divider>
+          <Table dataSource={record.items} rowKey="id" size="small" pagination={false}
+            columns={[
+              { dataIndex: ['product', 'name'], title: '产品' },
+              { dataIndex: 'qty', title: '数量', width: 80, align: 'right' },
+              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v, r: any) => <AmountDisplay value={v} currency={r.currency} /> },
+              { dataIndex: 'line_total', title: '行合计', width: 120, align: 'right', render: (v, r: any) => <AmountDisplay value={v} currency={r.currency} /> },
+            ]}
+          />
+        </>
+      )}
+    </Show>
+  );
+};

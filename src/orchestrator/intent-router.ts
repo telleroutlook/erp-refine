@@ -15,8 +15,10 @@ export function routeIntent(spec: RequirementSpec): RoutingDecision {
   const action = spec.action.toLowerCase();
 
   // Pure queries → only Intent + Execution (query-only tools)
-  const queryVerbs = ['get', 'list', 'search', 'query', 'check', 'view', 'show', 'find', 'report'];
-  if (queryVerbs.some((v) => action.startsWith(v))) {
+  const queryVerbs = ['get', 'list', 'search', 'query', 'check', 'view', 'show', 'find', 'report', 'analyze', 'summarize', 'summary', 'calculate', 'count', 'compare', 'forecast', 'review', 'track'];
+  const isQuery = queryVerbs.some((v) => action.startsWith(v) || action.includes(`_${v}`))
+    || action.includes('analysis') || action.includes('analytics') || action.includes('overview') || action.includes('dashboard');
+  if (isQuery) {
     return { pipeline: 'query', reason: 'Read-only action, no schema or write needed' };
   }
 

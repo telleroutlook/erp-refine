@@ -2,12 +2,13 @@
 // Schema Architect Agent — receives RequirementSpec → generates UI Schema Diff
 // Only operates within component whitelist, never touches business data
 
-import { generateObject } from 'ai';
+import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { BaseAgent, type AgentContext } from './base-agent';
 import type { RequirementSpec } from './intent-agent';
 import type { Env } from '../types/env';
+import { stripJsonFences } from '../utils/json-helpers';
 
 const FieldDefSchema = z.object({
   name: z.string(),
@@ -52,7 +53,8 @@ Rules:
 2. Output a valid RJSF-compatible JSON Schema
 3. Use jsonb_dynamic_vault for new custom forms, existing_table only for modifications to known tables
 4. Assess risk: low (new form fields), medium (modifying existing forms), high (financial fields, permissions)
-5. Never generate schema that bypasses RLS or accesses cross-organization data`;
+5. Never generate schema that bypasses RLS or accesses cross-organization data
+IMPORTANT: Respond ONLY with a valid JSON object, no markdown, no explanation.`;
 
 export class SchemaArchitectAgent extends BaseAgent {
   get name() { return 'schema-architect-agent'; }
@@ -68,13 +70,14 @@ export class SchemaArchitectAgent extends BaseAgent {
     });
 
     const result = await this.execute(async () => {
-      const { object } = await generateObject({
-        model: glm(env.AI_MODEL_PRIMARY ?? 'GLM-4.5-Air'),
-        schema: SchemaOutputSchema,
+      const { text } = await generateText({
+        model: glm.chat(env.AI_MODEL_PRIMARY ?? 'glm-4-airx'),
         system: SYSTEM_PROMPT,
         prompt: `Generate a UI Schema for this requirement:\n${JSON.stringify(spec, null, 2)}`,
       });
-      return object;
+      const cleaned = stripJsonFences(text);
+      const parsed = JSON.parse(cleaned);
+      return SchemaOutputSchema.parse(parsed);
     }, ctx);
 
     if (!result.success || !result.data) {

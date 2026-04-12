@@ -16,11 +16,52 @@ import { i18nProvider } from './providers/i18n-provider';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/auth/LoginPage';
 
-// Pages
+// Procurement
 import { PurchaseOrderList } from './pages/procurement/purchase-orders/list';
 import { PurchaseOrderShow } from './pages/procurement/purchase-orders/show';
+import { PurchaseOrderCreate } from './pages/procurement/purchase-orders/create';
+import { PurchaseOrderEdit } from './pages/procurement/purchase-orders/edit';
+import { SupplierList } from './pages/procurement/suppliers/list';
+import { SupplierShow } from './pages/procurement/suppliers/show';
+import { SupplierCreate } from './pages/procurement/suppliers/create';
+import { SupplierEdit } from './pages/procurement/suppliers/edit';
+import { PurchaseReceiptList } from './pages/procurement/purchase-receipts/list';
+import { PurchaseReceiptShow } from './pages/procurement/purchase-receipts/show';
+
+// Sales
 import { SalesOrderList } from './pages/sales/sales-orders/list';
+import { SalesOrderShow } from './pages/sales/sales-orders/show';
+import { CustomerList } from './pages/sales/customers/list';
+import { CustomerShow } from './pages/sales/customers/show';
+import { CustomerCreate } from './pages/sales/customers/create';
+import { CustomerEdit } from './pages/sales/customers/edit';
+import { SalesShipmentList } from './pages/sales/sales-shipments/list';
+import { SalesShipmentShow } from './pages/sales/sales-shipments/show';
+import { SalesReturnList } from './pages/sales/sales-returns/list';
+import { SalesReturnShow } from './pages/sales/sales-returns/show';
+
+// Inventory
 import { StockRecordList } from './pages/inventory/index';
+import { WarehouseList } from './pages/inventory/warehouses/list';
+import { WarehouseShow } from './pages/inventory/warehouses/show';
+import { WarehouseCreate } from './pages/inventory/warehouses/create';
+import { WarehouseEdit } from './pages/inventory/warehouses/edit';
+
+// Finance
+import { PaymentRequestList } from './pages/finance/payment-requests/list';
+import { PaymentRequestShow } from './pages/finance/payment-requests/show';
+import { SalesInvoiceList } from './pages/finance/sales-invoices/list';
+import { SalesInvoiceShow } from './pages/finance/sales-invoices/show';
+import { SupplierInvoiceList } from './pages/finance/supplier-invoices/list';
+import { SupplierInvoiceShow } from './pages/finance/supplier-invoices/show';
+
+// Master Data
+import { ProductList } from './pages/master-data/products/list';
+import { ProductShow } from './pages/master-data/products/show';
+import { ProductCreate } from './pages/master-data/products/create';
+import { ProductEdit } from './pages/master-data/products/edit';
+
+// AI
 import { ChatPanel } from './components/ai/ChatPanel';
 
 // Icons
@@ -30,6 +71,15 @@ import {
   InboxOutlined,
   AppstoreOutlined,
   RobotOutlined,
+  TeamOutlined,
+  UserOutlined,
+  CarOutlined,
+  RollbackOutlined,
+  FileTextOutlined,
+  DollarOutlined,
+  BankOutlined,
+  HomeOutlined,
+  FileDoneOutlined,
 } from '@ant-design/icons';
 
 const antdLocaleMap: Record<string, Locale> = { en: enUS, 'zh-CN': zhCN };
@@ -54,6 +104,7 @@ const App: React.FC = () => {
             authProvider={authProvider}
             i18nProvider={i18nProvider}
             resources={[
+              // Procurement
               { name: 'procurement' },
               {
                 name: 'purchase-orders',
@@ -61,46 +112,96 @@ const App: React.FC = () => {
                 show: '/procurement/purchase-orders/:id',
                 edit: '/procurement/purchase-orders/:id/edit',
                 create: '/procurement/purchase-orders/create',
-                meta: {
-                  parent: 'procurement',
-                  icon: <ShoppingCartOutlined />,
-                },
+                meta: { parent: 'procurement', icon: <ShoppingCartOutlined /> },
+              },
+              {
+                name: 'purchase-receipts',
+                list: '/procurement/purchase-receipts',
+                show: '/procurement/purchase-receipts/:id',
+                meta: { parent: 'procurement', icon: <FileDoneOutlined /> },
               },
               {
                 name: 'suppliers',
                 list: '/procurement/suppliers',
-                meta: { parent: 'procurement' },
+                show: '/procurement/suppliers/:id',
+                edit: '/procurement/suppliers/:id/edit',
+                create: '/procurement/suppliers/create',
+                meta: { parent: 'procurement', icon: <TeamOutlined /> },
               },
+              // Sales
               { name: 'sales' },
               {
                 name: 'sales-orders',
                 list: '/sales/sales-orders',
                 show: '/sales/sales-orders/:id',
-                meta: {
-                  parent: 'sales',
-                  icon: <ShopOutlined />,
-                },
+                meta: { parent: 'sales', icon: <ShopOutlined /> },
+              },
+              {
+                name: 'sales-shipments',
+                list: '/sales/sales-shipments',
+                show: '/sales/sales-shipments/:id',
+                meta: { parent: 'sales', icon: <CarOutlined /> },
+              },
+              {
+                name: 'sales-returns',
+                list: '/sales/sales-returns',
+                show: '/sales/sales-returns/:id',
+                meta: { parent: 'sales', icon: <RollbackOutlined /> },
               },
               {
                 name: 'customers',
                 list: '/sales/customers',
-                meta: { parent: 'sales' },
+                show: '/sales/customers/:id',
+                edit: '/sales/customers/:id/edit',
+                create: '/sales/customers/create',
+                meta: { parent: 'sales', icon: <UserOutlined /> },
               },
+              // Inventory
               { name: 'inventory' },
               {
                 name: 'stock-records',
                 list: '/inventory/stock-records',
-                meta: {
-                  parent: 'inventory',
-                  icon: <InboxOutlined />,
-                },
+                meta: { parent: 'inventory', icon: <InboxOutlined /> },
               },
+              {
+                name: 'warehouses',
+                list: '/inventory/warehouses',
+                show: '/inventory/warehouses/:id',
+                edit: '/inventory/warehouses/:id/edit',
+                create: '/inventory/warehouses/create',
+                meta: { parent: 'inventory', icon: <HomeOutlined /> },
+              },
+              // Finance
+              { name: 'finance' },
+              {
+                name: 'payment-requests',
+                list: '/finance/payment-requests',
+                show: '/finance/payment-requests/:id',
+                meta: { parent: 'finance', icon: <DollarOutlined /> },
+              },
+              {
+                name: 'sales-invoices',
+                list: '/finance/sales-invoices',
+                show: '/finance/sales-invoices/:id',
+                meta: { parent: 'finance', icon: <FileTextOutlined /> },
+              },
+              {
+                name: 'supplier-invoices',
+                list: '/finance/supplier-invoices',
+                show: '/finance/supplier-invoices/:id',
+                meta: { parent: 'finance', icon: <BankOutlined /> },
+              },
+              // Master Data
               { name: 'masterData' },
               {
                 name: 'products',
                 list: '/master-data/products',
+                show: '/master-data/products/:id',
+                edit: '/master-data/products/:id/edit',
+                create: '/master-data/products/create',
                 meta: { parent: 'masterData', icon: <AppstoreOutlined /> },
               },
+              // AI
               {
                 name: 'ai-chat',
                 list: '/ai/chat',
@@ -125,13 +226,48 @@ const App: React.FC = () => {
 
                 {/* Procurement */}
                 <Route path="/procurement/purchase-orders" element={<PurchaseOrderList />} />
+                <Route path="/procurement/purchase-orders/create" element={<PurchaseOrderCreate />} />
                 <Route path="/procurement/purchase-orders/:id" element={<PurchaseOrderShow />} />
+                <Route path="/procurement/purchase-orders/:id/edit" element={<PurchaseOrderEdit />} />
+                <Route path="/procurement/purchase-receipts" element={<PurchaseReceiptList />} />
+                <Route path="/procurement/purchase-receipts/:id" element={<PurchaseReceiptShow />} />
+                <Route path="/procurement/suppliers" element={<SupplierList />} />
+                <Route path="/procurement/suppliers/create" element={<SupplierCreate />} />
+                <Route path="/procurement/suppliers/:id" element={<SupplierShow />} />
+                <Route path="/procurement/suppliers/:id/edit" element={<SupplierEdit />} />
 
                 {/* Sales */}
                 <Route path="/sales/sales-orders" element={<SalesOrderList />} />
+                <Route path="/sales/sales-orders/:id" element={<SalesOrderShow />} />
+                <Route path="/sales/sales-shipments" element={<SalesShipmentList />} />
+                <Route path="/sales/sales-shipments/:id" element={<SalesShipmentShow />} />
+                <Route path="/sales/sales-returns" element={<SalesReturnList />} />
+                <Route path="/sales/sales-returns/:id" element={<SalesReturnShow />} />
+                <Route path="/sales/customers" element={<CustomerList />} />
+                <Route path="/sales/customers/create" element={<CustomerCreate />} />
+                <Route path="/sales/customers/:id" element={<CustomerShow />} />
+                <Route path="/sales/customers/:id/edit" element={<CustomerEdit />} />
 
                 {/* Inventory */}
                 <Route path="/inventory/stock-records" element={<StockRecordList />} />
+                <Route path="/inventory/warehouses" element={<WarehouseList />} />
+                <Route path="/inventory/warehouses/create" element={<WarehouseCreate />} />
+                <Route path="/inventory/warehouses/:id" element={<WarehouseShow />} />
+                <Route path="/inventory/warehouses/:id/edit" element={<WarehouseEdit />} />
+
+                {/* Finance */}
+                <Route path="/finance/payment-requests" element={<PaymentRequestList />} />
+                <Route path="/finance/payment-requests/:id" element={<PaymentRequestShow />} />
+                <Route path="/finance/sales-invoices" element={<SalesInvoiceList />} />
+                <Route path="/finance/sales-invoices/:id" element={<SalesInvoiceShow />} />
+                <Route path="/finance/supplier-invoices" element={<SupplierInvoiceList />} />
+                <Route path="/finance/supplier-invoices/:id" element={<SupplierInvoiceShow />} />
+
+                {/* Master Data */}
+                <Route path="/master-data/products" element={<ProductList />} />
+                <Route path="/master-data/products/create" element={<ProductCreate />} />
+                <Route path="/master-data/products/:id" element={<ProductShow />} />
+                <Route path="/master-data/products/:id/edit" element={<ProductEdit />} />
 
                 {/* AI */}
                 <Route

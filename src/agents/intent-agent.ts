@@ -2,11 +2,12 @@
 // Intent Agent — parses user natural language into a structured RequirementSpec
 // Does NOT touch UI or business data
 
-import { generateObject } from 'ai';
+import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { BaseAgent, type AgentContext } from './base-agent';
 import type { Env } from '../types/env';
+import { stripJsonFences } from '../utils/json-helpers';
 
 const RequirementSpecSchema = z.object({
   intent: z.string().describe('Primary action the user wants to accomplish'),
@@ -22,10 +23,19 @@ const RequirementSpecSchema = z.object({
 
 export type RequirementSpec = z.infer<typeof RequirementSpecSchema>;
 
-const SYSTEM_PROMPT = `You are an ERP Intent Agent. Your sole job is to parse user natural language into a structured requirement specification.
+const SYSTEM_PROMPT = `You are an ERP Intent Agent. Parse user natural language into a structured JSON requirement specification.
 You understand enterprise business processes: procurement (P2P), sales (O2C), inventory, finance, quality, and manufacturing.
-Return a structured spec without touching any business data or UI.
-Be concise and accurate. For ambiguous requests, set clarificationNeeded=true.`;
+IMPORTANT: Respond ONLY with a valid JSON object, no markdown, no explanation.
+
+Required JSON fields:
+- intent: string (what user wants)
+- domain: one of [procurement, sales, inventory, finance, quality, manufacturing, master-data, reporting, system]
+- action: string (verb like list_sales_orders, analyze_sales, create_purchase_order)
+- entity: string (business entity like sales_order, purchase_order, invoice)
+- confidence: number 0-1
+- clarificationNeeded: boolean
+- clarificationQuestion: string (only if clarificationNeeded is true)
+- parameters: object (optional, extracted filters/values)`;
 
 export class IntentAgent extends BaseAgent {
   get name() { return 'intent-agent'; }
@@ -41,13 +51,19 @@ export class IntentAgent extends BaseAgent {
     });
 
     const result = await this.execute(async () => {
-      const { object } = await generateObject({
-        model: glm(env.AI_MODEL_FAST ?? 'GLM-4.5-Air'),
-        schema: RequirementSpecSchema,
+      const { text } = await generateText({
+        model: glm.chat(env.AI_MODEL_FAST ?? 'glm-4-airx'),
         system: SYSTEM_PROMPT,
-        prompt: `Parse this user request: "${message}"\n\nContext: organizationId=${ctx.organizationId}, role=${ctx.role}`,
+        prompt: `Parse this user request into JSON: "${message}"\n\nContext: organizationId=${ctx.organizationId}, role=${ctx.role}`,
+        providerOptions: {
+          openai: { response_format: { type: 'json_object' } },
+        },
       });
-      return object;
+
+      // Strip markdown code fences if present
+      const cleaned = stripJsonFences(text);
+      const parsed = JSON.parse(cleaned);
+      return RequirementSpecSchema.parse(parsed);
     }, ctx);
 
     if (!result.success || !result.data) {

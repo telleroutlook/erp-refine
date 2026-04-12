@@ -1,0 +1,38 @@
+import React from 'react';
+import { useTable, List, DateField } from '@refinedev/antd';
+import { Table, Button } from 'antd';
+import { EyeOutlined } from '@ant-design/icons';
+import { useNavigation } from '@refinedev/core';
+import { useTranslation } from 'react-i18next';
+import { StatusTag } from '../../../components/shared/StatusTag';
+import { SOFT_DELETE_FILTER } from '../../../utils/filters';
+
+export const SalesShipmentList: React.FC = () => {
+  const { t } = useTranslation();
+  const { show } = useNavigation();
+
+  const { tableProps } = useTable({
+    resource: 'sales-shipments',
+    filters: SOFT_DELETE_FILTER,
+    sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
+  });
+
+  return (
+    <List title={t('menu.salesShipments')}>
+      <Table {...tableProps} rowKey="id" size="small">
+        <Table.Column dataIndex="shipment_number" title="发货单号" width={160} />
+        <Table.Column dataIndex={['sales_order', 'order_number']} title="销售订单号" width={160} />
+        <Table.Column dataIndex={['customer', 'name']} title="客户" />
+        <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
+        <Table.Column dataIndex="shipment_date" title="发货日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column
+          title={t('common.actions')}
+          width={80}
+          render={(_, r: any) => (
+            <Button size="small" icon={<EyeOutlined />} onClick={() => show('sales-shipments', r.id)} />
+          )}
+        />
+      </Table>
+    </List>
+  );
+};

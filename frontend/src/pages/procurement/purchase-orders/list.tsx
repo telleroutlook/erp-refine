@@ -1,28 +1,34 @@
 import React from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
 import { Table, Button, Space } from 'antd';
-import { EyeOutlined, EditOutlined } from '@ant-design/icons';
+import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const PurchaseOrderList: React.FC = () => {
   const { t } = useTranslation();
-  const { show, edit } = useNavigation();
+  const { show, edit, create } = useNavigation();
 
   const { tableProps } = useTable({
     resource: 'purchase-orders',
-    filters: {
-      permanent: [{ field: 'deleted_at', operator: 'null', value: true }],
-    },
+    filters: SOFT_DELETE_FILTER,
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
 
   return (
-    <List title={t('menu.purchaseOrders')}>
+    <List
+      title={t('menu.purchaseOrders')}
+      headerButtons={
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => create('purchase-orders')}>
+          {t('buttons.create')}
+        </Button>
+      }
+    >
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="order_number" title="订单号" width={160} />
         <Table.Column

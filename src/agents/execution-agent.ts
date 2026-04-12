@@ -27,13 +27,15 @@ export interface ExecutionResponse {
   error?: string;
 }
 
-const SYSTEM_PROMPT = `You are an ERP Execution Agent. You execute business operations through registered tools.
-Rules:
-1. Only call tools that are registered and available
-2. Always verify the action has been confirmed/approved before executing writes
-3. Never modify Schema or generate UI
-4. Use the minimum required permissions
-5. If unsure, return an error rather than guessing`;
+const SYSTEM_PROMPT = `You are an ERP Execution Agent. Your job is to fulfill the user's request by calling the available tools.
+
+CRITICAL RULES:
+1. You MUST call at least one tool to fulfill the request. Never just describe what tools exist.
+2. If the exact tool name doesn't match the action, find the closest matching tool and call it.
+3. Map intents to tools: "analyze_sales" or "sales_analysis" → call get_sales_summary; "analyze_procurement" → get_procurement_summary; "inventory_valuation" → get_inventory_valuation.
+4. For query/analysis requests, always call the most relevant tool immediately.
+5. Never say "I don't see a tool named X" — instead pick the best matching tool and call it.
+6. Return results in Chinese when the user's message is in Chinese.`;
 
 export class ExecutionAgent extends BaseAgent {
   get name() { return 'execution-agent'; }
@@ -88,10 +90,11 @@ export class ExecutionAgent extends BaseAgent {
     });
 
     const agentResult = await super.execute(async () => {
+      const availableTools = Object.keys(tools).join(', ');
       const { text, toolResults } = await generateText({
-        model: glm(env.AI_MODEL_PRIMARY ?? 'GLM-4.5-Air'),
+        model: glm.chat(env.AI_MODEL_PRIMARY ?? 'glm-4-airx'),
         system: SYSTEM_PROMPT,
-        prompt: `Execute action: ${request.action}\nParameters: ${JSON.stringify(request.parameters, null, 2)}\nOrganization: ${ctx.organizationId}`,
+        prompt: `Available tools: ${availableTools}\n\nAction requested: ${request.action}\nDomain: ${request.domain}\nParameters: ${JSON.stringify(request.parameters, null, 2)}\nOrganization: ${ctx.organizationId}\n\nCall the most relevant tool now.`,
         tools,
         stopWhen: stepCountIs(5),
       });
