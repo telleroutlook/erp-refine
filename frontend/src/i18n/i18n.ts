@@ -12,7 +12,7 @@ i18n
       'zh-CN': { translation: zhCN },
       en: { translation: en },
     },
-    fallbackLng: 'zh-CN',
+    fallbackLng: 'en',
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
