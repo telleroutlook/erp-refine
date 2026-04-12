@@ -75,7 +75,7 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
       itemsTable: 'purchase_receipt_items',
       headerFk: 'purchase_receipt_id',
       headerReturnSelect: 'id, receipt_number, status',
-      itemsReturnSelect: 'id, product_id, qty',
+      itemsReturnSelect: 'id, product_id, quantity',
     },
     {
       header: {
@@ -158,7 +158,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       organizationId: user.organizationId,
       warehouseId: receipt.warehouse_id,
       productId: item.product_id,
-      qtyDelta: item.qty,
+      qtyDelta: item.quantity,
     }, requestId);
 
     // 3b. Record stock transaction
@@ -167,7 +167,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       warehouseId: receipt.warehouse_id,
       productId: item.product_id,
       transactionType: 'in',
-      qty: item.qty,
+      qty: item.quantity,
       referenceType: 'purchase_receipt',
       referenceId: receipt.id,
       createdBy: user.userId,
@@ -179,7 +179,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
         p_table: 'purchase_order_items',
         p_id: item.purchase_order_item_id,
         p_field: 'received_quantity',
-        p_delta: item.qty,
+        p_delta: item.quantity,
       }).single();
 
       // Fallback: manual update if RPC not available
@@ -193,7 +193,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
         if (poItem) {
           await db
             .from('purchase_order_items')
-            .update({ received_quantity: (poItem.received_quantity ?? 0) + item.qty })
+            .update({ received_quantity: (poItem.received_quantity ?? 0) + item.quantity })
             .eq('id', poItem.id);
         }
       }
@@ -216,15 +216,15 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
   if (receipt.purchase_order_id) {
     const { data: poItems } = await db
       .from('purchase_order_items')
-      .select('id, qty, received_quantity')
+      .select('id, quantity, received_quantity')
       .eq('purchase_order_id', receipt.purchase_order_id);
 
     if (poItems && poItems.length > 0) {
       const allReceived = poItems.every(
-        (poi: { qty: number; received_quantity: number }) => (poi.received_quantity ?? 0) >= poi.qty
+        (poi: { quantity: number; received_quantity: number }) => (poi.received_quantity ?? 0) >= poi.quantity
       );
       const someReceived = poItems.some(
-        (poi: { qty: number; received_quantity: number }) => (poi.received_quantity ?? 0) > 0
+        (poi: { quantity: number; received_quantity: number }) => (poi.received_quantity ?? 0) > 0
       );
 
       let poStatus: string | undefined;
@@ -310,7 +310,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
       itemsTable: 'supplier_invoice_items',
       headerFk: 'supplier_invoice_id',
       headerReturnSelect: 'id, invoice_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
@@ -404,7 +404,7 @@ procurementReceiving.post('/three-way-match', async (c) => {
   // 2. Look up receipt total (sum of item qty * unit_price from PO items)
   const { data: receiptItems, error: rcptErr } = await db
     .from('purchase_receipt_items')
-    .select('qty, purchase_order_item_id')
+    .select('quantity, purchase_order_item_id')
     .eq('purchase_receipt_id', purchase_receipt_id);
 
   if (rcptErr) throw ApiError.database(rcptErr.message, requestId);
@@ -427,7 +427,7 @@ procurementReceiving.post('/three-way-match', async (c) => {
 
       for (const ri of receiptItems) {
         const unitPrice = priceMap.get(ri.purchase_order_item_id) ?? 0;
-        receiptAmount += ri.qty * unitPrice;
+        receiptAmount += ri.quantity * unitPrice;
       }
     }
   }

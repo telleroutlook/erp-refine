@@ -75,7 +75,7 @@ salesFinance.post('/sales-invoices', async (c) => {
       itemsTable: 'sales_invoice_items',
       headerFk: 'sales_invoice_id',
       headerReturnSelect: 'id, invoice_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
@@ -188,7 +188,7 @@ salesFinance.post('/sales-returns', async (c) => {
       itemsTable: 'sales_return_items',
       headerFk: 'sales_return_id',
       headerReturnSelect: 'id, return_number, status',
-      itemsReturnSelect: 'id, product_id, qty',
+      itemsReturnSelect: 'id, product_id, quantity',
     },
     {
       header: {
@@ -271,7 +271,7 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
       organizationId: user.organizationId,
       warehouseId: salesReturn.warehouse_id,
       productId: item.product_id,
-      qtyDelta: item.qty,
+      qtyDelta: item.quantity,
     }, requestId);
 
     // 3b. Record stock transaction
@@ -280,7 +280,7 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
       warehouseId: salesReturn.warehouse_id,
       productId: item.product_id,
       transactionType: 'in',
-      qty: item.qty,
+      qty: item.quantity,
       referenceType: 'sales_return',
       referenceId: salesReturn.id,
       createdBy: user.userId,

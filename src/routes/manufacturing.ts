@@ -64,7 +64,7 @@ manufacturing.post('/bom-headers', async (c) => {
     itemsTable: 'bom_items',
     headerFk: 'bom_header_id',
     headerReturnSelect: 'id, bom_number',
-    itemsReturnSelect: 'id, product_id, qty, unit, scrap_rate, sequence',
+    itemsReturnSelect: 'id, product_id, quantity, unit, scrap_rate, sequence',
   }, {
     header: {
       ...headerFields,
@@ -160,7 +160,7 @@ manufacturing.post('/work-orders', async (c) => {
   if (body.bom_header_id) {
     const { data: bom, error: bomError } = await db
       .from('bom_items')
-      .select('product_id, qty, unit, scrap_rate, sequence')
+      .select('product_id, quantity, unit, scrap_rate, sequence')
       .eq('bom_header_id', body.bom_header_id);
 
     if (bomError) throw ApiError.database(`Failed to fetch BOM items: ${bomError.message}`, requestId);
@@ -188,7 +188,7 @@ manufacturing.post('/work-orders', async (c) => {
     const materials = bomItems.map((item: any, idx: number) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
-      required_qty: item.qty * (body.planned_qty ?? 1),
+      required_qty: item.quantity * (body.planned_qty ?? 1),
       issued_qty: 0,
       unit: item.unit,
       scrap_rate: item.scrap_rate,

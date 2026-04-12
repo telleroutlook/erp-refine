@@ -71,7 +71,7 @@ sales.post('/sales-orders', async (c) => {
       itemsTable: 'sales_order_items',
       headerFk: 'sales_order_id',
       headerReturnSelect: 'id, order_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
@@ -137,9 +137,9 @@ const soItemsConfig: CrudConfig = {
   table: 'sales_order_items',
   path: '/sales-order-items',
   resourceName: 'SalesOrderItem',
-  listSelect: 'id, line_no, qty, shipped_quantity, invoiced_quantity, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, shipped_quantity, invoiced_quantity, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, qty, unit_price',
+  createReturnSelect: 'id, line_no, quantity, unit_price',
   defaultSort: 'line_no',
   softDelete: false,
   orgScoped: false,
@@ -247,7 +247,7 @@ sales.post('/sales-shipments', async (c) => {
       itemsTable: 'sales_shipment_items',
       headerFk: 'sales_shipment_id',
       headerReturnSelect: 'id, shipment_number, status',
-      itemsReturnSelect: 'id, product_id, qty',
+      itemsReturnSelect: 'id, product_id, quantity',
     },
     {
       header: {
@@ -336,7 +336,7 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       organizationId: user.organizationId,
       warehouseId: shipment.warehouse_id,
       productId: item.product_id,
-      qtyDelta: -item.qty,
+      qtyDelta: -item.quantity,
     }, requestId);
 
     // 3b. Record stock transaction
@@ -345,7 +345,7 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       warehouseId: shipment.warehouse_id,
       productId: item.product_id,
       transactionType: 'out',
-      qty: item.qty,
+      qty: item.quantity,
       referenceType: 'sales_shipment',
       referenceId: shipment.id,
       createdBy: user.userId,
@@ -357,7 +357,7 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
         p_table: 'sales_order_items',
         p_id: item.sales_order_item_id,
         p_field: 'shipped_quantity',
-        p_delta: item.qty,
+        p_delta: item.quantity,
       }).single();
 
       // Fallback: manual update if RPC not available
@@ -371,7 +371,7 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
         if (soItem) {
           await db
             .from('sales_order_items')
-            .update({ shipped_quantity: (soItem.shipped_quantity ?? 0) + item.qty })
+            .update({ shipped_quantity: (soItem.shipped_quantity ?? 0) + item.quantity })
             .eq('id', soItem.id);
         }
       }
@@ -394,15 +394,15 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
   if (shipment.sales_order_id) {
     const { data: soItems } = await db
       .from('sales_order_items')
-      .select('id, qty, shipped_quantity')
+      .select('id, quantity, shipped_quantity')
       .eq('sales_order_id', shipment.sales_order_id);
 
     if (soItems && soItems.length > 0) {
       const allShipped = soItems.every(
-        (si: { qty: number; shipped_quantity: number }) => (si.shipped_quantity ?? 0) >= si.qty
+        (si: { quantity: number; shipped_quantity: number }) => (si.shipped_quantity ?? 0) >= si.quantity
       );
       const someShipped = soItems.some(
-        (si: { qty: number; shipped_quantity: number }) => (si.shipped_quantity ?? 0) > 0
+        (si: { quantity: number; shipped_quantity: number }) => (si.shipped_quantity ?? 0) > 0
       );
 
       let soStatus: string | undefined;
