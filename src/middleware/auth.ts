@@ -91,8 +91,7 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
       c.set('user', user);
       await next();
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[auth] JWT verification failed: ${errMsg}`);
+      const errMsg = err instanceof Error ? `${err.name}: ${err.message}` : JSON.stringify(err);
       return c.json({ error: 'Invalid or expired token', debug: errMsg }, 401);
     }
   };
