@@ -325,8 +325,8 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
 
   if (fetchError || !shipment) throw ApiError.notFound('SalesShipment', id, requestId);
 
-  // 2. Validate status (must be 'picked' or 'packed')
-  if (shipment.status !== 'picked' && shipment.status !== 'packed') {
+  // 2. Validate status (must be 'draft' or 'confirmed')
+  if (shipment.status !== 'draft' && shipment.status !== 'confirmed') {
     throw ApiError.invalidState('SalesShipment', shipment.status, 'confirm', requestId);
   }
 

@@ -54,7 +54,7 @@ export async function runPhase4(
     // Create receipt with same items
     const receiptItems = poItems.map((item: any) => ({
       product_id: item.product_id,
-      qty: item.qty, // receive full qty
+      quantity: item.quantity ?? item.qty, // receive full qty
       purchase_order_item_id: item.id,
     }));
 
@@ -116,7 +116,7 @@ export async function runPhase4(
     // Create shipment
     const shipmentItems = soItems.map((item: any) => ({
       product_id: item.product_id,
-      qty: item.qty ?? item.quantity, // ship full qty
+      quantity: item.quantity ?? item.qty, // ship full qty
       sales_order_item_id: item.id,
     }));
 
@@ -130,17 +130,10 @@ export async function runPhase4(
       items: shipmentItems,
     }, { phase: 'phase4', entity: 'sales-shipment', index: 0 });
 
-    if (!shipResp?.data) { progress.tick(false); progress.tick(false); progress.tick(false); continue; }
+    if (!shipResp?.data) { progress.tick(false); progress.tick(false); continue; }
     progress.tick(true);
 
-    // Update to 'packed' status (required before confirm)
-    const packResp = await client.safePut(`/api/sales-shipments/${shipResp.data.id}`, { status: 'packed' }, {
-      phase: 'phase4', entity: 'shipment-pack', index: 0,
-    });
-    if (!packResp) { progress.tick(false); progress.tick(false); continue; }
-    progress.tick(true);
-
-    // Confirm shipment (triggers stock OUT)
+    // Confirm shipment directly (triggers stock OUT)
     const confirmResp = await client.safePost(`/api/sales-shipments/${shipResp.data.id}/confirm`, {}, {
       phase: 'phase4', entity: 'shipment-confirm', index: 0,
     });
