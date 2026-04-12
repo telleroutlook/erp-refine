@@ -19,16 +19,16 @@ interface QuickUser {
 
 const QUICK_USERS: QuickUser[] = [
   // Org 1: 默认组织 / Default Org
-  { email: 'admin@erp.demo',      password: 'Demo1234!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'admin',              roleLabel: 'Admin',              roleColor: 'red' },
-  { email: 'manager@erp.demo',    password: 'Demo1234!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'manager',            roleLabel: 'Manager',            roleColor: 'orange' },
-  { email: 'sales@erp.demo',      password: 'Demo1234!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'sales_manager',      roleLabel: 'Sales Mgr',          roleColor: 'blue' },
-  { email: 'purchasing@erp.demo', password: 'Demo1234!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'procurement_manager', roleLabel: 'Procurement Mgr',   roleColor: 'purple' },
-  { email: 'finance@erp.demo',    password: 'Demo1234!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'finance_manager',    roleLabel: 'Finance Mgr',        roleColor: 'gold' },
-  { email: 'warehouse@erp.demo',  password: 'Demo1234!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'inventory_manager',  roleLabel: 'Inventory Mgr',      roleColor: 'cyan' },
+  { email: 'admin@erp.demo',      password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'admin',              roleLabel: 'Admin',              roleColor: 'red' },
+  { email: 'manager@erp.demo',    password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'manager',            roleLabel: 'Manager',            roleColor: 'orange' },
+  { email: 'sales@erp.demo',      password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'sales_manager',      roleLabel: 'Sales Mgr',          roleColor: 'blue' },
+  { email: 'purchasing@erp.demo', password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'procurement_manager', roleLabel: 'Procurement Mgr',   roleColor: 'purple' },
+  { email: 'finance@erp.demo',    password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'finance_manager',    roleLabel: 'Finance Mgr',        roleColor: 'gold' },
+  { email: 'warehouse@erp.demo',  password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'inventory_manager',  roleLabel: 'Inventory Mgr',      roleColor: 'cyan' },
   // Org 2: Tech Innovation Inc
-  { email: 'admin@tech.demo',     password: 'Demo1234!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'admin',            roleLabel: 'Admin',              roleColor: 'red' },
-  { email: 'finance@tech.demo',   password: 'Demo1234!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'finance_manager',  roleLabel: 'Finance Mgr',        roleColor: 'gold' },
-  { email: 'sales@tech.demo',     password: 'Demo1234!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'sales_manager',    roleLabel: 'Sales Mgr',          roleColor: 'blue' },
+  { email: 'admin@tech.demo',     password: 'Admin2026!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'admin',            roleLabel: 'Admin',              roleColor: 'red' },
+  { email: 'finance@tech.demo',   password: 'Admin2026!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'finance_manager',  roleLabel: 'Finance Mgr',        roleColor: 'gold' },
+  { email: 'sales@tech.demo',     password: 'Admin2026!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'sales_manager',    roleLabel: 'Sales Mgr',          roleColor: 'blue' },
 ];
 
 const ROLE_I18N: Record<string, { en: string; zh: string }> = {
@@ -158,7 +158,7 @@ export const LoginPage: React.FC = () => {
               <Divider style={{ margin: '8px 0 4px' }} />
               <Text type="secondary" style={{ fontSize: 11 }}>
                 {t('All demo accounts use password: ', '所有演示账号密码：')}
-                <Text code style={{ fontSize: 11 }}>Demo1234!</Text>
+                <Text code style={{ fontSize: 11 }}>Admin2026!</Text>
               </Text>
             </Card>
           </Col>
