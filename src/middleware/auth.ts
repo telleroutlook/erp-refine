@@ -3,7 +3,7 @@
 // Supports both HS256 (legacy JWT secret) and ES256 (JWKS) verification
 
 import type { Context, MiddlewareHandler, Next } from 'hono';
-import { jwtVerify, importSPKI, importJWK, createRemoteJWKSet, type JWTVerifyResult } from 'jose';
+import { jwtVerify, importJWK, type JWTVerifyResult, type KeyLike } from 'jose';
 import type { Env } from '../types/env';
 
 export interface UserContext {
@@ -20,8 +20,27 @@ declare module 'hono' {
   }
 }
 
-// Cache the JWKS fetch to avoid repeated network calls
-let cachedJWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
+// Cache imported key (not the raw JWKS — the actual CryptoKey)
+let cachedKey: KeyLike | null = null;
+let cachedKeyKid: string | null = null;
+
+async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> {
+  if (cachedKey && cachedKeyKid === kid) {
+    return cachedKey;
+  }
+
+  const jwksUrl = new URL('/auth/v1/.well-known/jwks.json', supabaseUrl);
+  const resp = await fetch(jwksUrl.toString());
+  if (!resp.ok) throw new Error(`JWKS fetch failed: ${resp.status}`);
+  const jwks = await resp.json() as { keys: Array<Record<string, unknown>> };
+
+  const jwk = jwks.keys.find((k: any) => k.kid === kid);
+  if (!jwk) throw new Error(`JWK with kid '${kid}' not found`);
+
+  cachedKey = (await importJWK(jwk as any, 'ES256')) as KeyLike;
+  cachedKeyKid = kid;
+  return cachedKey;
+}
 
 export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
   return async (c: Context<{ Bindings: Env }>, next: Next) => {
@@ -43,21 +62,17 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
         // Legacy: HS256 with shared secret
         const secret = new TextEncoder().encode(c.env.JWT_SECRET);
         result = await jwtVerify(token, secret, { algorithms: ['HS256'] });
-      } else {
-        // ES256 / asymmetric: verify via Supabase JWKS endpoint
+      } else if (header.alg === 'ES256') {
+        // ES256: verify using JWKS from Supabase
         const supabaseUrl = c.env.SUPABASE_URL;
         if (!supabaseUrl) {
           return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
         }
 
-        const jwksUrl = new URL('/auth/v1/.well-known/jwks.json', supabaseUrl);
-        if (!cachedJWKS) {
-          cachedJWKS = createRemoteJWKSet(jwksUrl);
-        }
-
-        result = await jwtVerify(token, cachedJWKS, {
-          algorithms: ['ES256'],
-        });
+        const key = await getVerifyKey(supabaseUrl, header.kid);
+        result = await jwtVerify(token, key, { algorithms: ['ES256'] });
+      } else {
+        return c.json({ error: `Unsupported JWT algorithm: ${header.alg}` }, 401);
       }
 
       const { payload } = result;
