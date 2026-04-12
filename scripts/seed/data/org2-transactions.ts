@@ -60,7 +60,7 @@ export function generateOrg2PurchaseOrders(reg: IdRegistry): Array<Record<string
 
 export function generateOrg2SalesOrders(reg: IdRegistry): Array<Record<string, unknown>> {
   const products = org2ProductInfos();
-  const finishedGoods = products.filter((p) => p.type === 'finished_good');
+  const finishedGoods = products.filter((p) => p.type === 'product');
   const customerCodes = ['TC01', 'TC02', 'TC03', 'TC04', 'TC05', 'TC06', 'TC07', 'TC08'];
   const months = getShortHistoryMonths();
   const orders: Array<Record<string, unknown>> = [];
@@ -116,7 +116,7 @@ export function generateOrg2StockRecords(reg: IdRegistry): Array<Record<string, 
   for (const prod of products) {
     const qty = prod.type === 'material'
       ? randomInt(200, 1000)
-      : prod.type === 'finished_good'
+      : prod.type === 'product'
         ? randomInt(10, 50)
         : randomInt(50, 150);
     const reserved = Math.floor(qty * Math.random() * 0.1);

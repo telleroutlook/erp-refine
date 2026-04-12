@@ -95,7 +95,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   employees: {
     table: 'employees',
     returnSelect: 'id, employee_number, name',
-    requiredFields: ['name', 'email'],
+    requiredFields: ['name', 'email', 'position', 'employee_number'],
     uniqueKey: ['email', 'organization_id'],
     references: { department_id: 'departments' },
   },
@@ -130,7 +130,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   suppliers: {
     table: 'suppliers',
     returnSelect: 'id, code, name',
-    requiredFields: ['code', 'name'],
+    requiredFields: ['code', 'name', 'supplier_type'],
     uniqueKey: ['code', 'organization_id'],
   },
   'supplier-sites': {
@@ -142,7 +142,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   warehouses: {
     table: 'warehouses',
     returnSelect: 'id, code, name',
-    requiredFields: ['code', 'name'],
+    requiredFields: ['code', 'name', 'type'],
     uniqueKey: ['code', 'organization_id'],
   },
   'storage-locations': {

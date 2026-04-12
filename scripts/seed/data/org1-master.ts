@@ -23,24 +23,25 @@ export function org1Departments() {
 
 export function org1Employees() {
   return [
-    { name: '张伟', email: 'zhangwei@demo.com', phone: '13800001001', position: '总经理', employee_number: 'EMP001' },
-    { name: '李娜', email: 'lina@demo.com', phone: '13800001002', position: '财务总监', employee_number: 'EMP002' },
-    { name: '王强', email: 'wangqiang@demo.com', phone: '13800001003', position: '销售经理', employee_number: 'EMP003' },
-    { name: '赵敏', email: 'zhaomin@demo.com', phone: '13800001004', position: '采购经理', employee_number: 'EMP004' },
-    { name: '陈刚', email: 'chengang@demo.com', phone: '13800001005', position: '仓库主管', employee_number: 'EMP005' },
-    { name: '刘洋', email: 'liuyang@demo.com', phone: '13800001006', position: '生产主管', employee_number: 'EMP006' },
-    { name: '孙丽', email: 'sunli@demo.com', phone: '13800001007', position: '质检主管', employee_number: 'EMP007' },
-    { name: '周磊', email: 'zhoulei@demo.com', phone: '13800001008', position: '国内销售代表', employee_number: 'EMP008' },
-    { name: '吴芳', email: 'wufang@demo.com', phone: '13800001009', position: '应付会计', employee_number: 'EMP009' },
-    { name: '郑浩', email: 'zhenghao@demo.com', phone: '13800001010', position: '采购专员', employee_number: 'EMP010' },
-    { name: '黄薇', email: 'huangwei@demo.com', phone: '13800001011', position: '应收会计', employee_number: 'EMP011' },
-    { name: '马腾', email: 'mateng@demo.com', phone: '13800001012', position: '外贸业务员', employee_number: 'EMP012' },
-    { name: '许杰', email: 'xujie@demo.com', phone: '13800001013', position: '车间组长', employee_number: 'EMP013' },
-    { name: '徐静', email: 'xujing@demo.com', phone: '13800001014', position: '质检员', employee_number: 'EMP014' },
-    { name: '韩涛', email: 'hantao@demo.com', phone: '13800001015', position: '仓管员', employee_number: 'EMP015' },
-    { name: '曹勇', email: 'caoyong@demo.com', phone: '13800001016', position: '研发工程师', employee_number: 'EMP016' },
-    { name: '谢莉', email: 'xieli@demo.com', phone: '13800001017', position: '行政助理', employee_number: 'EMP017' },
-    { name: '邓鹏', email: 'dengpeng@demo.com', phone: '13800001018', position: '设备技术员', employee_number: 'EMP018' },
+    // position must be one of: admin, manager, sales, purchasing, inventory, finance, production, user
+    { name: '张伟', email: 'zhangwei@demo.com', phone: '13800001001', position: 'admin', employee_number: 'EMP001' },       // 总经理
+    { name: '李娜', email: 'lina@demo.com', phone: '13800001002', position: 'finance', employee_number: 'EMP002' },         // 财务总监
+    { name: '王强', email: 'wangqiang@demo.com', phone: '13800001003', position: 'sales', employee_number: 'EMP003' },      // 销售经理
+    { name: '赵敏', email: 'zhaomin@demo.com', phone: '13800001004', position: 'purchasing', employee_number: 'EMP004' },   // 采购经理
+    { name: '陈刚', email: 'chengang@demo.com', phone: '13800001005', position: 'inventory', employee_number: 'EMP005' },   // 仓库主管
+    { name: '刘洋', email: 'liuyang@demo.com', phone: '13800001006', position: 'production', employee_number: 'EMP006' },   // 生产主管
+    { name: '孙丽', email: 'sunli@demo.com', phone: '13800001007', position: 'manager', employee_number: 'EMP007' },        // 质检主管
+    { name: '周磊', email: 'zhoulei@demo.com', phone: '13800001008', position: 'sales', employee_number: 'EMP008' },        // 国内销售代表
+    { name: '吴芳', email: 'wufang@demo.com', phone: '13800001009', position: 'finance', employee_number: 'EMP009' },       // 应付会计
+    { name: '郑浩', email: 'zhenghao@demo.com', phone: '13800001010', position: 'purchasing', employee_number: 'EMP010' },  // 采购专员
+    { name: '黄薇', email: 'huangwei@demo.com', phone: '13800001011', position: 'finance', employee_number: 'EMP011' },     // 应收会计
+    { name: '马腾', email: 'mateng@demo.com', phone: '13800001012', position: 'sales', employee_number: 'EMP012' },         // 外贸业务员
+    { name: '许杰', email: 'xujie@demo.com', phone: '13800001013', position: 'production', employee_number: 'EMP013' },     // 车间组长
+    { name: '徐静', email: 'xujing@demo.com', phone: '13800001014', position: 'user', employee_number: 'EMP014' },          // 质检员
+    { name: '韩涛', email: 'hantao@demo.com', phone: '13800001015', position: 'inventory', employee_number: 'EMP015' },     // 仓管员
+    { name: '曹勇', email: 'caoyong@demo.com', phone: '13800001016', position: 'user', employee_number: 'EMP016' },         // 研发工程师
+    { name: '谢莉', email: 'xieli@demo.com', phone: '13800001017', position: 'user', employee_number: 'EMP017' },           // 行政助理
+    { name: '邓鹏', email: 'dengpeng@demo.com', phone: '13800001018', position: 'production', employee_number: 'EMP018' },  // 设备技术员
   ];
 }
 
@@ -72,13 +73,13 @@ export function org1Products(): Array<Record<string, unknown> & { _meta: Product
     { code: 'SF-SH-001', name: '不锈钢壳体', type: 'semi_finished', cost_price: 95.00, sale_price: 120.00, list_price: 120.00, unit: 'PCS', safety_stock_days: 7 },
     { code: 'SF-PCB-001', name: 'PCB 控制板', type: 'semi_finished', cost_price: 45.00, sale_price: 65.00, list_price: 65.00, unit: 'PCS', safety_stock_days: 14 },
     // Finished goods
-    { code: 'FG-VLV-001', name: '工业电磁阀 DN25', type: 'finished_good', cost_price: 380.00, sale_price: 520.00, list_price: 520.00, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'FG-VLV-002', name: '工业电磁阀 DN50', type: 'finished_good', cost_price: 560.00, sale_price: 780.00, list_price: 780.00, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'FG-PMP-001', name: '离心泵 CYZ-50', type: 'finished_good', cost_price: 2800.00, sale_price: 3800.00, list_price: 3800.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-PMP-002', name: '自吸泵 ZW-80', type: 'finished_good', cost_price: 4200.00, sale_price: 5600.00, list_price: 5600.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-FLT-001', name: '精密过滤器 PF-100', type: 'finished_good', cost_price: 1500.00, sale_price: 2100.00, list_price: 2100.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-ACT-001', name: '气动执行器 AT-40', type: 'finished_good', cost_price: 850.00, sale_price: 1200.00, list_price: 1200.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-SNS-001', name: '压力传感器 PT-100', type: 'finished_good', cost_price: 320.00, sale_price: 450.00, list_price: 450.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'FG-VLV-001', name: '工业电磁阀 DN25', type: 'product', cost_price: 380.00, sale_price: 520.00, list_price: 520.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'FG-VLV-002', name: '工业电磁阀 DN50', type: 'product', cost_price: 560.00, sale_price: 780.00, list_price: 780.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'FG-PMP-001', name: '离心泵 CYZ-50', type: 'product', cost_price: 2800.00, sale_price: 3800.00, list_price: 3800.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-PMP-002', name: '自吸泵 ZW-80', type: 'product', cost_price: 4200.00, sale_price: 5600.00, list_price: 5600.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-FLT-001', name: '精密过滤器 PF-100', type: 'product', cost_price: 1500.00, sale_price: 2100.00, list_price: 2100.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-ACT-001', name: '气动执行器 AT-40', type: 'product', cost_price: 850.00, sale_price: 1200.00, list_price: 1200.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-SNS-001', name: '压力传感器 PT-100', type: 'product', cost_price: 320.00, sale_price: 450.00, list_price: 450.00, unit: 'PCS', safety_stock_days: 14 },
     // Packaging
     { code: 'PK-BOX-001', name: '标准纸箱 60x40x30', type: 'consumable', cost_price: 8.50, sale_price: 12.00, list_price: 12.00, unit: 'PCS', safety_stock_days: 30 },
     { code: 'PK-PLT-001', name: '木质托盘 1200x1000', type: 'consumable', cost_price: 65.00, sale_price: 85.00, list_price: 85.00, unit: 'PCS', safety_stock_days: 14 },
@@ -97,44 +98,44 @@ export function org1ProductInfos(): ProductInfo[] {
 
 export function org1Customers() {
   return [
-    { code: 'C001', name: '上海华能电力集团', customer_type: 'enterprise', classification: 'vip', email: 'purchase@huaneng-sh.com', phone: '021-58001001', credit_limit: 5000000, payment_terms: 60, contact: '王经理' },
-    { code: 'C002', name: '中国石化上海分公司', customer_type: 'enterprise', classification: 'vip', email: 'proc@sinopec-sh.com', phone: '021-58002002', credit_limit: 10000000, payment_terms: 45, contact: '李总' },
-    { code: 'C003', name: '宝山钢铁股份有限公司', customer_type: 'enterprise', classification: 'key', email: 'supply@baosteel.com', phone: '021-26641234', credit_limit: 8000000, payment_terms: 45, contact: '张采购' },
-    { code: 'C004', name: '江苏恒力石化', customer_type: 'enterprise', classification: 'key', email: 'order@hengli.com', phone: '0512-87001234', credit_limit: 3000000, payment_terms: 30, contact: '赵经理' },
-    { code: 'C005', name: '广州白云山制药', customer_type: 'enterprise', classification: 'standard', email: 'purchase@baiyunshan.com', phone: '020-83001234', credit_limit: 2000000, payment_terms: 30, contact: '陈主任' },
-    { code: 'C006', name: '天津港保税区物流', customer_type: 'enterprise', classification: 'standard', email: 'logistics@tjport.com', phone: '022-65001234', credit_limit: 1500000, payment_terms: 30, contact: '刘工' },
-    { code: 'C007', name: '杭州汇能环保科技', customer_type: 'enterprise', classification: 'standard', email: 'tech@huineng.com', phone: '0571-88001234', credit_limit: 1000000, payment_terms: 30, contact: '孙总' },
-    { code: 'C008', name: '成都新希望化工', customer_type: 'enterprise', classification: 'standard', email: 'order@xinhope.com', phone: '028-86001234', credit_limit: 800000, payment_terms: 30, contact: '吴经理' },
-    { code: 'C009', name: '武汉东湖水处理', customer_type: 'enterprise', classification: 'occasional', email: 'buy@donghu-water.com', phone: '027-87001234', credit_limit: 500000, payment_terms: 30, contact: '周主管' },
-    { code: 'C010', name: '深圳鹏程电子', customer_type: 'enterprise', classification: 'occasional', email: 'sales@pengcheng.com', phone: '0755-26001234', credit_limit: 300000, payment_terms: 15, contact: '郑经理' },
-    { code: 'C011', name: '南京扬子石化', customer_type: 'enterprise', classification: 'key', email: 'purchase@ypc.com', phone: '025-57001234', credit_limit: 6000000, payment_terms: 45, contact: '马总' },
-    { code: 'C012', name: '青岛海信集团', customer_type: 'enterprise', classification: 'key', email: 'proc@hisense.com', phone: '0532-83001234', credit_limit: 4000000, payment_terms: 30, contact: '黄经理' },
-    { code: 'C013', name: 'Pacific Engineering Ltd', customer_type: 'enterprise', classification: 'standard', email: 'order@pacific-eng.com', phone: '+65-6001-1234', credit_limit: 500000, payment_terms: 60, contact: 'John Lee' },
-    { code: 'C014', name: 'Nippon Valve Corporation', customer_type: 'enterprise', classification: 'standard', email: 'sales@nippon-valve.co.jp', phone: '+81-3-1234-5678', credit_limit: 300000, payment_terms: 60, contact: 'Tanaka' },
-    { code: 'C015', name: '重庆长安工业', customer_type: 'enterprise', classification: 'standard', email: 'buy@changan-ind.com', phone: '023-68001234', credit_limit: 1200000, payment_terms: 30, contact: '何经理' },
+    { code: 'C001', name: '上海华能电力集团', type: 'enterprise', classification: 'vip', email: 'purchase@huaneng-sh.com', phone: '021-58001001', credit_limit: 5000000, payment_terms: 60, contact: '王经理' },
+    { code: 'C002', name: '中国石化上海分公司', type: 'enterprise', classification: 'vip', email: 'proc@sinopec-sh.com', phone: '021-58002002', credit_limit: 10000000, payment_terms: 45, contact: '李总' },
+    { code: 'C003', name: '宝山钢铁股份有限公司', type: 'enterprise', classification: 'key', email: 'supply@baosteel.com', phone: '021-26641234', credit_limit: 8000000, payment_terms: 45, contact: '张采购' },
+    { code: 'C004', name: '江苏恒力石化', type: 'enterprise', classification: 'key', email: 'order@hengli.com', phone: '0512-87001234', credit_limit: 3000000, payment_terms: 30, contact: '赵经理' },
+    { code: 'C005', name: '广州白云山制药', type: 'enterprise', classification: 'standard', email: 'purchase@baiyunshan.com', phone: '020-83001234', credit_limit: 2000000, payment_terms: 30, contact: '陈主任' },
+    { code: 'C006', name: '天津港保税区物流', type: 'enterprise', classification: 'standard', email: 'logistics@tjport.com', phone: '022-65001234', credit_limit: 1500000, payment_terms: 30, contact: '刘工' },
+    { code: 'C007', name: '杭州汇能环保科技', type: 'enterprise', classification: 'standard', email: 'tech@huineng.com', phone: '0571-88001234', credit_limit: 1000000, payment_terms: 30, contact: '孙总' },
+    { code: 'C008', name: '成都新希望化工', type: 'enterprise', classification: 'standard', email: 'order@xinhope.com', phone: '028-86001234', credit_limit: 800000, payment_terms: 30, contact: '吴经理' },
+    { code: 'C009', name: '武汉东湖水处理', type: 'enterprise', classification: 'occasional', email: 'buy@donghu-water.com', phone: '027-87001234', credit_limit: 500000, payment_terms: 30, contact: '周主管' },
+    { code: 'C010', name: '深圳鹏程电子', type: 'enterprise', classification: 'occasional', email: 'sales@pengcheng.com', phone: '0755-26001234', credit_limit: 300000, payment_terms: 15, contact: '郑经理' },
+    { code: 'C011', name: '南京扬子石化', type: 'enterprise', classification: 'key', email: 'purchase@ypc.com', phone: '025-57001234', credit_limit: 6000000, payment_terms: 45, contact: '马总' },
+    { code: 'C012', name: '青岛海信集团', type: 'enterprise', classification: 'key', email: 'proc@hisense.com', phone: '0532-83001234', credit_limit: 4000000, payment_terms: 30, contact: '黄经理' },
+    { code: 'C013', name: 'Pacific Engineering Ltd', type: 'enterprise', classification: 'standard', email: 'order@pacific-eng.com', phone: '+65-6001-1234', credit_limit: 500000, payment_terms: 60, contact: 'John Lee' },
+    { code: 'C014', name: 'Nippon Valve Corporation', type: 'enterprise', classification: 'standard', email: 'sales@nippon-valve.co.jp', phone: '+81-3-1234-5678', credit_limit: 300000, payment_terms: 60, contact: 'Tanaka' },
+    { code: 'C015', name: '重庆长安工业', type: 'enterprise', classification: 'standard', email: 'buy@changan-ind.com', phone: '023-68001234', credit_limit: 1200000, payment_terms: 30, contact: '何经理' },
   ];
 }
 
 export function org1Suppliers() {
   return [
-    { code: 'S001', name: '宁波永信铝业', supplier_type: 'material', contact_email: 'sales@yongxin-al.com', contact_phone: '0574-87001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 7, reliability_score: 0.95, contact_person: '钱总' },
-    { code: 'S002', name: '太钢不锈钢经销', supplier_type: 'material', contact_email: 'order@tisco-dealer.com', contact_phone: '0351-42001234', country: 'CN', currency: 'CNY', payment_terms: '45', lead_time_days: 10, reliability_score: 0.92, contact_person: '韩经理' },
-    { code: 'S003', name: '昆山精密铸造', supplier_type: 'subcontractor', contact_email: 'biz@ks-casting.com', contact_phone: '0512-57001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 14, reliability_score: 0.88, contact_person: '朱总' },
-    { code: 'S004', name: '广东华南橡塑', supplier_type: 'material', contact_email: 'supply@hn-rubber.com', contact_phone: '0769-22001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 7, reliability_score: 0.90, contact_person: '唐经理' },
-    { code: 'S005', name: '深圳兴华电子', supplier_type: 'material', contact_email: 'components@xh-elec.com', contact_phone: '0755-86001234', country: 'CN', currency: 'CNY', payment_terms: '15', lead_time_days: 5, reliability_score: 0.93, contact_person: '冯工' },
-    { code: 'S006', name: '河北邯郸铜材', supplier_type: 'material', contact_email: 'sales@hd-copper.com', contact_phone: '0310-31001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 10, reliability_score: 0.87, contact_person: '曹经理' },
-    { code: 'S007', name: '苏州工业包装', supplier_type: 'material', contact_email: 'pack@sz-package.com', contact_phone: '0512-65001234', country: 'CN', currency: 'CNY', payment_terms: '15', lead_time_days: 3, reliability_score: 0.96, contact_person: '蒋主管' },
+    { code: 'S001', name: '宁波永信铝业', supplier_type: 'product', contact_email: 'sales@yongxin-al.com', contact_phone: '0574-87001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 7, reliability_score: 0.95, contact_person: '钱总' },
+    { code: 'S002', name: '太钢不锈钢经销', supplier_type: 'product', contact_email: 'order@tisco-dealer.com', contact_phone: '0351-42001234', country: 'CN', currency: 'CNY', payment_terms: '45', lead_time_days: 10, reliability_score: 0.92, contact_person: '韩经理' },
+    { code: 'S003', name: '昆山精密铸造', supplier_type: 'subcontract', contact_email: 'biz@ks-casting.com', contact_phone: '0512-57001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 14, reliability_score: 0.88, contact_person: '朱总' },
+    { code: 'S004', name: '广东华南橡塑', supplier_type: 'product', contact_email: 'supply@hn-rubber.com', contact_phone: '0769-22001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 7, reliability_score: 0.90, contact_person: '唐经理' },
+    { code: 'S005', name: '深圳兴华电子', supplier_type: 'product', contact_email: 'components@xh-elec.com', contact_phone: '0755-86001234', country: 'CN', currency: 'CNY', payment_terms: '15', lead_time_days: 5, reliability_score: 0.93, contact_person: '冯工' },
+    { code: 'S006', name: '河北邯郸铜材', supplier_type: 'product', contact_email: 'sales@hd-copper.com', contact_phone: '0310-31001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 10, reliability_score: 0.87, contact_person: '曹经理' },
+    { code: 'S007', name: '苏州工业包装', supplier_type: 'product', contact_email: 'pack@sz-package.com', contact_phone: '0512-65001234', country: 'CN', currency: 'CNY', payment_terms: '15', lead_time_days: 3, reliability_score: 0.96, contact_person: '蒋主管' },
     { code: 'S008', name: '上海申通快递物流', supplier_type: 'logistics', contact_email: 'biz@sto-logistics.com', contact_phone: '021-39001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 2, reliability_score: 0.91, contact_person: '沈经理' },
-    { code: 'S009', name: 'Osaka Metal Trading', supplier_type: 'material', contact_email: 'trade@osaka-metal.jp', contact_phone: '+81-6-1234-5678', country: 'JP', currency: 'USD', payment_terms: '60', lead_time_days: 21, reliability_score: 0.94, contact_person: 'Yamada' },
-    { code: 'S010', name: '巴斯夫化工（中国）', supplier_type: 'material', contact_email: 'china@basf.com', contact_phone: '021-20001234', country: 'CN', currency: 'CNY', payment_terms: '45', lead_time_days: 14, reliability_score: 0.97, contact_person: '林经理' },
+    { code: 'S009', name: 'Osaka Metal Trading', supplier_type: 'product', contact_email: 'trade@osaka-metal.jp', contact_phone: '+81-6-1234-5678', country: 'JP', currency: 'USD', payment_terms: '60', lead_time_days: 21, reliability_score: 0.94, contact_person: 'Yamada' },
+    { code: 'S010', name: '巴斯夫化工（中国）', supplier_type: 'product', contact_email: 'china@basf.com', contact_phone: '021-20001234', country: 'CN', currency: 'CNY', payment_terms: '45', lead_time_days: 14, reliability_score: 0.97, contact_person: '林经理' },
   ];
 }
 
 export function org1Warehouses() {
   return [
-    { code: 'WH-MAIN', name: '主仓库', location: '上海市嘉定区曹安公路1234号', type: 'standard', status: 'active' },
-    { code: 'WH-RAW', name: '原材料仓库', location: '上海市嘉定区曹安公路1234号-B区', type: 'standard', status: 'active' },
-    { code: 'WH-FIN', name: '成品仓库', location: '上海市嘉定区曹安公路1234号-C区', type: 'standard', status: 'active' },
+    { code: 'WH-MAIN', name: '主仓库', location: '上海市嘉定区曹安公路1234号', type: 'finished_goods', status: 'active' },
+    { code: 'WH-RAW', name: '原材料仓库', location: '上海市嘉定区曹安公路1234号-B区', type: 'raw_materials', status: 'active' },
+    { code: 'WH-FIN', name: '成品仓库', location: '上海市嘉定区曹安公路1234号-C区', type: 'finished_goods', status: 'active' },
   ];
 }
 

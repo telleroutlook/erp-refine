@@ -16,14 +16,15 @@ export function org2Departments() {
 
 export function org2Employees() {
   return [
-    { name: 'Alex Chen', email: 'alex@tech.demo', phone: '+86-13900100001', position: 'CEO', employee_number: 'T-EMP001' },
-    { name: 'Sarah Wang', email: 'sarah@tech.demo', phone: '+86-13900100002', position: 'Sales Director', employee_number: 'T-EMP002' },
-    { name: 'Mike Liu', email: 'mike@tech.demo', phone: '+86-13900100003', position: 'Operations Manager', employee_number: 'T-EMP003' },
-    { name: 'Jenny Zhou', email: 'jenny@tech.demo', phone: '+86-13900100004', position: 'Finance Manager', employee_number: 'T-EMP004' },
-    { name: 'David Li', email: 'david@tech.demo', phone: '+86-13900100005', position: 'Account Manager', employee_number: 'T-EMP005' },
-    { name: 'Amy Xu', email: 'amy@tech.demo', phone: '+86-13900100006', position: 'Logistics Coordinator', employee_number: 'T-EMP006' },
-    { name: 'Tom Zhang', email: 'tom@tech.demo', phone: '+86-13900100007', position: 'Technical Lead', employee_number: 'T-EMP007' },
-    { name: 'Lisa Huang', email: 'lisa@tech.demo', phone: '+86-13900100008', position: 'Accountant', employee_number: 'T-EMP008' },
+    // position must be one of: admin, manager, sales, purchasing, inventory, finance, production, user
+    { name: 'Alex Chen', email: 'alex@tech.demo', phone: '+86-13900100001', position: 'admin', employee_number: 'T-EMP001' },        // CEO
+    { name: 'Sarah Wang', email: 'sarah@tech.demo', phone: '+86-13900100002', position: 'sales', employee_number: 'T-EMP002' },      // Sales Director
+    { name: 'Mike Liu', email: 'mike@tech.demo', phone: '+86-13900100003', position: 'manager', employee_number: 'T-EMP003' },       // Operations Manager
+    { name: 'Jenny Zhou', email: 'jenny@tech.demo', phone: '+86-13900100004', position: 'finance', employee_number: 'T-EMP004' },    // Finance Manager
+    { name: 'David Li', email: 'david@tech.demo', phone: '+86-13900100005', position: 'sales', employee_number: 'T-EMP005' },        // Account Manager
+    { name: 'Amy Xu', email: 'amy@tech.demo', phone: '+86-13900100006', position: 'inventory', employee_number: 'T-EMP006' },        // Logistics Coordinator
+    { name: 'Tom Zhang', email: 'tom@tech.demo', phone: '+86-13900100007', position: 'production', employee_number: 'T-EMP007' },    // Technical Lead
+    { name: 'Lisa Huang', email: 'lisa@tech.demo', phone: '+86-13900100008', position: 'finance', employee_number: 'T-EMP008' },     // Accountant
   ];
 }
 
@@ -42,10 +43,10 @@ export function org2Products(): Array<Record<string, unknown> & { _meta: Product
     { code: 'TE-SEN-001', name: 'IoT Sensor Kit', type: 'material', cost_price: 85, sale_price: 120, list_price: 120, unit: 'SET', safety_stock_days: 14 },
     { code: 'TE-PWR-001', name: 'DC Power Supply 24V', type: 'material', cost_price: 35, sale_price: 52, list_price: 52, unit: 'PCS', safety_stock_days: 7 },
     { code: 'TE-CAB-001', name: 'Industrial Cable Set', type: 'material', cost_price: 22, sale_price: 35, list_price: 35, unit: 'SET', safety_stock_days: 7 },
-    { code: 'TE-CTL-001', name: 'PLC Controller Unit', type: 'finished_good', cost_price: 1200, sale_price: 1800, list_price: 1800, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'TE-GTW-001', name: 'IoT Gateway Pro', type: 'finished_good', cost_price: 850, sale_price: 1350, list_price: 1350, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'TE-DIS-001', name: 'Industrial Display 10"', type: 'finished_good', cost_price: 420, sale_price: 680, list_price: 680, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'TE-KIT-001', name: 'Smart Factory Starter Kit', type: 'finished_good', cost_price: 3500, sale_price: 5200, list_price: 5200, unit: 'SET', safety_stock_days: 7 },
+    { code: 'TE-CTL-001', name: 'PLC Controller Unit', type: 'product', cost_price: 1200, sale_price: 1800, list_price: 1800, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'TE-GTW-001', name: 'IoT Gateway Pro', type: 'product', cost_price: 850, sale_price: 1350, list_price: 1350, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'TE-DIS-001', name: 'Industrial Display 10"', type: 'product', cost_price: 420, sale_price: 680, list_price: 680, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'TE-KIT-001', name: 'Smart Factory Starter Kit', type: 'product', cost_price: 3500, sale_price: 5200, list_price: 5200, unit: 'SET', safety_stock_days: 7 },
     { code: 'TE-ACC-001', name: 'Accessory Pack', type: 'consumable', cost_price: 15, sale_price: 28, list_price: 28, unit: 'SET', safety_stock_days: 30 },
   ];
 
@@ -61,31 +62,31 @@ export function org2ProductInfos(): ProductInfo[] {
 
 export function org2Customers() {
   return [
-    { code: 'TC01', name: 'Shenzhen Smart Systems', customer_type: 'enterprise', classification: 'key', email: 'order@sz-smart.com', phone: '0755-88001234', credit_limit: 2000000, payment_terms: 30, contact: '李明' },
-    { code: 'TC02', name: 'Samsung Electronics Vietnam', customer_type: 'enterprise', classification: 'vip', email: 'proc@samsung-vn.com', phone: '+84-28-3824-1234', credit_limit: 800000, payment_terms: 60, contact: 'Nguyen' },
-    { code: 'TC03', name: 'Foxconn Industrial IoT', customer_type: 'enterprise', classification: 'vip', email: 'iot@foxconn.com', phone: '0755-27001234', credit_limit: 5000000, payment_terms: 45, contact: '陈工' },
-    { code: 'TC04', name: 'Siemens Asia Pacific', customer_type: 'enterprise', classification: 'key', email: 'apac@siemens.com', phone: '+65-6490-1234', credit_limit: 1000000, payment_terms: 60, contact: 'Mueller' },
-    { code: 'TC05', name: 'BYD Electronic', customer_type: 'enterprise', classification: 'key', email: 'elec@byd.com', phone: '0755-89001234', credit_limit: 3000000, payment_terms: 30, contact: '王工' },
-    { code: 'TC06', name: 'Mitsubishi Electric', customer_type: 'enterprise', classification: 'standard', email: 'order@mitsubishi-e.jp', phone: '+81-3-3218-1234', credit_limit: 500000, payment_terms: 60, contact: 'Suzuki' },
-    { code: 'TC07', name: 'Haier Smart Home', customer_type: 'enterprise', classification: 'standard', email: 'smart@haier.com', phone: '0532-88001234', credit_limit: 1500000, payment_terms: 30, contact: '张经理' },
-    { code: 'TC08', name: 'Bosch Connected Industry', customer_type: 'enterprise', classification: 'standard', email: 'ci@bosch.com', phone: '+49-711-811-1234', credit_limit: 600000, payment_terms: 60, contact: 'Schmidt' },
+    { code: 'TC01', name: 'Shenzhen Smart Systems', type: 'enterprise', classification: 'key', email: 'order@sz-smart.com', phone: '0755-88001234', credit_limit: 2000000, payment_terms: 30, contact: '李明' },
+    { code: 'TC02', name: 'Samsung Electronics Vietnam', type: 'enterprise', classification: 'vip', email: 'proc@samsung-vn.com', phone: '+84-28-3824-1234', credit_limit: 800000, payment_terms: 60, contact: 'Nguyen' },
+    { code: 'TC03', name: 'Foxconn Industrial IoT', type: 'enterprise', classification: 'vip', email: 'iot@foxconn.com', phone: '0755-27001234', credit_limit: 5000000, payment_terms: 45, contact: '陈工' },
+    { code: 'TC04', name: 'Siemens Asia Pacific', type: 'enterprise', classification: 'key', email: 'apac@siemens.com', phone: '+65-6490-1234', credit_limit: 1000000, payment_terms: 60, contact: 'Mueller' },
+    { code: 'TC05', name: 'BYD Electronic', type: 'enterprise', classification: 'key', email: 'elec@byd.com', phone: '0755-89001234', credit_limit: 3000000, payment_terms: 30, contact: '王工' },
+    { code: 'TC06', name: 'Mitsubishi Electric', type: 'enterprise', classification: 'standard', email: 'order@mitsubishi-e.jp', phone: '+81-3-3218-1234', credit_limit: 500000, payment_terms: 60, contact: 'Suzuki' },
+    { code: 'TC07', name: 'Haier Smart Home', type: 'enterprise', classification: 'standard', email: 'smart@haier.com', phone: '0532-88001234', credit_limit: 1500000, payment_terms: 30, contact: '张经理' },
+    { code: 'TC08', name: 'Bosch Connected Industry', type: 'enterprise', classification: 'standard', email: 'ci@bosch.com', phone: '+49-711-811-1234', credit_limit: 600000, payment_terms: 60, contact: 'Schmidt' },
   ];
 }
 
 export function org2Suppliers() {
   return [
-    { code: 'TS01', name: 'Texas Instruments China', supplier_type: 'material', contact_email: 'sales@ti-china.com', contact_phone: '021-23073000', country: 'CN', currency: 'USD', payment_terms: '45', lead_time_days: 14, reliability_score: 0.96, contact_person: '赵经理' },
-    { code: 'TS02', name: 'Shenzhen PCB Factory', supplier_type: 'material', contact_email: 'order@sz-pcb.com', contact_phone: '0755-26001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 10, reliability_score: 0.90, contact_person: '周工' },
-    { code: 'TS03', name: 'Mouser Electronics', supplier_type: 'material', contact_email: 'asia@mouser.com', contact_phone: '+1-817-804-3800', country: 'US', currency: 'USD', payment_terms: '30', lead_time_days: 7, reliability_score: 0.94, contact_person: 'Johnson' },
+    { code: 'TS01', name: 'Texas Instruments China', supplier_type: 'product', contact_email: 'sales@ti-china.com', contact_phone: '021-23073000', country: 'CN', currency: 'USD', payment_terms: '45', lead_time_days: 14, reliability_score: 0.96, contact_person: '赵经理' },
+    { code: 'TS02', name: 'Shenzhen PCB Factory', supplier_type: 'product', contact_email: 'order@sz-pcb.com', contact_phone: '0755-26001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 10, reliability_score: 0.90, contact_person: '周工' },
+    { code: 'TS03', name: 'Mouser Electronics', supplier_type: 'product', contact_email: 'asia@mouser.com', contact_phone: '+1-817-804-3800', country: 'US', currency: 'USD', payment_terms: '30', lead_time_days: 7, reliability_score: 0.94, contact_person: 'Johnson' },
     { code: 'TS04', name: 'DHL Express', supplier_type: 'logistics', contact_email: 'cn-biz@dhl.com', contact_phone: '400-810-8000', country: 'DE', currency: 'CNY', payment_terms: '30', lead_time_days: 3, reliability_score: 0.93, contact_person: '物流顾问' },
-    { code: 'TS05', name: 'Nanjing Assembly Services', supplier_type: 'subcontractor', contact_email: 'biz@nj-assembly.com', contact_phone: '025-86001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 14, reliability_score: 0.88, contact_person: '吴总' },
+    { code: 'TS05', name: 'Nanjing Assembly Services', supplier_type: 'subcontract', contact_email: 'biz@nj-assembly.com', contact_phone: '025-86001234', country: 'CN', currency: 'CNY', payment_terms: '30', lead_time_days: 14, reliability_score: 0.88, contact_person: '吴总' },
   ];
 }
 
 export function org2Warehouses() {
   return [
-    { code: 'TW-MAIN', name: 'Main Warehouse', location: 'Shenzhen, China', type: 'standard', status: 'active' },
-    { code: 'TW-SHIP', name: 'Shipping Hub', location: 'Hong Kong SAR', type: 'bonded', status: 'active' },
+    { code: 'TW-MAIN', name: 'Main Warehouse', location: 'Shenzhen, China', type: 'finished_goods', status: 'active' },
+    { code: 'TW-SHIP', name: 'Shipping Hub', location: 'Hong Kong SAR', type: 'transit', status: 'active' },
   ];
 }
 

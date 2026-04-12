@@ -63,7 +63,7 @@ export function generateOrg1PurchaseOrders(reg: IdRegistry): Array<Record<string
 
 export function generateOrg1SalesOrders(reg: IdRegistry): Array<Record<string, unknown>> {
   const products = org1ProductInfos();
-  const finishedGoods = products.filter((p) => p.type === 'finished_good');
+  const finishedGoods = products.filter((p) => p.type === 'product');
   const customerCodes = ['C001', 'C002', 'C003', 'C004', 'C005', 'C006', 'C007', 'C008', 'C009', 'C010', 'C011', 'C012', 'C013', 'C014', 'C015'];
   const warehouseCodes = ['WH-MAIN', 'WH-FIN'];
   const months = getHistoryMonths();
@@ -123,12 +123,12 @@ export function generateOrg1StockRecords(reg: IdRegistry): Array<Record<string, 
     for (const prod of products) {
       // Only raw materials in RAW warehouse, only finished goods in FIN
       if (whCode === 'WH-RAW' && prod.type !== 'material') continue;
-      if (whCode === 'WH-FIN' && prod.type !== 'finished_good' && prod.type !== 'semi_finished') continue;
+      if (whCode === 'WH-FIN' && prod.type !== 'product' && prod.type !== 'semi_finished') continue;
       if (whCode === 'WH-MAIN' && prod.type === 'material') continue; // materials go to WH-RAW
 
       const qty = prod.type === 'material'
         ? randomInt(500, 2500)
-        : prod.type === 'finished_good'
+        : prod.type === 'product'
           ? randomInt(20, 100)
           : randomInt(50, 200);
       const reserved = Math.floor(qty * Math.random() * 0.15);
