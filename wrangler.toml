@@ -6,6 +6,10 @@ compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = "frontend/dist", binding = "ASSETS", not_found_handling = "single-page-application" }
 
+routes = [
+  { pattern = "erp.3we.org", custom_domain = true }
+]
+
 [vars]
 ENVIRONMENT = "production"
 LOG_LEVEL = "info"
