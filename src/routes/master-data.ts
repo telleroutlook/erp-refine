@@ -105,7 +105,7 @@ const productCategoriesConfig: CrudConfig = {
   detailSelect: '*, parent:product_categories(id,name,code)',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
-  softDelete: true,
+  softDelete: false,
   orgScoped: true,
 };
 masterData.route('', buildCrudRoutes(productCategoriesConfig));

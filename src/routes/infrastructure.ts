@@ -20,7 +20,7 @@ const departmentsConfig: CrudConfig = {
   detailSelect: '*, manager:employees!fk_departments_manager(id, name)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'name',
-  softDelete: true,
+  softDelete: false,
   orgScoped: true,
 };
 
@@ -39,7 +39,7 @@ const employeesConfig: CrudConfig = {
   detailSelect: '*, department:departments!department_id(id, name, code)',
   createReturnSelect: 'id, name, employee_number',
   defaultSort: 'name',
-  softDelete: true,
+  softDelete: false,
   orgScoped: true,
 };
 
