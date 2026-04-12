@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useLogin } from '@refinedev/core';
+import { useLogin, useIsAuthenticated } from '@refinedev/core';
+import { Navigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Divider, Typography, Space, Tag, Row, Col, Select } from 'antd';
 import { UserOutlined, LockOutlined, ThunderboltOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -46,10 +47,13 @@ const ORG_I18N: Record<string, { en: string; zh: string }> = {
 
 export const LoginPage: React.FC = () => {
   const { mutate: login, isLoading } = useLogin<{ email: string; password: string }>();
+  const { data: authData } = useIsAuthenticated();
   const [form] = Form.useForm();
   const [loadingUser, setLoadingUser] = useState<string | null>(null);
   const { i18n } = useTranslation();
   const lang = i18n.language.startsWith('zh') ? 'zh' : 'en';
+
+  if (authData?.authenticated) return <Navigate to="/" replace />;
 
   const t = (en: string, zh: string) => (lang === 'zh' ? zh : en);
 

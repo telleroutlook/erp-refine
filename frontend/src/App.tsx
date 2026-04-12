@@ -109,15 +109,7 @@ const App: React.FC = () => {
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}
           >
             <Routes>
-              <Route
-                element={
-                  <Authenticated key="auth-pages" fallback={<Outlet />}>
-                    <Navigate to="/" replace />
-                  </Authenticated>
-                }
-              >
-                <Route path="/login" element={<LoginPage />} />
-              </Route>
+              <Route path="/login" element={<LoginPage />} />
 
               <Route
                 element={
