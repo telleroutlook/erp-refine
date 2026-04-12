@@ -206,6 +206,24 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     excludeFields: ['qty_available'],
   },
 
+  // --- Exchange rates ---
+  'exchange-rates': {
+    table: 'exchange_rates',
+    returnSelect: 'id, from_currency, to_currency, rate, effective_date',
+    requiredFields: ['from_currency', 'to_currency', 'rate_type', 'rate', 'effective_date'],
+    uniqueKey: ['organization_id', 'from_currency', 'to_currency', 'effective_date'],
+    orgScoped: true,
+  },
+
+  // --- Fixed assets ---
+  'fixed-assets': {
+    table: 'fixed_assets',
+    returnSelect: 'id, asset_number, asset_name',
+    requiredFields: ['asset_number', 'asset_name', 'category', 'acquisition_date', 'acquisition_cost', 'useful_life_months', 'depreciation_method', 'salvage_value'],
+    uniqueKey: ['asset_number', 'organization_id'],
+    references: { cost_center_id: 'cost_centers' },
+  },
+
   // --- Business documents ---
   'purchase-orders': {
     table: 'purchase_orders',
@@ -286,6 +304,8 @@ const ENTITY_DEPS: Record<string, string[]> = {
   'cost-centers': ['departments'],
   'defect-codes': [],
   'stock-records': ['products', 'warehouses'],
+  'exchange-rates': [],
+  'fixed-assets': ['cost-centers'],
   'purchase-orders': ['suppliers', 'warehouses', 'products'],
   'purchase-order-items': ['purchase-orders', 'products'],
   'sales-orders': ['customers', 'warehouses', 'products'],

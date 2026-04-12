@@ -202,4 +202,42 @@ admin.post('/import-batch', async (c) => {
   return c.json({ data: { results, totalImported: results.reduce((s, r) => s + r.imported, 0), totalErrors } }, status as any);
 });
 
+/** GET /import/templates — list all entity schemas for onboarding */
+admin.get('/import/templates', async (c) => {
+  const entities = getSupportedEntities();
+  const templates = entities.map((e) => {
+    const cfg = ENTITY_CONFIGS[e]!;
+    return {
+      entity: e,
+      table: cfg.table,
+      requiredFields: cfg.requiredFields,
+      uniqueKey: cfg.uniqueKey,
+      references: cfg.references,
+      orgScoped: cfg.orgScoped ?? true,
+    };
+  });
+  return c.json({ data: templates });
+});
+
+/** GET /import/templates/:entity — download CSV template for a specific entity */
+admin.get('/import/templates/:entity', async (c) => {
+  const entity = c.req.param('entity');
+  const config = ENTITY_CONFIGS[entity];
+  if (!config) {
+    throw ApiError.notFound('ImportTemplate', entity, c.get('requestId'));
+  }
+
+  const allFields = [...new Set([
+    ...config.requiredFields,
+    ...(config.uniqueKey?.filter((k) => k !== 'organization_id') ?? []),
+  ])];
+  const headerLine = allFields.join(',');
+  const exampleLine = allFields.map((f) => `<${f}>`).join(',');
+  const csv = `${headerLine}\n# Required fields: ${config.requiredFields.join(', ')}\n${exampleLine}\n`;
+
+  c.header('Content-Type', 'text/csv');
+  c.header('Content-Disposition', `attachment; filename=${entity}-template.csv`);
+  return c.body(csv);
+});
+
 export default admin;

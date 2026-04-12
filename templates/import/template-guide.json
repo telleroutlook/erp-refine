@@ -1,7 +1,7 @@
 {
   "$schema": "https://erp-refine.example.com/import-template/v1",
   "description": "ERP-Refine 数据导入模板 — 客户上线初始化",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "usage": {
     "zh": "按照下方模板格式准备 JSON 文件，通过 POST /api/admin/import-batch 或 CLI 脚本导入。所有实体会按依赖顺序自动排列。",
     "en": "Prepare JSON files following the templates below. Import via POST /api/admin/import-batch or the CLI script. Entities are automatically ordered by dependencies."
@@ -13,7 +13,9 @@
     "tax-codes",
     "products",
     "customers",
+    "customer-addresses",
     "suppliers",
+    "supplier-sites",
     "warehouses",
     "storage-locations",
     "carriers",
@@ -21,6 +23,8 @@
     "account-subjects",
     "cost-centers",
     "defect-codes",
+    "exchange-rates",
+    "fixed-assets",
     "stock-records"
   ],
   "templates": {
@@ -48,6 +52,14 @@
         { "code": "FIN", "name": "成品", "level": 1 }
       ]
     },
+    "tax-codes": {
+      "requiredFields": ["code", "name", "rate", "tax_type"],
+      "optionalFields": ["description", "is_active"],
+      "taxTypes": ["input", "output"],
+      "example": [
+        { "code": "VAT13", "name": "增值税13%", "rate": 13, "tax_type": "output" }
+      ]
+    },
     "products": {
       "requiredFields": ["code", "name"],
       "optionalFields": ["type", "category_id", "unit", "cost_price", "list_price", "description", "safety_stock_days", "lead_time_days"],
@@ -58,35 +70,96 @@
     },
     "customers": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["customer_type", "classification", "email", "phone", "credit_limit", "payment_terms", "default_currency", "tax_number"],
+      "optionalFields": ["customer_type", "classification", "email", "phone", "credit_limit", "payment_terms", "default_currency", "tax_number", "contact_name", "contact_phone"],
       "customerTypes": ["enterprise", "individual", "government", "distributor"],
       "classifications": ["vip", "key", "standard", "occasional"],
       "example": [
         { "code": "C001", "name": "上海华能电力", "customer_type": "enterprise", "classification": "vip", "credit_limit": 5000000, "payment_terms": 60 }
       ]
     },
+    "customer-addresses": {
+      "requiredFields": ["customer_id", "address_type"],
+      "optionalFields": ["address_line1", "address_line2", "city", "province", "postal_code", "country", "is_default"],
+      "example": [
+        { "customer_id": "<customer-uuid>", "address_type": "billing", "city": "上海", "address_line1": "浦东新区陆家嘴" }
+      ]
+    },
     "suppliers": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["supplier_type", "email", "phone", "currency", "payment_terms", "lead_time_days", "reliability_score", "tax_number"],
+      "optionalFields": ["supplier_type", "email", "phone", "currency", "payment_terms", "lead_time_days", "reliability_score", "tax_number", "contact_name", "contact_phone"],
       "supplierTypes": ["material", "service", "subcontractor", "logistics"],
       "example": [
         { "code": "S001", "name": "宁波永信铝业", "supplier_type": "material", "currency": "CNY", "payment_terms": 30, "lead_time_days": 7 }
       ]
     },
+    "supplier-sites": {
+      "requiredFields": ["supplier_id", "site_code", "site_name"],
+      "optionalFields": ["address", "city", "is_primary"],
+      "example": [
+        { "supplier_id": "<supplier-uuid>", "site_code": "MAIN", "site_name": "总部" }
+      ]
+    },
     "warehouses": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["location", "warehouse_type", "capacity_volume", "capacity_weight"],
+      "optionalFields": ["location", "warehouse_type", "capacity_volume", "capacity_weight", "status"],
       "warehouseTypes": ["standard", "cold_storage", "hazardous", "bonded", "virtual"],
       "example": [
         { "code": "WH-MAIN", "name": "主仓库", "location": "上海市嘉定区", "warehouse_type": "standard" }
+      ]
+    },
+    "storage-locations": {
+      "requiredFields": ["warehouse_id", "location_code"],
+      "optionalFields": ["name", "location_type"],
+      "example": [
+        { "warehouse_id": "<warehouse-uuid>", "location_code": "A-01-01", "name": "A区1排1层" }
+      ]
+    },
+    "carriers": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["carrier_type", "tracking_url_template", "is_active"],
+      "example": [
+        { "code": "CR-SF", "name": "顺丰速运", "carrier_type": "express" }
       ]
     },
     "account-subjects": {
       "requiredFields": ["code", "name", "category", "balance_direction"],
       "optionalFields": ["parent_id", "level", "is_leaf", "is_active"],
       "categories": ["asset", "liability", "equity", "revenue", "expense"],
+      "balanceDirections": ["debit", "credit"],
       "example": [
         { "code": "1001", "name": "库存现金", "category": "asset", "balance_direction": "debit", "level": 1, "is_leaf": true }
+      ]
+    },
+    "cost-centers": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["parent_id", "department_id"],
+      "example": [
+        { "code": "CC-PROD", "name": "生产中心" }
+      ]
+    },
+    "defect-codes": {
+      "requiredFields": ["code", "name", "category", "severity"],
+      "optionalFields": ["description", "corrective_action", "is_active"],
+      "categories": ["process", "material", "human", "design", "environment"],
+      "severities": ["critical", "major", "minor"],
+      "example": [
+        { "code": "D001", "name": "尺寸超差", "category": "process", "severity": "major" }
+      ]
+    },
+    "exchange-rates": {
+      "requiredFields": ["from_currency", "to_currency", "rate_type", "rate", "effective_date"],
+      "optionalFields": ["expiry_date"],
+      "example": [
+        { "from_currency": "USD", "to_currency": "CNY", "rate_type": "spot", "rate": 7.11, "effective_date": "2026-03-01" }
+      ]
+    },
+    "fixed-assets": {
+      "requiredFields": ["asset_number", "asset_name", "category", "acquisition_date", "acquisition_cost", "useful_life_months", "depreciation_method", "salvage_value"],
+      "optionalFields": ["status", "location", "department", "custodian_id", "cost_center_id", "notes"],
+      "categories": ["equipment", "vehicle", "it_equipment", "furniture", "building", "land"],
+      "depreciationMethods": ["straight_line", "declining_balance", "units_of_production"],
+      "example": [
+        { "asset_number": "FA-001", "asset_name": "CNC车床", "category": "equipment", "acquisition_date": "2023-03-15", "acquisition_cost": 850000, "salvage_value": 85000, "useful_life_months": 120, "depreciation_method": "straight_line" }
       ]
     },
     "stock-records": {
@@ -100,6 +173,8 @@
   },
   "apiEndpoints": {
     "listEntities": "GET /api/admin/import",
+    "listTemplates": "GET /api/admin/import/templates",
+    "getTemplate": "GET /api/admin/import/templates/:entity",
     "importSingle": "POST /api/admin/import/:entity",
     "importBatch": "POST /api/admin/import-batch"
   },
@@ -122,5 +197,25 @@
         "on_error": "skip | abort"
       }
     }
+  },
+  "seedScript": {
+    "usage": "npx tsx scripts/seed-data.ts --api-url http://localhost:8787 --token <admin-jwt>",
+    "options": {
+      "--api-url <url>": "API base URL (default: http://localhost:8787)",
+      "--token <jwt>": "Admin JWT token (or set ADMIN_TOKEN env)",
+      "--dry-run": "Validate only, don't insert data",
+      "--phases <list>": "Comma-separated phases 1-7 (default: all)",
+      "--clean": "Delete existing seed data before running",
+      "--verbose": "Show detailed API call logs"
+    },
+    "phases": [
+      "1 - Master data (departments, products, customers, etc.)",
+      "2 - Opening stock balances",
+      "3 - Create POs and SOs via atomic API",
+      "4 - Workflow actions (receipt confirm → stock IN, shipment confirm → stock OUT)",
+      "5 - Finance (invoices, vouchers, payments, 3-way match)",
+      "6 - Manufacturing (BOMs, work orders, QC inspections)",
+      "7 - Supporting (contracts, budgets)"
+    ]
   }
 }
