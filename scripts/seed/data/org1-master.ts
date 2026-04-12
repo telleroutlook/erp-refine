@@ -60,34 +60,35 @@ export function org1ProductCategories() {
 export function org1Products(): Array<Record<string, unknown> & { _meta: ProductInfo }> {
   const products = [
     // Raw materials
-    { code: 'RM-AL-001', name: '铝合金板材 6061-T6', type: 'material', cost_price: 45.00, sale_price: 52.00, list_price: 52.00, unit: 'KG', safety_stock_days: 14 },
-    { code: 'RM-AL-002', name: '铝合金棒材 7075', type: 'material', cost_price: 68.50, sale_price: 78.00, list_price: 78.00, unit: 'KG', safety_stock_days: 14 },
-    { code: 'RM-ST-001', name: '不锈钢管 304', type: 'material', cost_price: 32.00, sale_price: 38.00, list_price: 38.00, unit: 'M', safety_stock_days: 7 },
-    { code: 'RM-ST-002', name: '不锈钢板 316L', type: 'material', cost_price: 85.00, sale_price: 95.00, list_price: 95.00, unit: 'KG', safety_stock_days: 14 },
-    { code: 'RM-CU-001', name: '紫铜排', type: 'material', cost_price: 58.00, sale_price: 65.00, list_price: 65.00, unit: 'KG', safety_stock_days: 7 },
-    { code: 'RM-PL-001', name: 'PA66 尼龙粒子', type: 'material', cost_price: 22.00, sale_price: 28.00, list_price: 28.00, unit: 'KG', safety_stock_days: 21 },
-    { code: 'RM-RB-001', name: 'NBR 密封橡胶', type: 'material', cost_price: 120.00, sale_price: 145.00, list_price: 145.00, unit: 'KG', safety_stock_days: 30 },
-    { code: 'RM-EL-001', name: '电子元器件套装 A', type: 'material', cost_price: 15.50, sale_price: 22.00, list_price: 22.00, unit: 'SET', safety_stock_days: 14 },
+    // Raw materials (list_price is GENERATED from sale_price — don't include it)
+    { code: 'RM-AL-001', name: '铝合金板材 6061-T6', type: 'material', cost_price: 45.00, sale_price: 52.00, unit: 'KG', safety_stock_days: 14 },
+    { code: 'RM-AL-002', name: '铝合金棒材 7075', type: 'material', cost_price: 68.50, sale_price: 78.00, unit: 'KG', safety_stock_days: 14 },
+    { code: 'RM-ST-001', name: '不锈钢管 304', type: 'material', cost_price: 32.00, sale_price: 38.00, unit: 'M', safety_stock_days: 7 },
+    { code: 'RM-ST-002', name: '不锈钢板 316L', type: 'material', cost_price: 85.00, sale_price: 95.00, unit: 'KG', safety_stock_days: 14 },
+    { code: 'RM-CU-001', name: '紫铜排', type: 'material', cost_price: 58.00, sale_price: 65.00, unit: 'KG', safety_stock_days: 7 },
+    { code: 'RM-PL-001', name: 'PA66 尼龙粒子', type: 'material', cost_price: 22.00, sale_price: 28.00, unit: 'KG', safety_stock_days: 21 },
+    { code: 'RM-RB-001', name: 'NBR 密封橡胶', type: 'material', cost_price: 120.00, sale_price: 145.00, unit: 'KG', safety_stock_days: 30 },
+    { code: 'RM-EL-001', name: '电子元器件套装 A', type: 'material', cost_price: 15.50, sale_price: 22.00, unit: 'SET', safety_stock_days: 14 },
     // Semi-finished
-    { code: 'SF-FR-001', name: '铝合金框架组件', type: 'semi_finished', cost_price: 180.00, sale_price: 220.00, list_price: 220.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'SF-SH-001', name: '不锈钢壳体', type: 'semi_finished', cost_price: 95.00, sale_price: 120.00, list_price: 120.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'SF-PCB-001', name: 'PCB 控制板', type: 'semi_finished', cost_price: 45.00, sale_price: 65.00, list_price: 65.00, unit: 'PCS', safety_stock_days: 14 },
-    // Finished goods
-    { code: 'FG-VLV-001', name: '工业电磁阀 DN25', type: 'product', cost_price: 380.00, sale_price: 520.00, list_price: 520.00, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'FG-VLV-002', name: '工业电磁阀 DN50', type: 'product', cost_price: 560.00, sale_price: 780.00, list_price: 780.00, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'FG-PMP-001', name: '离心泵 CYZ-50', type: 'product', cost_price: 2800.00, sale_price: 3800.00, list_price: 3800.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-PMP-002', name: '自吸泵 ZW-80', type: 'product', cost_price: 4200.00, sale_price: 5600.00, list_price: 5600.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-FLT-001', name: '精密过滤器 PF-100', type: 'product', cost_price: 1500.00, sale_price: 2100.00, list_price: 2100.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-ACT-001', name: '气动执行器 AT-40', type: 'product', cost_price: 850.00, sale_price: 1200.00, list_price: 1200.00, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'FG-SNS-001', name: '压力传感器 PT-100', type: 'product', cost_price: 320.00, sale_price: 450.00, list_price: 450.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'SF-FR-001', name: '铝合金框架组件', type: 'semi_finished', cost_price: 180.00, sale_price: 220.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'SF-SH-001', name: '不锈钢壳体', type: 'semi_finished', cost_price: 95.00, sale_price: 120.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'SF-PCB-001', name: 'PCB 控制板', type: 'semi_finished', cost_price: 45.00, sale_price: 65.00, unit: 'PCS', safety_stock_days: 14 },
+    // Finished goods (type='product' in DB enum)
+    { code: 'FG-VLV-001', name: '工业电磁阀 DN25', type: 'product', cost_price: 380.00, sale_price: 520.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'FG-VLV-002', name: '工业电磁阀 DN50', type: 'product', cost_price: 560.00, sale_price: 780.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'FG-PMP-001', name: '离心泵 CYZ-50', type: 'product', cost_price: 2800.00, sale_price: 3800.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-PMP-002', name: '自吸泵 ZW-80', type: 'product', cost_price: 4200.00, sale_price: 5600.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-FLT-001', name: '精密过滤器 PF-100', type: 'product', cost_price: 1500.00, sale_price: 2100.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-ACT-001', name: '气动执行器 AT-40', type: 'product', cost_price: 850.00, sale_price: 1200.00, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'FG-SNS-001', name: '压力传感器 PT-100', type: 'product', cost_price: 320.00, sale_price: 450.00, unit: 'PCS', safety_stock_days: 14 },
     // Packaging
-    { code: 'PK-BOX-001', name: '标准纸箱 60x40x30', type: 'consumable', cost_price: 8.50, sale_price: 12.00, list_price: 12.00, unit: 'PCS', safety_stock_days: 30 },
-    { code: 'PK-PLT-001', name: '木质托盘 1200x1000', type: 'consumable', cost_price: 65.00, sale_price: 85.00, list_price: 85.00, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'PK-BOX-001', name: '标准纸箱 60x40x30', type: 'consumable', cost_price: 8.50, sale_price: 12.00, unit: 'PCS', safety_stock_days: 30 },
+    { code: 'PK-PLT-001', name: '木质托盘 1200x1000', type: 'consumable', cost_price: 65.00, sale_price: 85.00, unit: 'PCS', safety_stock_days: 14 },
   ];
 
   return products.map((p) => ({
     ...p,
-    _meta: { code: p.code, type: p.type, costPrice: p.cost_price, listPrice: p.list_price },
+    _meta: { code: p.code, type: p.type, costPrice: p.cost_price, listPrice: p.sale_price },
   }));
 }
 

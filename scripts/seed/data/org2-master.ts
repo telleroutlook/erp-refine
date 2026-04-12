@@ -38,21 +38,21 @@ export function org2ProductCategories() {
 
 export function org2Products(): Array<Record<string, unknown> & { _meta: ProductInfo }> {
   const products = [
-    { code: 'TE-MCU-001', name: 'ARM Cortex M4 Module', type: 'material', cost_price: 45, sale_price: 65, list_price: 65, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'TE-PCB-001', name: '4-Layer PCB Board', type: 'material', cost_price: 12, sale_price: 18, list_price: 18, unit: 'PCS', safety_stock_days: 21 },
-    { code: 'TE-SEN-001', name: 'IoT Sensor Kit', type: 'material', cost_price: 85, sale_price: 120, list_price: 120, unit: 'SET', safety_stock_days: 14 },
-    { code: 'TE-PWR-001', name: 'DC Power Supply 24V', type: 'material', cost_price: 35, sale_price: 52, list_price: 52, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'TE-CAB-001', name: 'Industrial Cable Set', type: 'material', cost_price: 22, sale_price: 35, list_price: 35, unit: 'SET', safety_stock_days: 7 },
-    { code: 'TE-CTL-001', name: 'PLC Controller Unit', type: 'product', cost_price: 1200, sale_price: 1800, list_price: 1800, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'TE-GTW-001', name: 'IoT Gateway Pro', type: 'product', cost_price: 850, sale_price: 1350, list_price: 1350, unit: 'PCS', safety_stock_days: 14 },
-    { code: 'TE-DIS-001', name: 'Industrial Display 10"', type: 'product', cost_price: 420, sale_price: 680, list_price: 680, unit: 'PCS', safety_stock_days: 7 },
-    { code: 'TE-KIT-001', name: 'Smart Factory Starter Kit', type: 'product', cost_price: 3500, sale_price: 5200, list_price: 5200, unit: 'SET', safety_stock_days: 7 },
-    { code: 'TE-ACC-001', name: 'Accessory Pack', type: 'consumable', cost_price: 15, sale_price: 28, list_price: 28, unit: 'SET', safety_stock_days: 30 },
+    { code: 'TE-MCU-001', name: 'ARM Cortex M4 Module', type: 'material', cost_price: 45, sale_price: 65, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'TE-PCB-001', name: '4-Layer PCB Board', type: 'material', cost_price: 12, sale_price: 18, unit: 'PCS', safety_stock_days: 21 },
+    { code: 'TE-SEN-001', name: 'IoT Sensor Kit', type: 'material', cost_price: 85, sale_price: 120, unit: 'SET', safety_stock_days: 14 },
+    { code: 'TE-PWR-001', name: 'DC Power Supply 24V', type: 'material', cost_price: 35, sale_price: 52, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'TE-CAB-001', name: 'Industrial Cable Set', type: 'material', cost_price: 22, sale_price: 35, unit: 'SET', safety_stock_days: 7 },
+    { code: 'TE-CTL-001', name: 'PLC Controller Unit', type: 'product', cost_price: 1200, sale_price: 1800, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'TE-GTW-001', name: 'IoT Gateway Pro', type: 'product', cost_price: 850, sale_price: 1350, unit: 'PCS', safety_stock_days: 14 },
+    { code: 'TE-DIS-001', name: 'Industrial Display 10"', type: 'product', cost_price: 420, sale_price: 680, unit: 'PCS', safety_stock_days: 7 },
+    { code: 'TE-KIT-001', name: 'Smart Factory Starter Kit', type: 'product', cost_price: 3500, sale_price: 5200, unit: 'SET', safety_stock_days: 7 },
+    { code: 'TE-ACC-001', name: 'Accessory Pack', type: 'consumable', cost_price: 15, sale_price: 28, unit: 'SET', safety_stock_days: 30 },
   ];
 
   return products.map((p) => ({
     ...p,
-    _meta: { code: p.code, type: p.type, costPrice: p.cost_price, listPrice: p.list_price },
+    _meta: { code: p.code, type: p.type, costPrice: p.cost_price, listPrice: p.sale_price },
   }));
 }
 
