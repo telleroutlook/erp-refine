@@ -28,12 +28,17 @@ export function generateOrg1PurchaseOrders(reg: IdRegistry): Array<Record<string
       const itemCount = randomInt(1, 4);
       const selectedProducts = pickN(rawMaterials, itemCount);
 
-      const items = selectedProducts.map((prod) => ({
-        product_id: reg.get('product', prod.code),
-        qty: randomInt(5, 100) * 10,
-        unit_price: +(prod.costPrice * (0.95 + Math.random() * 0.1)).toFixed(2),
-        tax_rate: 13,
-      }));
+      const items = selectedProducts.map((prod) => {
+        const quantity = randomInt(5, 100) * 10;
+        const unit_price = +(prod.costPrice * (0.95 + Math.random() * 0.1)).toFixed(2);
+        return {
+          product_id: reg.get('product', prod.code),
+          quantity,
+          unit_price,
+          tax_rate: 13,
+          amount: +(quantity * unit_price).toFixed(2),
+        };
+      });
 
       orders.push({
         supplier_id: reg.get('supplier', supplierCode),
@@ -73,13 +78,19 @@ export function generateOrg1SalesOrders(reg: IdRegistry): Array<Record<string, u
       const itemCount = randomInt(1, 3);
       const selectedProducts = pickN(finishedGoods, itemCount);
 
-      const items = selectedProducts.map((prod) => ({
-        product_id: reg.get('product', prod.code),
-        qty: randomInt(1, 20),
-        unit_price: +(prod.listPrice * (0.9 + Math.random() * 0.15)).toFixed(2),
-        tax_rate: 13,
-        discount_rate: pick([0, 0, 0, 5, 10, 15]),
-      }));
+      const items = selectedProducts.map((prod) => {
+        const quantity = randomInt(1, 20);
+        const unit_price = +(prod.listPrice * (0.9 + Math.random() * 0.15)).toFixed(2);
+        const discount_rate = pick([0, 0, 0, 5, 10, 15]);
+        return {
+          product_id: reg.get('product', prod.code),
+          quantity,
+          unit_price,
+          tax_rate: 13,
+          discount_rate,
+          amount: +(quantity * unit_price * (1 - discount_rate / 100)).toFixed(2),
+        };
+      });
 
       const isUsd = customerCode === 'C013' || customerCode === 'C014';
       orders.push({
@@ -141,9 +152,10 @@ export function generateOrg1BOMs(reg: IdRegistry): Array<Record<string, unknown>
   return [
     {
       product_id: reg.get('product', 'FG-VLV-001'),
-      bom_name: '工业电磁阀 DN25 BOM',
-      version: '1.0',
-      status: 'active',
+      notes: '工业电磁阀 DN25 BOM',
+      version: 1,
+      quantity: 1,
+      is_active: true,
       items: [
         { product_id: reg.get('product', 'RM-AL-001'), qty: 2, uom: 'KG', scrap_rate: 5 },
         { product_id: reg.get('product', 'RM-ST-001'), qty: 0.5, uom: 'M', scrap_rate: 3 },
@@ -153,9 +165,10 @@ export function generateOrg1BOMs(reg: IdRegistry): Array<Record<string, unknown>
     },
     {
       product_id: reg.get('product', 'FG-PMP-001'),
-      bom_name: '离心泵 CYZ-50 BOM',
-      version: '1.0',
-      status: 'active',
+      notes: '离心泵 CYZ-50 BOM',
+      version: 1,
+      quantity: 1,
+      is_active: true,
       items: [
         { product_id: reg.get('product', 'RM-ST-002'), qty: 8, uom: 'KG', scrap_rate: 5 },
         { product_id: reg.get('product', 'RM-CU-001'), qty: 1.5, uom: 'KG', scrap_rate: 3 },
@@ -166,9 +179,10 @@ export function generateOrg1BOMs(reg: IdRegistry): Array<Record<string, unknown>
     },
     {
       product_id: reg.get('product', 'FG-FLT-001'),
-      bom_name: '精密过滤器 PF-100 BOM',
-      version: '1.0',
-      status: 'active',
+      notes: '精密过滤器 PF-100 BOM',
+      version: 1,
+      quantity: 1,
+      is_active: true,
       items: [
         { product_id: reg.get('product', 'RM-ST-001'), qty: 2, uom: 'M', scrap_rate: 5 },
         { product_id: reg.get('product', 'RM-PL-001'), qty: 1.5, uom: 'KG', scrap_rate: 3 },
@@ -187,7 +201,7 @@ export function generateOrg1Contracts(reg: IdRegistry): Array<Record<string, unk
     {
       contract_type: 'sales',
       customer_id: reg.get('customer', 'C002'),
-      title: '中国石化年度阀门采购框架协议',
+      description: '中国石化年度阀门采购框架协议',
       start_date: '2025-10-01',
       end_date: '2026-09-30',
       total_amount: 2000000,
@@ -202,7 +216,7 @@ export function generateOrg1Contracts(reg: IdRegistry): Array<Record<string, unk
     {
       contract_type: 'sales',
       customer_id: reg.get('customer', 'C003'),
-      title: '宝钢设备维保服务合同',
+      description: '宝钢设备维保服务合同',
       start_date: '2025-10-01',
       end_date: '2026-09-30',
       total_amount: 500000,
@@ -217,7 +231,7 @@ export function generateOrg1Contracts(reg: IdRegistry): Array<Record<string, unk
     {
       contract_type: 'purchase',
       supplier_id: reg.get('supplier', 'S001'),
-      title: '永信铝业原材料供应合同',
+      description: '永信铝业原材料供应合同',
       start_date: '2025-10-01',
       end_date: '2026-03-31',
       total_amount: 800000,
@@ -232,7 +246,7 @@ export function generateOrg1Contracts(reg: IdRegistry): Array<Record<string, unk
     {
       contract_type: 'sales',
       customer_id: reg.get('customer', 'C013'),
-      title: 'Pacific Engineering Pump Supply Agreement',
+      description: 'Pacific Engineering Pump Supply Agreement',
       start_date: '2026-01-01',
       end_date: '2026-12-31',
       total_amount: 200000,

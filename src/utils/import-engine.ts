@@ -95,7 +95,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   employees: {
     table: 'employees',
     returnSelect: 'id, employee_number, name',
-    requiredFields: ['name', 'email', 'role'],
+    requiredFields: ['name', 'email'],
     uniqueKey: ['email', 'organization_id'],
     references: { department_id: 'departments' },
   },
@@ -107,12 +107,6 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
     references: { parent_id: 'product_categories' },
-  },
-  'tax-codes': {
-    table: 'tax_codes',
-    returnSelect: 'id, code, name',
-    requiredFields: ['code', 'name', 'rate', 'tax_type'],
-    uniqueKey: ['code', 'organization_id'],
   },
   products: {
     table: 'products',
@@ -153,17 +147,11 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   },
   'storage-locations': {
     table: 'storage_locations',
-    returnSelect: 'id, location_code',
-    requiredFields: ['warehouse_id', 'location_code'],
-    uniqueKey: ['warehouse_id', 'location_code'],
+    returnSelect: 'id, code',
+    requiredFields: ['warehouse_id', 'code'],
+    uniqueKey: ['warehouse_id', 'code'],
     orgScoped: false,
     references: { warehouse_id: 'warehouses' },
-  },
-  carriers: {
-    table: 'carriers',
-    returnSelect: 'id, code, name',
-    requiredFields: ['code', 'name'],
-    uniqueKey: ['code', 'organization_id'],
   },
   'price-lists': {
     table: 'price_lists',
@@ -236,7 +224,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   'purchase-order-items': {
     table: 'purchase_order_items',
     returnSelect: 'id',
-    requiredFields: ['purchase_order_id', 'product_id', 'qty', 'unit_price'],
+    requiredFields: ['purchase_order_id', 'product_id', 'quantity', 'unit_price'],
     orgScoped: false,
     references: { purchase_order_id: 'purchase_orders', product_id: 'products' },
   },
@@ -251,7 +239,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   'sales-order-items': {
     table: 'sales_order_items',
     returnSelect: 'id',
-    requiredFields: ['sales_order_id', 'product_id', 'qty', 'unit_price'],
+    requiredFields: ['sales_order_id', 'product_id', 'quantity', 'unit_price'],
     orgScoped: false,
     references: { sales_order_id: 'sales_orders', product_id: 'products' },
   },
@@ -290,7 +278,6 @@ const ENTITY_DEPS: Record<string, string[]> = {
   departments: [],
   employees: ['departments'],
   'product-categories': [],
-  'tax-codes': [],
   products: ['product-categories'],
   customers: [],
   'customer-addresses': ['customers'],
@@ -298,7 +285,6 @@ const ENTITY_DEPS: Record<string, string[]> = {
   'supplier-sites': ['suppliers'],
   warehouses: [],
   'storage-locations': ['warehouses'],
-  carriers: [],
   'price-lists': [],
   'account-subjects': [],
   'cost-centers': ['departments'],

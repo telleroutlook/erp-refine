@@ -22,10 +22,10 @@ export async function runPhase6(
   // --- 6a: Create BOMs ---
   const createdBoms: Array<{ id: string; productId: string }> = [];
   for (let i = 0; i < bomData.length; i++) {
-    const { items, bom_name, ...headerFields } = bomData[i] as any;
+    const { items, notes, ...headerFields } = bomData[i] as any;
     const resp = await client.safePost('/api/bom-headers', {
       ...headerFields,
-      version: '1.0',
+      notes: notes ?? undefined,
       effective_date: '2025-10-01',
       items: (items ?? []).map((item: any, idx: number) => ({
         ...item,
@@ -60,9 +60,8 @@ export async function runPhase6(
     const resp = await client.safePost('/api/work-orders', {
       product_id: bom.productId,
       bom_header_id: bom.id,
-      planned_qty: woDef.qty,
+      planned_quantity: woDef.qty,
       warehouse_id: warehouseId,
-      priority: i < 2 ? 'high' : 'normal',
       start_date: '2025-11-01',
       planned_completion_date: '2026-03-31',
     }, { phase: 'phase6', entity: 'work-order', index: i });
@@ -85,8 +84,8 @@ export async function runPhase6(
 
     // If completed, complete the WO
     if (woDef.status === 'completed') {
-      // First update completed_qty
-      await client.safePut(`/api/work-orders/${woId}`, { completed_qty: woDef.qty }, {
+      // First update completed_quantity
+      await client.safePut(`/api/work-orders/${woId}`, { completed_quantity: woDef.qty }, {
         phase: 'phase6', entity: 'wo-update-qty', index: i,
       });
       await client.safePost(`/api/work-orders/${woId}/complete`, {}, {
@@ -106,21 +105,27 @@ export async function runPhase6(
     if (items.length === 0) { progress.tick(false); continue; }
 
     const productId = items[0].product_id;
-    const totalQty = items[0].qty ?? 100;
-    const sampleQty = Math.min(totalQty, randomInt(10, 30));
-    const defectiveQty = i === 3 ? randomInt(2, 5) : 0; // 4th inspection has defects
-    const qualifiedQty = sampleQty - defectiveQty;
+    const totalQuantity = items[0].qty ?? items[0].quantity ?? 100;
+    const defectiveQuantity = i === 3 ? randomInt(2, 5) : 0; // 4th inspection has defects
+    const qualifiedQuantity = totalQuantity - defectiveQuantity;
 
     const inspItems: any[] = [];
-    if (defectiveQty > 0) {
-      const defectCodeId = registry.tryGet('defect_code', 'D003');
-      if (defectCodeId) {
-        inspItems.push({
-          defect_code_id: defectCodeId,
-          qty: defectiveQty,
-          notes: '来料抽检发现材料缺陷',
-        });
-      }
+    if (defectiveQuantity > 0) {
+      inspItems.push({
+        check_item: '材料缺陷检查',
+        check_standard: '无夹渣、气孔等内部缺陷',
+        check_result: 'fail',
+        measured_value: `发现${defectiveQuantity}件缺陷`,
+        notes: '来料抽检发现材料缺陷',
+      });
+    } else {
+      inspItems.push({
+        check_item: '外观检查',
+        check_standard: '表面无划痕、变形',
+        check_result: 'pass',
+        measured_value: '合格',
+        notes: '',
+      });
     }
 
     const resp = await client.safePost('/api/quality-inspections', {
@@ -128,11 +133,10 @@ export async function runPhase6(
       inspection_date: receipt.date,
       reference_type: 'purchase_receipt',
       reference_id: receipt.id,
-      total_qty: totalQty,
-      sample_qty: sampleQty,
-      qualified_qty: qualifiedQty,
-      defective_qty: defectiveQty,
-      result: defectiveQty > 0 ? 'conditional' : 'pass',
+      total_quantity: totalQuantity,
+      qualified_quantity: qualifiedQuantity,
+      defective_quantity: defectiveQuantity,
+      result: defectiveQuantity > 0 ? 'conditional' : 'pass',
       inspector_id: inspectorId,
       items: inspItems,
     }, { phase: 'phase6', entity: 'qi-incoming', index: i });
@@ -150,20 +154,26 @@ export async function runPhase6(
     const productId = registry.tryGet('product', productCode);
     if (!productId) { progress.tick(false); continue; }
 
-    const totalQty = isFinished ? randomInt(20, 50) : randomInt(30, 80);
-    const sampleQty = Math.min(totalQty, randomInt(5, 15));
-    const defectiveQty = i === 1 ? randomInt(1, 3) : 0;
+    const totalQuantity = isFinished ? randomInt(20, 50) : randomInt(30, 80);
+    const defectiveQuantity = i === 1 ? randomInt(1, 3) : 0;
 
     const inspItems: any[] = [];
-    if (defectiveQty > 0) {
-      const defectCodeId = registry.tryGet('defect_code', 'D001');
-      if (defectCodeId) {
-        inspItems.push({
-          defect_code_id: defectCodeId,
-          qty: defectiveQty,
-          notes: '尺寸超差',
-        });
-      }
+    if (defectiveQuantity > 0) {
+      inspItems.push({
+        check_item: '尺寸检查',
+        check_standard: '公差范围 +/-0.05mm',
+        check_result: 'fail',
+        measured_value: `${defectiveQuantity}件超差`,
+        notes: '尺寸超差',
+      });
+    } else {
+      inspItems.push({
+        check_item: '功能测试',
+        check_standard: '各项指标达标',
+        check_result: 'pass',
+        measured_value: '合格',
+        notes: '',
+      });
     }
 
     const resp = await client.safePost('/api/quality-inspections', {
@@ -171,11 +181,10 @@ export async function runPhase6(
       inspection_date: `2026-0${i + 1}-15`,
       reference_type: isFinished ? 'production' : 'in_process',
       reference_id: null,
-      total_qty: totalQty,
-      sample_qty: sampleQty,
-      qualified_qty: sampleQty - defectiveQty,
-      defective_qty: defectiveQty,
-      result: defectiveQty > 0 ? 'fail' : 'pass',
+      total_quantity: totalQuantity,
+      qualified_quantity: totalQuantity - defectiveQuantity,
+      defective_quantity: defectiveQuantity,
+      result: defectiveQuantity > 0 ? 'fail' : 'pass',
       inspector_id: inspectorId,
       items: inspItems,
     }, { phase: 'phase6', entity: 'qi-process', index: i });

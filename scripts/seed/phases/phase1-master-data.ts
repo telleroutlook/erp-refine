@@ -9,12 +9,10 @@ interface MasterDataSet {
   departments: Record<string, unknown>[];
   employees: Record<string, unknown>[];
   'product-categories': Record<string, unknown>[];
-  'tax-codes': Record<string, unknown>[];
   products: Record<string, unknown>[];
   customers: Record<string, unknown>[];
   suppliers: Record<string, unknown>[];
   warehouses: Record<string, unknown>[];
-  carriers: Record<string, unknown>[];
   'account-subjects': Record<string, unknown>[];
   'cost-centers': Record<string, unknown>[];
   'defect-codes'?: Record<string, unknown>[];
@@ -35,7 +33,7 @@ export async function runPhase1(
 
   // Step 1: Import foundation & structure first (departments, categories, accounts)
   const batch1: Record<string, Record<string, unknown>[]> = {};
-  const batch1Keys = ['departments', 'product-categories', 'tax-codes', 'account-subjects', 'cost-centers', 'defect-codes'] as const;
+  const batch1Keys = ['departments', 'product-categories', 'account-subjects', 'cost-centers', 'defect-codes'] as const;
   for (const key of batch1Keys) {
     const data = masterData[key as keyof MasterDataSet];
     if (data && data.length > 0) batch1[key] = data;
@@ -71,10 +69,9 @@ export async function runPhase1(
     logBatchResult(resp, progress);
   }
 
-  // Step 4: Import warehouses & carriers
+  // Step 4: Import warehouses
   const batch3: Record<string, Record<string, unknown>[]> = {};
   if (masterData.warehouses.length > 0) batch3.warehouses = masterData.warehouses;
-  if (masterData.carriers.length > 0) batch3.carriers = masterData.carriers;
 
   if (Object.keys(batch3).length > 0) {
     const resp = await client.post('/api/admin/import-batch', {

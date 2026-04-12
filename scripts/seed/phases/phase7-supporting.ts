@@ -35,7 +35,6 @@ export async function runPhase7(
   }
 
   // --- 7b: Budgets ---
-  const deptId = registry.tryGet('department', 'PROD');
   const ccProd = registry.tryGet('cost_center', 'CC-PROD');
   const ccSales = registry.tryGet('cost_center', 'CC-SALES');
   const cogsAccountId = registry.tryGet('account', '6401');
@@ -46,17 +45,18 @@ export async function runPhase7(
     const totalAmount = monthlyAmounts.reduce((s, a) => s + a, 0);
 
     const resp = await client.safePost('/api/budgets', {
-      budget_code: 'BDG-PROD-2026',
-      name: 'FY2026 生产预算',
-      fiscal_year: 2026,
+      budget_name: 'FY2026 生产预算',
+      budget_year: 2026,
+      budget_type: 'annual',
       total_amount: +totalAmount.toFixed(2),
       currency: 'CNY',
-      department_id: deptId,
       lines: monthlyAmounts.map((amount, idx) => ({
-        account_subject_id: cogsAccountId,
-        amount: +amount.toFixed(2),
+        account_code: '6401',
+        planned_amount: +amount.toFixed(2),
+        actual_amount: 0,
         cost_center_id: ccProd,
-        period: `2026-${String(idx + 1).padStart(2, '0')}`,
+        period_month: idx + 1,
+        description: `${idx + 1}月生产成本预算`,
       })),
     }, { phase: 'phase7', entity: 'budget', index: 0 });
     progress.tick(!!resp?.data);
@@ -69,16 +69,18 @@ export async function runPhase7(
     const totalAmount = monthlyAmounts.reduce((s, a) => s + a, 0);
 
     const resp = await client.safePost('/api/budgets', {
-      budget_code: 'BDG-SALES-2026',
-      name: 'FY2026 销售费用预算',
-      fiscal_year: 2026,
+      budget_name: 'FY2026 销售费用预算',
+      budget_year: 2026,
+      budget_type: 'annual',
       total_amount: +totalAmount.toFixed(2),
       currency: 'CNY',
       lines: monthlyAmounts.map((amount, idx) => ({
-        account_subject_id: sellingExpAccountId,
-        amount: +amount.toFixed(2),
+        account_code: '6601',
+        planned_amount: +amount.toFixed(2),
+        actual_amount: 0,
         cost_center_id: ccSales,
-        period: `2026-${String(idx + 1).padStart(2, '0')}`,
+        period_month: idx + 1,
+        description: `${idx + 1}月销售费用预算`,
       })),
     }, { phase: 'phase7', entity: 'budget', index: 1 });
     progress.tick(!!resp?.data);

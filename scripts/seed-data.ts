@@ -22,9 +22,9 @@ import { runPhase7 } from './seed/phases/phase7-supporting';
 
 // Data generators — Org1
 import {
-  org1Departments, org1Employees, org1ProductCategories, org1TaxCodes,
+  org1Departments, org1Employees, org1ProductCategories,
   org1Products, org1Customers, org1Suppliers, org1Warehouses, org1StorageLocations,
-  org1Carriers, org1AccountSubjects, org1CostCenters, org1DefectCodes,
+  org1AccountSubjects, org1CostCenters, org1DefectCodes,
   org1ExchangeRates, org1FixedAssets,
 } from './seed/data/org1-master';
 import {
@@ -34,8 +34,8 @@ import {
 
 // Data generators — Org2
 import {
-  org2Departments, org2Employees, org2ProductCategories, org2TaxCodes,
-  org2Products, org2Customers, org2Suppliers, org2Warehouses, org2Carriers,
+  org2Departments, org2Employees, org2ProductCategories,
+  org2Products, org2Customers, org2Suppliers, org2Warehouses,
   org2AccountSubjects, org2CostCenters, org2ExchangeRates,
 } from './seed/data/org2-master';
 import {
@@ -59,15 +59,18 @@ function parseArgs(): SeedConfig {
 
   const apiUrl = getArg('api-url') ?? 'http://localhost:8787';
   const token = getArg('token') ?? process.env.ADMIN_TOKEN ?? '';
+  const token2 = getArg('token2') ?? process.env.ADMIN_TOKEN2 ?? '';
   const dryRun = hasFlag('dry-run');
   const clean = hasFlag('clean');
   const verbose = hasFlag('verbose');
+  const org1Only = hasFlag('org1-only');
+  const org2Only = hasFlag('org2-only');
   const phasesStr = getArg('phases');
   const phases = phasesStr ? phasesStr.split(',').map(Number) : [1, 2, 3, 4, 5, 6, 7];
 
   if (!token) {
-    console.error('Usage: npx tsx scripts/seed-data.ts --api-url <url> --token <admin-jwt> [--dry-run] [--phases 1,2,3] [--clean] [--verbose]');
-    console.error('  Or set ADMIN_TOKEN env var');
+    console.error('Usage: npx tsx scripts/seed-data.ts --api-url <url> --token <admin-jwt> [--token2 <org2-jwt>] [--dry-run] [--phases 1,2,3] [--clean] [--verbose] [--org1-only] [--org2-only]');
+    console.error('  Or set ADMIN_TOKEN / ADMIN_TOKEN2 env vars');
     process.exit(1);
   }
 
@@ -99,7 +102,7 @@ Phases:
     process.exit(0);
   }
 
-  return { apiUrl, token, dryRun, phases, clean, verbose };
+  return { apiUrl, token, token2, dryRun, phases, clean, verbose, org1Only, org2Only };
 }
 
 // ---------------------------------------------------------------------------
@@ -149,12 +152,10 @@ async function seedOrganization(
         departments: depts,
         employees: org1Employees(),
         'product-categories': org1ProductCategories(),
-        'tax-codes': org1TaxCodes(),
         products: org1Products() as any,
         customers: org1Customers(),
         suppliers: org1Suppliers(),
         warehouses: org1Warehouses(),
-        carriers: org1Carriers(),
         'account-subjects': org1AccountSubjects(),
         'cost-centers': org1CostCenters(),
         'defect-codes': org1DefectCodes(),
@@ -166,12 +167,10 @@ async function seedOrganization(
         departments: org2Departments(),
         employees: org2Employees(),
         'product-categories': org2ProductCategories(),
-        'tax-codes': org2TaxCodes(),
         products: org2Products() as any,
         customers: org2Customers(),
         suppliers: org2Suppliers(),
         warehouses: org2Warehouses(),
-        carriers: org2Carriers(),
         'account-subjects': org2AccountSubjects(),
         'cost-centers': org2CostCenters(),
         'exchange-rates': org2ExchangeRates(),
@@ -258,25 +257,30 @@ async function main(): Promise<void> {
   console.log(`Phases: ${config.phases.join(', ')}`);
 
   // Use the same token for both orgs (admin should have access to both)
+  // Or separate tokens if provided
   ORG1.token = config.token;
-  ORG2.token = config.token;
+  ORG2.token = config.token2 || config.token;
 
   // Seed Org1
-  try {
-    const report1 = await seedOrganization(ORG1, config, true);
-    reports.push(report1);
-  } catch (err) {
-    console.error(`\nFATAL ERROR seeding Org1:`, (err as Error).message);
-    if (config.verbose) console.error(err);
+  if (!config.org2Only) {
+    try {
+      const report1 = await seedOrganization(ORG1, config, true);
+      reports.push(report1);
+    } catch (err) {
+      console.error(`\nFATAL ERROR seeding Org1:`, (err as Error).message);
+      if (config.verbose) console.error(err);
+    }
   }
 
   // Seed Org2
-  try {
-    const report2 = await seedOrganization(ORG2, config, false);
-    reports.push(report2);
-  } catch (err) {
-    console.error(`\nFATAL ERROR seeding Org2:`, (err as Error).message);
-    if (config.verbose) console.error(err);
+  if (!config.org1Only) {
+    try {
+      const report2 = await seedOrganization(ORG2, config, false);
+      reports.push(report2);
+    } catch (err) {
+      console.error(`\nFATAL ERROR seeding Org2:`, (err as Error).message);
+      if (config.verbose) console.error(err);
+    }
   }
 
   // Print summary

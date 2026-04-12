@@ -131,10 +131,10 @@ export async function runPhase5(
 
     const resp = await client.safePost('/api/customer-receipts', {
       customer_id: inv.refs.customer_id,
-      sales_invoice_id: inv.id,
+      reference_type: 'sales_invoice',
+      reference_id: inv.id,
       receipt_date: randomDate(new Date(inv.date), new Date(new Date(inv.date).getTime() + 30 * 86400000)),
       amount: payAmount,
-      currency: 'CNY',
       payment_method: pick(['bank_transfer', 'bank_transfer', 'check', 'wire']),
     }, { phase: 'phase5', entity: 'customer-receipt', index: 0 });
 
@@ -219,10 +219,10 @@ function generateVoucherData(
     vouchers.push({
       voucher_date: salesInvoices[i].date,
       voucher_type: 'revenue',
-      description: `销售收入确认 - ${salesInvoices[i].orderNumber}`,
+      notes: `销售收入确认 - ${salesInvoices[i].orderNumber}`,
       entries: [
-        { entry_type: 'debit', account_subject_id: arAccountId, amount },
-        { entry_type: 'credit', account_subject_id: revenueAccountId, amount },
+        { entry_type: 'debit', account_subject_id: arAccountId, amount, summary: `应收账款 - ${salesInvoices[i].orderNumber}`, sequence: 1 },
+        { entry_type: 'credit', account_subject_id: revenueAccountId, amount, summary: `主营业务收入 - ${salesInvoices[i].orderNumber}`, sequence: 2 },
       ],
     });
   }
@@ -233,10 +233,10 @@ function generateVoucherData(
     vouchers.push({
       voucher_date: supplierInvoices[i].date,
       voucher_type: 'expense',
-      description: `采购入库 - ${supplierInvoices[i].orderNumber}`,
+      notes: `采购入库 - ${supplierInvoices[i].orderNumber}`,
       entries: [
-        { entry_type: 'debit', account_subject_id: rawMaterialAccountId ?? apAccountId, amount },
-        { entry_type: 'credit', account_subject_id: apAccountId, amount },
+        { entry_type: 'debit', account_subject_id: rawMaterialAccountId ?? apAccountId, amount, summary: `原材料入库 - ${supplierInvoices[i].orderNumber}`, sequence: 1 },
+        { entry_type: 'credit', account_subject_id: apAccountId, amount, summary: `应付账款 - ${supplierInvoices[i].orderNumber}`, sequence: 2 },
       ],
     });
   }
@@ -247,10 +247,10 @@ function generateVoucherData(
     vouchers.push({
       voucher_date: `2026-0${i + 1}-15`,
       voucher_type: 'receipt',
-      description: `客户收款`,
+      notes: `客户收款`,
       entries: [
-        { entry_type: 'debit', account_subject_id: bankAccountId, amount },
-        { entry_type: 'credit', account_subject_id: arAccountId, amount },
+        { entry_type: 'debit', account_subject_id: bankAccountId, amount, summary: '银行收款', sequence: 1 },
+        { entry_type: 'credit', account_subject_id: arAccountId, amount, summary: '冲销应收账款', sequence: 2 },
       ],
     });
   }
@@ -262,10 +262,10 @@ function generateVoucherData(
       vouchers.push({
         voucher_date: `2026-0${i + 1}-28`,
         voucher_type: 'depreciation',
-        description: `${2026}年${i + 1}月折旧计提`,
+        notes: `${2026}年${i + 1}月折旧计提`,
         entries: [
-          { entry_type: 'debit', account_subject_id: gaExpenseAccountId, amount },
-          { entry_type: 'credit', account_subject_id: depreciationAccountId, amount },
+          { entry_type: 'debit', account_subject_id: gaExpenseAccountId, amount, summary: `${i + 1}月管理费用-折旧`, sequence: 1 },
+          { entry_type: 'credit', account_subject_id: depreciationAccountId, amount, summary: `${i + 1}月累计折旧`, sequence: 2 },
         ],
       });
     }

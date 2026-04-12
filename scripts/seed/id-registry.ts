@@ -96,6 +96,7 @@ export class IdRegistry {
   /**
    * Preload all master data entities from API endpoints.
    * Should be called after Phase 1 (master data import).
+   * Continues on individual endpoint failures.
    */
   async preloadAll(client: SeedApiClient): Promise<Record<string, number>> {
     const preloads: Array<[string, string, string]> = [
@@ -104,19 +105,22 @@ export class IdRegistry {
       ['supplier', '/api/suppliers', 'code'],
       ['warehouse', '/api/warehouses', 'code'],
       ['department', '/api/departments', 'code'],
-      ['carrier', '/api/carriers', 'code'],
       ['account', '/api/account-subjects', 'code'],
       ['cost_center', '/api/cost-centers', 'code'],
       ['employee', '/api/employees', 'employee_number'],
       ['defect_code', '/api/defect-codes', 'code'],
-      ['tax_code', '/api/tax-codes', 'code'],
       ['category', '/api/product-categories', 'code'],
-      ['storage_location', '/api/storage-locations', 'location_code'],
+      ['storage_location', '/api/storage-locations', 'code'],
     ];
 
     const counts: Record<string, number> = {};
     for (const [entityType, path, codeField] of preloads) {
-      counts[entityType] = await this.preloadFromApi(client, entityType, path, codeField);
+      try {
+        counts[entityType] = await this.preloadFromApi(client, entityType, path, codeField);
+      } catch (err) {
+        console.log(`    WARNING: Failed to preload ${entityType}: ${(err as Error).message}`);
+        counts[entityType] = 0;
+      }
     }
     return counts;
   }

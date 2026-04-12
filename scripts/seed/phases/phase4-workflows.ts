@@ -100,7 +100,7 @@ export async function runPhase4(
 
   // --- 4d: Create Sales Shipments, Pack, and Confirm ---
   const confirmedShipments: GeneratedDocument[] = [];
-  const carrierCodes = registry.codes('carrier');
+  const carrierNames = ['顺丰速运', '京东物流', '德邦快递', '中通快递', '中远海运'];
 
   for (const so of sosToShip) {
     // Fetch SO details to get item IDs
@@ -110,14 +110,13 @@ export async function runPhase4(
     const soItems = soDetail.data.items ?? soDetail.data.sales_order_items ?? [];
     if (soItems.length === 0) { progress.tick(false); progress.tick(false); progress.tick(false); continue; }
 
-    // Pick a carrier
-    const carrierCode = pick(carrierCodes);
-    const carrierId = registry.tryGet('carrier', carrierCode);
+    // Pick a carrier name
+    const carrierName = pick(carrierNames);
 
     // Create shipment
     const shipmentItems = soItems.map((item: any) => ({
       product_id: item.product_id,
-      qty: item.qty, // ship full qty
+      qty: item.qty ?? item.quantity, // ship full qty
       sales_order_item_id: item.id,
     }));
 
@@ -125,7 +124,7 @@ export async function runPhase4(
       sales_order_id: so.id,
       customer_id: so.refs.customer_id,
       warehouse_id: so.refs.warehouse_id,
-      carrier_id: carrierId,
+      carrier: carrierName,
       shipment_date: so.date,
       tracking_number: `TRK${Date.now()}${randomInt(1000, 9999)}`,
       items: shipmentItems,

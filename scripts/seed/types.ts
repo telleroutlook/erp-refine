@@ -4,10 +4,13 @@
 export interface SeedConfig {
   apiUrl: string;
   token: string;
+  token2: string;
   dryRun: boolean;
   phases: number[];
   clean: boolean;
   verbose: boolean;
+  org1Only: boolean;
+  org2Only: boolean;
 }
 
 export interface OrgConfig {

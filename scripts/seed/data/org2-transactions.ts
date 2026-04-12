@@ -25,12 +25,17 @@ export function generateOrg2PurchaseOrders(reg: IdRegistry): Array<Record<string
       const selectedProducts = pickN(rawMaterials, itemCount);
 
       const isUsd = supplierCode === 'TS01' || supplierCode === 'TS03';
-      const items = selectedProducts.map((prod) => ({
-        product_id: reg.get('product', prod.code),
-        qty: randomInt(10, 200),
-        unit_price: +(prod.costPrice * (0.95 + Math.random() * 0.1)).toFixed(2),
-        tax_rate: isUsd ? 0 : 13,
-      }));
+      const items = selectedProducts.map((prod) => {
+        const quantity = randomInt(10, 200);
+        const unit_price = +(prod.costPrice * (0.95 + Math.random() * 0.1)).toFixed(2);
+        return {
+          product_id: reg.get('product', prod.code),
+          quantity,
+          unit_price,
+          tax_rate: isUsd ? 0 : 13,
+          amount: +(quantity * unit_price).toFixed(2),
+        };
+      });
 
       orders.push({
         supplier_id: reg.get('supplier', supplierCode),
@@ -69,13 +74,19 @@ export function generateOrg2SalesOrders(reg: IdRegistry): Array<Record<string, u
       const selectedProducts = pickN(finishedGoods, itemCount);
 
       const isUsd = ['TC02', 'TC04', 'TC06', 'TC08'].includes(customerCode);
-      const items = selectedProducts.map((prod) => ({
-        product_id: reg.get('product', prod.code),
-        qty: randomInt(1, 15),
-        unit_price: +(prod.listPrice * (0.9 + Math.random() * 0.15)).toFixed(2),
-        tax_rate: isUsd ? 0 : 13,
-        discount_rate: pick([0, 0, 5, 10]),
-      }));
+      const items = selectedProducts.map((prod) => {
+        const quantity = randomInt(1, 15);
+        const unit_price = +(prod.listPrice * (0.9 + Math.random() * 0.15)).toFixed(2);
+        const discount_rate = pick([0, 0, 5, 10]);
+        return {
+          product_id: reg.get('product', prod.code),
+          quantity,
+          unit_price,
+          tax_rate: isUsd ? 0 : 13,
+          discount_rate,
+          amount: +(quantity * unit_price * (1 - discount_rate / 100)).toFixed(2),
+        };
+      });
 
       orders.push({
         customer_id: reg.get('customer', customerCode),

@@ -10,7 +10,6 @@
     "departments",
     "employees",
     "product-categories",
-    "tax-codes",
     "products",
     "customers",
     "customer-addresses",
@@ -18,7 +17,6 @@
     "supplier-sites",
     "warehouses",
     "storage-locations",
-    "carriers",
     "price-lists",
     "account-subjects",
     "cost-centers",
@@ -30,18 +28,17 @@
   "templates": {
     "departments": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["parent_id", "level", "status"],
+      "optionalFields": ["parent_id", "status"],
       "example": [
-        { "code": "SALES", "name": "销售部", "level": 1 },
-        { "code": "FIN", "name": "财务部", "level": 1 }
+        { "code": "SALES", "name": "销售部" },
+        { "code": "FIN", "name": "财务部" }
       ]
     },
     "employees": {
-      "requiredFields": ["name", "email", "role"],
+      "requiredFields": ["name", "email"],
       "optionalFields": ["phone", "position", "employee_number", "department_id", "hire_date"],
-      "roles": ["admin", "manager", "procurement_manager", "sales_manager", "finance_manager", "inventory_manager", "quality_manager", "production_manager", "viewer"],
       "example": [
-        { "name": "张伟", "email": "zhangwei@company.com", "role": "admin", "position": "总经理", "employee_number": "EMP001" }
+        { "name": "张伟", "email": "zhangwei@company.com", "position": "总经理", "employee_number": "EMP001" }
       ]
     },
     "product-categories": {
@@ -52,29 +49,21 @@
         { "code": "FIN", "name": "成品", "level": 1 }
       ]
     },
-    "tax-codes": {
-      "requiredFields": ["code", "name", "rate", "tax_type"],
-      "optionalFields": ["description", "is_active"],
-      "taxTypes": ["input", "output"],
-      "example": [
-        { "code": "VAT13", "name": "增值税13%", "rate": 13, "tax_type": "output" }
-      ]
-    },
     "products": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["type", "category_id", "unit", "cost_price", "list_price", "description", "safety_stock_days", "lead_time_days"],
+      "optionalFields": ["type", "category_id", "unit", "cost_price", "sale_price", "list_price", "description", "safety_stock_days"],
       "types": ["material", "finished_good", "semi_finished", "service", "asset", "consumable"],
       "example": [
-        { "code": "RM-001", "name": "铝合金板材", "type": "material", "unit": "KG", "cost_price": 45.00, "list_price": 52.00 }
+        { "code": "RM-001", "name": "铝合金板材", "type": "material", "unit": "KG", "cost_price": 45.00, "sale_price": 52.00, "list_price": 52.00 }
       ]
     },
     "customers": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["customer_type", "classification", "email", "phone", "credit_limit", "payment_terms", "default_currency", "tax_number", "contact_name", "contact_phone"],
+      "optionalFields": ["customer_type", "classification", "email", "phone", "credit_limit", "payment_terms", "tax_number", "contact"],
       "customerTypes": ["enterprise", "individual", "government", "distributor"],
       "classifications": ["vip", "key", "standard", "occasional"],
       "example": [
-        { "code": "C001", "name": "上海华能电力", "customer_type": "enterprise", "classification": "vip", "credit_limit": 5000000, "payment_terms": 60 }
+        { "code": "C001", "name": "上海华能电力", "customer_type": "enterprise", "classification": "vip", "credit_limit": 5000000, "payment_terms": 60, "contact": "王经理" }
       ]
     },
     "customer-addresses": {
@@ -86,10 +75,10 @@
     },
     "suppliers": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["supplier_type", "email", "phone", "currency", "payment_terms", "lead_time_days", "reliability_score", "tax_number", "contact_name", "contact_phone"],
+      "optionalFields": ["supplier_type", "contact_email", "contact_phone", "contact_person", "country", "currency", "payment_terms", "lead_time_days", "reliability_score", "tax_number"],
       "supplierTypes": ["material", "service", "subcontractor", "logistics"],
       "example": [
-        { "code": "S001", "name": "宁波永信铝业", "supplier_type": "material", "currency": "CNY", "payment_terms": 30, "lead_time_days": 7 }
+        { "code": "S001", "name": "宁波永信铝业", "supplier_type": "material", "country": "CN", "currency": "CNY", "payment_terms": "30", "lead_time_days": 7, "contact_person": "钱总" }
       ]
     },
     "supplier-sites": {
@@ -101,33 +90,26 @@
     },
     "warehouses": {
       "requiredFields": ["code", "name"],
-      "optionalFields": ["location", "warehouse_type", "capacity_volume", "capacity_weight", "status"],
+      "optionalFields": ["location", "type", "status"],
       "warehouseTypes": ["standard", "cold_storage", "hazardous", "bonded", "virtual"],
       "example": [
-        { "code": "WH-MAIN", "name": "主仓库", "location": "上海市嘉定区", "warehouse_type": "standard" }
+        { "code": "WH-MAIN", "name": "主仓库", "location": "上海市嘉定区", "type": "standard" }
       ]
     },
     "storage-locations": {
-      "requiredFields": ["warehouse_id", "location_code"],
-      "optionalFields": ["name", "location_type"],
+      "requiredFields": ["warehouse_id", "code"],
+      "optionalFields": ["name", "zone", "is_active"],
       "example": [
-        { "warehouse_id": "<warehouse-uuid>", "location_code": "A-01-01", "name": "A区1排1层" }
-      ]
-    },
-    "carriers": {
-      "requiredFields": ["code", "name"],
-      "optionalFields": ["carrier_type", "tracking_url_template", "is_active"],
-      "example": [
-        { "code": "CR-SF", "name": "顺丰速运", "carrier_type": "express" }
+        { "warehouse_id": "<warehouse-uuid>", "code": "A-01-01", "name": "A区1排1层" }
       ]
     },
     "account-subjects": {
       "requiredFields": ["code", "name", "category", "balance_direction"],
-      "optionalFields": ["parent_id", "level", "is_leaf", "is_active"],
+      "optionalFields": ["parent_id", "is_leaf"],
       "categories": ["asset", "liability", "equity", "revenue", "expense"],
       "balanceDirections": ["debit", "credit"],
       "example": [
-        { "code": "1001", "name": "库存现金", "category": "asset", "balance_direction": "debit", "level": 1, "is_leaf": true }
+        { "code": "1001", "name": "库存现金", "category": "asset", "balance_direction": "debit", "is_leaf": true }
       ]
     },
     "cost-centers": {
