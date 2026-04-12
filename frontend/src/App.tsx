@@ -54,6 +54,7 @@ const App: React.FC = () => {
             authProvider={authProvider}
             i18nProvider={i18nProvider}
             resources={[
+              { name: 'procurement' },
               {
                 name: 'purchase-orders',
                 list: '/procurement/purchase-orders',
@@ -61,7 +62,6 @@ const App: React.FC = () => {
                 edit: '/procurement/purchase-orders/:id/edit',
                 create: '/procurement/purchase-orders/create',
                 meta: {
-                  label: '采购订单',
                   parent: 'procurement',
                   icon: <ShoppingCartOutlined />,
                 },
@@ -69,14 +69,14 @@ const App: React.FC = () => {
               {
                 name: 'suppliers',
                 list: '/procurement/suppliers',
-                meta: { label: '供应商', parent: 'procurement' },
+                meta: { parent: 'procurement' },
               },
+              { name: 'sales' },
               {
                 name: 'sales-orders',
                 list: '/sales/sales-orders',
                 show: '/sales/sales-orders/:id',
                 meta: {
-                  label: '销售订单',
                   parent: 'sales',
                   icon: <ShopOutlined />,
                 },
@@ -84,26 +84,27 @@ const App: React.FC = () => {
               {
                 name: 'customers',
                 list: '/sales/customers',
-                meta: { label: '客户', parent: 'sales' },
+                meta: { parent: 'sales' },
               },
+              { name: 'inventory' },
               {
                 name: 'stock-records',
                 list: '/inventory/stock-records',
                 meta: {
-                  label: '库存余额',
                   parent: 'inventory',
                   icon: <InboxOutlined />,
                 },
               },
+              { name: 'masterData' },
               {
                 name: 'products',
                 list: '/master-data/products',
-                meta: { label: '产品', parent: 'masterData', icon: <AppstoreOutlined /> },
+                meta: { parent: 'masterData', icon: <AppstoreOutlined /> },
               },
               {
                 name: 'ai-chat',
                 list: '/ai/chat',
-                meta: { label: 'AI 助手', icon: <RobotOutlined /> },
+                meta: { icon: <RobotOutlined /> },
               },
             ]}
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}

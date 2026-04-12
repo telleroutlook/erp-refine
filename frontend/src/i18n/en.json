@@ -1,4 +1,36 @@
 {
+  "procurement": { "procurement": "Procurement" },
+  "purchase-orders": { "purchase-orders": "Purchase Orders" },
+  "suppliers": { "suppliers": "Suppliers" },
+  "sales": { "sales": "Sales" },
+  "sales-orders": { "sales-orders": "Sales Orders" },
+  "customers": { "customers": "Customers" },
+  "inventory": { "inventory": "Inventory" },
+  "stock-records": { "stock-records": "Stock Records" },
+  "masterData": { "masterData": "Master Data" },
+  "products": { "products": "Products" },
+  "ai-chat": { "ai-chat": "AI Assistant" },
+  "actions": {
+    "list": "List",
+    "show": "Show",
+    "edit": "Edit",
+    "create": "Create",
+    "clone": "Clone",
+    "delete": "Delete"
+  },
+  "buttons": {
+    "list": "List",
+    "show": "Show",
+    "edit": "Edit",
+    "create": "Create",
+    "clone": "Clone",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "refresh": "Refresh",
+    "notAccessTitle": "You are not authorized to access this resource"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",

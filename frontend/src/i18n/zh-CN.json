@@ -1,4 +1,36 @@
 {
+  "procurement": { "procurement": "采购管理" },
+  "purchase-orders": { "purchase-orders": "采购订单" },
+  "suppliers": { "suppliers": "供应商" },
+  "sales": { "sales": "销售管理" },
+  "sales-orders": { "sales-orders": "销售订单" },
+  "customers": { "customers": "客户" },
+  "inventory": { "inventory": "库存管理" },
+  "stock-records": { "stock-records": "库存余额" },
+  "masterData": { "masterData": "主数据" },
+  "products": { "products": "产品" },
+  "ai-chat": { "ai-chat": "AI 助手" },
+  "actions": {
+    "list": "列表",
+    "show": "查看",
+    "edit": "编辑",
+    "create": "新建",
+    "clone": "克隆",
+    "delete": "删除"
+  },
+  "buttons": {
+    "list": "列表",
+    "show": "查看",
+    "edit": "编辑",
+    "create": "新建",
+    "clone": "克隆",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "refresh": "刷新",
+    "notAccessTitle": "您无权访问此资源"
+  },
   "common": {
     "loading": "加载中...",
     "save": "保存",
