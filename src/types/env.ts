@@ -13,8 +13,8 @@ export interface Env {
   AI_MODEL_PRIMARY: string;   // e.g., 'GLM-4.5-Air'
   AI_MODEL_FAST: string;      // e.g., 'GLM-4.5-Air'
 
-  // Auth
-  JWT_SECRET: string;
+  // Auth (JWT_SECRET is optional when using ES256/JWKS)
+  JWT_SECRET?: string;
 
   // Config
   ENVIRONMENT: string;
