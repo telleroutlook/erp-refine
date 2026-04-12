@@ -1,0 +1,37 @@
+{
+  "departments": [
+    { "code": "MGMT", "name": "管理部", "level": 1 },
+    { "code": "FIN", "name": "财务部", "level": 1 },
+    { "code": "SALES", "name": "销售部", "level": 1 },
+    { "code": "PROC", "name": "采购部", "level": 1 },
+    { "code": "WH", "name": "仓储部", "level": 1 }
+  ],
+  "employees": [
+    { "name": "管理员", "email": "admin@your-company.com", "role": "admin", "position": "系统管理员", "employee_number": "EMP001" }
+  ],
+  "product-categories": [
+    { "code": "RAW", "name": "原材料", "level": 1 },
+    { "code": "FIN", "name": "成品", "level": 1 },
+    { "code": "CONS", "name": "耗材", "level": 1 }
+  ],
+  "products": [
+    { "code": "SAMPLE-001", "name": "示例产品", "type": "finished_good", "unit": "PCS", "cost_price": 100, "list_price": 150 }
+  ],
+  "customers": [
+    { "code": "C001", "name": "示例客户", "customer_type": "enterprise", "classification": "standard", "payment_terms": 30 }
+  ],
+  "suppliers": [
+    { "code": "S001", "name": "示例供应商", "supplier_type": "material", "currency": "CNY", "payment_terms": 30 }
+  ],
+  "warehouses": [
+    { "code": "WH-MAIN", "name": "主仓库", "warehouse_type": "standard" }
+  ],
+  "account-subjects": [
+    { "code": "1001", "name": "库存现金", "category": "asset", "balance_direction": "debit", "level": 1, "is_leaf": true },
+    { "code": "1002", "name": "银行存款", "category": "asset", "balance_direction": "debit", "level": 1, "is_leaf": true },
+    { "code": "1122", "name": "应收账款", "category": "asset", "balance_direction": "debit", "level": 1, "is_leaf": true },
+    { "code": "2202", "name": "应付账款", "category": "liability", "balance_direction": "credit", "level": 1, "is_leaf": true },
+    { "code": "6001", "name": "主营业务收入", "category": "revenue", "balance_direction": "credit", "level": 1, "is_leaf": true },
+    { "code": "6401", "name": "主营业务成本", "category": "expense", "balance_direction": "debit", "level": 1, "is_leaf": true }
+  ]
+}

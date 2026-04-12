@@ -1,0 +1,126 @@
+{
+  "$schema": "https://erp-refine.example.com/import-template/v1",
+  "description": "ERP-Refine 数据导入模板 — 客户上线初始化",
+  "version": "1.0.0",
+  "usage": {
+    "zh": "按照下方模板格式准备 JSON 文件，通过 POST /api/admin/import-batch 或 CLI 脚本导入。所有实体会按依赖顺序自动排列。",
+    "en": "Prepare JSON files following the templates below. Import via POST /api/admin/import-batch or the CLI script. Entities are automatically ordered by dependencies."
+  },
+  "importOrder": [
+    "departments",
+    "employees",
+    "product-categories",
+    "tax-codes",
+    "products",
+    "customers",
+    "suppliers",
+    "warehouses",
+    "storage-locations",
+    "carriers",
+    "price-lists",
+    "account-subjects",
+    "cost-centers",
+    "defect-codes",
+    "stock-records"
+  ],
+  "templates": {
+    "departments": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["parent_id", "level", "status"],
+      "example": [
+        { "code": "SALES", "name": "销售部", "level": 1 },
+        { "code": "FIN", "name": "财务部", "level": 1 }
+      ]
+    },
+    "employees": {
+      "requiredFields": ["name", "email", "role"],
+      "optionalFields": ["phone", "position", "employee_number", "department_id", "hire_date"],
+      "roles": ["admin", "manager", "procurement_manager", "sales_manager", "finance_manager", "inventory_manager", "quality_manager", "production_manager", "viewer"],
+      "example": [
+        { "name": "张伟", "email": "zhangwei@company.com", "role": "admin", "position": "总经理", "employee_number": "EMP001" }
+      ]
+    },
+    "product-categories": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["parent_id", "level"],
+      "example": [
+        { "code": "RAW", "name": "原材料", "level": 1 },
+        { "code": "FIN", "name": "成品", "level": 1 }
+      ]
+    },
+    "products": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["type", "category_id", "unit", "cost_price", "list_price", "description", "safety_stock_days", "lead_time_days"],
+      "types": ["material", "finished_good", "semi_finished", "service", "asset", "consumable"],
+      "example": [
+        { "code": "RM-001", "name": "铝合金板材", "type": "material", "unit": "KG", "cost_price": 45.00, "list_price": 52.00 }
+      ]
+    },
+    "customers": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["customer_type", "classification", "email", "phone", "credit_limit", "payment_terms", "default_currency", "tax_number"],
+      "customerTypes": ["enterprise", "individual", "government", "distributor"],
+      "classifications": ["vip", "key", "standard", "occasional"],
+      "example": [
+        { "code": "C001", "name": "上海华能电力", "customer_type": "enterprise", "classification": "vip", "credit_limit": 5000000, "payment_terms": 60 }
+      ]
+    },
+    "suppliers": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["supplier_type", "email", "phone", "currency", "payment_terms", "lead_time_days", "reliability_score", "tax_number"],
+      "supplierTypes": ["material", "service", "subcontractor", "logistics"],
+      "example": [
+        { "code": "S001", "name": "宁波永信铝业", "supplier_type": "material", "currency": "CNY", "payment_terms": 30, "lead_time_days": 7 }
+      ]
+    },
+    "warehouses": {
+      "requiredFields": ["code", "name"],
+      "optionalFields": ["location", "warehouse_type", "capacity_volume", "capacity_weight"],
+      "warehouseTypes": ["standard", "cold_storage", "hazardous", "bonded", "virtual"],
+      "example": [
+        { "code": "WH-MAIN", "name": "主仓库", "location": "上海市嘉定区", "warehouse_type": "standard" }
+      ]
+    },
+    "account-subjects": {
+      "requiredFields": ["code", "name", "category", "balance_direction"],
+      "optionalFields": ["parent_id", "level", "is_leaf", "is_active"],
+      "categories": ["asset", "liability", "equity", "revenue", "expense"],
+      "example": [
+        { "code": "1001", "name": "库存现金", "category": "asset", "balance_direction": "debit", "level": 1, "is_leaf": true }
+      ]
+    },
+    "stock-records": {
+      "requiredFields": ["warehouse_id", "product_id", "qty_on_hand"],
+      "optionalFields": ["qty_reserved"],
+      "note": "用于导入期初库存余额。warehouse_id 和 product_id 必须引用已存在的记录。",
+      "example": [
+        { "warehouse_id": "<warehouse-uuid>", "product_id": "<product-uuid>", "qty_on_hand": 1000, "qty_reserved": 50 }
+      ]
+    }
+  },
+  "apiEndpoints": {
+    "listEntities": "GET /api/admin/import",
+    "importSingle": "POST /api/admin/import/:entity",
+    "importBatch": "POST /api/admin/import-batch"
+  },
+  "requestFormat": {
+    "single": {
+      "records": ["array of records"],
+      "options": {
+        "upsert": false,
+        "dry_run": false,
+        "on_error": "skip | abort"
+      }
+    },
+    "batch": {
+      "data": {
+        "entity-name": ["array of records"]
+      },
+      "options": {
+        "upsert": false,
+        "dry_run": false,
+        "on_error": "skip | abort"
+      }
+    }
+  }
+}

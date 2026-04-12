@@ -108,11 +108,98 @@ admin.put('/notifications/:id/read', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// Data Import — placeholder (Phase 8)
+// Data Import
 // ---------------------------------------------------------------------------
+import {
+  importEntity,
+  importBatch,
+  getSupportedEntities,
+  getImportOrder,
+  ENTITY_CONFIGS,
+  type ImportOptions,
+} from '../utils/import-engine';
+
+/** GET /import — list supported entities and their import order */
+admin.get('/import', async (c) => {
+  const entities = getSupportedEntities();
+  const order = getImportOrder(entities);
+  const details = Object.fromEntries(
+    entities.map((e) => {
+      const cfg = ENTITY_CONFIGS[e]!;
+      return [e, { table: cfg.table, requiredFields: cfg.requiredFields, uniqueKey: cfg.uniqueKey }];
+    })
+  );
+  return c.json({
+    data: {
+      supportedEntities: entities,
+      recommendedOrder: order,
+      entities: details,
+    },
+  });
+});
+
+/** POST /import/:entity — import records for a single entity */
 admin.post('/import/:entity', async (c) => {
-  // Phase 8 implementation
-  return c.json({ data: { message: 'Import endpoint not yet implemented' } }, 501);
+  const { db, user, requestId } = getDbAndUser(c);
+  const entity = c.req.param('entity');
+  const body = await c.req.json();
+
+  const records = body.records;
+  if (!Array.isArray(records)) {
+    throw new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail: "Request body must contain a 'records' array.",
+      requestId,
+      hint: 'Format: { "records": [...], "options": { "upsert": false, "dry_run": false, "on_error": "skip" } }',
+    });
+  }
+
+  const options: ImportOptions = {
+    upsert: body.options?.upsert ?? false,
+    dryRun: body.options?.dry_run ?? false,
+    onError: body.options?.on_error ?? 'skip',
+  };
+
+  const result = await importEntity(entity, records, {
+    organizationId: user.organizationId,
+    userId: user.userId,
+    db,
+  }, options);
+
+  const status = result.errors.length > 0 ? 207 : 200;
+  return c.json({ data: result }, status as any);
+});
+
+/** POST /import-batch — import multiple entities in dependency order */
+admin.post('/import-batch', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const body = await c.req.json();
+
+  const data = body.data;
+  if (!data || typeof data !== 'object') {
+    throw new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail: "Request body must contain a 'data' object keyed by entity name.",
+      requestId,
+      hint: 'Format: { "data": { "products": [...], "customers": [...] }, "options": {...} }',
+    });
+  }
+
+  const options: ImportOptions = {
+    upsert: body.options?.upsert ?? false,
+    dryRun: body.options?.dry_run ?? false,
+    onError: body.options?.on_error ?? 'skip',
+  };
+
+  const results = await importBatch(data, {
+    organizationId: user.organizationId,
+    userId: user.userId,
+    db,
+  }, options);
+
+  const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
+  const status = totalErrors > 0 ? 207 : 200;
+  return c.json({ data: { results, totalImported: results.reduce((s, r) => s + r.imported, 0), totalErrors } }, status as any);
 });
 
 export default admin;
