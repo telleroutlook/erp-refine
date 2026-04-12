@@ -51,49 +51,43 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
 
     const token = authHeader.slice(7);
 
+    let result: JWTVerifyResult;
     try {
-      let result: JWTVerifyResult;
-
       // Detect algorithm from token header
       const headerB64 = token.split('.')[0];
       const header = JSON.parse(atob(headerB64));
 
       if (header.alg === 'HS256' && c.env.JWT_SECRET) {
-        // Legacy: HS256 with shared secret
         const secret = new TextEncoder().encode(c.env.JWT_SECRET);
         result = await jwtVerify(token, secret, { algorithms: ['HS256'] });
       } else if (header.alg === 'ES256') {
-        // ES256: verify using JWKS from Supabase
         const supabaseUrl = c.env.SUPABASE_URL;
         if (!supabaseUrl) {
           return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
         }
-
         const key = await getVerifyKey(supabaseUrl, header.kid);
         result = await jwtVerify(token, key, { algorithms: ['ES256'] });
       } else {
         return c.json({ error: `Unsupported JWT algorithm: ${header.alg}` }, 401);
       }
-
-      const { payload } = result;
-      const appMeta = (payload.app_metadata as Record<string, string>) ?? {};
-      const user: UserContext = {
-        userId: payload.sub ?? '',
-        email: (payload.email as string) ?? '',
-        organizationId: appMeta['organization_id'] ?? '',
-        role: appMeta['role'] ?? 'viewer',
-      };
-
-      if (!user.userId || !user.organizationId) {
-        return c.json({ error: 'Invalid token claims' }, 401);
-      }
-
-      c.set('user', user);
-    } catch (err) {
-      const errMsg = err instanceof Error ? `${err.name}: ${err.message}` : JSON.stringify(err);
-      return c.json({ error: 'Invalid or expired token', debug: errMsg }, 401);
+    } catch {
+      return c.json({ error: 'Invalid or expired token' }, 401);
     }
 
+    const { payload } = result;
+    const appMeta = (payload.app_metadata as Record<string, string>) ?? {};
+    const user: UserContext = {
+      userId: payload.sub ?? '',
+      email: (payload.email as string) ?? '',
+      organizationId: appMeta['organization_id'] ?? '',
+      role: appMeta['role'] ?? 'viewer',
+    };
+
+    if (!user.userId || !user.organizationId) {
+      return c.json({ error: 'Invalid token claims' }, 401);
+    }
+
+    c.set('user', user);
     await next();
   };
 }
