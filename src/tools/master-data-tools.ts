@@ -64,13 +64,13 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
       execute: async ({ search }) => {
         let query = db
           .from('employees')
-          .select('id, employee_number, first_name, last_name, email, department:departments(id,name)')
+          .select('id, employee_number, name, email, department:departments!department_id(id,name)')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
-        if (search) query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+        if (search) query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
 
-        const { data, error } = await query.order('last_name').limit(50);
+        const { data, error } = await query.order('name').limit(50);
         if (error) throw new Error(error.message);
         return data ?? [];
       },

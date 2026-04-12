@@ -16,7 +16,7 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ status, limit }) => {
         let query = db
           .from('quality_inspections')
-          .select('id, inspection_number, status, inspection_date, reference_type, reference_id, inspector:employees(id,first_name,last_name)')
+          .select('id, inspection_number, status, inspection_date, reference_type, reference_id, inspector:employees(id,name)')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 

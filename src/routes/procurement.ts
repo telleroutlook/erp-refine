@@ -40,7 +40,7 @@ procurement.get('/purchase-orders/:id', async (c) => {
 
   const { data, error } = await db
     .from('purchase_orders')
-    .select('*, supplier:suppliers(id,name,code,email), items:purchase_order_items(*, product:products(id,name,code))')
+    .select('*, supplier:suppliers(id,name,code,contact_email), items:purchase_order_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

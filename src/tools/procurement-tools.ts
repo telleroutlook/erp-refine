@@ -37,7 +37,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         const { data, error } = await db
           .from('purchase_orders')
           .select(`
-            *, supplier:suppliers(id,name,code,email),
+            *, supplier:suppliers(id,name,code,contact_email),
             items:purchase_order_items(*, product:products(id,name,code,uom:uoms(name)))
           `)
           .eq('id', id)
