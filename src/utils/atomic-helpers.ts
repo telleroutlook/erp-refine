@@ -62,7 +62,7 @@ export async function atomicCreateWithItems(
     const itemsWithFk = items.map((item, idx) => ({
       ...item,
       [headerFk]: headerId,
-      line_number: item.line_number ?? idx + 1,
+      line_no: item.line_no ?? idx + 1,
     }));
 
     const { data: itemsData, error: itemsError } = await db
