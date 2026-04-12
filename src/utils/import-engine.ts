@@ -189,10 +189,10 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   'stock-records': {
     table: 'stock_records',
     returnSelect: 'id',
-    requiredFields: ['warehouse_id', 'product_id', 'qty_on_hand'],
+    requiredFields: ['warehouse_id', 'product_id', 'quantity'],
     uniqueKey: ['organization_id', 'warehouse_id', 'product_id'],
     references: { warehouse_id: 'warehouses', product_id: 'products' },
-    excludeFields: ['qty_available'],
+    excludeFields: ['qty_on_hand', 'qty_reserved', 'qty_available', 'available_quantity'],
   },
 
   // --- Exchange rates ---

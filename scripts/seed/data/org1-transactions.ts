@@ -136,8 +136,8 @@ export function generateOrg1StockRecords(reg: IdRegistry): Array<Record<string, 
       records.push({
         warehouse_id: reg.get('warehouse', whCode),
         product_id: reg.get('product', prod.code),
-        qty_on_hand: qty,
-        qty_reserved: reserved,
+        quantity: qty,
+        reserved_quantity: reserved,
       });
     }
   }
