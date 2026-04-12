@@ -72,6 +72,7 @@ sales.post('/sales-orders', async (c) => {
       headerFk: 'sales_order_id',
       headerReturnSelect: 'id, order_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      autoLineNo: true,
     },
     {
       header: {

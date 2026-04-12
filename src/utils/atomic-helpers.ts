@@ -16,6 +16,8 @@ export interface AtomicCreateConfig {
   headerReturnSelect: string;
   /** Columns to return from items after insert */
   itemsReturnSelect: string;
+  /** Whether to auto-assign line_no to items (only for tables that have this column) */
+  autoLineNo?: boolean;
 }
 
 export interface AtomicCreateInput {
@@ -59,11 +61,16 @@ export async function atomicCreateWithItems(
 
   // Step 2: Insert items with header FK
   if (items.length > 0) {
-    const itemsWithFk = items.map((item, idx) => ({
-      ...item,
-      [headerFk]: headerId,
-      line_no: item.line_no ?? idx + 1,
-    }));
+    const itemsWithFk = items.map((item, idx) => {
+      const row: Record<string, unknown> = {
+        ...item,
+        [headerFk]: headerId,
+      };
+      if (config.autoLineNo) {
+        row.line_no = item.line_no ?? idx + 1;
+      }
+      return row;
+    });
 
     const { data: itemsData, error: itemsError } = await db
       .from(itemsTable)

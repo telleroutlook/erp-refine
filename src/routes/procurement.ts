@@ -71,6 +71,7 @@ procurement.post('/purchase-orders', async (c) => {
       headerFk: 'purchase_order_id',
       headerReturnSelect: 'id, order_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      autoLineNo: true,
     },
     {
       header: {
