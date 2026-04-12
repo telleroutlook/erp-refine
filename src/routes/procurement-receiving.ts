@@ -449,12 +449,12 @@ procurementReceiving.post('/three-way-match', async (c) => {
 
   if (poAmount === receiptAmount && poAmount === invoiceAmount) {
     matchStatus = 'matched';
-  } else if (poAmount !== invoiceAmount && poAmount === receiptAmount) {
-    matchStatus = 'price_variance';
-  } else if (poAmount === invoiceAmount && poAmount !== receiptAmount) {
-    matchStatus = 'qty_variance';
+  } else if (Math.abs(poAmount - invoiceAmount) < 0.01 && Math.abs(poAmount - receiptAmount) < 0.01) {
+    matchStatus = 'matched';
+  } else if (variance < poAmount * 0.05) {
+    matchStatus = 'partial';
   } else {
-    matchStatus = 'exception';
+    matchStatus = 'mismatch';
   }
 
   // 5. Insert match result
@@ -469,7 +469,6 @@ procurementReceiving.post('/three-way-match', async (c) => {
       price_variance: Math.abs(poAmount - invoiceAmount),
       amount_variance: variance,
       match_status: matchStatus,
-      matched_by: user.userId,
       matched_at: new Date().toISOString(),
     })
     .select('id, match_status, quantity_variance, price_variance, amount_variance')

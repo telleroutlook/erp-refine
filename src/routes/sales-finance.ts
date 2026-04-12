@@ -365,18 +365,19 @@ salesFinance.post('/customer-receipts', async (c) => {
       organization_id: user.organizationId,
       created_by: user.userId,
     })
-    .select('id, receipt_number, amount, sales_invoice_id')
+    .select('id, receipt_number, amount, reference_type, reference_id')
     .single();
 
   if (insertError) throw ApiError.database(insertError.message, requestId);
 
   // Check if the linked invoice is fully paid
-  if (receipt.sales_invoice_id) {
+  if (receipt.reference_type === 'sales_invoice' && receipt.reference_id) {
     // Sum all receipts for this invoice
     const { data: receiptsSum, error: sumError } = await db
       .from('customer_receipts')
       .select('amount')
-      .eq('sales_invoice_id', receipt.sales_invoice_id)
+      .eq('reference_type', 'sales_invoice')
+      .eq('reference_id', receipt.reference_id)
       .eq('organization_id', user.organizationId)
       .is('deleted_at', null);
 
@@ -390,14 +391,14 @@ salesFinance.post('/customer-receipts', async (c) => {
       const { data: invoice } = await db
         .from('sales_invoices')
         .select('id, total_amount')
-        .eq('id', receipt.sales_invoice_id)
+        .eq('id', receipt.reference_id)
         .single();
 
       if (invoice && totalPaid >= (invoice.total_amount ?? 0)) {
         await db
           .from('sales_invoices')
           .update({ status: 'paid' })
-          .eq('id', receipt.sales_invoice_id);
+          .eq('id', receipt.reference_id);
       }
     }
   }
