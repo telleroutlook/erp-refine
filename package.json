@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.52",
+    "@hono/swagger-ui": "^0.6.1",
     "@supabase/supabase-js": "^2.49.0",
     "ai": "^6.0.0",
     "hono": "^4.0.0",

@@ -1,97 +1,255 @@
 // src/routes/master-data.ts
-// Master Data REST API
+// Master Data REST API — Products, Categories, Warehouses, Tax Codes, UoMs, etc.
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
-import { createAuthenticatedClient } from '../utils/supabase';
+import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { ApiError } from '../utils/api-error';
 
 const masterData = new Hono<{ Bindings: Env }>();
 masterData.use('*', authMiddleware());
 
-function parseRefineQuery(c: any) {
-  const page = parseInt(c.req.query('_page') ?? '1', 10);
-  const pageSize = parseInt(c.req.query('_limit') ?? '20', 10);
-  const sortField = c.req.query('_sort') ?? 'name';
-  const sortOrder = (c.req.query('_order') ?? 'asc') as 'asc' | 'desc';
-  return { page, pageSize, sortField, sortOrder };
-}
+// ────────────────────────────────────────────────────────────────────────────
+// Products — custom CRUD (has enriched list select with category/uom joins)
+// ────────────────────────────────────────────────────────────────────────────
 
 masterData.get('/products', async (c) => {
-  const user = c.get('user');
-  const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
-  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const { db, user } = getDbAndUser(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, 'name');
 
   const { data, count, error } = await db
     .from('products')
-    .select('id, name, code, description, category:product_categories(id,name), uom:uoms(id,name)', { count: 'exact' })
+    .select('id, name, code, description, category:product_categories(id,name), uom:uoms(id,uom_name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
-  if (error) return c.json({ error: error.message }, 500);
+  if (error) throw ApiError.database(error.message, c.get('requestId'), `Failed to list Products. Check sort field '${sortField}' exists.`);
   return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
 masterData.get('/products/:id', async (c) => {
-  const user = c.get('user');
-  const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
 
   const { data, error } = await db
     .from('products')
-    .select('*, category:product_categories(id,name), uom:uoms(id,name)')
-    .eq('id', c.req.param('id'))
+    .select('*, category:product_categories(id,name), uom:uoms(id,uom_name)')
+    .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .single();
 
-  if (error) return c.json({ error: error.message }, 404);
+  if (error) throw ApiError.notFound('Product', id, requestId);
   return c.json({ data });
 });
 
 masterData.post('/products', async (c) => {
-  const user = c.get('user');
-  const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
+  const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
 
   const { data, error } = await db
     .from('products')
     .insert({ ...body, organization_id: user.organizationId })
-    .select('id, name, code').single();
+    .select('id, name, code')
+    .single();
 
-  if (error) return c.json({ error: error.message }, 400);
+  if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data }, 201);
 });
 
 masterData.put('/products/:id', async (c) => {
-  const user = c.get('user');
-  const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
   const body = await c.req.json();
 
   const { data, error } = await db
     .from('products')
     .update(body)
-    .eq('id', c.req.param('id'))
+    .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .select('id').single();
+    .select('id')
+    .single();
 
-  if (error) return c.json({ error: error.message }, 400);
+  if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('Product', id, requestId);
   return c.json({ data });
 });
 
 masterData.delete('/products/:id', async (c) => {
-  const user = c.get('user');
-  const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
 
   const { error } = await db
     .from('products')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', c.req.param('id'))
+    .eq('id', id)
     .eq('organization_id', user.organizationId);
 
-  if (error) return c.json({ error: error.message }, 400);
+  if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Product Categories — tree structure, full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const productCategoriesConfig: CrudConfig = {
+  table: 'product_categories',
+  path: '/product-categories',
+  resourceName: 'ProductCategory',
+  listSelect: 'id, code, name, parent_id, level, status',
+  detailSelect: '*, parent:product_categories(id,name,code)',
+  createReturnSelect: 'id, code, name',
+  defaultSort: 'code',
+  softDelete: true,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(productCategoriesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Tax Codes — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const taxCodesConfig: CrudConfig = {
+  table: 'tax_codes',
+  path: '/tax-codes',
+  resourceName: 'TaxCode',
+  listSelect: 'id, code, name, rate, tax_type, is_active',
+  detailSelect: '*',
+  createReturnSelect: 'id, code, name',
+  defaultSort: 'code',
+  softDelete: false,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(taxCodesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Warehouses — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const warehousesConfig: CrudConfig = {
+  table: 'warehouses',
+  path: '/warehouses',
+  resourceName: 'Warehouse',
+  listSelect: 'id, name, code, location, warehouse_type, status, capacity_volume, capacity_weight',
+  detailSelect: '*, manager:employees(id,name), locations:storage_locations(id,location_code,zone,bin_type,is_active)',
+  createReturnSelect: 'id, name, code',
+  defaultSort: 'code',
+  softDelete: true,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(warehousesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Storage Locations — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const storageLocationsConfig: CrudConfig = {
+  table: 'storage_locations',
+  path: '/storage-locations',
+  resourceName: 'StorageLocation',
+  listSelect: 'id, location_code, zone, bin_type, capacity, is_active, warehouse:warehouses(id,name)',
+  detailSelect: '*, warehouse:warehouses(id,name,code)',
+  createReturnSelect: 'id, location_code, zone',
+  defaultSort: 'location_code',
+  softDelete: false,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(storageLocationsConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Carriers — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const carriersConfig: CrudConfig = {
+  table: 'carriers',
+  path: '/carriers',
+  resourceName: 'Carrier',
+  listSelect: 'id, code, name, carrier_type, tracking_url_template, is_active',
+  detailSelect: '*',
+  createReturnSelect: 'id, code, name',
+  defaultSort: 'code',
+  softDelete: false,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(carriersConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Currencies — list + show only (reference data, not org-scoped)
+// ────────────────────────────────────────────────────────────────────────────
+
+const currenciesConfig: CrudConfig = {
+  table: 'currencies',
+  path: '/currencies',
+  resourceName: 'Currency',
+  listSelect: 'currency_code, currency_name, symbol, decimal_places, is_active',
+  detailSelect: '*',
+  createReturnSelect: 'currency_code, currency_name',
+  defaultSort: 'currency_code',
+  softDelete: false,
+  orgScoped: false,
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+masterData.route('', buildCrudRoutes(currenciesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// UoMs — list + show only (reference data, not org-scoped)
+// ────────────────────────────────────────────────────────────────────────────
+
+const uomsConfig: CrudConfig = {
+  table: 'uoms',
+  path: '/uoms',
+  resourceName: 'UoM',
+  listSelect: 'id, uom_code, uom_name, category, is_active',
+  detailSelect: '*',
+  createReturnSelect: 'id, uom_code, uom_name',
+  defaultSort: 'uom_code',
+  softDelete: false,
+  orgScoped: false,
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+masterData.route('', buildCrudRoutes(uomsConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Price Lists — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const priceListsConfig: CrudConfig = {
+  table: 'price_lists',
+  path: '/price-lists',
+  resourceName: 'PriceList',
+  listSelect: 'id, code, name, price_type, currency, effective_from, effective_to, is_default, status',
+  detailSelect: '*, lines:price_list_lines(*, product:products(id,name,code))',
+  createReturnSelect: 'id, code, name',
+  defaultSort: 'code',
+  softDelete: true,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(priceListsConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Price List Lines — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const priceListLinesConfig: CrudConfig = {
+  table: 'price_list_lines',
+  path: '/price-list-lines',
+  resourceName: 'PriceListLine',
+  listSelect: 'id, unit_price, min_quantity, discount_rate, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code), price_list:price_lists(id,code,name)',
+  createReturnSelect: 'id, unit_price, min_quantity',
+  defaultSort: 'created_at',
+  softDelete: false,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(priceListLinesConfig));
 
 export default masterData;
