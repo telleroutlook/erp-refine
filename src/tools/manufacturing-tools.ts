@@ -9,7 +9,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
   return {
     list_work_orders: tool({
       description: 'List work orders',
-      parameters: z.object({
+      inputSchema: z.object({
         status: z.enum(['draft','released','in_progress','completed','cancelled']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

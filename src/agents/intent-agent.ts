@@ -3,7 +3,7 @@
 // Does NOT touch UI or business data
 
 import { generateObject } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { BaseAgent, type AgentContext } from './base-agent';
 import type { Env } from '../types/env';
@@ -35,11 +35,14 @@ export class IntentAgent extends BaseAgent {
     ctx: AgentContext,
     env: Env
   ): Promise<RequirementSpec> {
-    const anthropic = createAnthropic({ apiKey: env.AI_API_KEY });
+    const glm = createOpenAI({
+      apiKey: env.AI_API_KEY,
+      baseURL: env.AI_BASE_URL,
+    });
 
     const result = await this.execute(async () => {
       const { object } = await generateObject({
-        model: anthropic(env.AI_MODEL_FAST ?? 'claude-haiku-4-5-20251001'),
+        model: glm(env.AI_MODEL_FAST ?? 'GLM-4.5-Air'),
         schema: RequirementSpecSchema,
         system: SYSTEM_PROMPT,
         prompt: `Parse this user request: "${message}"\n\nContext: organizationId=${ctx.organizationId}, role=${ctx.role}`,

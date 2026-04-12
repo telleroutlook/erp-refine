@@ -2,8 +2,8 @@
 // Execution Agent — calls business tools after BFF validation + human authorization
 // Never generates UI or modifies Schema
 
-import { generateText } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { generateText, stepCountIs } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { BaseAgent, type AgentContext } from './base-agent';
 import type { Env } from '../types/env';
 import type { ToolSet } from 'ai';
@@ -82,15 +82,18 @@ export class ExecutionAgent extends BaseAgent {
     }
 
     // Policy allows — execute
-    const anthropic = createAnthropic({ apiKey: env.AI_API_KEY });
+    const glm = createOpenAI({
+      apiKey: env.AI_API_KEY,
+      baseURL: env.AI_BASE_URL,
+    });
 
     const agentResult = await super.execute(async () => {
       const { text, toolResults } = await generateText({
-        model: anthropic(env.AI_MODEL_PRIMARY ?? 'claude-sonnet-4-6'),
+        model: glm(env.AI_MODEL_PRIMARY ?? 'GLM-4.5-Air'),
         system: SYSTEM_PROMPT,
         prompt: `Execute action: ${request.action}\nParameters: ${JSON.stringify(request.parameters, null, 2)}\nOrganization: ${ctx.organizationId}`,
         tools,
-        maxSteps: 5,
+        stopWhen: stepCountIs(5),
       });
       return { text, toolResults };
     }, ctx);

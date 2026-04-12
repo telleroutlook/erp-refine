@@ -9,7 +9,7 @@ export function createLookupTools(db: SupabaseClient, organizationId: string) {
   return {
     lookup_by_number: tool({
       description: 'Find a business document by its number (e.g. PO-2024-001)',
-      parameters: z.object({
+      inputSchema: z.object({
         documentType: z.enum(['purchase_order','sales_order','sales_invoice','supplier_invoice','sales_shipment','purchase_receipt']),
         documentNumber: z.string(),
       }),
@@ -23,12 +23,12 @@ export function createLookupTools(db: SupabaseClient, organizationId: string) {
           purchase_receipt: 'purchase_receipts',
         };
         const table = tableMap[documentType];
-        const numberField = 'order_number';
+        if (!table) return null;
 
         const { data, error } = await (db.from(table) as any)
           .select('*')
           .eq('organization_id', organizationId)
-          .eq(numberField, documentNumber)
+          .eq('order_number', documentNumber)
           .is('deleted_at', null)
           .limit(1);
 

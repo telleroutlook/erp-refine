@@ -9,7 +9,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
   return {
     list_sales_orders: tool({
       description: 'List sales orders with optional filters',
-      parameters: z.object({
+      inputSchema: z.object({
         status: z.enum(['draft','confirmed','processing','partially_shipped','shipped','invoiced','closed','cancelled']).optional(),
         customerId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
@@ -32,7 +32,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
 
     get_sales_order: tool({
       description: 'Get detailed sales order with line items',
-      parameters: z.object({ id: z.string().uuid() }),
+      inputSchema: z.object({ id: z.string().uuid() }),
       execute: async ({ id }) => {
         const { data, error } = await db
           .from('sales_orders')
@@ -48,7 +48,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
 
     list_customers: tool({
       description: 'List active customers',
-      parameters: z.object({ search: z.string().optional() }),
+      inputSchema: z.object({ search: z.string().optional() }),
       execute: async ({ search }) => {
         let query = db
           .from('customers')
@@ -66,7 +66,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
 
     create_sales_order: tool({
       description: 'Create a new sales order (requires D2 confirmation)',
-      parameters: z.object({
+      inputSchema: z.object({
         customerId: z.string().uuid(),
         orderDate: z.string(),
         currency: z.string().length(3).default('USD'),

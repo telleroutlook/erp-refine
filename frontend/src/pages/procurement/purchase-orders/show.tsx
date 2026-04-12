@@ -1,7 +1,7 @@
 import React from 'react';
-import { useShow, Show } from '@refinedev/antd';
+import { useShow } from '@refinedev/core';
+import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
-import { DateField } from '@refinedev/antd';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';

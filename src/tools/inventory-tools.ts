@@ -9,7 +9,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
   return {
     get_stock_levels: tool({
       description: 'Get current stock levels for products, optionally filtered by warehouse or product',
-      parameters: z.object({
+      inputSchema: z.object({
         productId: z.string().uuid().optional(),
         warehouseId: z.string().uuid().optional(),
         lowStockOnly: z.boolean().optional().describe('Only return products with zero or negative available qty'),
@@ -33,7 +33,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
 
     get_stock_transactions: tool({
       description: 'Get stock movement history',
-      parameters: z.object({
+      inputSchema: z.object({
         productId: z.string().uuid().optional(),
         warehouseId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(50),
@@ -55,7 +55,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
 
     list_warehouses: tool({
       description: 'List all active warehouses',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const { data, error } = await db
           .from('warehouses')

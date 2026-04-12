@@ -2,8 +2,8 @@
 // Chat route — streams AI responses, routes through Orchestrator
 
 import { Hono } from 'hono';
-import { streamText } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { streamText, stepCountIs } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { orchestrator } from '../orchestrator/orchestrator';
@@ -61,19 +61,19 @@ chat.post('/stream', async (c) => {
 
   if (!body.message?.trim()) return c.json({ error: 'Message required' }, 400);
 
-  const anthropic = createAnthropic({ apiKey: c.env.AI_API_KEY });
+  const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const tools = buildToolSet({ db, organizationId: user.organizationId });
 
   const result = streamText({
-    model: anthropic(c.env.AI_MODEL_PRIMARY ?? 'claude-sonnet-4-6'),
+    model: glm(c.env.AI_MODEL_PRIMARY ?? 'GLM-4.5-Air'),
     system: `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise.`,
     messages: [{ role: 'user', content: body.message }],
     tools,
-    maxSteps: 5,
+    stopWhen: stepCountIs(5),
   });
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 });
 
 export default chat;

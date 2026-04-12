@@ -9,8 +9,9 @@ export interface Env {
 
   // AI / LLM
   AI_API_KEY: string;
-  AI_MODEL_PRIMARY: string;   // e.g., 'claude-sonnet-4-6'
-  AI_MODEL_FAST: string;      // e.g., 'claude-haiku-4-5-20251001'
+  AI_BASE_URL: string;        // e.g., 'https://open.bigmodel.cn/api/coding/paas/v4'
+  AI_MODEL_PRIMARY: string;   // e.g., 'GLM-4.5-Air'
+  AI_MODEL_FAST: string;      // e.g., 'GLM-4.5-Air'
 
   // Auth
   JWT_SECRET: string;

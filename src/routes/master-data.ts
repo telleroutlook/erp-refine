@@ -14,20 +14,20 @@ function parseRefineQuery(c: any) {
   const pageSize = parseInt(c.req.query('_limit') ?? '20', 10);
   const sortField = c.req.query('_sort') ?? 'name';
   const sortOrder = (c.req.query('_order') ?? 'asc') as 'asc' | 'desc';
-  return { page, pageSize, sort: [{ field: sortField, order: sortOrder }] };
+  return { page, pageSize, sortField, sortOrder };
 }
 
 masterData.get('/products', async (c) => {
   const user = c.get('user');
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
-  const { page, pageSize, sort } = parseRefineQuery(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
 
   const { data, count, error } = await db
     .from('products')
     .select('id, name, code, description, category:product_categories(id,name), uom:uoms(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
-    .order(sort[0].field, { ascending: sort[0].order === 'asc' })
+    .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
   if (error) return c.json({ error: error.message }, 500);

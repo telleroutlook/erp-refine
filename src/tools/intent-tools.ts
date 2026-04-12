@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const intentTools = {
   clarify_ambiguity: tool({
     description: 'Generate a clarification question for the user when intent is unclear',
-    parameters: z.object({
+    inputSchema: z.object({
       ambiguousAspect: z.string().describe('What is ambiguous'),
       options: z.array(z.string()).optional().describe('Possible interpretations'),
     }),
@@ -19,7 +19,7 @@ export const intentTools = {
 
   preview_requirement_spec: tool({
     description: 'Format a requirement spec for display to the user',
-    parameters: z.object({
+    inputSchema: z.object({
       intent: z.string(),
       domain: z.string(),
       action: z.string(),

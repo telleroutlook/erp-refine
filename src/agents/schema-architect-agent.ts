@@ -3,7 +3,7 @@
 // Only operates within component whitelist, never touches business data
 
 import { generateObject } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { BaseAgent, type AgentContext } from './base-agent';
 import type { RequirementSpec } from './intent-agent';
@@ -62,11 +62,14 @@ export class SchemaArchitectAgent extends BaseAgent {
     ctx: AgentContext,
     env: Env
   ): Promise<SchemaOutput> {
-    const anthropic = createAnthropic({ apiKey: env.AI_API_KEY });
+    const glm = createOpenAI({
+      apiKey: env.AI_API_KEY,
+      baseURL: env.AI_BASE_URL,
+    });
 
     const result = await this.execute(async () => {
       const { object } = await generateObject({
-        model: anthropic(env.AI_MODEL_PRIMARY ?? 'claude-sonnet-4-6'),
+        model: glm(env.AI_MODEL_PRIMARY ?? 'GLM-4.5-Air'),
         schema: SchemaOutputSchema,
         system: SYSTEM_PROMPT,
         prompt: `Generate a UI Schema for this requirement:\n${JSON.stringify(spec, null, 2)}`,

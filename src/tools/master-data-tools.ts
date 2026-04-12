@@ -9,7 +9,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
   return {
     list_products: tool({
       description: 'List products with optional search',
-      parameters: z.object({
+      inputSchema: z.object({
         search: z.string().optional(),
         categoryId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
@@ -32,7 +32,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
 
     list_currencies: tool({
       description: 'List available currencies',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const { data, error } = await db
           .from('currencies')
@@ -45,7 +45,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
 
     list_departments: tool({
       description: 'List organization departments',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const { data, error } = await db
           .from('departments')
@@ -60,7 +60,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
 
     list_employees: tool({
       description: 'List active employees',
-      parameters: z.object({ search: z.string().optional() }),
+      inputSchema: z.object({ search: z.string().optional() }),
       execute: async ({ search }) => {
         let query = db
           .from('employees')

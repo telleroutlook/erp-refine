@@ -14,13 +14,13 @@ function parseRefineQuery(c: any) {
   const pageSize = parseInt(c.req.query('_limit') ?? '20', 10);
   const sortField = c.req.query('_sort') ?? 'created_at';
   const sortOrder = (c.req.query('_order') ?? 'desc') as 'asc' | 'desc';
-  return { page, pageSize, sort: [{ field: sortField, order: sortOrder }] };
+  return { page, pageSize, sortField, sortOrder };
 }
 
 inventory.get('/stock-records', async (c) => {
   const user = c.get('user');
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
-  const { page, pageSize } = parseRefineQuery(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
 
   const { data, count, error } = await db
     .from('stock_records')
@@ -36,14 +36,14 @@ inventory.get('/stock-records', async (c) => {
 inventory.get('/warehouses', async (c) => {
   const user = c.get('user');
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
-  const { page, pageSize, sort } = parseRefineQuery(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
 
   const { data, count, error } = await db
     .from('warehouses')
     .select('id, name, code, address, is_active', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
-    .order(sort[0].field, { ascending: sort[0].order === 'asc' })
+    .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
   if (error) return c.json({ error: error.message }, 500);

@@ -9,7 +9,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
   return {
     list_vouchers: tool({
       description: 'List accounting vouchers',
-      parameters: z.object({
+      inputSchema: z.object({
         status: z.enum(['draft','posted','void']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -30,7 +30,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
 
     get_budget_vs_actual: tool({
       description: 'Compare budget vs actual spending by department and period',
-      parameters: z.object({
+      inputSchema: z.object({
         year: z.number().int().min(2020).max(2030),
         departmentId: z.string().uuid().optional(),
       }),
@@ -52,7 +52,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
 
     list_payment_requests: tool({
       description: 'List payment requests awaiting approval',
-      parameters: z.object({
+      inputSchema: z.object({
         okToPay: z.boolean().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

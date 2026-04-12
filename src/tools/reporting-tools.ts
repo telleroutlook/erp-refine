@@ -9,7 +9,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
   return {
     get_procurement_summary: tool({
       description: 'Get procurement summary: total POs, pending receipts, and outstanding payables',
-      parameters: z.object({
+      inputSchema: z.object({
         fromDate: z.string().optional(),
         toDate: z.string().optional(),
       }),
@@ -28,8 +28,8 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
 
         const summary = (data ?? []).reduce((acc: Record<string, { count: number; total: number }>, row: any) => {
           if (!acc[row.status]) acc[row.status] = { count: 0, total: 0 };
-          acc[row.status].count++;
-          acc[row.status].total += Number(row.total_amount);
+          acc[row.status]!.count++;
+          acc[row.status]!.total += Number(row.total_amount);
           return acc;
         }, {});
 
@@ -39,7 +39,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
 
     get_sales_summary: tool({
       description: 'Get sales summary: revenue by period and customer',
-      parameters: z.object({
+      inputSchema: z.object({
         fromDate: z.string().optional(),
         toDate: z.string().optional(),
         groupBy: z.enum(['customer', 'product', 'month']).default('month'),
@@ -67,7 +67,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
 
     get_inventory_valuation: tool({
       description: 'Get inventory valuation summary',
-      parameters: z.object({ warehouseId: z.string().uuid().optional() }),
+      inputSchema: z.object({ warehouseId: z.string().uuid().optional() }),
       execute: async ({ warehouseId }) => {
         let query = db
           .from('stock_records')

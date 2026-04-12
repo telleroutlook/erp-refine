@@ -9,7 +9,7 @@ export function createSchemaTools(db: SupabaseClient, organizationId: string) {
   return {
     list_active_schemas: tool({
       description: 'List active UI schemas in the registry',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const { data, error } = await db
           .from('schema_registry')
@@ -24,7 +24,7 @@ export function createSchemaTools(db: SupabaseClient, organizationId: string) {
 
     get_schema: tool({
       description: 'Get a specific UI schema by ID or slug',
-      parameters: z.object({
+      inputSchema: z.object({
         id: z.string().uuid().optional(),
         slug: z.string().optional(),
       }),
@@ -46,7 +46,7 @@ export function createSchemaTools(db: SupabaseClient, organizationId: string) {
 
     preview_component_snapshot: tool({
       description: 'Preview what a schema diff would look like as a form',
-      parameters: z.object({
+      inputSchema: z.object({
         fields: z.array(z.object({
           name: z.string(),
           type: z.string(),

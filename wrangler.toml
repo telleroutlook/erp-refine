@@ -56,4 +56,4 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["ERPChatAgent", "RateLimiterDO"]
+new_sqlite_classes = ["ERPChatAgent", "RateLimiterDO"]
