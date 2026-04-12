@@ -30,7 +30,7 @@ export function generateOrg2PurchaseOrders(reg: IdRegistry): Array<Record<string
         const unit_price = +(prod.costPrice * (0.95 + Math.random() * 0.1)).toFixed(2);
         return {
           product_id: reg.get('product', prod.code),
-          qty,
+          quantity: qty,
           unit_price,
           tax_rate: isUsd ? 0 : 13,
           amount: +(qty * unit_price).toFixed(2),
@@ -80,7 +80,7 @@ export function generateOrg2SalesOrders(reg: IdRegistry): Array<Record<string, u
         const discount_rate = pick([0, 0, 5, 10]);
         return {
           product_id: reg.get('product', prod.code),
-          qty,
+          quantity: qty,
           unit_price,
           tax_rate: isUsd ? 0 : 13,
           discount_rate,

@@ -70,7 +70,7 @@ procurement.post('/purchase-orders', async (c) => {
       itemsTable: 'purchase_order_items',
       headerFk: 'purchase_order_id',
       headerReturnSelect: 'id, order_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
@@ -136,9 +136,9 @@ const poItemsConfig: CrudConfig = {
   table: 'purchase_order_items',
   path: '/purchase-order-items',
   resourceName: 'PurchaseOrderItem',
-  listSelect: 'id, line_no, qty, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, qty, unit_price',
+  createReturnSelect: 'id, line_no, quantity, unit_price',
   defaultSort: 'line_no',
   softDelete: false,
   orgScoped: false,
@@ -226,7 +226,7 @@ procurement.post('/purchase-requisitions', async (c) => {
       itemsTable: 'purchase_requisition_lines',
       headerFk: 'purchase_requisition_id',
       headerReturnSelect: 'id, requisition_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
@@ -342,7 +342,7 @@ procurement.post('/rfq-headers', async (c) => {
       itemsTable: 'rfq_lines',
       headerFk: 'rfq_id',
       headerReturnSelect: 'id, rfq_number, status',
-      itemsReturnSelect: 'id, product_id, qty',
+      itemsReturnSelect: 'id, product_id, quantity',
     },
     {
       header: {
@@ -454,7 +454,7 @@ procurement.post('/supplier-quotations', async (c) => {
       itemsTable: 'supplier_quotation_lines',
       headerFk: 'supplier_quotation_id',
       headerReturnSelect: 'id, quotation_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
