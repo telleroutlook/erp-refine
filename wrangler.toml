@@ -12,29 +12,30 @@ LOG_LEVEL = "info"
 RATE_LIMIT_REQUESTS = "100"
 RATE_LIMIT_PERIOD = "60"
 
-# Supabase
-# SUPABASE_URL = ""          # Set via wrangler secret or vars
-# SUPABASE_ANON_KEY = ""     # Set via wrangler secret
+# Supabase (project: teebltzefrkaedrufsuz — reused from ai-native-erp)
+SUPABASE_URL = "https://teebltzefrkaedrufsuz.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlZWJsdHplZnJrYWVkcnVmc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzY4NDYsImV4cCI6MjA5MTAxMjg0Nn0.uXEh5YmZ2qV-lJ3qHhIAENpqC59kDd6uh6BLD7fubuQ"
 
-# AI / LLM
-# AI_MODEL_PRIMARY = "claude-sonnet-4-6"
-# AI_MODEL_FAST = "claude-haiku-4-5-20251001"
+# AI (Zhipu GLM)
+AI_MODEL_PRIMARY = "GLM-4.5-Air"
+AI_MODEL_FAST = "GLM-4.5-Air"
+AI_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4"
 
 # CORS
-# ALLOWED_ORIGINS = ""
+ALLOWED_ORIGINS = "https://erp.3we.org"
 
-# Secrets (use `wrangler secret put`):
+# Secrets (set via wrangler secret put — stored in .dev.vars locally):
 # SUPABASE_SERVICE_ROLE_KEY
 # AI_API_KEY
 # JWT_SECRET
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = ""  # Fill after `wrangler kv namespace create CACHE`
+id = "d5e1939d610248f6ad3b74c820ac20e5"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = ""  # Fill after `wrangler kv namespace create SESSIONS`
+id = "8b6fe8b41f814a04bef00e75fdde884e"
 
 [[r2_buckets]]
 binding = "STORAGE"
