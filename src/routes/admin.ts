@@ -108,7 +108,7 @@ admin.put('/notifications/:id/read', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// Data Import
+// Data Import — uses service role client to bypass RLS for bulk operations
 // ---------------------------------------------------------------------------
 import {
   importEntity,
@@ -118,6 +118,7 @@ import {
   ENTITY_CONFIGS,
   type ImportOptions,
 } from '../utils/import-engine';
+import { createServiceClient } from '../utils/supabase';
 
 /** GET /import — list supported entities and their import order */
 admin.get('/import', async (c) => {
@@ -140,7 +141,8 @@ admin.get('/import', async (c) => {
 
 /** POST /import/:entity — import records for a single entity */
 admin.post('/import/:entity', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
+  const { user, requestId } = getDbAndUser(c);
+  const serviceDb = createServiceClient(c.env);
   const entity = c.req.param('entity');
   const body = await c.req.json();
 
@@ -163,7 +165,7 @@ admin.post('/import/:entity', async (c) => {
   const result = await importEntity(entity, records, {
     organizationId: user.organizationId,
     userId: user.userId,
-    db,
+    db: serviceDb,
   }, options);
 
   const status = result.errors.length > 0 ? 207 : 200;
@@ -172,7 +174,8 @@ admin.post('/import/:entity', async (c) => {
 
 /** POST /import-batch — import multiple entities in dependency order */
 admin.post('/import-batch', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
+  const { user, requestId } = getDbAndUser(c);
+  const serviceDb = createServiceClient(c.env);
   const body = await c.req.json();
 
   const data = body.data;
@@ -194,7 +197,7 @@ admin.post('/import-batch', async (c) => {
   const results = await importBatch(data, {
     organizationId: user.organizationId,
     userId: user.userId,
-    db,
+    db: serviceDb,
   }, options);
 
   const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
