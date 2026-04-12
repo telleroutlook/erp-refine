@@ -26,14 +26,14 @@ export function generateOrg2PurchaseOrders(reg: IdRegistry): Array<Record<string
 
       const isUsd = supplierCode === 'TS01' || supplierCode === 'TS03';
       const items = selectedProducts.map((prod) => {
-        const quantity = randomInt(10, 200);
+        const qty = randomInt(10, 200);
         const unit_price = +(prod.costPrice * (0.95 + Math.random() * 0.1)).toFixed(2);
         return {
           product_id: reg.get('product', prod.code),
-          quantity,
+          qty,
           unit_price,
           tax_rate: isUsd ? 0 : 13,
-          amount: +(quantity * unit_price).toFixed(2),
+          amount: +(qty * unit_price).toFixed(2),
         };
       });
 
@@ -75,16 +75,16 @@ export function generateOrg2SalesOrders(reg: IdRegistry): Array<Record<string, u
 
       const isUsd = ['TC02', 'TC04', 'TC06', 'TC08'].includes(customerCode);
       const items = selectedProducts.map((prod) => {
-        const quantity = randomInt(1, 15);
+        const qty = randomInt(1, 15);
         const unit_price = +(prod.listPrice * (0.9 + Math.random() * 0.15)).toFixed(2);
         const discount_rate = pick([0, 0, 5, 10]);
         return {
           product_id: reg.get('product', prod.code),
-          quantity,
+          qty,
           unit_price,
           tax_rate: isUsd ? 0 : 13,
           discount_rate,
-          amount: +(quantity * unit_price * (1 - discount_rate / 100)).toFixed(2),
+          amount: +(qty * unit_price * (1 - discount_rate / 100)).toFixed(2),
         };
       });
 

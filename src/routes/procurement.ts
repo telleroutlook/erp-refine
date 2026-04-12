@@ -136,10 +136,10 @@ const poItemsConfig: CrudConfig = {
   table: 'purchase_order_items',
   path: '/purchase-order-items',
   resourceName: 'PurchaseOrderItem',
-  listSelect: 'id, line_number, qty, received_qty, invoiced_qty, unit_price, tax_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, qty, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, qty, unit_price',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, qty, unit_price',
+  defaultSort: 'line_no',
   softDelete: false,
   orgScoped: false,
 };

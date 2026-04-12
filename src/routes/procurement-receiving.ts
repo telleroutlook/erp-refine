@@ -178,7 +178,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       const { error: poItemErr } = await db.rpc('increment_field', {
         p_table: 'purchase_order_items',
         p_id: item.purchase_order_item_id,
-        p_field: 'received_qty',
+        p_field: 'received_quantity',
         p_delta: item.qty,
       }).single();
 
@@ -186,14 +186,14 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       if (poItemErr) {
         const { data: poItem } = await db
           .from('purchase_order_items')
-          .select('id, received_qty')
+          .select('id, received_quantity')
           .eq('id', item.purchase_order_item_id)
           .single();
 
         if (poItem) {
           await db
             .from('purchase_order_items')
-            .update({ received_qty: (poItem.received_qty ?? 0) + item.qty })
+            .update({ received_quantity: (poItem.received_quantity ?? 0) + item.qty })
             .eq('id', poItem.id);
         }
       }
@@ -216,15 +216,15 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
   if (receipt.purchase_order_id) {
     const { data: poItems } = await db
       .from('purchase_order_items')
-      .select('id, qty, received_qty')
+      .select('id, qty, received_quantity')
       .eq('purchase_order_id', receipt.purchase_order_id);
 
     if (poItems && poItems.length > 0) {
       const allReceived = poItems.every(
-        (poi: { qty: number; received_qty: number }) => (poi.received_qty ?? 0) >= poi.qty
+        (poi: { qty: number; received_quantity: number }) => (poi.received_quantity ?? 0) >= poi.qty
       );
       const someReceived = poItems.some(
-        (poi: { qty: number; received_qty: number }) => (poi.received_qty ?? 0) > 0
+        (poi: { qty: number; received_quantity: number }) => (poi.received_quantity ?? 0) > 0
       );
 
       let poStatus: string | undefined;
