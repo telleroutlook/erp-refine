@@ -57,9 +57,8 @@ finance.get('/vouchers', async (c) => {
 
   const { data, count, error } = await db
     .from('vouchers')
-    .select('id, voucher_number, voucher_date, voucher_type, description, total_debit, total_credit, status', { count: 'exact' })
+    .select('id, voucher_number, voucher_date, voucher_type, notes, total_debit, total_credit, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -77,7 +76,6 @@ finance.get('/vouchers/:id', async (c) => {
     .select('*, entries:voucher_entries(*, account:account_subjects(id,code,name), cost_center:cost_centers(id,code,name))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Voucher', id, requestId);
@@ -173,14 +171,14 @@ finance.put('/vouchers/:id', async (c) => {
   return c.json({ data });
 });
 
-// DELETE (soft-delete)
+// DELETE (hard delete — vouchers has no deleted_at)
 finance.delete('/vouchers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
   const { error } = await db
     .from('vouchers')
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .eq('id', id)
     .eq('organization_id', user.organizationId);
 
@@ -202,7 +200,6 @@ finance.post('/vouchers/:id/post', async (c) => {
     .select('id, voucher_number, status, total_debit, total_credit')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (fetchError || !voucher) throw ApiError.notFound('Voucher', id, requestId);
@@ -251,7 +248,7 @@ finance.get('/budgets', async (c) => {
   const { data, count, error } = await db
     .from('budgets')
     .select(
-      'id, budget_code, name, fiscal_year, total_amount, currency, status, department:departments(id,name)',
+      'id, budget_name, budget_year, budget_type, total_amount, currency, status',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -270,7 +267,7 @@ finance.get('/budgets/:id', async (c) => {
 
   const { data, error } = await db
     .from('budgets')
-    .select('*, lines:budget_lines(*, account:account_subjects(id,code,name), cost_center:cost_centers(id,code,name)), department:departments(id,name)')
+    .select('*, lines:budget_lines(*, cost_center:cost_centers(id,code,name))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -292,15 +289,14 @@ finance.post('/budgets', async (c) => {
       headerTable: 'budgets',
       itemsTable: 'budget_lines',
       headerFk: 'budget_id',
-      headerReturnSelect: 'id, budget_code, name, status',
-      itemsReturnSelect: 'id, account_subject_id, amount',
+      headerReturnSelect: 'id, budget_name, status',
+      itemsReturnSelect: 'id, account_code, planned_amount',
     },
     {
       header: {
         ...headerFields,
         organization_id: user.organizationId,
         status: 'draft',
-        created_by: user.userId,
       },
       items: lines ?? [],
     },
@@ -390,7 +386,7 @@ finance.post('/payment-requests', async (c) => {
       request_number: seqData,
       organization_id: user.organizationId,
       status: 'draft',
-      requested_by: user.userId,
+      created_by: user.userId,
     })
     .select('id, request_number, status')
     .single();
@@ -414,7 +410,7 @@ const paymentRequestsCrud = buildCrudRoutes({
   disableCreate: true, // POST handled above with sequence generation
   createDefaults: (user) => ({
     status: 'draft',
-    requested_by: user.userId,
+    created_by: user.userId,
   }),
 });
 finance.route('', paymentRequestsCrud);

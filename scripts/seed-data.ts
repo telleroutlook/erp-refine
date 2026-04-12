@@ -9,7 +9,7 @@
 import { SeedApiClient } from './seed/api-client';
 import { IdRegistry } from './seed/id-registry';
 import { SeedProgress } from './seed/progress';
-import { createEmptyContext, type SeedConfig, type OrgConfig, type SeedReport } from './seed/types';
+import { createEmptyContext, type SeedConfig, type OrgConfig, type SeedReport, type GeneratedDocument } from './seed/types';
 
 // Phase imports
 import { runPhase1, type EmployeeAuthMapping } from './seed/phases/phase1-master-data';
@@ -215,6 +215,16 @@ async function seedOrganization(
     );
     ctx.purchaseOrders = createdPOs;
     ctx.salesOrders = createdSOs;
+  } else if (config.phases.some((p) => p >= 4)) {
+    // Resume: fetch existing POs/SOs from API for later phases
+    console.log('\n  Resuming: fetching existing POs/SOs from API...');
+    ctx.purchaseOrders = await fetchExistingDocuments(client, '/api/purchase-orders', 'order_number', (po: any) => ({
+      refs: { supplier_id: po.supplier_id ?? po.supplier?.id, warehouse_id: po.warehouse_id ?? po.warehouse?.id },
+    }));
+    ctx.salesOrders = await fetchExistingDocuments(client, '/api/sales-orders', 'order_number', (so: any) => ({
+      refs: { customer_id: so.customer_id ?? so.customer?.id, warehouse_id: so.warehouse_id ?? so.warehouse?.id },
+    }));
+    console.log(`    Found ${ctx.purchaseOrders.length} POs, ${ctx.salesOrders.length} SOs`);
   }
 
   // --- Phase 4: Workflows (receipts, shipments, status transitions) ---
@@ -225,6 +235,16 @@ async function seedOrganization(
     );
     ctx.purchaseReceipts = confirmedReceipts;
     ctx.salesShipments = confirmedShipments;
+  } else if (config.phases.some((p) => p >= 5)) {
+    // Resume: fetch existing confirmed receipts/shipments from API for later phases
+    console.log('\n  Resuming: fetching existing receipts/shipments from API...');
+    ctx.purchaseReceipts = await fetchExistingDocuments(client, '/api/purchase-receipts', 'receipt_number', (r: any) => ({
+      refs: { purchase_order_id: r.purchase_order_id ?? r.purchase_order?.id, supplier_id: r.supplier_id ?? r.supplier?.id, warehouse_id: r.warehouse_id ?? r.warehouse?.id },
+    }), 'confirmed');
+    ctx.salesShipments = await fetchExistingDocuments(client, '/api/sales-shipments', 'shipment_number', (s: any) => ({
+      refs: { sales_order_id: s.sales_order_id ?? s.sales_order?.id, customer_id: s.customer_id ?? s.customer?.id, warehouse_id: s.warehouse_id ?? s.warehouse?.id },
+    }), 'shipped');
+    console.log(`    Found ${ctx.purchaseReceipts.length} confirmed receipts, ${ctx.salesShipments.length} shipped shipments`);
   }
 
   // --- Phase 5: Finance ---
@@ -251,6 +271,50 @@ async function seedOrganization(
   }
 
   return progress.getReport(org.name, startedAt);
+}
+
+// ---------------------------------------------------------------------------
+// Resume helper: fetch existing documents from API when earlier phases skipped
+// ---------------------------------------------------------------------------
+
+async function fetchExistingDocuments(
+  client: SeedApiClient,
+  path: string,
+  numberField: string,
+  refExtractor: (doc: any) => { refs: Record<string, string> },
+  statusFilter?: string
+): Promise<GeneratedDocument[]> {
+  const docs: GeneratedDocument[] = [];
+  let page = 1;
+  const pageSize = 100;
+
+  while (true) {
+    try {
+      const resp = await client.get(path, { _start: (page - 1) * pageSize, _end: page * pageSize, _sort: 'created_at', _order: 'asc' });
+      const items = resp?.data ?? [];
+      if (items.length === 0) break;
+
+      for (const item of items) {
+        if (statusFilter && item.status !== statusFilter) continue;
+        const { refs } = refExtractor(item);
+        docs.push({
+          id: item.id,
+          orderNumber: item[numberField],
+          date: item.created_at?.slice(0, 10) ?? '2026-01-01',
+          status: item.status,
+          itemCount: 0,
+          refs,
+        });
+      }
+
+      if (items.length < pageSize) break;
+      page++;
+    } catch {
+      break;
+    }
+  }
+
+  return docs;
 }
 
 // ---------------------------------------------------------------------------

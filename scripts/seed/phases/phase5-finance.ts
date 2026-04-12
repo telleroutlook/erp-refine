@@ -46,11 +46,11 @@ export async function runPhase5(
 
     const items = (receiptDetail.data.items ?? receiptDetail.data.purchase_receipt_items ?? []).map((item: any) => ({
       product_id: item.product_id,
-      qty: item.qty,
+      quantity: item.quantity ?? item.qty,
       unit_price: item.unit_price ?? randomAmount(10, 500),
     }));
 
-    const totalAmount = items.reduce((s: number, i: any) => s + i.qty * i.unit_price, 0);
+    const totalAmount = items.reduce((s: number, i: any) => s + i.quantity * i.unit_price, 0);
     const taxAmount = +(totalAmount * 0.13).toFixed(2);
 
     const resp = await client.safePost('/api/supplier-invoices', {
@@ -88,11 +88,11 @@ export async function runPhase5(
 
     const items = (shipDetail.data.items ?? shipDetail.data.sales_shipment_items ?? []).map((item: any) => ({
       product_id: item.product_id,
-      qty: item.qty,
+      quantity: item.quantity ?? item.qty,
       unit_price: item.unit_price ?? randomAmount(100, 5000),
     }));
 
-    const totalAmount = items.reduce((s: number, i: any) => s + i.qty * i.unit_price, 0);
+    const totalAmount = items.reduce((s: number, i: any) => s + i.quantity * i.unit_price, 0);
     const taxAmount = +(totalAmount * 0.13).toFixed(2);
 
     const resp = await client.safePost('/api/sales-invoices', {
@@ -150,7 +150,7 @@ export async function runPhase5(
     const resp = await client.safePost('/api/payment-requests', {
       supplier_id: inv.refs.supplier_id,
       supplier_invoice_id: inv.id,
-      total_amount: totalAmount,
+      amount: totalAmount,
       currency: 'CNY',
       payment_method: 'bank_transfer',
       ok_to_pay: Math.random() > 0.3,

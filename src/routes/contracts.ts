@@ -61,7 +61,7 @@ contracts.post('/contracts', async (c) => {
     headerTable: 'contracts',
     itemsTable: 'contract_items',
     headerFk: 'contract_id',
-    headerReturnSelect: 'id, contract_number, title',
+    headerReturnSelect: 'id, contract_number',
     itemsReturnSelect: 'id, product_id, quantity, unit_price',
   }, {
     header: {

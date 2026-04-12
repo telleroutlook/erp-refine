@@ -347,7 +347,7 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       productId: item.product_id,
       transactionType: 'out',
       qty: item.quantity,
-      referenceType: 'sales_shipment',
+      referenceType: 'sales',
       referenceId: shipment.id,
       createdBy: user.userId,
     }, requestId);
@@ -384,8 +384,6 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
     .from('sales_shipments')
     .update({
       status: 'shipped',
-      shipped_by: user.userId,
-      shipped_at: new Date().toISOString(),
     })
     .eq('id', id);
 

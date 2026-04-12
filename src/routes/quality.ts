@@ -122,7 +122,7 @@ quality.get('/quality-inspections', async (c) => {
 
   const { data, count, error } = await db
     .from('quality_inspections')
-    .select('id, inspection_number, inspection_date, reference_type, total_qty, sample_qty, qualified_qty, defective_qty, result, status, product:products(id,name,code), inspector:employees(id,name)', { count: 'exact' })
+    .select('id, inspection_number, inspection_date, reference_type, total_quantity, qualified_quantity, defective_quantity, result, status, product:products(id,name,code), inspector:employees(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -171,7 +171,6 @@ quality.post('/quality-inspections', async (c) => {
       ...headerFields,
       inspection_number: num,
       organization_id: user.organizationId,
-      created_by: user.userId,
     },
     items: items ?? [],
   });

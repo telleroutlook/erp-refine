@@ -179,8 +179,8 @@ export async function runPhase6(
     const resp = await client.safePost('/api/quality-inspections', {
       product_id: productId,
       inspection_date: `2026-0${i + 1}-15`,
-      reference_type: isFinished ? 'production' : 'in_process',
-      reference_id: null,
+      reference_type: 'work_order',
+      reference_id: productId, // use product_id as reference for non-receipt inspections
       total_quantity: totalQuantity,
       qualified_quantity: totalQuantity - defectiveQuantity,
       defective_quantity: defectiveQuantity,

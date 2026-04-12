@@ -23,7 +23,7 @@ export async function runPhase7(
 
     const body: Record<string, unknown> = {
       ...rest,
-      contract_type: contract_type ?? 'purchase',
+      contract_type: contract_type ?? 'procurement',
       party_type: customer_id ? 'customer' : 'supplier',
       party_id: customer_id ?? supplier_id,
     };

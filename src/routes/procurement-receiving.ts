@@ -168,7 +168,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       productId: item.product_id,
       transactionType: 'in',
       qty: item.quantity,
-      referenceType: 'purchase_receipt',
+      referenceType: 'purchase',
       referenceId: receipt.id,
       createdBy: user.userId,
     }, requestId);
@@ -318,7 +318,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
         invoice_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
-        created_by: user.userId,
+        uploaded_by: user.userId,
       },
       items: items ?? [],
     },
@@ -374,11 +374,10 @@ procurementReceiving.get('/three-way-match', async (c) => {
   const { data, count, error } = await db
     .from('three_way_match_results')
     .select(
-      'id, match_status, po_amount, receipt_amount, invoice_amount, variance_amount, resolution, purchase_order:purchase_orders(id,order_number), created_at',
+      'id, match_status, quantity_variance, price_variance, amount_variance, purchase_order:purchase_orders(id,order_number), created_at',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -466,14 +465,14 @@ procurementReceiving.post('/three-way-match', async (c) => {
       purchase_order_id,
       purchase_receipt_id,
       supplier_invoice_id,
-      po_amount: poAmount,
-      receipt_amount: receiptAmount,
-      invoice_amount: invoiceAmount,
-      variance_amount: variance,
+      quantity_variance: Math.abs(poAmount - receiptAmount),
+      price_variance: Math.abs(poAmount - invoiceAmount),
+      amount_variance: variance,
       match_status: matchStatus,
-      created_by: user.userId,
+      matched_by: user.userId,
+      matched_at: new Date().toISOString(),
     })
-    .select('id, match_status, po_amount, receipt_amount, invoice_amount, variance_amount')
+    .select('id, match_status, quantity_variance, price_variance, amount_variance')
     .single();
 
   if (insertErr) throw ApiError.database(insertErr.message, requestId);
@@ -503,7 +502,7 @@ procurementReceiving.post('/payment-requests', async (c) => {
       request_number: seqData,
       organization_id: user.organizationId,
       status: 'draft',
-      requested_by: user.userId,
+      created_by: user.userId,
     })
     .select('id, request_number, status')
     .single();
@@ -518,7 +517,7 @@ const paymentCrud = buildCrudRoutes({
   path: '/payment-requests',
   resourceName: 'PaymentRequest',
   listSelect:
-    'id, request_number, total_amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
+    'id, request_number, amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
   detailSelect:
     '*, supplier:suppliers(id,name,code), supplier_invoice:supplier_invoices(id,invoice_number)',
   createReturnSelect: 'id, request_number, status',

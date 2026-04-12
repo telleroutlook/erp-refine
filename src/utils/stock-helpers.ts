@@ -48,7 +48,7 @@ export async function adjustStock(
 
   if (rpcError) {
     // Check if it's a "function not found" error — fall back to manual upsert
-    if (rpcError.message.includes('function') && rpcError.message.includes('does not exist')) {
+    if (rpcError.message.includes('Could not find') || (rpcError.message.includes('function') && rpcError.message.includes('does not exist'))) {
       await adjustStockFallback(db, adj, requestId);
       return;
     }
@@ -69,24 +69,23 @@ async function adjustStockFallback(
   // Check if record exists
   const { data: existing } = await db
     .from('stock_records')
-    .select('id, qty_on_hand, qty_reserved')
+    .select('id, quantity, reserved_quantity')
     .eq('organization_id', adj.organizationId)
     .eq('warehouse_id', adj.warehouseId)
     .eq('product_id', adj.productId)
     .single();
 
   if (existing) {
-    const newQty = existing.qty_on_hand + adj.qtyDelta;
-    const newReserved = existing.qty_reserved + (adj.reservedDelta ?? 0);
+    const newQty = existing.quantity + adj.qtyDelta;
+    const newReserved = existing.reserved_quantity + (adj.reservedDelta ?? 0);
     if (newQty < 0) {
-      throw ApiError.insufficientStock(adj.productId, adj.warehouseId, Math.abs(adj.qtyDelta), existing.qty_on_hand, requestId);
+      throw ApiError.insufficientStock(adj.productId, adj.warehouseId, Math.abs(adj.qtyDelta), existing.quantity, requestId);
     }
     const { error } = await db
       .from('stock_records')
       .update({
-        qty_on_hand: newQty,
-        qty_reserved: newReserved,
-        last_movement_at: new Date().toISOString(),
+        quantity: newQty,
+        reserved_quantity: newReserved,
       })
       .eq('id', existing.id);
     if (error) throw ApiError.database(error.message, requestId);
@@ -98,9 +97,8 @@ async function adjustStockFallback(
       organization_id: adj.organizationId,
       warehouse_id: adj.warehouseId,
       product_id: adj.productId,
-      qty_on_hand: adj.qtyDelta,
-      qty_reserved: adj.reservedDelta ?? 0,
-      last_movement_at: new Date().toISOString(),
+      quantity: adj.qtyDelta,
+      reserved_quantity: adj.reservedDelta ?? 0,
     });
     if (error) throw ApiError.database(error.message, requestId);
   }
@@ -120,10 +118,6 @@ export async function createStockTransaction(
     quantity: tx.qty,
     reference_type: tx.referenceType,
     reference_id: tx.referenceId,
-    lot_number: tx.lotNumber,
-    serial_number: tx.serialNumber,
-    storage_location_id: tx.storageLocationId,
-    cost_price: tx.costPrice,
     notes: tx.notes,
     created_by: tx.createdBy,
   });

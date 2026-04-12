@@ -21,9 +21,8 @@ manufacturing.get('/bom-headers', async (c) => {
 
   const { data, count, error } = await db
     .from('bom_headers')
-    .select('id, bom_number, version, status, effective_date, expiry_date, product:products(id,name,code), created_at', { count: 'exact' })
+    .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -40,7 +39,6 @@ manufacturing.get('/bom-headers/:id', async (c) => {
     .select('*, product:products(id,name,code), items:bom_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('BOM', id, requestId);
@@ -102,7 +100,7 @@ manufacturing.delete('/bom-headers/:id', async (c) => {
 
   const { error } = await db
     .from('bom_headers')
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .eq('id', id)
     .eq('organization_id', user.organizationId);
 
@@ -118,9 +116,8 @@ manufacturing.get('/work-orders', async (c) => {
 
   const { data, count, error } = await db
     .from('work_orders')
-    .select('id, work_order_number, planned_qty, completed_qty, status, priority, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
+    .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -137,7 +134,6 @@ manufacturing.get('/work-orders/:id', async (c) => {
     .select('*, product:products(id,name,code), bom:bom_headers(id,bom_number), materials:work_order_materials(*, product:products(id,name,code)), productions:work_order_productions(*)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Work Order', id, requestId);
@@ -183,18 +179,14 @@ manufacturing.post('/work-orders', async (c) => {
 
   if (woError) throw ApiError.database(woError.message, requestId);
 
-  // Create work_order_materials from BOM items, scaled by planned_qty
+  // Create work_order_materials from BOM items, scaled by planned_quantity
   if (bomItems.length > 0) {
-    const materials = bomItems.map((item: any, idx: number) => ({
+    const materials = bomItems.map((item: any) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
-      required_qty: item.quantity * (body.planned_qty ?? 1),
-      issued_qty: 0,
-      unit: item.unit,
-      scrap_rate: item.scrap_rate,
-      sequence: item.sequence ?? idx + 1,
-      status: 'pending',
-      organization_id: user.organizationId,
+      required_quantity: item.quantity * (body.planned_quantity ?? 1),
+      issued_quantity: 0,
+      warehouse_id: body.warehouse_id,
     }));
 
     const { error: matError } = await db
@@ -235,7 +227,7 @@ manufacturing.delete('/work-orders/:id', async (c) => {
 
   const { error } = await db
     .from('work_orders')
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .eq('id', id)
     .eq('organization_id', user.organizationId);
 
@@ -252,10 +244,9 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   // 1. Get work order with materials, validate status
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_qty, issued_qty, status)')
+    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_quantity, issued_quantity)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -267,11 +258,9 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   const materials = (wo.materials ?? []) as any[];
   const issuedMaterials: string[] = [];
 
-  // 2. For each material where status != 'fully_issued'
+  // 2. For each material, issue remaining quantity
   for (const mat of materials) {
-    if (mat.status === 'fully_issued') continue;
-
-    const issueQty = mat.required_qty - mat.issued_qty;
+    const issueQty = mat.required_quantity - mat.issued_quantity;
     if (issueQty <= 0) continue;
 
     // a. Adjust stock (deduct from warehouse)
@@ -289,17 +278,16 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
       productId: mat.product_id,
       transactionType: 'out',
       qty: issueQty,
-      referenceType: 'work_order',
+      referenceType: 'production',
       referenceId: wo.id,
       createdBy: user.userId,
     }, requestId);
 
-    // c. Update material: issued_qty and status
-    const newIssuedQty = mat.issued_qty + issueQty;
-    const matStatus = newIssuedQty >= mat.required_qty ? 'fully_issued' : 'partially_issued';
+    // c. Update material: issued_quantity
+    const newIssuedQty = mat.issued_quantity + issueQty;
     await db
       .from('work_order_materials')
-      .update({ issued_qty: newIssuedQty, status: matStatus })
+      .update({ issued_quantity: newIssuedQty })
       .eq('id', mat.id);
 
     issuedMaterials.push(mat.id);
@@ -325,10 +313,9 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
   // 1. Get work order, validate status
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, product_id, warehouse_id, completed_qty')
+    .select('id, status, product_id, warehouse_id, completed_quantity')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -342,7 +329,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     organizationId: user.organizationId,
     warehouseId: wo.warehouse_id,
     productId: wo.product_id,
-    qtyDelta: wo.completed_qty,
+    qtyDelta: wo.completed_quantity,
   }, requestId);
 
   // 3. Create stock transaction for finished goods receipt
@@ -351,7 +338,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     warehouseId: wo.warehouse_id,
     productId: wo.product_id,
     transactionType: 'in',
-    qty: wo.completed_qty,
+    qty: wo.completed_quantity,
     referenceType: 'work_order',
     referenceId: wo.id,
     createdBy: user.userId,
@@ -379,8 +366,7 @@ manufacturing.get('/work-order-productions', async (c) => {
 
   const { data, count, error } = await db
     .from('work_order_productions')
-    .select('id, production_date, quantity, qualified_qty, defective_qty, shift, operator:employees(id,name), created_at', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .select('id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_at', { count: 'exact' })
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -397,10 +383,9 @@ manufacturing.post('/work-order-productions', async (c) => {
     .from('work_order_productions')
     .insert({
       ...body,
-      organization_id: user.organizationId,
       created_by: user.userId,
     })
-    .select('id, work_order_id, production_date, quantity, qualified_qty, defective_qty')
+    .select('id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -409,14 +394,14 @@ manufacturing.post('/work-order-productions', async (c) => {
   if (data.work_order_id) {
     const { data: sumData, error: sumError } = await db
       .from('work_order_productions')
-      .select('qualified_qty')
+      .select('qualified_quantity')
       .eq('work_order_id', data.work_order_id);
 
     if (!sumError && sumData) {
-      const totalQualified = sumData.reduce((acc: number, r: any) => acc + (r.qualified_qty ?? 0), 0);
+      const totalQualified = sumData.reduce((acc: number, r: any) => acc + (r.qualified_quantity ?? 0), 0);
       await db
         .from('work_orders')
-        .update({ completed_qty: totalQualified })
+        .update({ completed_quantity: totalQualified })
         .eq('id', data.work_order_id);
     }
   }
