@@ -10,8 +10,8 @@ export interface Env {
   // AI / LLM
   AI_API_KEY: string;
   AI_BASE_URL: string;        // e.g., 'https://open.bigmodel.cn/api/coding/paas/v4'
-  AI_MODEL_PRIMARY: string;   // e.g., 'GLM-4.5-Air'
-  AI_MODEL_FAST: string;      // e.g., 'GLM-4.5-Air'
+  AI_MODEL_TOOLS: string;      // model with tool-calling support, e.g. 'GLM-5-Turbo'
+  AI_MODEL_NO_TOOLS: string;   // model without tools (cheaper/faster), e.g. 'GLM-4.5-Air'
 
   // Auth (JWT_SECRET is optional when using ES256/JWKS)
   JWT_SECRET?: string;

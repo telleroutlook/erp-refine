@@ -52,7 +52,7 @@ export class IntentAgent extends BaseAgent {
 
     const result = await this.execute(async () => {
       const { text } = await generateText({
-        model: glm.chat(env.AI_MODEL_FAST ?? 'glm-4-airx'),
+        model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
         system: SYSTEM_PROMPT,
         prompt: `Parse this user request into JSON: "${message}"\n\nContext: organizationId=${ctx.organizationId}, role=${ctx.role}`,
         providerOptions: {

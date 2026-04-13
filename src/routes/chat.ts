@@ -66,7 +66,7 @@ chat.post('/stream', async (c) => {
   const tools = buildToolSet({ db, organizationId: user.organizationId });
 
   const result = streamText({
-    model: glm.chat(c.env.AI_MODEL_PRIMARY ?? 'glm-4-airx'),
+    model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
     system: `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise.`,
     messages: [{ role: 'user', content: body.message }],
     tools,

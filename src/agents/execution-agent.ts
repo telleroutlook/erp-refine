@@ -92,7 +92,7 @@ export class ExecutionAgent extends BaseAgent {
     const agentResult = await super.execute(async () => {
       const availableTools = Object.keys(tools).join(', ');
       const { text, toolResults } = await generateText({
-        model: glm.chat(env.AI_MODEL_PRIMARY ?? 'glm-4-airx'),
+        model: glm.chat(env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
         system: SYSTEM_PROMPT,
         prompt: `Available tools: ${availableTools}\n\nAction requested: ${request.action}\nDomain: ${request.domain}\nParameters: ${JSON.stringify(request.parameters, null, 2)}\nOrganization: ${ctx.organizationId}\n\nCall the most relevant tool now.`,
         tools,

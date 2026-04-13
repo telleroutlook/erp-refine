@@ -21,8 +21,8 @@ SUPABASE_URL = "https://teebltzefrkaedrufsuz.supabase.co"
 # SUPABASE_ANON_KEY — use: wrangler secret put SUPABASE_ANON_KEY
 
 # AI (Zhipu GLM)
-AI_MODEL_PRIMARY = "glm-4-airx"
-AI_MODEL_FAST = "glm-4-airx"
+AI_MODEL_TOOLS = "GLM-5-Turbo"
+AI_MODEL_NO_TOOLS = "GLM-4.5-Air"
 AI_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4"
 
 # CORS

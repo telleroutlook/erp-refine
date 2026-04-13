@@ -71,7 +71,7 @@ export class SchemaArchitectAgent extends BaseAgent {
 
     const result = await this.execute(async () => {
       const { text } = await generateText({
-        model: glm.chat(env.AI_MODEL_PRIMARY ?? 'glm-4-airx'),
+        model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
         system: SYSTEM_PROMPT,
         prompt: `Generate a UI Schema for this requirement:\n${JSON.stringify(spec, null, 2)}`,
       });
