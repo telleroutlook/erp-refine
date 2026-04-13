@@ -65,11 +65,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
       }),
       execute: async ({ supplierId, orderDate, currency, items, notes }) => {
         // Generate order number
-        const { data: seqData } = await db.rpc('get_next_sequence', {
-          p_org_id: organizationId,
-          p_entity: 'purchase_order',
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'purchase_order',
         });
-        const orderNumber = seqData ?? `PO-${Date.now()}`;
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+        const orderNumber = seqData;
 
         const totalAmount = items.reduce((sum, i) => sum + i.qty * i.unit_price, 0);
 
@@ -95,9 +96,8 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
-          qty_ordered: i.qty,
+          qty: i.qty,
           unit_price: i.unit_price,
-          line_total: i.qty * i.unit_price,
           notes: i.notes ?? null,
         }));
 

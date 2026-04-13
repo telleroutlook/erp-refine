@@ -43,16 +43,19 @@ export async function atomicCreateWithItems(
   // Step 1: Insert header
   const insertHeader = async () => {
     const result = await db.from(headerTable).insert(header).select(headerReturnSelect).single();
-    return result as { data: any; error: any };
+    return result as { data: Record<string, unknown> | null; error: { message: string } | null };
   };
 
-  let headerData: any;
+  let headerData: Record<string, unknown>;
   if (audit) {
     headerData = await executeWithAudit(db, insertHeader, audit);
   } else {
     const { data, error } = await insertHeader();
     if (error) {
       throw ApiError.database(error.message, undefined, `Failed to create ${headerTable} header.`);
+    }
+    if (!data) {
+      throw ApiError.database(`No data returned when creating ${headerTable} header.`, undefined);
     }
     headerData = data;
   }

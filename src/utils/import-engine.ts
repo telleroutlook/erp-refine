@@ -378,11 +378,17 @@ export async function importEntity(
 
       // --- Generate sequence number if needed ---
       if (sequenceField && sequenceName && !record[sequenceField]) {
-        const { data: seqData } = await ctx.db.rpc('get_next_sequence', {
+        const { data: seqData, error: seqError } = await ctx.db.rpc('get_next_sequence', {
           p_organization_id: ctx.organizationId,
           p_sequence_name: sequenceName,
         });
-        record[sequenceField] = seqData ?? `${sequenceName.toUpperCase()}-${Date.now()}-${rowNum}`;
+        if (seqError || !seqData) {
+          errors.push({ row: rowNum, field: sequenceField, message: seqError?.message ?? 'Sequence unavailable' });
+          if (onError === 'abort') return { entity, imported, skipped: records.length - imported, errors, dryRun };
+          skipped++;
+          continue;
+        }
+        record[sequenceField] = seqData;
       }
 
       // --- Apply transform ---

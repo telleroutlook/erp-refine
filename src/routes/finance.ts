@@ -116,7 +116,7 @@ finance.post('/vouchers', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'voucher',
   });
-  if (seqError) throw ApiError.database(`Failed to generate voucher number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate voucher number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { entries: entryItems, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -377,7 +377,7 @@ finance.post('/payment-requests', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'payment_request',
   });
-  if (seqError) throw ApiError.database(`Failed to generate request number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate request number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { data, error } = await db
     .from('payment_requests')

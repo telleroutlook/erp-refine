@@ -16,13 +16,13 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       execute: async ({ status, limit }) => {
         let query = db
           .from('work_orders')
-          .select('id, work_order_number, status, planned_start_date, planned_end_date, qty_planned, qty_completed, product:products(id,name,code)')
+          .select('id, work_order_number, status, start_date, planned_completion_date, planned_qty, completed_qty, product:products(id,name,code)')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (status) query = query.eq('status', status);
 
-        const { data, error } = await query.order('planned_start_date', { ascending: false }).limit(limit);
+        const { data, error } = await query.order('start_date', { ascending: false }).limit(limit);
         if (error) throw new Error(error.message);
         return data ?? [];
       },

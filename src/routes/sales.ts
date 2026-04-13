@@ -61,7 +61,7 @@ sales.post('/sales-orders', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'sales_order',
   });
-  if (seqError) throw ApiError.database(`Failed to generate SO number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate SO number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -238,7 +238,7 @@ sales.post('/sales-shipments', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'sales_shipment',
   });
-  if (seqError) throw ApiError.database(`Failed to generate shipment number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate shipment number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -352,29 +352,14 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       createdBy: user.userId,
     }, requestId);
 
-    // 3c. Update SO item shipped_qty
+    // 3c. Update SO item shipped_qty (atomic update to avoid read-modify-write races)
     if (item.sales_order_item_id) {
-      const { error: rpcErr } = await db.rpc('increment_field', {
-        p_table: 'sales_order_items',
+      const { error: updateErr } = await db.rpc('atomic_increment_shipped_qty', {
         p_id: item.sales_order_item_id,
-        p_field: 'shipped_qty',
         p_delta: item.qty,
-      }).single();
-
-      // Fallback: manual update if RPC not available
-      if (rpcErr) {
-        const { data: soItem } = await db
-          .from('sales_order_items')
-          .select('id, shipped_qty')
-          .eq('id', item.sales_order_item_id)
-          .single();
-
-        if (soItem) {
-          await db
-            .from('sales_order_items')
-            .update({ shipped_qty: (soItem.shipped_qty ?? 0) + item.qty })
-            .eq('id', soItem.id);
-        }
+      });
+      if (updateErr) {
+        throw ApiError.database(`Failed to update shipped_qty: ${updateErr.message}`, requestId);
       }
     }
   }

@@ -4,6 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import type { z } from 'zod';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getDbAndUser, parseRefineQuery } from './query-helpers';
 import { ApiError } from './api-error';
 import { validateBody } from './zod-helpers';
@@ -125,7 +126,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
 
       const doInsert = async () => {
         const result = await db.from(table).insert(insertData).select(createReturnSelect).single();
-        return result as { data: any; error: any };
+        return result as { data: unknown; error: { message: string; code?: string } | null };
       };
 
       let data: unknown;
@@ -159,7 +160,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
 
       const doUpdate = async () => {
         const result = await db.from(table).update(body).eq('id', id).eq('organization_id', user.organizationId).select('id').single();
-        return result as { data: any; error: any };
+        return result as { data: unknown; error: { message: string; code?: string } | null };
       };
 
       if (audit) {
@@ -260,8 +261,7 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
 
   /** Verify the parent belongs to the org, throw 404 otherwise */
   async function assertParentOwned(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    db: any,
+    db: SupabaseClient,
     parentId: string,
     orgId: string,
     requestId: string

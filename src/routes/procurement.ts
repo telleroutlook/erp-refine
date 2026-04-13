@@ -60,7 +60,7 @@ procurement.post('/purchase-orders', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'purchase_order',
   });
-  if (seqError) throw ApiError.database(`Failed to generate PO number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate PO number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -217,7 +217,7 @@ procurement.post('/purchase-requisitions', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'purchase_requisition',
   });
-  if (seqError) throw ApiError.database(`Failed to generate requisition number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate requisition number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -227,7 +227,7 @@ procurement.post('/purchase-requisitions', async (c) => {
       itemsTable: 'purchase_requisition_lines',
       headerFk: 'purchase_requisition_id',
       headerReturnSelect: 'id, requisition_number, status',
-      itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      itemsReturnSelect: 'id, product_id, qty, unit_price',
     },
     {
       header: {
@@ -333,7 +333,7 @@ procurement.post('/rfq-headers', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'rfq',
   });
-  if (seqError) throw ApiError.database(`Failed to generate RFQ number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate RFQ number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(

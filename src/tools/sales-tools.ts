@@ -10,7 +10,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
     list_sales_orders: tool({
       description: 'List sales orders with optional filters',
       inputSchema: z.object({
-        status: z.enum(['draft','confirmed','processing','partially_shipped','shipped','invoiced','closed','cancelled']).optional(),
+        status: z.enum(['draft','confirmed','approved','shipping','shipped','completed','cancelled']).optional(),
         customerId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -78,11 +78,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
         notes: z.string().optional(),
       }),
       execute: async ({ customerId, orderDate, currency, items, notes }) => {
-        const { data: seqData } = await db.rpc('get_next_sequence', {
-          p_org_id: organizationId,
-          p_entity: 'sales_order',
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'sales_order',
         });
-        const orderNumber = seqData ?? `SO-${Date.now()}`;
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+        const orderNumber = seqData;
         const totalAmount = items.reduce((sum, i) => sum + i.qty * i.unit_price, 0);
 
         const { data: so, error } = await db
@@ -107,9 +108,8 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
-          qty_ordered: i.qty,
+          qty: i.qty,
           unit_price: i.unit_price,
-          line_total: i.qty * i.unit_price,
         }));
 
         const { error: lineErr } = await db.from('sales_order_items').insert(lineItems);

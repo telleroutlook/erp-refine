@@ -18,7 +18,7 @@ RATE_LIMIT_PERIOD = "60"
 
 # Supabase (project: teebltzefrkaedrufsuz — reused from ai-native-erp)
 SUPABASE_URL = "https://teebltzefrkaedrufsuz.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlZWJsdHplZnJrYWVkcnVmc3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzY4NDYsImV4cCI6MjA5MTAxMjg0Nn0.uXEh5YmZ2qV-lJ3qHhIAENpqC59kDd6uh6BLD7fubuQ"
+# SUPABASE_ANON_KEY — use: wrangler secret put SUPABASE_ANON_KEY
 
 # AI (Zhipu GLM)
 AI_MODEL_PRIMARY = "glm-4-airx"
@@ -30,6 +30,7 @@ ALLOWED_ORIGINS = "https://erp.3we.org"
 
 # Secrets (set via wrangler secret put — stored in .dev.vars locally):
 # SUPABASE_SERVICE_ROLE_KEY
+# SUPABASE_ANON_KEY
 # AI_API_KEY
 # JWT_SECRET
 

@@ -10,7 +10,7 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
     list_quality_inspections: tool({
       description: 'List quality inspections with optional filters',
       inputSchema: z.object({
-        status: z.enum(['pending','in_progress','passed','failed','waived']).optional(),
+        status: z.enum(['draft','in_progress','completed','cancelled']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
       execute: async ({ status, limit }) => {

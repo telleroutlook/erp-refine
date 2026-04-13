@@ -38,10 +38,20 @@ system.get('/notifications', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, 'created_at');
 
+  const { data: emp } = await db
+    .from('employees')
+    .select('id')
+    .eq('organization_id', user.organizationId)
+    .eq('user_id', user.userId)
+    .single();
+
+  if (!emp) return c.json({ data: [], total: 0, page, pageSize });
+
   const { data, count, error } = await db
     .from('notifications')
     .select('id, title, body, notification_type, entity_type, entity_id, is_read, read_at, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .eq('recipient_id', emp.id)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -87,10 +97,20 @@ system.post('/notifications/:id/read', async (c) => {
 system.post('/notifications/read-all', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
 
+  const { data: emp } = await db
+    .from('employees')
+    .select('id')
+    .eq('organization_id', user.organizationId)
+    .eq('user_id', user.userId)
+    .single();
+
+  if (!emp) return c.json({ data: { success: true } });
+
   const { error } = await db
     .from('notifications')
     .update({ is_read: true, read_at: new Date().toISOString() })
     .eq('organization_id', user.organizationId)
+    .eq('recipient_id', emp.id)
     .eq('is_read', false);
 
   if (error) throw ApiError.database(error.message, requestId);
