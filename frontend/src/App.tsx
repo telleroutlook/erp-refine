@@ -27,18 +27,22 @@ import { SupplierCreate } from './pages/procurement/suppliers/create';
 import { SupplierEdit } from './pages/procurement/suppliers/edit';
 import { PurchaseReceiptList } from './pages/procurement/purchase-receipts/list';
 import { PurchaseReceiptShow } from './pages/procurement/purchase-receipts/show';
+import { PurchaseReceiptEdit } from './pages/procurement/purchase-receipts/edit';
 
 // Sales
 import { SalesOrderList } from './pages/sales/sales-orders/list';
 import { SalesOrderShow } from './pages/sales/sales-orders/show';
+import { SalesOrderEdit } from './pages/sales/sales-orders/edit';
 import { CustomerList } from './pages/sales/customers/list';
 import { CustomerShow } from './pages/sales/customers/show';
 import { CustomerCreate } from './pages/sales/customers/create';
 import { CustomerEdit } from './pages/sales/customers/edit';
 import { SalesShipmentList } from './pages/sales/sales-shipments/list';
 import { SalesShipmentShow } from './pages/sales/sales-shipments/show';
+import { SalesShipmentEdit } from './pages/sales/sales-shipments/edit';
 import { SalesReturnList } from './pages/sales/sales-returns/list';
 import { SalesReturnShow } from './pages/sales/sales-returns/show';
+import { SalesReturnEdit } from './pages/sales/sales-returns/edit';
 
 // Inventory
 import { StockRecordList } from './pages/inventory/index';
@@ -50,10 +54,13 @@ import { WarehouseEdit } from './pages/inventory/warehouses/edit';
 // Finance
 import { PaymentRequestList } from './pages/finance/payment-requests/list';
 import { PaymentRequestShow } from './pages/finance/payment-requests/show';
+import { PaymentRequestEdit } from './pages/finance/payment-requests/edit';
 import { SalesInvoiceList } from './pages/finance/sales-invoices/list';
 import { SalesInvoiceShow } from './pages/finance/sales-invoices/show';
+import { SalesInvoiceEdit } from './pages/finance/sales-invoices/edit';
 import { SupplierInvoiceList } from './pages/finance/supplier-invoices/list';
 import { SupplierInvoiceShow } from './pages/finance/supplier-invoices/show';
+import { SupplierInvoiceEdit } from './pages/finance/supplier-invoices/edit';
 
 // Master Data
 import { ProductList } from './pages/master-data/products/list';
@@ -118,6 +125,7 @@ const App: React.FC = () => {
                 name: 'purchase-receipts',
                 list: '/procurement/purchase-receipts',
                 show: '/procurement/purchase-receipts/:id',
+                edit: '/procurement/purchase-receipts/:id/edit',
                 meta: { parent: 'procurement', icon: <FileDoneOutlined /> },
               },
               {
@@ -134,18 +142,21 @@ const App: React.FC = () => {
                 name: 'sales-orders',
                 list: '/sales/sales-orders',
                 show: '/sales/sales-orders/:id',
+                edit: '/sales/sales-orders/:id/edit',
                 meta: { parent: 'sales', icon: <ShopOutlined /> },
               },
               {
                 name: 'sales-shipments',
                 list: '/sales/sales-shipments',
                 show: '/sales/sales-shipments/:id',
+                edit: '/sales/sales-shipments/:id/edit',
                 meta: { parent: 'sales', icon: <CarOutlined /> },
               },
               {
                 name: 'sales-returns',
                 list: '/sales/sales-returns',
                 show: '/sales/sales-returns/:id',
+                edit: '/sales/sales-returns/:id/edit',
                 meta: { parent: 'sales', icon: <RollbackOutlined /> },
               },
               {
@@ -177,18 +188,21 @@ const App: React.FC = () => {
                 name: 'payment-requests',
                 list: '/finance/payment-requests',
                 show: '/finance/payment-requests/:id',
+                edit: '/finance/payment-requests/:id/edit',
                 meta: { parent: 'finance', icon: <DollarOutlined /> },
               },
               {
                 name: 'sales-invoices',
                 list: '/finance/sales-invoices',
                 show: '/finance/sales-invoices/:id',
+                edit: '/finance/sales-invoices/:id/edit',
                 meta: { parent: 'finance', icon: <FileTextOutlined /> },
               },
               {
                 name: 'supplier-invoices',
                 list: '/finance/supplier-invoices',
                 show: '/finance/supplier-invoices/:id',
+                edit: '/finance/supplier-invoices/:id/edit',
                 meta: { parent: 'finance', icon: <BankOutlined /> },
               },
               // Master Data
@@ -231,6 +245,7 @@ const App: React.FC = () => {
                 <Route path="/procurement/purchase-orders/:id/edit" element={<PurchaseOrderEdit />} />
                 <Route path="/procurement/purchase-receipts" element={<PurchaseReceiptList />} />
                 <Route path="/procurement/purchase-receipts/:id" element={<PurchaseReceiptShow />} />
+                <Route path="/procurement/purchase-receipts/:id/edit" element={<PurchaseReceiptEdit />} />
                 <Route path="/procurement/suppliers" element={<SupplierList />} />
                 <Route path="/procurement/suppliers/create" element={<SupplierCreate />} />
                 <Route path="/procurement/suppliers/:id" element={<SupplierShow />} />
@@ -239,10 +254,13 @@ const App: React.FC = () => {
                 {/* Sales */}
                 <Route path="/sales/sales-orders" element={<SalesOrderList />} />
                 <Route path="/sales/sales-orders/:id" element={<SalesOrderShow />} />
+                <Route path="/sales/sales-orders/:id/edit" element={<SalesOrderEdit />} />
                 <Route path="/sales/sales-shipments" element={<SalesShipmentList />} />
                 <Route path="/sales/sales-shipments/:id" element={<SalesShipmentShow />} />
+                <Route path="/sales/sales-shipments/:id/edit" element={<SalesShipmentEdit />} />
                 <Route path="/sales/sales-returns" element={<SalesReturnList />} />
                 <Route path="/sales/sales-returns/:id" element={<SalesReturnShow />} />
+                <Route path="/sales/sales-returns/:id/edit" element={<SalesReturnEdit />} />
                 <Route path="/sales/customers" element={<CustomerList />} />
                 <Route path="/sales/customers/create" element={<CustomerCreate />} />
                 <Route path="/sales/customers/:id" element={<CustomerShow />} />
@@ -258,10 +276,13 @@ const App: React.FC = () => {
                 {/* Finance */}
                 <Route path="/finance/payment-requests" element={<PaymentRequestList />} />
                 <Route path="/finance/payment-requests/:id" element={<PaymentRequestShow />} />
+                <Route path="/finance/payment-requests/:id/edit" element={<PaymentRequestEdit />} />
                 <Route path="/finance/sales-invoices" element={<SalesInvoiceList />} />
                 <Route path="/finance/sales-invoices/:id" element={<SalesInvoiceShow />} />
+                <Route path="/finance/sales-invoices/:id/edit" element={<SalesInvoiceEdit />} />
                 <Route path="/finance/supplier-invoices" element={<SupplierInvoiceList />} />
                 <Route path="/finance/supplier-invoices/:id" element={<SupplierInvoiceShow />} />
+                <Route path="/finance/supplier-invoices/:id/edit" element={<SupplierInvoiceEdit />} />
 
                 {/* Master Data */}
                 <Route path="/master-data/products" element={<ProductList />} />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
-import { Table, Button } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Table, Button, Space } from 'antd';
+import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
@@ -10,7 +10,7 @@ import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const SupplierInvoiceList: React.FC = () => {
   const { t } = useTranslation();
-  const { show } = useNavigation();
+  const { show, edit } = useNavigation();
 
   const { tableProps } = useTable({
     resource: 'supplier-invoices',
@@ -35,9 +35,12 @@ export const SupplierInvoiceList: React.FC = () => {
         />
         <Table.Column
           title={t('common.actions')}
-          width={80}
+          width={100}
           render={(_, r: any) => (
-            <Button size="small" icon={<EyeOutlined />} onClick={() => show('supplier-invoices', r.id)} />
+            <Space>
+              <Button size="small" icon={<EyeOutlined />} onClick={() => show('supplier-invoices', r.id)} />
+              <Button size="small" icon={<EditOutlined />} onClick={() => edit('supplier-invoices', r.id)} />
+            </Space>
           )}
         />
       </Table>

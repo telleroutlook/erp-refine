@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
-import { Table, Button } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Table, Button, Space } from 'antd';
+import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
@@ -9,7 +9,7 @@ import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const PurchaseReceiptList: React.FC = () => {
   const { t } = useTranslation();
-  const { show } = useNavigation();
+  const { show, edit } = useNavigation();
 
   const { tableProps } = useTable({
     resource: 'purchase-receipts',
@@ -27,9 +27,12 @@ export const PurchaseReceiptList: React.FC = () => {
         <Table.Column dataIndex="receipt_date" title="收货日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
-          width={80}
+          width={100}
           render={(_, r: any) => (
-            <Button size="small" icon={<EyeOutlined />} onClick={() => show('purchase-receipts', r.id)} />
+            <Space>
+              <Button size="small" icon={<EyeOutlined />} onClick={() => show('purchase-receipts', r.id)} />
+              <Button size="small" icon={<EditOutlined />} onClick={() => edit('purchase-receipts', r.id)} />
+            </Space>
           )}
         />
       </Table>
