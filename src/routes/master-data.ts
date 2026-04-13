@@ -123,24 +123,7 @@ const productCategoriesConfig: CrudConfig = {
 masterData.route('', buildCrudRoutes(productCategoriesConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
-// Tax Codes — full CRUD via factory
-// ────────────────────────────────────────────────────────────────────────────
-
-const taxCodesConfig: CrudConfig = {
-  table: 'tax_codes',
-  path: '/tax-codes',
-  resourceName: 'TaxCode',
-  listSelect: 'id, code, name, rate, tax_type, is_active',
-  detailSelect: '*',
-  createReturnSelect: 'id, code, name',
-  defaultSort: 'code',
-  softDelete: false,
-  orgScoped: true,
-};
-masterData.route('', buildCrudRoutes(taxCodesConfig));
-
-// ────────────────────────────────────────────────────────────────────────────
-// Warehouses — full CRUD via factory
+// Currencies — list + show only (reference data, not org-scoped)
 // ────────────────────────────────────────────────────────────────────────────
 
 const warehousesConfig: CrudConfig = {
@@ -182,23 +165,6 @@ const storageLocationsConfig: CrudConfig = {
 masterData.route('', buildCrudRoutes(storageLocationsConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
-// Carriers — full CRUD via factory
-// ────────────────────────────────────────────────────────────────────────────
-
-const carriersConfig: CrudConfig = {
-  table: 'carriers',
-  path: '/carriers',
-  resourceName: 'Carrier',
-  listSelect: 'id, code, name, carrier_type, tracking_url_template, is_active',
-  detailSelect: '*',
-  createReturnSelect: 'id, code, name',
-  defaultSort: 'code',
-  softDelete: false,
-  orgScoped: true,
-};
-masterData.route('', buildCrudRoutes(carriersConfig));
-
-// ────────────────────────────────────────────────────────────────────────────
 // Currencies — list + show only (reference data, not org-scoped)
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -226,7 +192,7 @@ const uomsConfig: CrudConfig = {
   table: 'uoms',
   path: '/uoms',
   resourceName: 'UoM',
-  listSelect: 'id, uom_code, uom_name, category, is_active',
+  listSelect: 'id, uom_code, uom_name, uom_type',
   detailSelect: '*',
   createReturnSelect: 'id, uom_code, uom_name',
   defaultSort: 'uom_code',
@@ -246,7 +212,7 @@ const priceListsConfig: CrudConfig = {
   table: 'price_lists',
   path: '/price-lists',
   resourceName: 'PriceList',
-  listSelect: 'id, code, name, price_type, currency, effective_from, effective_to, is_default, status',
+  listSelect: 'id, code, name, currency, effective_from, effective_to, is_default, status',
   detailSelect: '*, lines:price_list_lines(*, product:products(id,name,code))',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',

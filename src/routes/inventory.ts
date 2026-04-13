@@ -19,7 +19,7 @@ inventory.use('*', authMiddleware());
 
 inventory.get('/stock-records', async (c) => {
   const { db, user } = getDbAndUser(c);
-  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, 'updated_at');
 
   const { data, count, error } = await db
     .from('stock_records')
@@ -58,7 +58,7 @@ const stockTransactionsConfig: CrudConfig = {
   table: 'stock_transactions',
   path: '/stock-transactions',
   resourceName: 'StockTransaction',
-  listSelect: 'id, transaction_type, quantity, reference_type, reference_id, lot_number, cost_price, notes, created_at, product:products(id,name,code), warehouse:warehouses(id,name)',
+  listSelect: 'id, transaction_type, quantity, reference_type, reference_id, transaction_date, notes, created_at, product:products(id,name,code), warehouse:warehouses(id,name)',
   detailSelect: '*, product:products(id,name,code), warehouse:warehouses(id,name,code)',
   createReturnSelect: 'id, transaction_type, quantity',
   defaultSort: 'created_at',
@@ -78,7 +78,7 @@ const inventoryLotsConfig: CrudConfig = {
   table: 'inventory_lots',
   path: '/inventory-lots',
   resourceName: 'InventoryLot',
-  listSelect: 'id, lot_number, supplier_lot_number, manufacture_date, expiry_date, quantity, status, product:products(id,name,code), warehouse:warehouses(id,name)',
+  listSelect: 'id, lot_number, manufacture_date, expiry_date, quantity, status, product:products(id,name,code), warehouse:warehouses(id,name)',
   detailSelect: '*, product:products(id,name,code), warehouse:warehouses(id,name,code)',
   createReturnSelect: 'id, lot_number, quantity',
   defaultSort: 'created_at',
@@ -112,9 +112,9 @@ const inventoryReservationsConfig: CrudConfig = {
   table: 'inventory_reservations',
   path: '/inventory-reservations',
   resourceName: 'InventoryReservation',
-  listSelect: 'id, reserved_qty, reference_type, reference_id, status, expires_at, product:products(id,name,code), warehouse:warehouses(id,name)',
+  listSelect: 'id, reserved_quantity, reference_type, reference_id, status, expires_at, product:products(id,name,code), warehouse:warehouses(id,name)',
   detailSelect: '*, product:products(id,name,code), warehouse:warehouses(id,name,code)',
-  createReturnSelect: 'id, reserved_qty, status',
+  createReturnSelect: 'id, reserved_quantity, status',
   defaultSort: 'created_at',
   softDelete: false,
   orgScoped: true,
@@ -133,7 +133,7 @@ inventory.get('/inventory-counts', async (c) => {
   const { data, count, error } = await db
     .from('inventory_counts')
     .select(
-      'id, count_number, count_date, count_type, status, warehouse:warehouses(id,name)',
+      'id, count_number, count_date, status, warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -182,7 +182,7 @@ inventory.post('/inventory-counts', async (c) => {
       itemsTable: 'inventory_count_lines',
       headerFk: 'inventory_count_id',
       headerReturnSelect: 'id, count_number, status',
-      itemsReturnSelect: 'id, product_id, system_qty, counted_qty, variance_qty',
+      itemsReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity',
     },
     {
       header: {
@@ -266,7 +266,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
 
   // 3. For each line with variance, create stock adjustment transaction
   for (const line of countDoc.lines) {
-    const varianceQty = (line.counted_qty ?? 0) - (line.system_qty ?? 0);
+    const varianceQty = (line.counted_quantity ?? 0) - (line.system_quantity ?? 0);
     if (varianceQty === 0) continue;
 
     // Adjust stock to match counted qty
@@ -286,14 +286,14 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
       qty: Math.abs(varianceQty),
       referenceType: 'inventory_count',
       referenceId: countDoc.id,
-      notes: `Count variance: system=${line.system_qty}, counted=${line.counted_qty}, diff=${varianceQty}`,
+      notes: `Count variance: system=${line.system_quantity}, counted=${line.counted_quantity}, diff=${varianceQty}`,
       createdBy: user.userId,
     }, requestId);
 
     // Update the line with the computed variance
     await db
       .from('inventory_count_lines')
-      .update({ variance_qty: varianceQty })
+      .update({ variance_quantity: varianceQty })
       .eq('id', line.id);
   }
 
@@ -302,8 +302,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     .from('inventory_counts')
     .update({
       status: 'completed',
-      completed_by: user.userId,
-      completed_at: new Date().toISOString(),
+      approved_by: user.userId,
     })
     .eq('id', id);
 

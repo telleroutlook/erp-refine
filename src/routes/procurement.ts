@@ -178,7 +178,7 @@ procurement.get('/purchase-requisitions', async (c) => {
   const { data, count, error } = await db
     .from('purchase_requisitions')
     .select(
-      'id, requisition_number, required_date, priority, total_amount, currency, status, department:departments(id,name), requester:employees(id,name), created_at',
+      'id, requisition_number, request_date, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name), created_at',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -296,7 +296,7 @@ procurement.get('/rfq-headers', async (c) => {
 
   const { data, count, error } = await db
     .from('rfq_headers')
-    .select('id, rfq_number, title, submission_deadline, status, created_at', { count: 'exact' })
+    .select('id, rfq_number, due_date, status, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -343,7 +343,7 @@ procurement.post('/rfq-headers', async (c) => {
       itemsTable: 'rfq_lines',
       headerFk: 'rfq_id',
       headerReturnSelect: 'id, rfq_number, status',
-      itemsReturnSelect: 'id, product_id, quantity',
+      itemsReturnSelect: 'id, product_id, qty_requested',
     },
     {
       header: {
@@ -405,7 +405,7 @@ procurement.delete('/rfq-headers/:id', async (c) => {
 // Supplier Quotations — atomic create (header + lines)
 // ────────────────────────────────────────────────────────────────────────────
 
-// GET list
+// GET list — supplier_quotations has no organization_id, filter via rfq_headers join
 procurement.get('/supplier-quotations', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
@@ -413,10 +413,9 @@ procurement.get('/supplier-quotations', async (c) => {
   const { data, count, error } = await db
     .from('supplier_quotations')
     .select(
-      'id, quotation_number, quotation_date, valid_until, total_amount, currency, status, supplier:suppliers(id,name), rfq:rfq_headers(id,rfq_number)',
+      'id, quotation_number, validity_date, currency, status, supplier:suppliers(id,name), rfq:rfq_headers(id,rfq_number)',
       { count: 'exact' }
     )
-    .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
@@ -434,7 +433,6 @@ procurement.get('/supplier-quotations/:id', async (c) => {
     .from('supplier_quotations')
     .select('*, lines:supplier_quotation_lines(*, product:products(id,name,code)), supplier:suppliers(id,name,code), rfq:rfq_headers(id,rfq_number)')
     .eq('id', id)
-    .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .single();
 
@@ -453,16 +451,14 @@ procurement.post('/supplier-quotations', async (c) => {
     {
       headerTable: 'supplier_quotations',
       itemsTable: 'supplier_quotation_lines',
-      headerFk: 'supplier_quotation_id',
+      headerFk: 'quotation_id',
       headerReturnSelect: 'id, quotation_number, status',
-      itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      itemsReturnSelect: 'id, product_id, qty_offered, unit_price',
     },
     {
       header: {
         ...headerFields,
-        organization_id: user.organizationId,
-        status: 'draft',
-        created_by: user.userId,
+        status: headerFields.status ?? 'draft',
       },
       items: items ?? [],
     },
@@ -488,7 +484,6 @@ procurement.put('/supplier-quotations/:id', async (c) => {
     .from('supplier_quotations')
     .update(body)
     .eq('id', id)
-    .eq('organization_id', user.organizationId)
     .select('id')
     .single();
 
@@ -505,8 +500,7 @@ procurement.delete('/supplier-quotations/:id', async (c) => {
   const { error } = await db
     .from('supplier_quotations')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('id', id);
 
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });

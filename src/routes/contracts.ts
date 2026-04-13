@@ -19,7 +19,7 @@ contracts.get('/contracts', async (c) => {
 
   const { data, count, error } = await db
     .from('contracts')
-    .select('id, contract_number, title, party_type, contract_type, start_date, end_date, total_amount, currency, status, created_at', { count: 'exact' })
+    .select('id, contract_number, party_type, contract_type, start_date, end_date, total_amount, currency, status, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })

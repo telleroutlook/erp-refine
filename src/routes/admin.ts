@@ -37,11 +37,11 @@ const approvalRulesConfig: CrudConfig = {
   path: '/approval-rules',
   resourceName: 'ApprovalRule',
   listSelect:
-    'id, entity_type, condition_field, condition_operator, condition_value, approver_role, step_order, is_active',
+    'id, rule_name, document_type, min_amount, max_amount, required_roles, sequence_order, is_active',
   detailSelect: '*',
-  createReturnSelect: 'id, entity_type, approver_role, step_order',
-  defaultSort: 'entity_type',
-  softDelete: false,
+  createReturnSelect: 'id, rule_name, document_type, sequence_order',
+  defaultSort: 'document_type',
+  softDelete: true,
   orgScoped: true,
 };
 
@@ -56,11 +56,11 @@ const approvalRecordsConfig: CrudConfig = {
   path: '/approval-records',
   resourceName: 'ApprovalRecord',
   listSelect:
-    'id, entity_type, entity_id, step_no, action, created_at, approver:employees(id, name)',
-  detailSelect: '*, approver:employees(id, name, email)',
+    'id, document_type, document_id, status, decision_by, decision_at, decision_level, created_at',
+  detailSelect: '*',
   createReturnSelect: 'id',
   defaultSort: 'created_at',
-  softDelete: false,
+  softDelete: true,
   orgScoped: true,
   disableCreate: true,
   disableUpdate: true,
@@ -69,43 +69,6 @@ const approvalRecordsConfig: CrudConfig = {
 
 const approvalRecordsRouter = buildCrudRoutes(approvalRecordsConfig);
 admin.route('', approvalRecordsRouter);
-
-// ---------------------------------------------------------------------------
-// Notifications — CRUD + custom mark-as-read endpoint, no soft delete
-// ---------------------------------------------------------------------------
-const notificationsConfig: CrudConfig = {
-  table: 'notifications',
-  path: '/notifications',
-  resourceName: 'Notification',
-  listSelect:
-    'id, title, body, notification_type, is_read, created_at, entity_type, entity_id',
-  detailSelect: '*',
-  createReturnSelect: 'id, title, notification_type',
-  defaultSort: 'created_at',
-  softDelete: false,
-  orgScoped: true,
-};
-
-const notificationsRouter = buildCrudRoutes(notificationsConfig);
-admin.route('', notificationsRouter);
-
-// Custom: mark notification as read
-admin.put('/notifications/:id/read', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id, is_read')
-    .single();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('Notification', id, requestId);
-  return c.json({ data });
-});
 
 // ---------------------------------------------------------------------------
 // Link Employees to Auth Users — needed for RLS to work after seed import

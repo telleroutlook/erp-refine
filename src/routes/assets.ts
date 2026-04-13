@@ -19,7 +19,7 @@ assets.get('/fixed-assets', async (c) => {
 
   const { data, count, error } = await db
     .from('fixed_assets')
-    .select('id, asset_number, name, category, acquisition_date, acquisition_cost, net_book_value, status, department:departments(id,name)', { count: 'exact' })
+    .select('id, asset_number, asset_name, category, acquisition_date, acquisition_cost, current_book_value, status, department, cost_center:cost_centers(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -35,7 +35,7 @@ assets.get('/fixed-assets/:id', async (c) => {
 
   const { data, error } = await db
     .from('fixed_assets')
-    .select('*, department:departments(id,name), cost_center:cost_centers(id,name,code), responsible_person:employees(id,name), depreciations:asset_depreciation_records(id,period_year,period_month,depreciation_amount,accumulated_amount,net_book_value), maintenance:asset_maintenance_records(id,maintenance_type,maintenance_date,cost,description)')
+    .select('*, cost_center:cost_centers(id,name,code), custodian:employees!custodian_id(id,name), depreciations:asset_depreciations(id,period_year,period_month,depreciation_amount,accumulated_depreciation,book_value_after), maintenance:asset_maintenance_records(id,maintenance_type,performed_at,cost,description)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -54,9 +54,8 @@ assets.post('/fixed-assets', async (c) => {
     .insert({
       ...body,
       organization_id: user.organizationId,
-      created_by: user.userId,
     })
-    .select('id, asset_number, name')
+    .select('id, asset_number, asset_name')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -95,16 +94,16 @@ assets.delete('/fixed-assets/:id', async (c) => {
   return c.json({ data: { success: true } });
 });
 
-// ─── Asset Depreciation Records (list + create only — immutable) ────────────
+// ─── Asset Depreciation Records (list + detail + create — immutable) ─────────
+// Table: asset_depreciations — scoped via asset_id (no organization_id)
 
 assets.get('/asset-depreciations', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
 
   const { data, count, error } = await db
-    .from('asset_depreciation_records')
-    .select('id, period_year, period_month, depreciation_amount, accumulated_amount, net_book_value, fixed_asset:fixed_assets(id,asset_number,name)', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .from('asset_depreciations')
+    .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted, fixed_asset:fixed_assets(id,asset_number,asset_name)', { count: 'exact' })
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -117,10 +116,9 @@ assets.get('/asset-depreciations/:id', async (c) => {
   const id = c.req.param('id');
 
   const { data, error } = await db
-    .from('asset_depreciation_records')
-    .select('*, fixed_asset:fixed_assets(id,asset_number,name)')
+    .from('asset_depreciations')
+    .select('*, fixed_asset:fixed_assets(id,asset_number,asset_name)')
     .eq('id', id)
-    .eq('organization_id', user.organizationId)
     .single();
 
   if (error) throw ApiError.notFound('Asset Depreciation', id, requestId);
@@ -132,13 +130,9 @@ assets.post('/asset-depreciations', async (c) => {
   const body = await c.req.json();
 
   const { data, error } = await db
-    .from('asset_depreciation_records')
-    .insert({
-      ...body,
-      organization_id: user.organizationId,
-      created_by: user.userId,
-    })
-    .select('id, period_year, period_month, depreciation_amount, accumulated_amount, net_book_value')
+    .from('asset_depreciations')
+    .insert(body)
+    .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -146,16 +140,17 @@ assets.post('/asset-depreciations', async (c) => {
 });
 
 // ─── Asset Maintenance Records (full CRUD) ──────────────────────────────────
+// Columns: id, asset_id, maintenance_type, description, cost, performed_by, performed_at, next_due_at
 
 assets.route('', buildCrudRoutes({
   table: 'asset_maintenance_records',
   path: '/asset-maintenance',
   resourceName: 'Asset Maintenance Record',
-  listSelect: 'id, maintenance_type, maintenance_date, cost, description, next_maintenance_date, performed_by',
+  listSelect: 'id, maintenance_type, description, cost, performed_by, performed_at, next_due_at',
   detailSelect: '*',
-  createReturnSelect: 'id, maintenance_type, maintenance_date',
-  defaultSort: 'maintenance_date',
-  softDelete: false,
+  createReturnSelect: 'id, maintenance_type, performed_at',
+  defaultSort: 'performed_at',
+  softDelete: true,
   orgScoped: false,
 }));
 

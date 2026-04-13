@@ -292,8 +292,6 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     .from('sales_returns')
     .update({
       status: 'received',
-      received_by: user.userId,
-      received_at: new Date().toISOString(),
     })
     .eq('id', id);
 
@@ -316,7 +314,7 @@ salesFinance.get('/customer-receipts', async (c) => {
   const { data, count, error } = await db
     .from('customer_receipts')
     .select(
-      'id, receipt_number, receipt_date, amount, currency, payment_method, customer:customers(id,name), sales_invoice:sales_invoices(id,invoice_number)',
+      'id, receipt_number, receipt_date, amount, payment_method, reference_type, reference_id, status, customer:customers(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -335,7 +333,7 @@ salesFinance.get('/customer-receipts/:id', async (c) => {
 
   const { data, error } = await db
     .from('customer_receipts')
-    .select('*, customer:customers(id,name), sales_invoice:sales_invoices(id,invoice_number)')
+    .select('*, customer:customers(id,name)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

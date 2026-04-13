@@ -354,7 +354,7 @@ const paymentRecordsConfig: CrudConfig = {
   table: 'payment_records',
   path: '/payment-records',
   resourceName: 'PaymentRecord',
-  listSelect: 'id, payment_number, payment_date, payment_type, partner_type, amount, currency, payment_method, bank_reference, created_at',
+  listSelect: 'id, payment_number, payment_date, payment_type, partner_type, amount, payment_method, status, created_at',
   detailSelect: '*',
   createReturnSelect: 'id, payment_number, payment_type',
   defaultSort: 'created_at',

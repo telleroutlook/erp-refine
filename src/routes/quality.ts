@@ -22,7 +22,8 @@ quality.route('', buildCrudRoutes({
   detailSelect: '*',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
-  softDelete: false,
+  softDelete: true,
+  orgScoped: true,
 }));
 
 // ─── Quality Standards ──────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ quality.get('/quality-standards', async (c) => {
 
   const { data, count, error } = await db
     .from('quality_standards')
-    .select('id, code, name, applicable_to, version, is_active, product:products(id,name,code)', { count: 'exact' })
+    .select('id, standard_code, standard_name, is_active, description, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -68,7 +69,7 @@ quality.post('/quality-standards', async (c) => {
     headerTable: 'quality_standards',
     itemsTable: 'quality_standard_items',
     headerFk: 'quality_standard_id',
-    headerReturnSelect: 'id, code, name',
+    headerReturnSelect: 'id, standard_code, standard_name',
     itemsReturnSelect: 'id',
   }, {
     header: {
@@ -122,7 +123,7 @@ quality.get('/quality-inspections', async (c) => {
 
   const { data, count, error } = await db
     .from('quality_inspections')
-    .select('id, inspection_number, inspection_date, reference_type, total_quantity, qualified_quantity, defective_quantity, result, status, product:products(id,name,code), inspector:employees(id,name)', { count: 'exact' })
+    .select('id, inspection_number, inspection_date, reference_type, total_quantity, qualified_quantity, defective_quantity, result, status, inspector_id, product:products(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
