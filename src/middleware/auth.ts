@@ -54,7 +54,7 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
     let result: JWTVerifyResult;
     try {
       // Detect algorithm from token header
-      const headerB64 = token.split('.')[0];
+      const headerB64 = token.split('.')[0] ?? '';
       const header = JSON.parse(atob(headerB64));
 
       if (header.alg === 'HS256' && c.env.JWT_SECRET) {
