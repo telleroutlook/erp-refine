@@ -4,6 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
+import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
@@ -107,5 +108,19 @@ contracts.delete('/contracts/:id', async (c) => {
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
 });
+
+// ─── Contract Items ──────────────────────────────────────────────────────────
+
+contracts.route('', buildCrudRoutes({
+  table: 'contract_items',
+  path: '/contract-items',
+  resourceName: 'ContractItem',
+  listSelect: 'id, quantity, unit_price, tax_rate, amount, notes, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity, unit_price',
+  defaultSort: 'id',
+  softDelete: true,
+  orgScoped: false,
+}));
 
 export default contracts;

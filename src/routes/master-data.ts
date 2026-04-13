@@ -238,4 +238,21 @@ const priceListLinesConfig: CrudConfig = {
 };
 masterData.route('', buildCrudRoutes(priceListLinesConfig));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Carriers — full CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const carriersConfig: CrudConfig = {
+  table: 'carriers',
+  path: '/carriers',
+  resourceName: 'Carrier',
+  listSelect: 'id, code, name, carrier_type, contact, phone, tracking_url_template, is_active',
+  detailSelect: '*',
+  createReturnSelect: 'id, code, name',
+  defaultSort: 'code',
+  softDelete: true,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(carriersConfig));
+
 export default masterData;

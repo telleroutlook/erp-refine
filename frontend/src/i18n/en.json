@@ -17,6 +17,9 @@
   "supplier-invoices": { "supplier-invoices": "Supplier Invoices" },
   "masterData": { "masterData": "Master Data" },
   "products": { "products": "Products" },
+  "carriers": { "carriers": "Carriers" },
+  "system": { "system": "System" },
+  "notifications": { "notifications": "Notifications" },
   "ai-chat": { "ai-chat": "AI Assistant" },
   "actions": {
     "list": "List",
@@ -84,6 +87,9 @@
     "supplierInvoices": "Supplier Invoices",
     "masterData": "Master Data",
     "products": "Products",
+    "carriers": "Carriers",
+    "system": "System",
+    "notifications": "Notifications",
     "aiChat": "AI Assistant",
     "schemaManager": "Dynamic Forms"
   },

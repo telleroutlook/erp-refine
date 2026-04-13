@@ -409,4 +409,32 @@ manufacturing.post('/work-order-productions', async (c) => {
   return c.json({ data }, 201);
 });
 
+// ─── BOM Items ───────────────────────────────────────────────────────────────
+
+manufacturing.route('', buildCrudRoutes({
+  table: 'bom_items',
+  path: '/bom-items',
+  resourceName: 'BomItem',
+  listSelect: 'id, quantity, unit, scrap_rate, sequence, notes, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity, sequence',
+  defaultSort: 'sequence',
+  softDelete: false,
+  orgScoped: false,
+}));
+
+// ─── Work Order Materials ────────────────────────────────────────────────────
+
+manufacturing.route('', buildCrudRoutes({
+  table: 'work_order_materials',
+  path: '/work-order-materials',
+  resourceName: 'WorkOrderMaterial',
+  listSelect: 'id, required_quantity, issued_quantity, notes, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, required_quantity',
+  defaultSort: 'id',
+  softDelete: false,
+  orgScoped: false,
+}));
+
 export default manufacturing;

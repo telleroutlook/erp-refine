@@ -27,6 +27,7 @@ import manufacturingRoutes from './routes/manufacturing';
 import qualityRoutes from './routes/quality';
 import contractsRoutes from './routes/contracts';
 import assetsRoutes from './routes/assets';
+import systemRoutes from './routes/system';
 
 // Policy rules (register on startup)
 import './policy/rules/procurement-rules';
@@ -143,6 +144,7 @@ app.route('/api', manufacturingRoutes);
 app.route('/api', qualityRoutes);
 app.route('/api', contractsRoutes);
 app.route('/api', assetsRoutes);
+app.route('/api', systemRoutes);
 
 // --- Error handler ---
 app.onError(errorHandler);

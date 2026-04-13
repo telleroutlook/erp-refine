@@ -142,7 +142,7 @@ const soItemsConfig: CrudConfig = {
   detailSelect: '*, product:products(id,name,code)',
   createReturnSelect: 'id, line_no, quantity, unit_price',
   defaultSort: 'line_no',
-  softDelete: false,
+  softDelete: true,
   orgScoped: false,
 };
 sales.route('', buildCrudRoutes(soItemsConfig));
@@ -425,5 +425,21 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
     data: { id: shipment.id, shipment_number: shipment.shipment_number, status: 'shipped' },
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Sales Shipment Items — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+sales.route('', buildCrudRoutes({
+  table: 'sales_shipment_items',
+  path: '/sales-shipment-items',
+  resourceName: 'SalesShipmentItem',
+  listSelect: 'id, quantity, unit_price, amount, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity',
+  defaultSort: 'id',
+  softDelete: true,
+  orgScoped: false,
+}));
 
 export default sales;

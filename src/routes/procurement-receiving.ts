@@ -411,7 +411,7 @@ procurementReceiving.post('/three-way-match', async (c) => {
   let receiptAmount = 0;
   if (receiptItems && receiptItems.length > 0) {
     const poItemIds = receiptItems
-      .map((ri: { purchase_order_item_id: string }) => ri.purchase_order_item_id)
+      .map((ri: { quantity: any; purchase_order_item_id: string }) => ri.purchase_order_item_id)
       .filter(Boolean);
 
     if (poItemIds.length > 0) {
@@ -532,5 +532,37 @@ const paymentCrud = buildCrudRoutes({
 });
 
 procurementReceiving.route('', paymentCrud);
+
+// ────────────────────────────────────────────────────────────────────────────
+// Purchase Receipt Items — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+procurementReceiving.route('', buildCrudRoutes({
+  table: 'purchase_receipt_items',
+  path: '/purchase-receipt-items',
+  resourceName: 'PurchaseReceiptItem',
+  listSelect: 'id, quantity, unit_price, amount, lot_number, notes, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity',
+  defaultSort: 'id',
+  softDelete: false,
+  orgScoped: false,
+}));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Supplier Invoice Items — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+procurementReceiving.route('', buildCrudRoutes({
+  table: 'supplier_invoice_items',
+  path: '/supplier-invoice-items',
+  resourceName: 'SupplierInvoiceItem',
+  listSelect: 'id, quantity, unit_price, tax_rate, amount, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity, unit_price',
+  defaultSort: 'id',
+  softDelete: false,
+  orgScoped: false,
+}));
 
 export default procurementReceiving;

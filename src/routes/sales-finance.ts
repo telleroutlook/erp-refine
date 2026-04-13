@@ -439,3 +439,37 @@ salesFinance.delete('/customer-receipts/:id', async (c) => {
 });
 
 export default salesFinance;
+
+// NOTE: sales_shipment_items standalone routes are in sales.ts
+
+// ────────────────────────────────────────────────────────────────────────────
+// Sales Invoice Items — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+salesFinance.route('', buildCrudRoutes({
+  table: 'sales_invoice_items',
+  path: '/sales-invoice-items',
+  resourceName: 'SalesInvoiceItem',
+  listSelect: 'id, quantity, unit_price, tax_rate, discount_rate, amount, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity, unit_price',
+  defaultSort: 'id',
+  softDelete: true,
+  orgScoped: false,
+}));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Sales Return Items — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+salesFinance.route('', buildCrudRoutes({
+  table: 'sales_return_items',
+  path: '/sales-return-items',
+  resourceName: 'SalesReturnItem',
+  listSelect: 'id, quantity, unit_price, amount, reason, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, quantity',
+  defaultSort: 'id',
+  softDelete: true,
+  orgScoped: false,
+}));

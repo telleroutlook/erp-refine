@@ -506,4 +506,55 @@ procurement.delete('/supplier-quotations/:id', async (c) => {
   return c.json({ data: { success: true } });
 });
 
+// ────────────────────────────────────────────────────────────────────────────
+// Purchase Requisition Lines — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const prLinesConfig: CrudConfig = {
+  table: 'purchase_requisition_lines',
+  path: '/purchase-requisition-lines',
+  resourceName: 'PurchaseRequisitionLine',
+  listSelect: 'id, line_no, quantity, unit_price, amount, notes, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, line_no, quantity',
+  defaultSort: 'line_no',
+  softDelete: true,
+  orgScoped: false,
+};
+procurement.route('', buildCrudRoutes(prLinesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// RFQ Lines — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const rfqLinesConfig: CrudConfig = {
+  table: 'rfq_lines',
+  path: '/rfq-lines',
+  resourceName: 'RfqLine',
+  listSelect: 'id, line_number, qty_requested, unit_of_measure, description, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, line_number, qty_requested',
+  defaultSort: 'line_number',
+  softDelete: true,
+  orgScoped: false,
+};
+procurement.route('', buildCrudRoutes(rfqLinesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Supplier Quotation Lines — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const sqLinesConfig: CrudConfig = {
+  table: 'supplier_quotation_lines',
+  path: '/supplier-quotation-lines',
+  resourceName: 'SupplierQuotationLine',
+  listSelect: 'id, qty_offered, unit_price, total_price, lead_time_days, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, qty_offered, unit_price',
+  defaultSort: 'created_at',
+  softDelete: true,
+  orgScoped: false,
+};
+procurement.route('', buildCrudRoutes(sqLinesConfig));
+
 export default procurement;

@@ -68,7 +68,7 @@ quality.post('/quality-standards', async (c) => {
   const result = await atomicCreateWithItems(db, {
     headerTable: 'quality_standards',
     itemsTable: 'quality_standard_items',
-    headerFk: 'quality_standard_id',
+    headerFk: 'standard_id',
     headerReturnSelect: 'id, standard_code, standard_name',
     itemsReturnSelect: 'id',
   }, {
@@ -210,5 +210,33 @@ quality.delete('/quality-inspections/:id', async (c) => {
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
 });
+
+// ─── Quality Standard Items ─────────────────────────────────────────────────
+
+quality.route('', buildCrudRoutes({
+  table: 'quality_standard_items',
+  path: '/quality-standard-items',
+  resourceName: 'QualityStandardItem',
+  listSelect: 'id, sequence_order, item_name, check_method, acceptance_criteria, is_mandatory',
+  detailSelect: '*',
+  createReturnSelect: 'id, sequence_order, item_name',
+  defaultSort: 'sequence_order',
+  softDelete: true,
+  orgScoped: false,
+}));
+
+// ─── Quality Inspection Items ───────────────────────────────────────────────
+
+quality.route('', buildCrudRoutes({
+  table: 'quality_inspection_items',
+  path: '/quality-inspection-items',
+  resourceName: 'QualityInspectionItem',
+  listSelect: 'id, check_item, check_standard, measured_value, check_result, notes',
+  detailSelect: '*',
+  createReturnSelect: 'id, check_item, check_result',
+  defaultSort: 'id',
+  softDelete: false,
+  orgScoped: false,
+}));
 
 export default quality;

@@ -415,4 +415,38 @@ const paymentRequestsCrud = buildCrudRoutes({
 });
 finance.route('', paymentRequestsCrud);
 
+// ────────────────────────────────────────────────────────────────────────────
+// Budget Lines — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const budgetLinesConfig: CrudConfig = {
+  table: 'budget_lines',
+  path: '/budget-lines',
+  resourceName: 'BudgetLine',
+  listSelect: 'id, account_code, period_month, planned_amount, actual_amount, description, cost_center:cost_centers(id,code,name)',
+  detailSelect: '*, cost_center:cost_centers(id,code,name)',
+  createReturnSelect: 'id, account_code, period_month, planned_amount',
+  defaultSort: 'period_month',
+  softDelete: true,
+  orgScoped: false,
+};
+finance.route('', buildCrudRoutes(budgetLinesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Voucher Entries — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+const voucherEntriesConfig: CrudConfig = {
+  table: 'voucher_entries',
+  path: '/voucher-entries',
+  resourceName: 'VoucherEntry',
+  listSelect: 'id, entry_type, amount, summary, sequence, account:account_subjects(id,code,name)',
+  detailSelect: '*, account:account_subjects(id,code,name)',
+  createReturnSelect: 'id, entry_type, amount',
+  defaultSort: 'sequence',
+  softDelete: false,
+  orgScoped: false,
+};
+finance.route('', buildCrudRoutes(voucherEntriesConfig));
+
 export default finance;

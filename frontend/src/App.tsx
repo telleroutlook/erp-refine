@@ -68,6 +68,14 @@ import { ProductList } from './pages/master-data/products/list';
 import { ProductShow } from './pages/master-data/products/show';
 import { ProductCreate } from './pages/master-data/products/create';
 import { ProductEdit } from './pages/master-data/products/edit';
+import { CarrierList } from './pages/master-data/carriers/list';
+import { CarrierShow } from './pages/master-data/carriers/show';
+import { CarrierCreate } from './pages/master-data/carriers/create';
+import { CarrierEdit } from './pages/master-data/carriers/edit';
+
+// System
+import { NotificationList } from './pages/system/notifications/list';
+import { NotificationShow } from './pages/system/notifications/show';
 
 // AI
 import { ChatPanel } from './components/ai/ChatPanel';
@@ -88,6 +96,7 @@ import {
   BankOutlined,
   HomeOutlined,
   FileDoneOutlined,
+  BellOutlined,
 } from '@ant-design/icons';
 
 const antdLocaleMap: Record<string, Locale> = { en: enUS, 'zh-CN': zhCN };
@@ -217,6 +226,22 @@ const App: React.FC = () => {
                 create: '/master-data/products/create',
                 meta: { parent: 'masterData', icon: <AppstoreOutlined /> },
               },
+              {
+                name: 'carriers',
+                list: '/master-data/carriers',
+                show: '/master-data/carriers/:id',
+                edit: '/master-data/carriers/:id/edit',
+                create: '/master-data/carriers/create',
+                meta: { parent: 'masterData', icon: <CarOutlined /> },
+              },
+              // System
+              { name: 'system' },
+              {
+                name: 'notifications',
+                list: '/system/notifications',
+                show: '/system/notifications/:id',
+                meta: { parent: 'system', icon: <BellOutlined /> },
+              },
               // AI
               {
                 name: 'ai-chat',
@@ -291,6 +316,14 @@ const App: React.FC = () => {
                 <Route path="/master-data/products/create" element={<ProductCreate />} />
                 <Route path="/master-data/products/:id" element={<ProductShow />} />
                 <Route path="/master-data/products/:id/edit" element={<ProductEdit />} />
+                <Route path="/master-data/carriers" element={<CarrierList />} />
+                <Route path="/master-data/carriers/create" element={<CarrierCreate />} />
+                <Route path="/master-data/carriers/:id" element={<CarrierShow />} />
+                <Route path="/master-data/carriers/:id/edit" element={<CarrierEdit />} />
+
+                {/* System */}
+                <Route path="/system/notifications" element={<NotificationList />} />
+                <Route path="/system/notifications/:id" element={<NotificationShow />} />
 
                 {/* AI */}
                 <Route
