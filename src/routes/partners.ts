@@ -2,6 +2,7 @@
 // Partners REST API — Customers & Suppliers with nested addresses, bank accounts, sites
 
 import { Hono } from 'hono';
+import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
@@ -21,11 +22,33 @@ const customersConfig: CrudConfig = {
   listSelect:
     'id, name, code, customer_type, classification, email, phone, status, credit_limit, payment_terms',
   detailSelect:
-    '*, addresses:customer_addresses(id, address_type, contact_name, phone, street, city, province, postal_code, country, is_default), bank_accounts:customer_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
+    '*, addresses:customer_addresses(id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default), bank_accounts:customer_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'name',
   softDelete: true,
   orgScoped: true,
+  updateSchema: z.object({
+    name: z.string().optional(),
+    code: z.string().optional(),
+    short_name: z.string().optional().nullable(),
+    type: z.string().optional(),
+    customer_type: z.string().optional(),
+    tax_number: z.string().optional().nullable(),
+    tax_no: z.string().optional().nullable(),
+    contact: z.string().optional().nullable(),
+    phone: z.string().optional().nullable(),
+    email: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    street: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    province: z.string().optional().nullable(),
+    postal_code: z.string().optional().nullable(),
+    country: z.string().optional().nullable(),
+    credit_limit: z.number().optional().nullable(),
+    payment_terms: z.number().optional().nullable(),
+    classification: z.string().optional().nullable(),
+    status: z.string().optional(),
+  }).strip(),
 };
 
 const customersRouter = buildCrudRoutes(customersConfig);
@@ -56,7 +79,7 @@ partners.get('/customers/:customerId/addresses', async (c) => {
   const { data, count, error } = await db
     .from('customer_addresses')
     .select(
-      'id, address_type, contact_name, phone, street, city, province, postal_code, country, is_default',
+      'id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default',
       { count: 'exact' }
     )
     .eq('customer_id', customerId)
@@ -344,11 +367,31 @@ const suppliersConfig: CrudConfig = {
   listSelect:
     'id, name, code, supplier_type, contact_email, contact_phone, status, currency, payment_terms, lead_time_days, reliability_score',
   detailSelect:
-    '*, sites:supplier_sites(id, site_name, address, city, province, postal_code, country, is_default), bank_accounts:supplier_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
+    '*, sites:supplier_sites(id, site_code, site_name, address, city, province, postal_code, country, contact_name, contact_phone, is_active), bank_accounts:supplier_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'name',
   softDelete: true,
   orgScoped: true,
+  updateSchema: z.object({
+    name: z.string().optional(),
+    code: z.string().optional(),
+    short_name: z.string().optional().nullable(),
+    supplier_type: z.string().optional(),
+    status: z.string().optional(),
+    tax_number: z.string().optional().nullable(),
+    tax_no: z.string().optional().nullable(),
+    country: z.string().optional().nullable(),
+    currency: z.string().optional().nullable(),
+    payment_terms: z.number().optional().nullable(),
+    contact_person: z.string().optional().nullable(),
+    contact_phone: z.string().optional().nullable(),
+    contact_email: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    website: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    lead_time_days: z.number().optional().nullable(),
+    reliability_score: z.number().optional().nullable(),
+  }).strip(),
 };
 
 const suppliersRouter = buildCrudRoutes(suppliersConfig);
@@ -378,7 +421,7 @@ partners.get('/suppliers/:supplierId/sites', async (c) => {
   const { data, count, error } = await db
     .from('supplier_sites')
     .select(
-      'id, site_name, address, city, province, postal_code, country, is_default',
+      'id, site_code, site_name, address, city, province, postal_code, country, contact_name, contact_phone, is_active',
       { count: 'exact' }
     )
     .eq('supplier_id', supplierId)

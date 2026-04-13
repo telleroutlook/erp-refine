@@ -2,6 +2,7 @@
 // Master Data REST API — Products, Categories, Warehouses, Tax Codes, UoMs, etc.
 
 import { Hono } from 'hono';
+import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
@@ -64,7 +65,18 @@ masterData.post('/products', async (c) => {
 masterData.put('/products/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-  const body = await c.req.json();
+  const raw = await c.req.json();
+
+  // Only allow columns that exist on the products table
+  const ALLOWED: Record<string, boolean> = {
+    category_id: true, code: true, name: true, description: true, specification: true,
+    unit: true, uom: true, type: true, item_type: true, brand: true, sku_code: true,
+    is_lot_controlled: true, is_serial_controlled: true, is_active: true,
+    safety_stock_days: true, safety_stock: true, average_daily_consumption: true,
+    cost_price: true, standard_cost: true, sale_price: true, list_price: true,
+    min_stock: true, max_stock: true, default_tax_code: true, status: true,
+  };
+  const body = Object.fromEntries(Object.entries(raw).filter(([k]) => ALLOWED[k]));
 
   const { data, error } = await db
     .from('products')
@@ -141,6 +153,14 @@ const warehousesConfig: CrudConfig = {
   defaultSort: 'code',
   softDelete: true,
   orgScoped: true,
+  updateSchema: z.object({
+    name: z.string().optional(),
+    code: z.string().optional(),
+    location: z.string().optional(),
+    type: z.string().optional(),
+    status: z.string().optional(),
+    manager_id: z.string().uuid().optional().nullable(),
+  }).strip(),
 };
 masterData.route('', buildCrudRoutes(warehousesConfig));
 

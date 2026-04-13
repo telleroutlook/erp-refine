@@ -65,7 +65,7 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
         if (!supabaseUrl) {
           return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
         }
-        const key = await getVerifyKey(supabaseUrl, header.kid);
+        const key = await getVerifyKey(supabaseUrl, header.kid ?? '');
         result = await jwtVerify(token, key, { algorithms: ['ES256'] });
       } else {
         return c.json({ error: `Unsupported JWT algorithm: ${header.alg}` }, 401);

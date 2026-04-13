@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Refine, Authenticated } from '@refinedev/core';
 import { RefineThemes, ErrorComponent } from '@refinedev/antd';
 import { BrowserRouter, Route, Routes, Outlet, Navigate } from 'react-router-dom';
+import routerBindings, { UnsavedChangesNotifier } from '@refinedev/react-router-v6';
 import { ConfigProvider, App as AntApp } from 'antd';
 import type { Locale } from 'antd/es/locale';
 import enUS from 'antd/locale/en_US';
@@ -110,6 +111,7 @@ const App: React.FC = () => {
             dataProvider={dataProvider}
             authProvider={authProvider}
             i18nProvider={i18nProvider}
+            routerProvider={routerBindings}
             resources={[
               // Procurement
               { name: 'procurement' },
@@ -304,6 +306,7 @@ const App: React.FC = () => {
                 <Route path="*" element={<ErrorComponent />} />
               </Route>
             </Routes>
+            <UnsavedChangesNotifier />
           </Refine>
         </AntApp>
       </ConfigProvider>

@@ -11,6 +11,7 @@
     "deploy": "npm run build && wrangler deploy",
     "test": "vitest run",
     "test:sql": "vitest run tests/sql-validation.test.ts",
+    "test:api": "vitest run tests/api-integration.test.ts",
     "check:registry": "node scripts/check-registry.js",
     "schema:validate": "node scripts/validate-schema.js",
     "db:migrate": "supabase db push",
