@@ -56,6 +56,18 @@ export class Orchestrator {
       };
     }
 
+    // Meta queries (identity, capabilities) — respond directly, no tools needed
+    if (spec.domain === 'meta') {
+      return {
+        pipeline: 'meta',
+        intent: spec,
+        executionResult: {
+          success: true,
+          result: '我是 ERP AI 助手，基于大语言模型构建，帮助您处理采购、销售、库存、财务、质量、制造等企业业务。有什么可以帮您？',
+        },
+      };
+    }
+
     // Step 2: Route
     const routing = routeIntent(spec);
 

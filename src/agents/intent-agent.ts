@@ -11,7 +11,7 @@ import { stripJsonFences } from '../utils/json-helpers';
 
 const RequirementSpecSchema = z.object({
   intent: z.string().describe('Primary action the user wants to accomplish'),
-  domain: z.enum(['procurement', 'sales', 'inventory', 'finance', 'quality', 'manufacturing', 'master-data', 'reporting', 'system']),
+  domain: z.enum(['procurement', 'sales', 'inventory', 'finance', 'quality', 'manufacturing', 'master-data', 'reporting', 'system', 'meta']),
   action: z.string().describe('Specific action verb, e.g. create_purchase_order, list_invoices'),
   entity: z.string().describe('Primary business entity, e.g. purchase_order, sales_invoice'),
   parameters: z.record(z.unknown()).optional().describe('Extracted parameters from the user message'),
@@ -27,9 +27,13 @@ const SYSTEM_PROMPT = `You are an ERP Intent Agent. Parse user natural language 
 You understand enterprise business processes: procurement (P2P), sales (O2C), inventory, finance, quality, and manufacturing.
 IMPORTANT: Respond ONLY with a valid JSON object, no markdown, no explanation.
 
+SPECIAL CASE — Meta queries: If the user is asking about the AI's identity, capabilities, or any non-ERP topic
+(e.g. "你是谁", "who are you", "你能做什么", "what can you do", "介绍一下你自己"), output:
+{"domain":"meta","action":"meta_identity","intent":"<user intent>","entity":"assistant","confidence":1,"clarificationNeeded":false,"parameters":{}}
+
 Required JSON fields:
 - intent: string (what user wants)
-- domain: one of [procurement, sales, inventory, finance, quality, manufacturing, master-data, reporting, system]
+- domain: one of [procurement, sales, inventory, finance, quality, manufacturing, master-data, reporting, system, meta]
 - action: string (verb like list_sales_orders, analyze_sales, create_purchase_order)
 - entity: string (business entity like sales_order, purchase_order, invoice)
 - confidence: number 0-1

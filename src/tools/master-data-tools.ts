@@ -36,8 +36,8 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
       execute: async () => {
         const { data, error } = await db
           .from('currencies')
-          .select('code, name, symbol')
-          .order('code');
+          .select('currency_code, currency_name, symbol')
+          .order('currency_code');
         if (error) throw new Error(error.message);
         return data ?? [];
       },

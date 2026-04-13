@@ -59,7 +59,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
       execute: async () => {
         const { data, error } = await db
           .from('warehouses')
-          .select('id, name, code, address')
+          .select('id, name, code, location')
           .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .order('name');
