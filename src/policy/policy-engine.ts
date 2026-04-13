@@ -43,9 +43,9 @@ export function registerRule(rule: PolicyRule): void {
 export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
   const action = ctx.action.toLowerCase();
 
-  // 1. Check deny keywords — immediate deny
+  // 1. Check deny keywords — hard block regardless of registered rules
   for (const kw of DENY_KEYWORDS) {
-    if (action.includes(kw) && !REGISTERED_RULES.some((r) => matchesRule(r, ctx))) {
+    if (action.includes(kw)) {
       return {
         decision: 'deny',
         level: DecisionLevel.D5,

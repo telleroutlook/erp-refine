@@ -71,7 +71,7 @@ sales.post('/sales-orders', async (c) => {
       itemsTable: 'sales_order_items',
       headerFk: 'sales_order_id',
       headerReturnSelect: 'id, order_number, status',
-      itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      itemsReturnSelect: 'id, product_id, qty, unit_price',
       autoLineNo: true,
     },
     {
@@ -138,10 +138,10 @@ const soItemsConfig: CrudConfig = {
   table: 'sales_order_items',
   path: '/sales-order-items',
   resourceName: 'SalesOrderItem',
-  listSelect: 'id, line_no, quantity, shipped_quantity, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
+  listSelect: 'id, line_number, qty, shipped_qty, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, quantity, unit_price',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, line_number, qty, unit_price',
+  defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
 };
@@ -248,7 +248,7 @@ sales.post('/sales-shipments', async (c) => {
       itemsTable: 'sales_shipment_items',
       headerFk: 'sales_shipment_id',
       headerReturnSelect: 'id, shipment_number, status',
-      itemsReturnSelect: 'id, product_id, quantity',
+      itemsReturnSelect: 'id, product_id, qty',
     },
     {
       header: {
@@ -330,14 +330,14 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
     throw ApiError.invalidState('SalesShipment', shipment.status, 'confirm', requestId);
   }
 
-  // 3. Process each item: deduct stock + record transaction + update SO item shipped_quantity
+  // 3. Process each item: deduct stock + record transaction + update SO item shipped_qty
   for (const item of shipment.items) {
     // 3a. Adjust stock (decrease on-hand)
     await adjustStock(db, {
       organizationId: user.organizationId,
       warehouseId: shipment.warehouse_id,
       productId: item.product_id,
-      qtyDelta: -item.quantity,
+      qtyDelta: -item.qty,
     }, requestId);
 
     // 3b. Record stock transaction
@@ -346,33 +346,33 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       warehouseId: shipment.warehouse_id,
       productId: item.product_id,
       transactionType: 'out',
-      qty: item.quantity,
+      qty: item.qty,
       referenceType: 'sales',
       referenceId: shipment.id,
       createdBy: user.userId,
     }, requestId);
 
-    // 3c. Update SO item shipped_quantity
+    // 3c. Update SO item shipped_qty
     if (item.sales_order_item_id) {
       const { error: rpcErr } = await db.rpc('increment_field', {
         p_table: 'sales_order_items',
         p_id: item.sales_order_item_id,
-        p_field: 'shipped_quantity',
-        p_delta: item.quantity,
+        p_field: 'shipped_qty',
+        p_delta: item.qty,
       }).single();
 
       // Fallback: manual update if RPC not available
       if (rpcErr) {
         const { data: soItem } = await db
           .from('sales_order_items')
-          .select('id, shipped_quantity')
+          .select('id, shipped_qty')
           .eq('id', item.sales_order_item_id)
           .single();
 
         if (soItem) {
           await db
             .from('sales_order_items')
-            .update({ shipped_quantity: (soItem.shipped_quantity ?? 0) + item.quantity })
+            .update({ shipped_qty: (soItem.shipped_qty ?? 0) + item.qty })
             .eq('id', soItem.id);
         }
       }
@@ -393,15 +393,15 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
   if (shipment.sales_order_id) {
     const { data: soItems } = await db
       .from('sales_order_items')
-      .select('id, quantity, shipped_quantity')
+      .select('id, qty, shipped_qty')
       .eq('sales_order_id', shipment.sales_order_id);
 
     if (soItems && soItems.length > 0) {
       const allShipped = soItems.every(
-        (si: { quantity: number; shipped_quantity: number }) => (si.shipped_quantity ?? 0) >= si.quantity
+        (si: { qty: number; shipped_qty: number }) => (si.shipped_qty ?? 0) >= si.qty
       );
       const someShipped = soItems.some(
-        (si: { quantity: number; shipped_quantity: number }) => (si.shipped_quantity ?? 0) > 0
+        (si: { qty: number; shipped_qty: number }) => (si.shipped_qty ?? 0) > 0
       );
 
       let soStatus: string | undefined;
@@ -434,9 +434,9 @@ sales.route('', buildCrudRoutes({
   table: 'sales_shipment_items',
   path: '/sales-shipment-items',
   resourceName: 'SalesShipmentItem',
-  listSelect: 'id, quantity, unit_price, amount, product:products(id,name,code)',
+  listSelect: 'id, qty, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, quantity',
+  createReturnSelect: 'id, qty',
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,

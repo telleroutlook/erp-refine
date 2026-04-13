@@ -69,23 +69,23 @@ async function adjustStockFallback(
   // Check if record exists
   const { data: existing } = await db
     .from('stock_records')
-    .select('id, quantity, reserved_quantity')
+    .select('id, qty_on_hand, qty_reserved')
     .eq('organization_id', adj.organizationId)
     .eq('warehouse_id', adj.warehouseId)
     .eq('product_id', adj.productId)
     .single();
 
   if (existing) {
-    const newQty = existing.quantity + adj.qtyDelta;
-    const newReserved = existing.reserved_quantity + (adj.reservedDelta ?? 0);
+    const newQty = existing.qty_on_hand + adj.qtyDelta;
+    const newReserved = existing.qty_reserved + (adj.reservedDelta ?? 0);
     if (newQty < 0) {
-      throw ApiError.insufficientStock(adj.productId, adj.warehouseId, Math.abs(adj.qtyDelta), existing.quantity, requestId);
+      throw ApiError.insufficientStock(adj.productId, adj.warehouseId, Math.abs(adj.qtyDelta), existing.qty_on_hand, requestId);
     }
     const { error } = await db
       .from('stock_records')
       .update({
-        quantity: newQty,
-        reserved_quantity: newReserved,
+        qty_on_hand: newQty,
+        qty_reserved: newReserved,
       })
       .eq('id', existing.id);
     if (error) throw ApiError.database(error.message, requestId);
@@ -97,8 +97,8 @@ async function adjustStockFallback(
       organization_id: adj.organizationId,
       warehouse_id: adj.warehouseId,
       product_id: adj.productId,
-      quantity: adj.qtyDelta,
-      reserved_quantity: adj.reservedDelta ?? 0,
+      qty_on_hand: adj.qtyDelta,
+      qty_reserved: adj.reservedDelta ?? 0,
     });
     if (error) throw ApiError.database(error.message, requestId);
   }
@@ -115,7 +115,7 @@ export async function createStockTransaction(
     warehouse_id: tx.warehouseId,
     product_id: tx.productId,
     transaction_type: tx.transactionType,
-    quantity: tx.qty,
+    qty: tx.qty,
     reference_type: tx.referenceType,
     reference_id: tx.referenceId,
     notes: tx.notes,

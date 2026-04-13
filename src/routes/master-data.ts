@@ -69,12 +69,14 @@ masterData.put('/products/:id', async (c) => {
 
   // Only allow columns that exist on the products table
   const ALLOWED: Record<string, boolean> = {
-    category_id: true, code: true, name: true, description: true, specification: true,
-    unit: true, uom: true, type: true, item_type: true, brand: true, sku_code: true,
-    is_lot_controlled: true, is_serial_controlled: true, is_active: true,
-    safety_stock_days: true, safety_stock: true, average_daily_consumption: true,
-    cost_price: true, standard_cost: true, sale_price: true, list_price: true,
-    min_stock: true, max_stock: true, default_tax_code: true, status: true,
+    category_id: true, code: true, name: true, description: true,
+    unit: true, type: true,
+    is_lot_controlled: true, is_serial_controlled: true,
+    safety_stock_days: true, average_daily_consumption: true,
+    cost_price: true, list_price: true,
+    min_stock: true, max_stock: true, lead_time_days: true,
+    weight: true, volume: true, status: true,
+    default_tax_code_id: true,
   };
   const body = Object.fromEntries(Object.entries(raw).filter(([k]) => ALLOWED[k]));
 
@@ -113,7 +115,7 @@ const productCategoriesConfig: CrudConfig = {
   table: 'product_categories',
   path: '/product-categories',
   resourceName: 'ProductCategory',
-  listSelect: 'id, code, name, parent_id, level, is_active',
+  listSelect: 'id, code, name, parent_id, level, description',
   detailSelect: '*, parent:product_categories(id,name,code)',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',

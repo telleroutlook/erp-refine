@@ -366,7 +366,11 @@ manufacturing.get('/work-order-productions', async (c) => {
 
   const { data, count, error } = await db
     .from('work_order_productions')
-    .select('id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_at', { count: 'exact' })
+    .select(
+      'id, work_order_id, production_date, quantity, qualified_qty, defective_qty, notes, created_at, work_order:work_orders!inner(id, work_order_number, organization_id)',
+      { count: 'exact' }
+    )
+    .eq('work_order.organization_id', user.organizationId)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -385,7 +389,7 @@ manufacturing.post('/work-order-productions', async (c) => {
       ...body,
       created_by: user.userId,
     })
-    .select('id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity')
+    .select('id, work_order_id, production_date, quantity, qualified_qty, defective_qty')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -394,11 +398,11 @@ manufacturing.post('/work-order-productions', async (c) => {
   if (data.work_order_id) {
     const { data: sumData, error: sumError } = await db
       .from('work_order_productions')
-      .select('qualified_quantity')
+      .select('qualified_qty')
       .eq('work_order_id', data.work_order_id);
 
     if (!sumError && sumData) {
-      const totalQualified = sumData.reduce((acc: number, r: any) => acc + (r.qualified_quantity ?? 0), 0);
+      const totalQualified = sumData.reduce((acc: number, r: any) => acc + (r.qualified_qty ?? 0), 0);
       await db
         .from('work_orders')
         .update({ completed_quantity: totalQualified })

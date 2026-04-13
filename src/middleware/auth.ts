@@ -23,9 +23,12 @@ declare module 'hono' {
 // Cache imported key (not the raw JWKS — the actual CryptoKey)
 let cachedKey: KeyLike | null = null;
 let cachedKeyKid: string | null = null;
+let cachedKeyAt = 0;
+const JWKS_TTL_MS = 3_600_000; // 1 hour
 
 async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> {
-  if (cachedKey && cachedKeyKid === kid) {
+  const now = Date.now();
+  if (cachedKey && cachedKeyKid === kid && (now - cachedKeyAt) < JWKS_TTL_MS) {
     return cachedKey;
   }
 
@@ -39,6 +42,7 @@ async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> 
 
   cachedKey = (await importJWK(jwk as any, 'ES256')) as KeyLike;
   cachedKeyKid = kid;
+  cachedKeyAt = now;
   return cachedKey;
 }
 

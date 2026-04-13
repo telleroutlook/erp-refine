@@ -50,9 +50,11 @@ export class CircuitBreaker {
       if (this.successes >= this.successThreshold) {
         this.state = 'closed';
         this.failures = 0;
+        this.successes = 0;
       }
     } else {
       this.failures = 0;
+      this.successes = 0;
     }
   }
 

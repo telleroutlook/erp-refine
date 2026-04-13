@@ -70,7 +70,7 @@ procurement.post('/purchase-orders', async (c) => {
       itemsTable: 'purchase_order_items',
       headerFk: 'purchase_order_id',
       headerReturnSelect: 'id, order_number, status',
-      itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      itemsReturnSelect: 'id, product_id, qty, unit_price',
       autoLineNo: true,
     },
     {
@@ -137,10 +137,10 @@ const poItemsConfig: CrudConfig = {
   table: 'purchase_order_items',
   path: '/purchase-order-items',
   resourceName: 'PurchaseOrderItem',
-  listSelect: 'id, line_no, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
+  listSelect: 'id, line_number, qty, received_qty, invoiced_qty, unit_price, tax_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, quantity, unit_price',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, line_number, qty, unit_price',
+  defaultSort: 'line_number',
   softDelete: false,
   orgScoped: false,
 };
@@ -405,7 +405,7 @@ procurement.delete('/rfq-headers/:id', async (c) => {
 // Supplier Quotations — atomic create (header + lines)
 // ────────────────────────────────────────────────────────────────────────────
 
-// GET list — supplier_quotations has no organization_id, filter via rfq_headers join
+// GET list
 procurement.get('/supplier-quotations', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
@@ -416,6 +416,7 @@ procurement.get('/supplier-quotations', async (c) => {
       'id, quotation_number, validity_date, currency, status, supplier:suppliers(id,name), rfq:rfq_headers(id,rfq_number)',
       { count: 'exact' }
     )
+    .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
@@ -433,6 +434,7 @@ procurement.get('/supplier-quotations/:id', async (c) => {
     .from('supplier_quotations')
     .select('*, lines:supplier_quotation_lines(*, product:products(id,name,code)), supplier:suppliers(id,name,code), rfq:rfq_headers(id,rfq_number)')
     .eq('id', id)
+    .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .single();
 
@@ -484,6 +486,7 @@ procurement.put('/supplier-quotations/:id', async (c) => {
     .from('supplier_quotations')
     .update(body)
     .eq('id', id)
+    .eq('organization_id', user.organizationId)
     .select('id')
     .single();
 
@@ -500,7 +503,8 @@ procurement.delete('/supplier-quotations/:id', async (c) => {
   const { error } = await db
     .from('supplier_quotations')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
 
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
@@ -514,10 +518,10 @@ const prLinesConfig: CrudConfig = {
   table: 'purchase_requisition_lines',
   path: '/purchase-requisition-lines',
   resourceName: 'PurchaseRequisitionLine',
-  listSelect: 'id, line_no, quantity, unit_price, amount, notes, product:products(id,name,code)',
+  listSelect: 'id, line_number, qty, estimated_unit_price, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, quantity',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, line_number, qty',
+  defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
 };

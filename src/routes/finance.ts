@@ -248,7 +248,7 @@ finance.get('/budgets', async (c) => {
   const { data, count, error } = await db
     .from('budgets')
     .select(
-      'id, budget_name, budget_year, budget_type, total_amount, currency, status',
+      'id, budget_code, name, fiscal_year, total_amount, currency, status',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -289,7 +289,7 @@ finance.post('/budgets', async (c) => {
       headerTable: 'budgets',
       itemsTable: 'budget_lines',
       headerFk: 'budget_id',
-      headerReturnSelect: 'id, budget_name, status',
+      headerReturnSelect: 'id, name, status',
       itemsReturnSelect: 'id, account_code, planned_amount',
     },
     {
@@ -400,7 +400,7 @@ const paymentRequestsCrud = buildCrudRoutes({
   table: 'payment_requests',
   path: '/payment-requests',
   resourceName: 'PaymentRequest',
-  listSelect: 'id, request_number, amount, currency, due_date, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
+  listSelect: 'id, request_number, total_amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
   detailSelect: '*, supplier:suppliers(id,name,code), supplier_invoice:supplier_invoices(id,invoice_number)',
   createReturnSelect: 'id, request_number, status',
   defaultSort: 'created_at',
@@ -440,7 +440,7 @@ const voucherEntriesConfig: CrudConfig = {
   table: 'voucher_entries',
   path: '/voucher-entries',
   resourceName: 'VoucherEntry',
-  listSelect: 'id, entry_type, amount, summary, sequence, account:account_subjects(id,code,name)',
+  listSelect: 'id, entry_type, amount, description, sequence, account:account_subjects(id,code,name)',
   detailSelect: '*, account:account_subjects(id,code,name)',
   createReturnSelect: 'id, entry_type, amount',
   defaultSort: 'sequence',

@@ -32,7 +32,9 @@ export const authProvider: AuthProvider = {
       await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
+      }).catch((err) => {
+        console.warn('Logout request failed:', err);
+      });
     }
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -54,12 +56,18 @@ export const authProvider: AuthProvider = {
   getIdentity: async () => {
     const user = localStorage.getItem('user');
     if (!user) return null;
-    const parsed = JSON.parse(user);
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(user);
+    } catch {
+      localStorage.removeItem('user');
+      return null;
+    }
     return {
-      id: parsed.id,
-      name: parsed.user_metadata?.full_name ?? parsed.email,
-      email: parsed.email,
-      avatar: parsed.user_metadata?.avatar_url,
+      id: parsed['id'],
+      name: (parsed['user_metadata'] as Record<string, unknown>)?.['full_name'] ?? parsed['email'],
+      email: parsed['email'],
+      avatar: (parsed['user_metadata'] as Record<string, unknown>)?.['avatar_url'],
     };
   },
 

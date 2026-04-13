@@ -56,7 +56,7 @@ system.get('/notifications/:id', async (c) => {
 
   const { data, error } = await db
     .from('notifications')
-    .select('*')
+    .select('id, title, body, notification_type, entity_type, entity_id, is_read, read_at, created_at')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .single();
