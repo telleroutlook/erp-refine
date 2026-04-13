@@ -104,7 +104,11 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
     if (softDelete) query = query.is('deleted_at', null);
 
     const { data, error } = await query.single();
-    if (error) throw ApiError.notFound(resourceName, id, requestId);
+    if (error) {
+      // PGRST116 = "The result contains 0 rows" (not found); anything else is a real DB error
+      if (error.code === 'PGRST116') throw ApiError.notFound(resourceName, id, requestId);
+      throw ApiError.database(error.message, requestId, hintForPgError(error));
+    }
     return c.json({ data });
   });
 
@@ -198,6 +202,181 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       return c.json({ data: { success: true } });
     });
   }
+
+  return router;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Nested CRUD factory
+// Generates 5 endpoints under /:parentParam/:parentId/<childPath> with an
+// org-scoped parent ownership check on every request.
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface NestedCrudConfig {
+  /** Parent table (e.g. 'customers') */
+  parentTable: string;
+  /** Parent route param name (e.g. 'customerId') — used in path segment */
+  parentParam: string;
+  /** FK column in child table pointing to parent (e.g. 'customer_id') */
+  parentFk: string;
+  /** Child table (e.g. 'customer_addresses') */
+  childTable: string;
+  /** URL sub-path for the collection (e.g. 'addresses') */
+  childPath: string;
+  /** Human-readable child resource name for errors (e.g. 'CustomerAddress') */
+  childResourceName: string;
+  /** Columns for list query */
+  childListSelect: string;
+  /** Columns for detail query (usually '*') */
+  childDetailSelect?: string;
+  /** Columns returned after create/update */
+  childReturnSelect: string;
+  /** Default sort field — default 'id' */
+  defaultSort?: string;
+  /** Whether child uses soft-delete — default true */
+  softDelete?: boolean;
+  /** Extra fields to inject on create (beyond parentFk + org if needed) */
+  createExtras?: (user: { userId: string; organizationId: string }) => Record<string, unknown>;
+}
+
+export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings: Env }> {
+  const router = new Hono<{ Bindings: Env }>();
+  const {
+    parentTable,
+    parentParam,
+    parentFk,
+    childTable,
+    childPath,
+    childResourceName,
+    childListSelect,
+    childDetailSelect = '*',
+    childReturnSelect,
+    defaultSort = 'id',
+    softDelete = true,
+    createExtras,
+  } = config;
+
+  const base = `/:${parentParam}/${childPath}`;
+
+  /** Verify the parent belongs to the org, throw 404 otherwise */
+  async function assertParentOwned(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    db: any,
+    parentId: string,
+    orgId: string,
+    requestId: string
+  ): Promise<void> {
+    const { data, error } = await db
+      .from(parentTable)
+      .select('id')
+      .eq('id', parentId)
+      .eq('organization_id', orgId)
+      .is('deleted_at', null)
+      .single();
+    if (error || !data) {
+      throw ApiError.notFound(parentTable.charAt(0).toUpperCase() + parentTable.slice(1, -1), parentId, requestId);
+    }
+  }
+
+  // GET list
+  router.get(base, async (c) => {
+    const { db, user, requestId } = getDbAndUser(c);
+    const parentId = c.req.param(parentParam)!;
+    const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, defaultSort);
+    await assertParentOwned(db, parentId, user.organizationId, requestId);
+
+    let query = db
+      .from(childTable)
+      .select(childListSelect, { count: 'exact' })
+      .eq(parentFk, parentId);
+    if (softDelete) query = query.is('deleted_at', null);
+    query = query
+      .order(sortField, { ascending: sortOrder === 'asc' })
+      .range((page - 1) * pageSize, page * pageSize - 1);
+
+    const { data, count, error } = await query;
+    if (error) throw ApiError.database(error.message, requestId);
+    return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
+  });
+
+  // GET detail
+  router.get(`${base}/:id`, async (c) => {
+    const { db, user, requestId } = getDbAndUser(c);
+    const parentId = c.req.param(parentParam)!;
+    const id = c.req.param('id');
+    await assertParentOwned(db, parentId, user.organizationId, requestId);
+
+    let query = db.from(childTable).select(childDetailSelect).eq('id', id).eq(parentFk, parentId);
+    if (softDelete) query = query.is('deleted_at', null);
+
+    const { data, error } = await query.single();
+    if (error || !data) throw ApiError.notFound(childResourceName, id, requestId);
+    return c.json({ data });
+  });
+
+  // POST create
+  router.post(base, async (c) => {
+    const { db, user, requestId } = getDbAndUser(c);
+    const parentId = c.req.param(parentParam)!;
+    await assertParentOwned(db, parentId, user.organizationId, requestId);
+
+    const body = await c.req.json();
+    const insertData: Record<string, unknown> = { ...body, [parentFk]: parentId };
+    if (createExtras) Object.assign(insertData, createExtras(user));
+
+    const { data, error } = await db
+      .from(childTable)
+      .insert(insertData)
+      .select(childReturnSelect)
+      .single();
+    if (error) throw ApiError.database(error.message, requestId);
+    return c.json({ data }, 201);
+  });
+
+  // PUT update
+  router.put(`${base}/:id`, async (c) => {
+    const { db, user, requestId } = getDbAndUser(c);
+    const parentId = c.req.param(parentParam)!;
+    const id = c.req.param('id');
+    await assertParentOwned(db, parentId, user.organizationId, requestId);
+
+    const body = await c.req.json();
+    const { data, error } = await db
+      .from(childTable)
+      .update(body)
+      .eq('id', id)
+      .eq(parentFk, parentId)
+      .select('id')
+      .single();
+    if (error) throw ApiError.database(error.message, requestId);
+    if (!data) throw ApiError.notFound(childResourceName, id, requestId);
+    return c.json({ data });
+  });
+
+  // DELETE (soft-delete or hard-delete)
+  router.delete(`${base}/:id`, async (c) => {
+    const { db, user, requestId } = getDbAndUser(c);
+    const parentId = c.req.param(parentParam)!;
+    const id = c.req.param('id');
+    await assertParentOwned(db, parentId, user.organizationId, requestId);
+
+    if (softDelete) {
+      const { error } = await db
+        .from(childTable)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq(parentFk, parentId);
+      if (error) throw ApiError.database(error.message, requestId);
+    } else {
+      const { error } = await db
+        .from(childTable)
+        .delete()
+        .eq('id', id)
+        .eq(parentFk, parentId);
+      if (error) throw ApiError.database(error.message, requestId);
+    }
+    return c.json({ data: { success: true } });
+  });
 
   return router;
 }
