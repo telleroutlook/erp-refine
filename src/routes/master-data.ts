@@ -38,7 +38,7 @@ masterData.get('/products/:id', async (c) => {
 
   const { data, error } = await db
     .from('products')
-    .select('*, category:product_categories(id,name)')
+    .select('id, name, code, description, type, unit, cost_price, list_price, category_id, default_tax_code_id, status, is_lot_controlled, is_serial_controlled, safety_stock_days, average_daily_consumption, min_stock, max_stock, lead_time_days, weight, volume, deleted_at, created_at, updated_at, category:product_categories(id,name)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -116,7 +116,7 @@ const productCategoriesConfig: CrudConfig = {
   path: '/product-categories',
   resourceName: 'ProductCategory',
   listSelect: 'id, code, name, parent_id, level, description',
-  detailSelect: '*, parent:product_categories(id,name,code)',
+  detailSelect: 'id, code, name, parent_id, level, description, organization_id, created_at, updated_at, parent:product_categories(id,name,code)',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
   softDelete: false,
@@ -132,8 +132,8 @@ const warehousesConfig: CrudConfig = {
   table: 'warehouses',
   path: '/warehouses',
   resourceName: 'Warehouse',
-  listSelect: 'id, name, code, location, type, status',
-  detailSelect: '*, manager:employees(id,name), locations:storage_locations(id,code,zone,is_active)',
+  listSelect: 'id, name, code, location, warehouse_type, status',
+  detailSelect: 'id, code, name, location, warehouse_type, status, capacity_volume, capacity_weight, manager_id, organization_id, deleted_at, created_at, updated_at, manager:employees(id,name), locations:storage_locations(id,location_code,zone,is_active)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'code',
   softDelete: true,
@@ -142,7 +142,7 @@ const warehousesConfig: CrudConfig = {
     name: z.string().optional(),
     code: z.string().optional(),
     location: z.string().optional(),
-    type: z.string().optional(),
+    warehouse_type: z.string().optional(),
     status: z.string().optional(),
     manager_id: z.string().uuid().optional().nullable(),
   }).strip(),
@@ -157,10 +157,10 @@ const storageLocationsConfig: CrudConfig = {
   table: 'storage_locations',
   path: '/storage-locations',
   resourceName: 'StorageLocation',
-  listSelect: 'id, code, zone, is_active, warehouse:warehouses(id,name)',
-  detailSelect: '*, warehouse:warehouses(id,name,code)',
-  createReturnSelect: 'id, code, zone',
-  defaultSort: 'code',
+  listSelect: 'id, location_code, zone, is_active, warehouse:warehouses(id,name)',
+  detailSelect: 'id, warehouse_id, organization_id, location_code, zone, bin_type, capacity, is_active, deleted_at, created_at, updated_at, warehouse:warehouses(id,name,code)',
+  createReturnSelect: 'id, location_code, zone',
+  defaultSort: 'location_code',
   softDelete: false,
   orgScoped: true,
 };
@@ -175,9 +175,8 @@ const currenciesConfig: CrudConfig = {
   path: '/currencies',
   resourceName: 'Currency',
   listSelect: 'currency_code, currency_name, symbol, decimal_places, is_active',
-  detailSelect: '*',
+  detailSelect: 'currency_code, currency_name, symbol, decimal_places, is_active',
   createReturnSelect: 'currency_code, currency_name',
-  defaultSort: 'currency_code',
   softDelete: false,
   orgScoped: false,
   disableCreate: true,
@@ -194,8 +193,8 @@ const uomsConfig: CrudConfig = {
   table: 'uoms',
   path: '/uoms',
   resourceName: 'UoM',
-  listSelect: 'id, uom_code, uom_name, uom_type',
-  detailSelect: '*',
+  listSelect: 'id, uom_code, uom_name, category',
+  detailSelect: 'id, uom_code, uom_name, category, base_uom_id, conversion_factor, is_active',
   createReturnSelect: 'id, uom_code, uom_name',
   defaultSort: 'uom_code',
   softDelete: false,

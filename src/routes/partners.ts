@@ -98,11 +98,9 @@ const suppliersConfig: CrudConfig = {
   updateSchema: z.object({
     name: z.string().optional(),
     code: z.string().optional(),
-    short_name: z.string().optional().nullable(),
     supplier_type: z.string().optional(),
     status: z.string().optional(),
     tax_number: z.string().optional().nullable(),
-    tax_no: z.string().optional().nullable(),
     country: z.string().optional().nullable(),
     currency: z.string().optional().nullable(),
     payment_terms: z.number().optional().nullable(),

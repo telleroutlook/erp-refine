@@ -76,15 +76,31 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           unit_price: z.number().positive(),
         })),
         notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe(
+          'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
+        ),
       }),
-      execute: async ({ customerId, orderDate, currency, items, notes }) => {
+      execute: async ({ customerId, orderDate, currency, items, notes, confirmed }) => {
+        const totalAmount = items.reduce((sum, i) => sum + i.qty * i.unit_price, 0);
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run preview — set confirmed=true to execute',
+            customerId,
+            orderDate,
+            currency,
+            itemCount: items.length,
+            totalAmount,
+          };
+        }
+
         const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
           p_organization_id: organizationId,
           p_sequence_name: 'sales_order',
         });
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
         const orderNumber = seqData;
-        const totalAmount = items.reduce((sum, i) => sum + i.qty * i.unit_price, 0);
 
         const { data: so, error } = await db
           .from('sales_orders')

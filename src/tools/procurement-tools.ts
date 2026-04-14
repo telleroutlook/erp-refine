@@ -62,8 +62,25 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           notes: z.string().optional(),
         })),
         notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe(
+          'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
+        ),
       }),
-      execute: async ({ supplierId, orderDate, currency, items, notes }) => {
+      execute: async ({ supplierId, orderDate, currency, items, notes, confirmed }) => {
+        const totalAmount = items.reduce((sum, i) => sum + i.qty * i.unit_price, 0);
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run preview — set confirmed=true to execute',
+            supplierId,
+            orderDate,
+            currency,
+            itemCount: items.length,
+            totalAmount,
+          };
+        }
+
         // Generate order number
         const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
           p_organization_id: organizationId,
@@ -71,8 +88,6 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         });
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
         const orderNumber = seqData;
-
-        const totalAmount = items.reduce((sum, i) => sum + i.qty * i.unit_price, 0);
 
         const { data: po, error: poErr } = await db
           .from('purchase_orders')

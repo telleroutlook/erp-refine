@@ -17,9 +17,9 @@ export interface PurchaseOrderItem {
   id: string;
   line_number: number;
   product?: { id: string; name: string; code: string };
-  qty_ordered: number;
+  qty: number;
   unit_price: number;
-  line_total: number;
+  amount: number;
 }
 
 export interface SalesOrder {

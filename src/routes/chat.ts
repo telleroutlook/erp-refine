@@ -54,7 +54,7 @@ chat.post('/', async (c) => {
   return c.json({ data: response, sessionId });
 });
 
-/** POST /api/chat/stream — SSE streaming for conversational AI */
+/** POST /api/chat/stream — SSE streaming for conversational AI with progress events */
 chat.post('/stream', async (c) => {
   const user = c.get('user');
   const body = await c.req.json<{ message: string; sessionId?: string }>();
@@ -65,15 +65,60 @@ chat.post('/stream', async (c) => {
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const tools = buildToolSet({ db, organizationId: user.organizationId });
 
-  const result = streamText({
+  const { fullStream } = streamText({
     model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
-    system: `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise.`,
+    system: `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise. Respond in the same language as the user's message.`,
     messages: [{ role: 'user', content: body.message }],
     tools,
     stopWhen: stepCountIs(5),
   });
 
-  return result.toTextStreamResponse();
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const enqueue = (event: string, data: unknown) => {
+        const line = event === 'message'
+          ? `data: ${JSON.stringify(data)}\n\n`
+          : `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        controller.enqueue(encoder.encode(line));
+      };
+
+      try {
+        for await (const chunk of fullStream) {
+          if (chunk.type === 'text-delta') {
+            // AI SDK v6: text field contains the delta
+            enqueue('message', { type: 'text', delta: (chunk as { type: 'text-delta'; text: string }).text });
+          } else if (chunk.type === 'tool-call') {
+            const tc = chunk as { type: 'tool-call'; toolName: string; toolCallId: string };
+            enqueue('tool', { type: 'tool_start', name: tc.toolName, callId: tc.toolCallId });
+          } else if (chunk.type === 'tool-result') {
+            const tr = chunk as { type: 'tool-result'; toolName: string; toolCallId: string };
+            enqueue('tool', { type: 'tool_end', name: tr.toolName, callId: tr.toolCallId });
+          } else if (chunk.type === 'start-step') {
+            enqueue('step', { type: 'step_start' });
+          } else if (chunk.type === 'finish-step') {
+            enqueue('step', { type: 'step_finish' });
+          } else if (chunk.type === 'finish') {
+            const f = chunk as { type: 'finish'; finishReason: string };
+            enqueue('done', { type: 'done', finishReason: f.finishReason });
+          }
+        }
+      } catch (err) {
+        enqueue('error', { type: 'error', message: err instanceof Error ? err.message : String(err) });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
+  });
 });
 
 export default chat;

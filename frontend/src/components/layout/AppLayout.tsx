@@ -1,15 +1,158 @@
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ThemedLayoutV2 } from '@refinedev/antd';
+import { Button, Tooltip } from 'antd';
+import { RobotOutlined, RightOutlined } from '@ant-design/icons';
 import { Sider } from './Sider';
 import { Header } from './Header';
+import { AiSidebar } from '../ai/AiSidebar';
+
+const SIDEBAR_MIN = 260;
+const SIDEBAR_MAX = 640;
+const SIDEBAR_DEFAULT = 360;
+const HANDLE_W = 5;
+const STORAGE_KEY = 'erp_ai_sidebar_width';
+const COLLAPSED_KEY = 'erp_ai_sidebar_collapsed';
 
 export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem(COLLAPSED_KEY) === 'true';
+  });
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? parseInt(stored, 10) : SIDEBAR_DEFAULT;
+  });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+  const currentWidth = useRef(sidebarWidth);
+
+  // Keep ref in sync so the mouseup handler gets the latest value
+  useEffect(() => {
+    currentWidth.current = sidebarWidth;
+  }, [sidebarWidth]);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = currentWidth.current;
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onMove = (e: MouseEvent) => {
+      // Moving left increases sidebar width (sidebar is on the right)
+      const delta = dragStartX.current - e.clientX;
+      const next = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, dragStartWidth.current + delta));
+      setSidebarWidth(next);
+    };
+
+    const onUp = () => {
+      setIsDragging(false);
+      localStorage.setItem(STORAGE_KEY, String(currentWidth.current));
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [isDragging]);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(COLLAPSED_KEY, String(next));
+      return next;
+    });
+  }, []);
+
+  const transition = isDragging ? 'none' : 'all 0.25s ease';
+
   return (
-    <ThemedLayoutV2
-      Header={Header}
-      Sider={Sider}
-    >
-      {children}
-    </ThemedLayoutV2>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      {/* Main content area */}
+      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', transition }}>
+        <ThemedLayoutV2 Header={Header} Sider={Sider}>
+          {children}
+        </ThemedLayoutV2>
+      </div>
+
+      {/* Resize handle */}
+      {!collapsed && (
+        <div
+          onMouseDown={onMouseDown}
+          style={{
+            width: HANDLE_W,
+            cursor: 'col-resize',
+            flexShrink: 0,
+            background: isDragging ? '#5D36FF22' : 'transparent',
+            position: 'relative',
+            zIndex: 10,
+            transition: 'background 0.15s',
+            userSelect: 'none',
+          }}
+        >
+          <div style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 2,
+            height: isDragging ? 80 : 40,
+            background: isDragging ? '#5D36FF' : '#d9d9d9',
+            borderRadius: 2,
+            transition: 'height 0.15s, background 0.15s',
+          }} />
+        </div>
+      )}
+
+      {/* Toggle button */}
+      <div style={{
+        position: 'absolute',
+        right: collapsed ? 4 : sidebarWidth + HANDLE_W + 4,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 20,
+        transition,
+      }}>
+        <Tooltip title={collapsed ? '打开 AI 助手' : '关闭 AI 助手'} placement="left">
+          <Button
+            type="primary"
+            shape="circle"
+            size="small"
+            icon={collapsed ? <RobotOutlined /> : <RightOutlined />}
+            onClick={toggleCollapsed}
+            style={{
+              background: '#5D36FF',
+              borderColor: '#5D36FF',
+              boxShadow: '0 2px 8px rgba(93,54,255,0.4)',
+              width: 28,
+              height: 28,
+              minWidth: 28,
+              fontSize: 12,
+            }}
+          />
+        </Tooltip>
+      </div>
+
+      {/* AI Sidebar */}
+      {!collapsed && (
+        <div style={{
+          width: sidebarWidth,
+          flexShrink: 0,
+          borderLeft: '1px solid #f0f0f0',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          transition,
+        }}>
+          <AiSidebar />
+        </div>
+      )}
+    </div>
   );
 };
