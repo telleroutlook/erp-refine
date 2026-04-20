@@ -149,12 +149,3 @@ function matchesRule(rule: PolicyRule, ctx: PolicyContext): boolean {
   }
   return rule.actionPattern.test(ctx.action);
 }
-
-function isWriteAction(action: string): boolean {
-  const writeVerbs = [
-    'create', 'update', 'delete', 'insert', 'post', 'submit',
-    'approve', 'reject', 'cancel', 'close', 'archive', 'void',
-    'reverse', 'pay', 'receive', 'ship', 'confirm',
-  ];
-  return writeVerbs.some((v) => action.includes(v));
-}

@@ -23,6 +23,8 @@ export interface SchemaRecord {
   trace_id: string | null;
 }
 
+const SCHEMA_COLUMNS = 'id, organization_id, name, slug, description, json_schema, ui_schema, status, version, risk_score, created_at, updated_at, expires_at, trace_id';
+
 const DRAFT_TTL_HOURS = 72;
 
 export class SchemaRegistry {
@@ -64,7 +66,7 @@ export class SchemaRegistry {
         expires_at: expiresAt,
         trace_id: traceId ?? null,
       })
-      .select('*')
+      .select(SCHEMA_COLUMNS)
       .single();
 
     if (error) throw new Error(error.message);
@@ -83,7 +85,7 @@ export class SchemaRegistry {
       .eq('id', schemaId)
       .eq('organization_id', this.organizationId)
       .eq('status', 'draft')
-      .select('*')
+      .select(SCHEMA_COLUMNS)
       .single();
 
     if (error) throw new Error(error.message);
@@ -109,7 +111,7 @@ export class SchemaRegistry {
   async get(schemaId: string): Promise<SchemaRecord | null> {
     const { data, error } = await this.db
       .from('schema_registry')
-      .select('*')
+      .select(SCHEMA_COLUMNS)
       .eq('id', schemaId)
       .eq('organization_id', this.organizationId)
       .single();
