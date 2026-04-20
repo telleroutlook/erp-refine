@@ -47,7 +47,8 @@ export class IntentAgent extends BaseAgent {
   async parseIntent(
     message: string,
     ctx: AgentContext,
-    env: Env
+    env: Env,
+    recentContext?: string
   ): Promise<RequirementSpec> {
     const glm = createOpenAI({
       apiKey: env.AI_API_KEY,
@@ -58,7 +59,11 @@ export class IntentAgent extends BaseAgent {
       const { text } = await generateText({
         model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
         system: SYSTEM_PROMPT,
-        prompt: `Parse this user request into JSON: "${message}"\n\nContext: organizationId=${ctx.organizationId}, role=${ctx.role}`,
+        prompt: [
+          recentContext ? `Recent conversation context:\n${recentContext}` : null,
+          `Parse this user request into JSON: "${message}"`,
+          `Context: organizationId=${ctx.organizationId}, role=${ctx.role}`,
+        ].filter(Boolean).join('\n\n'),
         providerOptions: {
           openai: { response_format: { type: 'json_object' } },
         },

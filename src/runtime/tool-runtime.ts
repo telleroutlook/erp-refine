@@ -1,9 +1,12 @@
 // src/runtime/tool-runtime.ts
-// Tool execution runtime: timeout, retry, circuit breaker, metrics
+// Tool execution runtime: timeout, retry, circuit breaker, KV cache, metrics
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { CircuitBreaker } from './circuit-breaker';
+import { KVCache, cacheKey } from './cache';
+import { TOOL_REGISTRY_META } from '../tools/tool-registry';
 import { createLogger } from '../utils/logger';
+import type { Env } from '../types/env';
 
 const logger = createLogger('info', { module: 'tool-runtime' });
 
@@ -15,6 +18,8 @@ export interface ToolExecutionOptions {
   timeout?: number;    // ms, default 25000
   retries?: number;    // default 1
   retryDelay?: number; // ms, default 1000
+  inputHash?: string;  // used for cache key (must be caller-provided to be stable)
+  env?: Env;           // required to enable KV caching
 }
 
 export interface ToolResult<T = unknown> {
@@ -23,9 +28,11 @@ export interface ToolResult<T = unknown> {
   error?: string;
   durationMs: number;
   retries: number;
+  fromCache?: boolean;
 }
 
 const breakers = new Map<string, CircuitBreaker>();
+const CACHE_TTL_SECONDS = 300; // 5 minutes for D0 tool results
 
 function getBreaker(toolName: string): CircuitBreaker {
   if (!breakers.has(toolName)) {
@@ -44,6 +51,11 @@ async function withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function isToolCacheable(toolName: string): boolean {
+  const meta = TOOL_REGISTRY_META.find((m) => m.name === toolName);
+  return meta?.cacheable === true && meta?.level === 0;
+}
+
 export async function executeTool<T>(
   fn: () => Promise<T>,
   options: ToolExecutionOptions,
@@ -57,7 +69,20 @@ export async function executeTool<T>(
     timeout = 25_000,
     retries = 1,
     retryDelay = 1_000,
+    inputHash,
+    env,
   } = options;
+
+  // KV cache check for D0 tools (read-only, cacheable)
+  if (env && inputHash && isToolCacheable(toolName)) {
+    const cache = new KVCache(env.CACHE);
+    const key = cacheKey('tool', toolName, organizationId, inputHash);
+    const cached = await cache.get<T>(key);
+    if (cached !== null) {
+      logger.info('tool.cache_hit', { toolName, sessionId });
+      return { success: true, data: cached, durationMs: 0, retries: 0, fromCache: true };
+    }
+  }
 
   const breaker = getBreaker(toolName);
   const start = Date.now();
@@ -69,6 +94,14 @@ export async function executeTool<T>(
       const durationMs = Date.now() - start;
 
       logger.info('tool.success', { toolName, sessionId, durationMs, attempts });
+
+      // Store in KV cache for cacheable D0 tools
+      if (env && inputHash && isToolCacheable(toolName) && data !== undefined) {
+        const cache = new KVCache(env.CACHE);
+        const key = cacheKey('tool', toolName, organizationId, inputHash);
+        cache.set(key, data, CACHE_TTL_SECONDS).catch(() => {});
+      }
+
       if (db) {
         recordMetric(db, { toolName, sessionId, organizationId, userId, durationMs, success: true, attempts });
       }

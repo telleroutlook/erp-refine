@@ -8,6 +8,8 @@ import { BaseAgent, type AgentContext } from './base-agent';
 import type { Env } from '../types/env';
 import type { ToolSet } from 'ai';
 import { evaluatePolicy } from '../policy/policy-engine';
+import type { AgentStrategy } from '../orchestrator/intent-router';
+import { executeWithRecovery } from '../lib/recovery';
 
 export interface ExecutionRequest {
   action: string;
@@ -15,6 +17,8 @@ export interface ExecutionRequest {
   parameters: Record<string, unknown>;
   confirmed?: boolean;
   approved?: boolean;
+  strategy?: AgentStrategy;
+  historyContext?: string;
 }
 
 export interface ExecutionResponse {
@@ -27,7 +31,7 @@ export interface ExecutionResponse {
   error?: string;
 }
 
-const SYSTEM_PROMPT = `You are an ERP Execution Agent. Your job is to fulfill the user's request by calling the available tools.
+const BASE_SYSTEM_PROMPT = `You are an ERP Execution Agent. Your job is to fulfill the user's request by calling the available tools.
 
 CRITICAL RULES:
 1. Call tools only when the action maps to a concrete ERP operation (querying data, creating records, etc.). If the request is a general question about identity or capabilities, respond directly without calling any tool.
@@ -89,16 +93,53 @@ export class ExecutionAgent extends BaseAgent {
       baseURL: env.AI_BASE_URL,
     });
 
+    const strategy = request.strategy;
+    const systemPrompt = strategy?.promptSuffix
+      ? `${BASE_SYSTEM_PROMPT}\n\n${strategy.promptSuffix}`
+      : BASE_SYSTEM_PROMPT;
+
     const agentResult = await super.execute(async () => {
       const availableTools = Object.keys(tools).join(', ');
-      const { text, toolResults } = await generateText({
-        model: glm.chat(env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
-        system: SYSTEM_PROMPT,
-        prompt: `Available tools: ${availableTools}\n\nAction requested: ${request.action}\nDomain: ${request.domain}\nParameters: ${JSON.stringify(request.parameters, null, 2)}\nOrganization: ${ctx.organizationId}\n\nCall the most relevant tool now.`,
-        tools,
-        stopWhen: stepCountIs(5),
-      });
-      return { text, toolResults };
+
+      const promptParts = [
+        request.historyContext ? `Conversation context:\n${request.historyContext}` : null,
+        `Available tools: ${availableTools}`,
+        `Action requested: ${request.action}`,
+        `Domain: ${request.domain}`,
+        `Parameters: ${JSON.stringify(request.parameters, null, 2)}`,
+        `Organization: ${ctx.organizationId}`,
+        '',
+        'Call the most relevant tool now.',
+      ].filter((p): p is string => p !== null);
+
+      const prompt = promptParts.join('\n');
+      const maxTokens = strategy?.maxOutputTokens ?? 3000;
+
+      const recoveryResult = await executeWithRecovery(
+        async (params) => {
+          const { text } = await generateText({
+            model: glm.chat(params.primaryModel),
+            system: params.systemPrompt,
+            prompt: params.prompt,
+            tools,
+            stopWhen: stepCountIs(strategy?.stepLimit ?? 5),
+            temperature: params.temperature,
+            maxOutputTokens: params.maxTokens,
+          });
+          return text;
+        },
+        {
+          systemPrompt,
+          prompt,
+          maxTokens,
+          temperature: strategy?.temperature ?? 0.3,
+          primaryModel: env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo',
+          fallbackModel: env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air',
+        },
+        env
+      );
+
+      return { text: recoveryResult.text, toolResults: [], recoverySteps: recoveryResult.recoverySteps };
     }, ctx);
 
     if (!agentResult.success) {

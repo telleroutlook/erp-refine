@@ -9,11 +9,13 @@ import { routeIntent } from './intent-router';
 import type { AgentContext } from '../agents/base-agent';
 import type { Env } from '../types/env';
 import type { ToolSet } from 'ai';
+import { TraceContext } from '../lib/trace';
 
 export interface OrchestratorRequest {
   message: string;
   sessionId: string;
   ctx: AgentContext;
+  historyContext?: string;
   executionTools?: ToolSet;
   executionParams?: {
     confirmed?: boolean;
@@ -30,6 +32,7 @@ export interface OrchestratorResponse {
   requiresApproval?: boolean;
   confirmationPrompt?: string;
   error?: string;
+  traceId?: string;
 }
 
 export class Orchestrator {
@@ -38,81 +41,119 @@ export class Orchestrator {
     env: Env,
     db?: SupabaseClient
   ): Promise<OrchestratorResponse> {
-    const { message, ctx, executionTools = {}, executionParams = {} } = req;
+    const { message, ctx, historyContext, executionTools = {}, executionParams = {} } = req;
 
-    // Step 1: Parse intent
-    let spec;
+    const trace = new TraceContext(ctx.userId, ctx.organizationId, ctx.sessionId, message);
+    let success = false;
+
     try {
-      spec = await intentAgent.parseIntent(message, ctx, env);
-    } catch (err) {
-      return { pipeline: 'error', error: `Intent parsing failed: ${err instanceof Error ? err.message : String(err)}` };
-    }
+      // Step 1: Parse intent (pass recent history lines for follow-up detection)
+      const recentContext = historyContext
+        ? historyContext.split('\n').slice(-6).join('\n')
+        : undefined;
 
-    if (spec.clarificationNeeded) {
-      return {
-        pipeline: 'clarification',
-        intent: spec,
-        confirmationPrompt: spec.clarificationQuestion,
-      };
-    }
-
-    // Meta queries (identity, capabilities) — respond directly, no tools needed
-    if (spec.domain === 'meta') {
-      return {
-        pipeline: 'meta',
-        intent: spec,
-        executionResult: {
-          success: true,
-          result: '我是 ERP AI 助手，基于大语言模型构建，帮助您处理采购、销售、库存、财务、质量、制造等企业业务。有什么可以帮您？',
-        },
-      };
-    }
-
-    // Step 2: Route
-    const routing = routeIntent(spec);
-
-    if (routing.pipeline === 'query') {
-      // For queries, run execution agent with read-only tools
-      const result = await executionAgent.execute_request(
-        { action: spec.action, domain: spec.domain, parameters: spec.parameters ?? {}, confirmed: true },
-        ctx,
-        env,
-        executionTools
-      );
-      return { pipeline: 'query', intent: spec, executionResult: result };
-    }
-
-    if (routing.pipeline === 'schema-generation') {
+      let spec;
       try {
-        const schemaOutput = await schemaArchitectAgent.generateSchemaDiff(spec, ctx, env);
-        return { pipeline: 'schema-generation', intent: spec, schemaOutput };
+        spec = await trace.phase('intent', () =>
+          intentAgent.parseIntent(message, ctx, env, recentContext)
+        );
       } catch (err) {
-        return { pipeline: 'error', intent: spec, error: `Schema generation failed: ${err instanceof Error ? err.message : String(err)}` };
+        return { pipeline: 'error', error: `Intent parsing failed: ${err instanceof Error ? err.message : String(err)}`, traceId: trace.traceId };
+      }
+
+      if (spec.clarificationNeeded) {
+        return {
+          pipeline: 'clarification',
+          intent: spec,
+          confirmationPrompt: spec.clarificationQuestion,
+          traceId: trace.traceId,
+        };
+      }
+
+      // Meta queries (identity, capabilities) — respond directly, no tools needed
+      if (spec.domain === 'meta') {
+        success = true;
+        return {
+          pipeline: 'meta',
+          intent: spec,
+          executionResult: {
+            success: true,
+            result: '我是 ERP AI 助手，基于大语言模型构建，帮助您处理采购、销售、库存、财务、质量、制造等企业业务。有什么可以帮您？',
+          },
+          traceId: trace.traceId,
+        };
+      }
+
+      // Step 2: Route with strategy
+      const routing = routeIntent(spec);
+      const { strategy } = routing;
+      trace.setStrategy(strategy.name);
+
+      if (routing.pipeline === 'query') {
+        const result = await trace.phase('execution', () =>
+          executionAgent.execute_request(
+            {
+              action: spec.action,
+              domain: spec.domain,
+              parameters: spec.parameters ?? {},
+              confirmed: true,
+              strategy,
+              historyContext,
+            },
+            ctx,
+            env,
+            executionTools
+          )
+        );
+        success = result.success;
+        return { pipeline: 'query', intent: spec, executionResult: result, traceId: trace.traceId };
+      }
+
+      if (routing.pipeline === 'schema-generation') {
+        try {
+          const schemaOutput = await trace.phase('schema', () =>
+            schemaArchitectAgent.generateSchemaDiff(spec, ctx, env)
+          );
+          success = true;
+          return { pipeline: 'schema-generation', intent: spec, schemaOutput, traceId: trace.traceId };
+        } catch (err) {
+          return { pipeline: 'error', intent: spec, error: `Schema generation failed: ${err instanceof Error ? err.message : String(err)}`, traceId: trace.traceId };
+        }
+      }
+
+      // Execution pipeline
+      const result = await trace.phase('execution', () =>
+        executionAgent.execute_request(
+          {
+            action: spec.action,
+            domain: spec.domain,
+            parameters: spec.parameters ?? {},
+            confirmed: executionParams.confirmed,
+            approved: executionParams.approved,
+            strategy,
+            historyContext,
+          },
+          ctx,
+          env,
+          executionTools
+        )
+      );
+
+      success = result.success;
+      return {
+        pipeline: 'execution',
+        intent: spec,
+        executionResult: result,
+        requiresConfirmation: result.requiresConfirmation,
+        requiresApproval: result.requiresApproval,
+        confirmationPrompt: result.confirmationPrompt,
+        traceId: trace.traceId,
+      };
+    } finally {
+      if (db) {
+        trace.flush(db, success).catch(() => {});
       }
     }
-
-    // Execution pipeline
-    const result = await executionAgent.execute_request(
-      {
-        action: spec.action,
-        domain: spec.domain,
-        parameters: spec.parameters ?? {},
-        confirmed: executionParams.confirmed,
-        approved: executionParams.approved,
-      },
-      ctx,
-      env,
-      executionTools
-    );
-
-    return {
-      pipeline: 'execution',
-      intent: spec,
-      executionResult: result,
-      requiresConfirmation: result.requiresConfirmation,
-      requiresApproval: result.requiresApproval,
-      confirmationPrompt: result.confirmationPrompt,
-    };
   }
 }
 
