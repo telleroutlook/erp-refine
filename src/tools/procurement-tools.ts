@@ -111,7 +111,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
-          qty: i.qty,
+          quantity: i.qty,
           unit_price: i.unit_price,
           notes: i.notes ?? null,
         }));
@@ -132,7 +132,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
       execute: async ({ search }) => {
         let query = db
           .from('suppliers')
-          .select('id, name, code, email, phone')
+          .select('id, name, code, contact_email, contact_phone')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 

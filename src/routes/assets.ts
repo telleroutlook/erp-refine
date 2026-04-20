@@ -137,6 +137,14 @@ assets.post('/asset-depreciations', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
 
+  const { data: asset, error: assetErr } = await db
+    .from('fixed_assets')
+    .select('id')
+    .eq('id', body.asset_id)
+    .eq('organization_id', user.organizationId)
+    .single();
+  if (assetErr || !asset) throw ApiError.notFound('FixedAsset', body.asset_id, requestId);
+
   const { data, error } = await db
     .from('asset_depreciations')
     .insert({ ...body })

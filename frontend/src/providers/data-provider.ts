@@ -54,8 +54,8 @@ export const dataProvider: DataProvider = {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(err.error ?? 'Request failed');
+      const err = await response.json().catch(() => ({ detail: 'Request failed' }));
+      throw new Error(err.detail ?? err.error ?? 'Request failed');
     }
 
     const json = await response.json();
@@ -83,8 +83,8 @@ export const dataProvider: DataProvider = {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ error: 'Create failed' }));
-      throw new Error(err.error ?? 'Create failed');
+      const err = await response.json().catch(() => ({ detail: 'Create failed' }));
+      throw new Error(err.detail ?? err.error ?? 'Create failed');
     }
 
     const json = await response.json();
@@ -99,8 +99,8 @@ export const dataProvider: DataProvider = {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ error: 'Update failed' }));
-      throw new Error(err.error ?? 'Update failed');
+      const err = await response.json().catch(() => ({ detail: 'Update failed' }));
+      throw new Error(err.detail ?? err.error ?? 'Update failed');
     }
 
     const json = await response.json();

@@ -8,98 +8,103 @@ interface MarkdownMessageProps {
   content: string;
 }
 
+const REMARK_PLUGINS = [remarkGfm];
+const REHYPE_PLUGINS = [rehypeHighlight];
+
+const MD_COMPONENTS = {
+  pre: ({ children }: any) => (
+    <pre style={{
+      background: '#f6f8fa',
+      border: '1px solid #e1e4e8',
+      borderRadius: 6,
+      padding: '12px 16px',
+      overflowX: 'auto',
+      fontSize: 12,
+      lineHeight: 1.6,
+      margin: '8px 0',
+    }}>
+      {children}
+    </pre>
+  ),
+  code: ({ className, children, ...props }: any) => {
+    const isBlock = !!className;
+    return isBlock ? (
+      <code className={className} {...props}>{children}</code>
+    ) : (
+      <code style={{
+        background: '#f0f2f5',
+        color: '#d63384',
+        padding: '1px 5px',
+        borderRadius: 3,
+        fontSize: '0.875em',
+        fontFamily: 'ui-monospace, monospace',
+      }} {...props}>{children}</code>
+    );
+  },
+  table: ({ children }: any) => (
+    <div style={{ overflowX: 'auto', margin: '8px 0' }}>
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: 13,
+      }}>
+        {children}
+      </table>
+    </div>
+  ),
+  th: ({ children }: any) => (
+    <th style={{
+      border: '1px solid #d0d7de',
+      padding: '6px 12px',
+      background: '#f6f8fa',
+      fontWeight: 600,
+      textAlign: 'left',
+    }}>
+      {children}
+    </th>
+  ),
+  td: ({ children }: any) => (
+    <td style={{
+      border: '1px solid #d0d7de',
+      padding: '6px 12px',
+    }}>
+      {children}
+    </td>
+  ),
+  blockquote: ({ children }: any) => (
+    <blockquote style={{
+      borderLeft: '3px solid #0969da',
+      margin: '8px 0',
+      paddingLeft: 12,
+      color: '#57606a',
+      background: '#f0f6ff',
+      borderRadius: '0 4px 4px 0',
+    }}>
+      {children}
+    </blockquote>
+  ),
+  p: ({ children }: any) => <p style={{ margin: '4px 0', lineHeight: 1.6 }}>{children}</p>,
+  h1: ({ children }: any) => <h1 style={{ fontSize: 16, margin: '12px 0 6px', fontWeight: 600 }}>{children}</h1>,
+  h2: ({ children }: any) => <h2 style={{ fontSize: 15, margin: '10px 0 5px', fontWeight: 600 }}>{children}</h2>,
+  h3: ({ children }: any) => <h3 style={{ fontSize: 14, margin: '8px 0 4px', fontWeight: 600 }}>{children}</h3>,
+  ul: ({ children }: any) => <ul style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ul>,
+  ol: ({ children }: any) => <ol style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ol>,
+  li: ({ children }: any) => <li style={{ margin: '2px 0' }}>{children}</li>,
+  a: ({ href, children }: any) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#0969da' }}>
+      {children}
+    </a>
+  ),
+  hr: () => <hr style={{ border: 'none', borderTop: '1px solid #e1e4e8', margin: '12px 0' }} />,
+};
+
 export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => {
   return (
     <div className="md-body">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-          pre: ({ children }) => (
-            <pre style={{
-              background: '#f6f8fa',
-              border: '1px solid #e1e4e8',
-              borderRadius: 6,
-              padding: '12px 16px',
-              overflowX: 'auto',
-              fontSize: 12,
-              lineHeight: 1.6,
-              margin: '8px 0',
-            }}>
-              {children}
-            </pre>
-          ),
-          code: ({ className, children, ...props }) => {
-            const isBlock = !!className;
-            return isBlock ? (
-              <code className={className} {...props}>{children}</code>
-            ) : (
-              <code style={{
-                background: '#f0f2f5',
-                color: '#d63384',
-                padding: '1px 5px',
-                borderRadius: 3,
-                fontSize: '0.875em',
-                fontFamily: 'ui-monospace, monospace',
-              }} {...props}>{children}</code>
-            );
-          },
-          table: ({ children }) => (
-            <div style={{ overflowX: 'auto', margin: '8px 0' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: 13,
-              }}>
-                {children}
-              </table>
-            </div>
-          ),
-          th: ({ children }) => (
-            <th style={{
-              border: '1px solid #d0d7de',
-              padding: '6px 12px',
-              background: '#f6f8fa',
-              fontWeight: 600,
-              textAlign: 'left',
-            }}>
-              {children}
-            </th>
-          ),
-          td: ({ children }) => (
-            <td style={{
-              border: '1px solid #d0d7de',
-              padding: '6px 12px',
-            }}>
-              {children}
-            </td>
-          ),
-          blockquote: ({ children }) => (
-            <blockquote style={{
-              borderLeft: '3px solid #0969da',
-              margin: '8px 0',
-              paddingLeft: 12,
-              color: '#57606a',
-              background: '#f0f6ff',
-              borderRadius: '0 4px 4px 0',
-            }}>
-              {children}
-            </blockquote>
-          ),
-          p: ({ children }) => <p style={{ margin: '4px 0', lineHeight: 1.6 }}>{children}</p>,
-          h1: ({ children }) => <h1 style={{ fontSize: 16, margin: '12px 0 6px', fontWeight: 600 }}>{children}</h1>,
-          h2: ({ children }) => <h2 style={{ fontSize: 15, margin: '10px 0 5px', fontWeight: 600 }}>{children}</h2>,
-          h3: ({ children }) => <h3 style={{ fontSize: 14, margin: '8px 0 4px', fontWeight: 600 }}>{children}</h3>,
-          ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ul>,
-          ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ol>,
-          li: ({ children }) => <li style={{ margin: '2px 0' }}>{children}</li>,
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#0969da' }}>
-              {children}
-            </a>
-          ),
-          hr: () => <hr style={{ border: 'none', borderTop: '1px solid #e1e4e8', margin: '12px 0' }} />,
-        }}
+        remarkPlugins={REMARK_PLUGINS}
+        rehypePlugins={REHYPE_PLUGINS}
+        components={MD_COMPONENTS}
       >
         {content}
       </ReactMarkdown>

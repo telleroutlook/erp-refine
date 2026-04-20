@@ -23,7 +23,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         if (fromDate) query = query.gte('order_date', fromDate);
         if (toDate) query = query.lte('order_date', toDate);
 
-        const { data, error } = await query;
+        const { data, error } = await query.limit(5000);
         if (error) throw new Error(error.message);
 
         const summary = (data ?? []).reduce((acc: Record<string, { count: number; total: number }>, row: any) => {
@@ -33,7 +33,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
           return acc;
         }, {});
 
-        return { byStatus: summary, totalOrders: (data ?? []).length };
+        return { byStatus: summary, totalOrders: (data ?? []).length, truncated: (data ?? []).length >= 5000 };
       },
     }),
 
@@ -54,7 +54,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         if (fromDate) query = query.gte('order_date', fromDate);
         if (toDate) query = query.lte('order_date', toDate);
 
-        const { data, error } = await query;
+        const { data, error } = await query.limit(5000);
         if (error) throw new Error(error.message);
 
         const active = (data ?? []).filter((r: any) => !['cancelled', 'draft'].includes(r.status));
@@ -87,13 +87,13 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
           // Need line-item level data; re-query with items
           let itemQuery = db
             .from('sales_order_items')
-            .select('qty, unit_price, product:products(id,name,code), sales_order:sales_orders!inner(status, organization_id, order_date)')
+            .select('quantity, unit_price, product:products(id,name,code), sales_order:sales_orders!inner(status, organization_id, order_date)')
             .eq('sales_order.organization_id', organizationId)
             .not('sales_order.status', 'in', '("cancelled","draft")');
           if (fromDate) itemQuery = itemQuery.gte('sales_order.order_date', fromDate);
           if (toDate) itemQuery = itemQuery.lte('sales_order.order_date', toDate);
 
-          const { data: itemData, error: itemError } = await itemQuery;
+          const { data: itemData, error: itemError } = await itemQuery.limit(5000);
           if (itemError) throw new Error(itemError.message);
 
           const byProduct: Record<string, { name: string; code: string; qty: number; total: number }> = {};
@@ -102,8 +102,8 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
             const name: string = (i.product as any)?.name ?? 'Unknown';
             const code: string = (i.product as any)?.code ?? '';
             if (!byProduct[id]) byProduct[id] = { name, code, qty: 0, total: 0 };
-            byProduct[id]!.qty += Number(i.qty);
-            byProduct[id]!.total += Number(i.qty) * Number(i.unit_price);
+            byProduct[id]!.qty += Number(i.quantity);
+            byProduct[id]!.total += Number(i.quantity) * Number(i.unit_price);
           }
           return { totalRevenue: revenue, orderCount: active.length, groupBy: 'product', breakdown: byProduct };
         }
@@ -123,7 +123,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
 
         if (warehouseId) query = query.eq('warehouse_id', warehouseId);
 
-        const { data, error } = await query;
+        const { data, error } = await query.limit(5000);
         if (error) throw new Error(error.message);
 
         return {

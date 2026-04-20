@@ -44,12 +44,7 @@ export const CustomerCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="地址" name="address">
-              <Input.TextArea rows={2} />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label="地址" name="street">
               <Input.TextArea rows={2} />
             </Form.Item>
           </Col>

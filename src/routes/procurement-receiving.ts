@@ -330,6 +330,7 @@ procurementReceiving.get('/three-way-match', async (c) => {
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

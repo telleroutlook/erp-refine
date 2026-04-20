@@ -124,7 +124,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
-          qty: i.qty,
+          quantity: i.qty,
           unit_price: i.unit_price,
         }));
 

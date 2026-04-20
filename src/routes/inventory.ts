@@ -23,7 +23,7 @@ inventory.get('/stock-records', async (c) => {
 
   const { data, count, error } = await db
     .from('stock_records')
-    .select('id, qty_on_hand, qty_reserved, qty_available, product:products(id,name,code), warehouse:warehouses(id,name)', { count: 'exact' })
+    .select('id, qty_on_hand, qty_reserved, qty_available, product:products(id,name,code), warehouse:warehouses(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);

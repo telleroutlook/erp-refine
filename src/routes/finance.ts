@@ -231,7 +231,8 @@ finance.post('/vouchers/:id/post', async (c) => {
       status: 'posted',
       posted_at: new Date().toISOString(),
     })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 
@@ -388,10 +389,16 @@ finance.post('/payment-requests', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate request number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
+  const PERMITTED_CREATE = new Set(['amount', 'due_date', 'currency', 'supplier_id', 'supplier_invoice_id', 'payment_method', 'notes']);
+  const insertData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED_CREATE.has(k)) insertData[k] = v;
+  }
+
   const { data, error } = await db
     .from('payment_requests')
     .insert({
-      ...body,
+      ...insertData,
       request_number: seqData,
       organization_id: user.organizationId,
       status: 'draft',

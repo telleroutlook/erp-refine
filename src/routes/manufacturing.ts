@@ -56,14 +56,14 @@ manufacturing.post('/bom-headers', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'bom_header',
   });
-  if (seqError) throw ApiError.database(`Sequence generation failed: ${seqError.message}`, requestId);
+  if (seqError || !num) throw ApiError.database(`Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const result = await atomicCreateWithItems(db, {
     headerTable: 'bom_headers',
     itemsTable: 'bom_items',
     headerFk: 'bom_header_id',
     headerReturnSelect: 'id, bom_number',
-    itemsReturnSelect: 'id, product_id, qty, unit, scrap_rate, sequence',
+    itemsReturnSelect: 'id, product_id, quantity, unit, scrap_rate, sequence',
   }, {
     header: {
       ...headerFields,
@@ -83,7 +83,7 @@ manufacturing.put('/bom-headers/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['description', 'qty', 'effective_date', 'expiry_date', 'status', 'version'];
+  const permitted = ['notes', 'quantity', 'effective_date', 'is_active', 'version'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -121,8 +121,9 @@ manufacturing.get('/work-orders', async (c) => {
 
   const { data, count, error } = await db
     .from('work_orders')
-    .select('id, work_order_number, planned_qty, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
+    .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -139,6 +140,7 @@ manufacturing.get('/work-orders/:id', async (c) => {
     .select('*, product:products(id,name,code), bom:bom_headers(id,bom_number), materials:work_order_materials(*, product:products(id,name,code)), productions:work_order_productions(*)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Work Order', id, requestId);
@@ -154,7 +156,7 @@ manufacturing.post('/work-orders', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'work_order',
   });
-  if (seqError) throw ApiError.database(`Sequence generation failed: ${seqError.message}`, requestId);
+  if (seqError || !num) throw ApiError.database(`Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   // Look up BOM items to auto-create work order materials
   let bomItems: any[] = [];
@@ -170,7 +172,7 @@ manufacturing.post('/work-orders', async (c) => {
 
     const { data: bom, error: bomError } = await db
       .from('bom_items')
-      .select('product_id, qty, unit, scrap_rate, sequence')
+      .select('product_id, quantity, unit, scrap_rate, sequence')
       .eq('bom_header_id', body.bom_header_id);
 
     if (bomError) throw ApiError.database(`Failed to fetch BOM items: ${bomError.message}`, requestId);
@@ -198,7 +200,7 @@ manufacturing.post('/work-orders', async (c) => {
     const materials = bomItems.map((item: any) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
-      required_quantity: item.qty * (body.planned_qty ?? 1),
+      required_quantity: item.quantity * (body.planned_quantity ?? 1),
       issued_quantity: 0,
       warehouse_id: body.warehouse_id,
     }));
@@ -223,7 +225,7 @@ manufacturing.put('/work-orders/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'priority', 'planned_qty', 'warehouse_id',
+  const permitted = ['status', 'notes', 'priority', 'planned_quantity', 'warehouse_id',
     'planned_completion_date', 'actual_completion_date', 'start_date'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
@@ -320,7 +322,8 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
     await db
       .from('work_orders')
       .update({ status: 'in_progress' })
-      .eq('id', wo.id);
+      .eq('id', wo.id)
+      .eq('organization_id', user.organizationId);
   }
 
   return c.json({ data: { success: true, issued_material_ids: issuedMaterials } });
@@ -347,6 +350,11 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     throw ApiError.invalidState('Work Order', wo.status, 'complete', requestId);
   }
 
+  // Guard: must have a positive completed_quantity before creating stock transaction
+  if (!wo.completed_quantity || wo.completed_quantity <= 0) {
+    throw ApiError.invalidState('Work Order', wo.status, 'complete (no completed quantity)', requestId);
+  }
+
   // 2. Record finished goods stock-in (trigger updates stock_records)
   await createStockTransaction(db, {
     organizationId: user.organizationId,
@@ -366,7 +374,8 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
       status: 'completed',
       actual_completion_date: new Date().toISOString(),
     })
-    .eq('id', wo.id);
+    .eq('id', wo.id)
+    .eq('organization_id', user.organizationId);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 
@@ -382,7 +391,7 @@ manufacturing.get('/work-order-productions', async (c) => {
   const { data, count, error } = await db
     .from('work_order_productions')
     .select(
-      'id, work_order_id, production_date, quantity, qualified_qty, defective_qty, notes, created_at, work_order:work_orders!inner(id, work_order_number, organization_id)',
+      'id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_at, work_order:work_orders!inner(id, work_order_number, organization_id)',
       { count: 'exact' }
     )
     .eq('work_order.organization_id', user.organizationId)
@@ -407,13 +416,16 @@ manufacturing.post('/work-order-productions', async (c) => {
   if (woErr || !wo) throw ApiError.notFound('WorkOrder', body.work_order_id, requestId);
 
   // Insert production record
+  const PERMITTED_PRODUCTION = new Set(['work_order_id', 'production_date', 'quantity', 'qualified_quantity', 'defective_quantity', 'notes']);
+  const insertData: Record<string, unknown> = { created_by: user.userId };
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED_PRODUCTION.has(k)) insertData[k] = v;
+  }
+
   const { data, error } = await db
     .from('work_order_productions')
-    .insert({
-      ...body,
-      created_by: user.userId,
-    })
-    .select('id, work_order_id, production_date, quantity, qualified_qty, defective_qty')
+    .insert(insertData)
+    .select('id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -422,7 +434,7 @@ manufacturing.post('/work-order-productions', async (c) => {
   if (data.work_order_id) {
     const { data: sumRow } = await db
       .from('work_order_productions')
-      .select('total:qualified_qty.sum()')
+      .select('total:qualified_quantity.sum()')
       .eq('work_order_id', data.work_order_id)
       .single();
     await db
@@ -441,9 +453,9 @@ manufacturing.route('', buildCrudRoutes({
   table: 'bom_items',
   path: '/bom-items',
   resourceName: 'BomItem',
-  listSelect: 'id, qty, unit, scrap_rate, sequence, notes, product:products(id,name,code)',
+  listSelect: 'id, quantity, unit, scrap_rate, sequence, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, qty, sequence',
+  createReturnSelect: 'id, quantity, sequence',
   defaultSort: 'sequence',
   softDelete: false,
   orgScoped: false,

@@ -51,7 +51,7 @@ app.use('/api/*', rateLimitMiddleware());
 
 // --- Health ---
 app.get('/health', (c) =>
-  c.json({ status: 'ok', version: '0.1.0', env: c.env.ENVIRONMENT })
+  c.json({ status: 'ok' })
 );
 
 // --- API Index ---

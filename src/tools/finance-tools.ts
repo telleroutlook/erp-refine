@@ -16,7 +16,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ status, limit }) => {
         let query = db
           .from('vouchers')
-          .select('id, voucher_number, voucher_date, description, total_debit, total_credit, status')
+          .select('id, voucher_number, voucher_date, notes, total_debit, total_credit, status')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 

@@ -142,10 +142,10 @@ const poItemsConfig: CrudConfig = {
   table: 'purchase_order_items',
   path: '/purchase-order-items',
   resourceName: 'PurchaseOrderItem',
-  listSelect: 'id, line_number, qty, received_qty, invoiced_qty, unit_price, tax_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, qty, unit_price',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, quantity, unit_price',
+  defaultSort: 'line_no',
   softDelete: false,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' },
@@ -162,7 +162,7 @@ procurement.get('/suppliers', async (c) => {
 
   const { data, count, error } = await db
     .from('suppliers')
-    .select('id, name, code, contact_email, contact_phone, status', { count: 'exact' })
+    .select('id, name, code, contact_person, contact_email, contact_phone, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })

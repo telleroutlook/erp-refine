@@ -143,10 +143,10 @@ const soItemsConfig: CrudConfig = {
   table: 'sales_order_items',
   path: '/sales-order-items',
   resourceName: 'SalesOrderItem',
-  listSelect: 'id, line_number, qty, shipped_qty, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, shipped_quantity, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, qty, unit_price',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, quantity, unit_price',
+  defaultSort: 'line_no',
   softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'sales_order_id', parentTable: 'sales_orders' },
@@ -185,7 +185,7 @@ sales.get('/sales-shipments', async (c) => {
   const { data, count, error } = await db
     .from('sales_shipments')
     .select(
-      'id, shipment_number, shipment_date, tracking_number, status, carrier, sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
+      'id, shipment_number, shipment_date, tracking_number, status, carrier:carriers(id,name), sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -264,7 +264,7 @@ sales.put('/sales-shipments/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'shipping_date', 'carrier_id', 'tracking_number', 'warehouse_id']);
+  const PERMITTED = new Set(['status', 'notes', 'shipment_date', 'carrier_id', 'tracking_number', 'warehouse_id']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -358,9 +358,9 @@ sales.route('', buildCrudRoutes({
   table: 'sales_shipment_items',
   path: '/sales-shipment-items',
   resourceName: 'SalesShipmentItem',
-  listSelect: 'id, qty, product:products(id,name,code)',
+  listSelect: 'id, quantity, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, qty',
+  createReturnSelect: 'id, quantity',
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,

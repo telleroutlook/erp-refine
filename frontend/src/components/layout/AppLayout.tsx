@@ -1,10 +1,11 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
 import { ThemedLayoutV2 } from '@refinedev/antd';
-import { Button, Tooltip } from 'antd';
+import { Button, Tooltip, Spin } from 'antd';
 import { RobotOutlined, RightOutlined } from '@ant-design/icons';
 import { Sider } from './Sider';
 import { Header } from './Header';
-import { AiSidebar } from '../ai/AiSidebar';
+
+const AiSidebar = lazy(() => import('../ai/AiSidebar').then(m => ({ default: m.AiSidebar })));
 
 const SIDEBAR_MIN = 260;
 const SIDEBAR_MAX = 640;
@@ -150,7 +151,9 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
           flexDirection: 'column',
           transition,
         }}>
-          <AiSidebar />
+          <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Spin size="small" /></div>}>
+            <AiSidebar />
+          </Suspense>
         </div>
       )}
     </div>

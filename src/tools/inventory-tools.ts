@@ -42,7 +42,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
       execute: async ({ productId, warehouseId, limit }) => {
         let query = db
           .from('stock_transactions')
-          .select('id, transaction_type, qty, reference_type, reference_id, product:products(id,name,code), warehouse:warehouses(id,name), created_at')
+          .select('id, transaction_type, quantity, reference_type, reference_id, product:products(id,name,code), warehouse:warehouses(id,name), created_at')
           .eq('organization_id', organizationId);
 
         if (productId) query = query.eq('product_id', productId);

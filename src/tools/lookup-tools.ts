@@ -25,10 +25,19 @@ export function createLookupTools(db: SupabaseClient, organizationId: string) {
         const table = tableMap[documentType];
         if (!table) return null;
 
+        const numberColumn: Record<string, string> = {
+          purchase_orders: 'order_number',
+          sales_orders: 'order_number',
+          purchase_receipts: 'receipt_number',
+          supplier_invoices: 'invoice_number',
+          sales_shipments: 'shipment_number',
+          sales_invoices: 'invoice_number',
+        };
+
         const { data, error } = await (db.from(table) as any)
           .select('*')
           .eq('organization_id', organizationId)
-          .eq('order_number', documentNumber)
+          .eq(numberColumn[table] ?? 'order_number', documentNumber)
           .is('deleted_at', null)
           .limit(1);
 

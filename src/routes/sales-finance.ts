@@ -381,10 +381,16 @@ salesFinance.post('/customer-receipts', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
+  const PERMITTED_RECEIPT = new Set(['receipt_date', 'amount', 'reference_type', 'reference_id', 'payment_method', 'notes']);
+  const insertData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED_RECEIPT.has(k)) insertData[k] = v;
+  }
+
   const { data: receipt, error: insertError } = await db
     .from('customer_receipts')
     .insert({
-      ...body,
+      ...insertData,
       receipt_number: seqData,
       organization_id: user.organizationId,
       created_by: user.userId,
@@ -416,13 +422,15 @@ salesFinance.post('/customer-receipts', async (c) => {
         .from('sales_invoices')
         .select('id, total_amount')
         .eq('id', receipt.reference_id)
+        .eq('organization_id', user.organizationId)
         .single();
 
       if (invoice && totalPaid >= (invoice.total_amount ?? 0)) {
         await db
           .from('sales_invoices')
           .update({ status: 'paid' })
-          .eq('id', receipt.reference_id);
+          .eq('id', receipt.reference_id)
+          .eq('organization_id', user.organizationId);
       }
     }
   }
