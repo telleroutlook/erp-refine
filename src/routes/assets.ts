@@ -19,7 +19,7 @@ assets.get('/fixed-assets', async (c) => {
 
   const { data, count, error } = await db
     .from('fixed_assets')
-    .select('id, asset_number, name, category, acquisition_date, acquisition_cost, net_book_value, status, department_id, cost_center:cost_centers(id,name,code)', { count: 'exact' })
+    .select('id, asset_number, asset_name, category, acquisition_date, acquisition_cost, current_book_value, status, department, cost_center:cost_centers(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -35,7 +35,7 @@ assets.get('/fixed-assets/:id', async (c) => {
 
   const { data, error } = await db
     .from('fixed_assets')
-    .select('*, cost_center:cost_centers(id,name,code), responsible_person:employees!responsible_person_id(id,name), depreciations:asset_depreciations(id,period_year,period_month,depreciation_amount,accumulated_amount,net_book_value), maintenance:asset_maintenance_records(id,maintenance_type,maintenance_date,cost,description)')
+    .select('*, cost_center:cost_centers(id,name,code), custodian:employees!custodian_id(id,name), depreciations:asset_depreciations(id,period_year,period_month,depreciation_amount,accumulated_depreciation,book_value_after,posted), maintenance:asset_maintenance_records(id,maintenance_type,performed_at,cost,description)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -55,7 +55,7 @@ assets.post('/fixed-assets', async (c) => {
       ...body,
       organization_id: user.organizationId,
     })
-    .select('id, asset_number, name')
+    .select('id, asset_number, asset_name')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -103,8 +103,7 @@ assets.get('/asset-depreciations', async (c) => {
 
   const { data, count, error } = await db
     .from('asset_depreciations')
-    .select('id, period_year, period_month, depreciation_amount, accumulated_amount, net_book_value, fixed_asset:fixed_assets(id,asset_number,name)', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted, fixed_asset:fixed_assets(id,asset_number,asset_name)', { count: 'exact' })
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -118,9 +117,8 @@ assets.get('/asset-depreciations/:id', async (c) => {
 
   const { data, error } = await db
     .from('asset_depreciations')
-    .select('*, fixed_asset:fixed_assets(id,asset_number,name)')
+    .select('*, fixed_asset:fixed_assets(id,asset_number,asset_name)')
     .eq('id', id)
-    .eq('organization_id', user.organizationId)
     .single();
 
   if (error) throw ApiError.notFound('Asset Depreciation', id, requestId);
@@ -134,7 +132,7 @@ assets.post('/asset-depreciations', async (c) => {
   const { data, error } = await db
     .from('asset_depreciations')
     .insert({ ...body, organization_id: user.organizationId })
-    .select('id, period_year, period_month, depreciation_amount, accumulated_amount, net_book_value')
+    .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after')
     .single();
 
   if (error) throw ApiError.database(error.message, requestId);
@@ -142,19 +140,19 @@ assets.post('/asset-depreciations', async (c) => {
 });
 
 // ─── Asset Maintenance Records (full CRUD) ──────────────────────────────────
-// Columns: id, fixed_asset_id, maintenance_type, description, cost, performed_by, maintenance_date, next_maintenance_date
+// Columns: id, asset_id, maintenance_type, description, cost, performed_by, performed_at, next_due_at
 
 assets.route('', buildCrudRoutes({
   table: 'asset_maintenance_records',
   path: '/asset-maintenance',
   resourceName: 'Asset Maintenance Record',
-  listSelect: 'id, maintenance_type, description, cost, performed_by, maintenance_date, next_maintenance_date',
+  listSelect: 'id, maintenance_type, description, cost, performed_by, performed_at, next_due_at',
   detailSelect: '*',
-  createReturnSelect: 'id, maintenance_type, maintenance_date',
-  defaultSort: 'maintenance_date',
+  createReturnSelect: 'id, maintenance_type, performed_at',
+  defaultSort: 'performed_at',
   softDelete: true,
   orgScoped: false,
-  parentOwnership: { parentFk: 'fixed_asset_id', parentTable: 'fixed_assets' },
+  parentOwnership: { parentFk: 'asset_id', parentTable: 'fixed_assets' },
 }));
 
 export default assets;

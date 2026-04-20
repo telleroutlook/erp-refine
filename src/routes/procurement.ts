@@ -157,7 +157,7 @@ procurement.get('/suppliers', async (c) => {
 
   const { data, count, error } = await db
     .from('suppliers')
-    .select('id, name, code, email, phone, status', { count: 'exact' })
+    .select('id, name, code, contact_email, contact_phone, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })

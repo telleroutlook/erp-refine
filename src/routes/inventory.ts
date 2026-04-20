@@ -182,7 +182,7 @@ inventory.post('/inventory-counts', async (c) => {
       itemsTable: 'inventory_count_lines',
       headerFk: 'inventory_count_id',
       headerReturnSelect: 'id, count_number, status',
-      itemsReturnSelect: 'id, product_id, system_qty, counted_qty, variance_qty',
+      itemsReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity',
     },
     {
       header: {
@@ -266,7 +266,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
 
   // 3. For each line with variance, record stock adjustment transaction
   await Promise.all(countDoc.lines.map(async (line: Record<string, unknown>) => {
-    const varianceQty = (line.counted_qty as number ?? 0) - (line.system_qty as number ?? 0);
+    const varianceQty = (line.counted_quantity as number ?? 0) - (line.system_quantity as number ?? 0);
     if (varianceQty === 0) return;
 
     await createStockTransaction(db, {
@@ -277,9 +277,14 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
       qty: varianceQty,
       referenceType: 'inventory_count',
       referenceId: countDoc.id,
-      notes: `Count variance: system=${line.system_qty}, counted=${line.counted_qty}, diff=${varianceQty}`,
+      notes: `Count variance: system=${line.system_quantity}, counted=${line.counted_quantity}, diff=${varianceQty}`,
       createdBy: user.userId,
     }, requestId);
+
+    await db
+      .from('inventory_count_lines')
+      .update({ variance_quantity: varianceQty })
+      .eq('id', line.id);
   }));
 
   // 4. Update count status to 'completed'
