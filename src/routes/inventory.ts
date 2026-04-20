@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { adjustStock, createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
 const inventory = new Hono<{ Bindings: Env }>();
@@ -58,9 +58,9 @@ const stockTransactionsConfig: CrudConfig = {
   table: 'stock_transactions',
   path: '/stock-transactions',
   resourceName: 'StockTransaction',
-  listSelect: 'id, transaction_type, qty, reference_type, reference_id, notes, created_at, product:products(id,name,code), warehouse:warehouses(id,name)',
+  listSelect: 'id, transaction_type, quantity, reference_type, reference_id, notes, created_at, product:products(id,name,code), warehouse:warehouses(id,name)',
   detailSelect: '*, product:products(id,name,code), warehouse:warehouses(id,name,code)',
-  createReturnSelect: 'id, transaction_type, qty',
+  createReturnSelect: 'id, transaction_type, quantity',
   defaultSort: 'created_at',
   softDelete: false,
   orgScoped: true,
@@ -264,46 +264,33 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
   }
 
-  // 3. For each line with variance, create stock adjustment transaction
-  for (const line of countDoc.lines) {
-    const varianceQty = (line.counted_quantity ?? 0) - (line.system_quantity ?? 0);
-    if (varianceQty === 0) continue;
+  // 3. For each line with variance, record stock adjustment transaction
+  await Promise.all(countDoc.lines.map(async (line: Record<string, unknown>) => {
+    const varianceQty = (line.counted_quantity as number ?? 0) - (line.system_quantity as number ?? 0);
+    if (varianceQty === 0) return;
 
-    // Adjust stock to match counted qty
-    await adjustStock(db, {
-      organizationId: user.organizationId,
-      warehouseId: countDoc.warehouse_id,
-      productId: line.product_id,
-      qtyDelta: varianceQty,
-    }, requestId);
-
-    // Record adjustment transaction
     await createStockTransaction(db, {
       organizationId: user.organizationId,
       warehouseId: countDoc.warehouse_id,
-      productId: line.product_id,
+      productId: line.product_id as string,
       transactionType: 'adjust',
-      qty: Math.abs(varianceQty),
+      qty: varianceQty,
       referenceType: 'inventory_count',
       referenceId: countDoc.id,
       notes: `Count variance: system=${line.system_quantity}, counted=${line.counted_quantity}, diff=${varianceQty}`,
       createdBy: user.userId,
     }, requestId);
 
-    // Update the line with the computed variance
     await db
       .from('inventory_count_lines')
       .update({ variance_quantity: varianceQty })
       .eq('id', line.id);
-  }
+  }));
 
   // 4. Update count status to 'completed'
   const { error: updateError } = await db
     .from('inventory_counts')
-    .update({
-      status: 'completed',
-      approved_by: user.userId,
-    })
+    .update({ status: 'completed', approved_by: user.userId })
     .eq('id', id);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);

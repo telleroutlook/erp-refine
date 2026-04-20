@@ -6,6 +6,7 @@ const STATUS_COLORS: Record<string, string> = {
   submitted: 'processing',
   approved: 'success',
   active: 'success',
+  inactive: 'default',
   archived: 'default',
   cancelled: 'error',
   closed: 'default',

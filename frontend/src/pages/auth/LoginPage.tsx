@@ -17,18 +17,20 @@ interface QuickUser {
   roleColor: string;
 }
 
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? '';
+
 const QUICK_USERS: QuickUser[] = [
   // Org 1: 默认组织 / Default Org
-  { email: 'admin@erp.demo',      password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'admin',              roleLabel: 'Admin',              roleColor: 'red' },
-  { email: 'manager@erp.demo',    password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'manager',            roleLabel: 'Manager',            roleColor: 'orange' },
-  { email: 'sales@erp.demo',      password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'sales_manager',      roleLabel: 'Sales Mgr',          roleColor: 'blue' },
-  { email: 'purchasing@erp.demo', password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'procurement_manager', roleLabel: 'Procurement Mgr',   roleColor: 'purple' },
-  { email: 'finance@erp.demo',    password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'finance_manager',    roleLabel: 'Finance Mgr',        roleColor: 'gold' },
-  { email: 'warehouse@erp.demo',  password: 'Admin2026!', org: 'DEFAULT', orgLabel: 'Default Org',  role: 'inventory_manager',  roleLabel: 'Inventory Mgr',      roleColor: 'cyan' },
+  { email: 'admin@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'admin',              roleLabel: 'Admin',              roleColor: 'red' },
+  { email: 'manager@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'manager',            roleLabel: 'Manager',            roleColor: 'orange' },
+  { email: 'sales@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'sales_manager',      roleLabel: 'Sales Mgr',          roleColor: 'blue' },
+  { email: 'purchasing@erp.demo', password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'procurement_manager', roleLabel: 'Procurement Mgr',   roleColor: 'purple' },
+  { email: 'finance@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'finance_manager',    roleLabel: 'Finance Mgr',        roleColor: 'gold' },
+  { email: 'warehouse@erp.demo',  password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'inventory_manager',  roleLabel: 'Inventory Mgr',      roleColor: 'cyan' },
   // Org 2: Tech Innovation Inc
-  { email: 'admin@tech.demo',     password: 'Admin2026!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'admin',            roleLabel: 'Admin',              roleColor: 'red' },
-  { email: 'finance@tech.demo',   password: 'Admin2026!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'finance_manager',  roleLabel: 'Finance Mgr',        roleColor: 'gold' },
-  { email: 'sales@tech.demo',     password: 'Admin2026!', org: 'TECH',    orgLabel: 'Tech Innovation', role: 'sales_manager',    roleLabel: 'Sales Mgr',          roleColor: 'blue' },
+  { email: 'admin@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    orgLabel: 'Tech Innovation', role: 'admin',            roleLabel: 'Admin',              roleColor: 'red' },
+  { email: 'finance@tech.demo',   password: DEMO_PASSWORD, org: 'TECH',    orgLabel: 'Tech Innovation', role: 'finance_manager',  roleLabel: 'Finance Mgr',        roleColor: 'gold' },
+  { email: 'sales@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    orgLabel: 'Tech Innovation', role: 'sales_manager',    roleLabel: 'Sales Mgr',          roleColor: 'blue' },
 ];
 
 const ROLE_I18N: Record<string, { en: string; zh: string }> = {

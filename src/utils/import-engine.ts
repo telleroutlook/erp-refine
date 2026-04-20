@@ -438,7 +438,7 @@ export async function importEntity(
       errors.push(rowError);
 
       if (onError === 'abort') {
-        return { entity, imported, skipped: records.length - imported - 1, errors, dryRun };
+        return { entity, imported, skipped: records.length - imported, errors, dryRun };
       }
       skipped++;
     }

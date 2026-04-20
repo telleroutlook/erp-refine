@@ -400,7 +400,7 @@ const paymentRequestsCrud = buildCrudRoutes({
   table: 'payment_requests',
   path: '/payment-requests',
   resourceName: 'PaymentRequest',
-  listSelect: 'id, request_number, total_amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
+  listSelect: 'id, request_number, amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
   detailSelect: '*, supplier:suppliers(id,name,code), supplier_invoice:supplier_invoices(id,invoice_number)',
   createReturnSelect: 'id, request_number, status',
   defaultSort: 'created_at',

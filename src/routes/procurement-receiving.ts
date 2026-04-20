@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { adjustStock, createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 
@@ -135,10 +135,10 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get receipt with items
+  // 1. Get receipt (no need to fetch items — trigger handles stock/qty updates)
   const { data: receipt, error: fetchError } = await db
     .from('purchase_receipts')
-    .select('*, items:purchase_receipt_items(*)')
+    .select('id, status, receipt_number')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -151,56 +151,8 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
     throw ApiError.invalidState('PurchaseReceipt', receipt.status, 'confirm', requestId);
   }
 
-  // 3. Process each item: adjust stock + record transaction + update PO item received qty
-  for (const item of receipt.items) {
-    // 3a. Adjust stock (increase on-hand)
-    await adjustStock(db, {
-      organizationId: user.organizationId,
-      warehouseId: receipt.warehouse_id,
-      productId: item.product_id,
-      qtyDelta: item.quantity,
-    }, requestId);
-
-    // 3b. Record stock transaction
-    await createStockTransaction(db, {
-      organizationId: user.organizationId,
-      warehouseId: receipt.warehouse_id,
-      productId: item.product_id,
-      transactionType: 'in',
-      qty: item.quantity,
-      referenceType: 'purchase',
-      referenceId: receipt.id,
-      createdBy: user.userId,
-    }, requestId);
-
-    // 3c. Update PO item received quantity
-    if (item.purchase_order_item_id) {
-      const { error: poItemErr } = await db.rpc('increment_field', {
-        p_table: 'purchase_order_items',
-        p_id: item.purchase_order_item_id,
-        p_field: 'received_quantity',
-        p_delta: item.quantity,
-      }).single();
-
-      // Fallback: manual update if RPC not available
-      if (poItemErr) {
-        const { data: poItem } = await db
-          .from('purchase_order_items')
-          .select('id, received_quantity')
-          .eq('id', item.purchase_order_item_id)
-          .single();
-
-        if (poItem) {
-          await db
-            .from('purchase_order_items')
-            .update({ received_quantity: (poItem.received_quantity ?? 0) + item.quantity })
-            .eq('id', poItem.id);
-        }
-      }
-    }
-  }
-
-  // 4. Update receipt status to confirmed
+  // 3. Update status to 'confirmed' — triggers handle stock transactions,
+  //    received_quantity on PO items, and PO status automatically.
   const { error: updateError } = await db
     .from('purchase_receipts')
     .update({
@@ -212,38 +164,6 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 
-  // 5. Check PO completion: if all items fully received, update PO status
-  if (receipt.purchase_order_id) {
-    const { data: poItems } = await db
-      .from('purchase_order_items')
-      .select('id, quantity, received_quantity')
-      .eq('purchase_order_id', receipt.purchase_order_id);
-
-    if (poItems && poItems.length > 0) {
-      const allReceived = poItems.every(
-        (poi: { quantity: number; received_quantity: number }) => (poi.received_quantity ?? 0) >= poi.quantity
-      );
-      const someReceived = poItems.some(
-        (poi: { quantity: number; received_quantity: number }) => (poi.received_quantity ?? 0) > 0
-      );
-
-      let poStatus: string | undefined;
-      if (allReceived) {
-        poStatus = 'received';
-      } else if (someReceived) {
-        poStatus = 'partially_received';
-      }
-
-      if (poStatus) {
-        await db
-          .from('purchase_orders')
-          .update({ status: poStatus })
-          .eq('id', receipt.purchase_order_id);
-      }
-    }
-  }
-
-  // 6. Return confirmed receipt
   return c.json({
     data: { id: receipt.id, receipt_number: receipt.receipt_number, status: 'confirmed' },
   });
@@ -477,61 +397,6 @@ procurementReceiving.post('/three-way-match', async (c) => {
   if (insertErr) throw ApiError.database(insertErr.message, requestId);
   return c.json({ data: matchResult }, 201);
 });
-
-// ────────────────────────────────────────────────────────────────────────────
-// Payment Requests (full CRUD via crud-factory)
-// ────────────────────────────────────────────────────────────────────────────
-
-// Custom POST to auto-generate request_number via sequence
-procurementReceiving.post('/payment-requests', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const body = await c.req.json();
-
-  // Auto-generate request number
-  const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
-    p_organization_id: user.organizationId,
-    p_sequence_name: 'payment_request',
-  });
-  if (seqError) throw ApiError.database(`Failed to generate request number: ${seqError.message}`, requestId);
-
-  const { data, error } = await db
-    .from('payment_requests')
-    .insert({
-      ...body,
-      request_number: seqData,
-      organization_id: user.organizationId,
-      status: 'draft',
-      created_by: user.userId,
-    })
-    .select('id, request_number, status')
-    .single();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  return c.json({ data }, 201);
-});
-
-// Mount crud-factory routes (list, detail, update, delete — POST is handled above)
-const paymentCrud = buildCrudRoutes({
-  table: 'payment_requests',
-  path: '/payment-requests',
-  resourceName: 'PaymentRequest',
-  listSelect:
-    'id, request_number, amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
-  detailSelect:
-    '*, supplier:suppliers(id,name,code), supplier_invoice:supplier_invoices(id,invoice_number)',
-  createReturnSelect: 'id, request_number, status',
-  defaultSort: 'created_at',
-  softDelete: true,
-  orgScoped: true,
-  audit: true,
-  disableCreate: true, // POST handled above with sequence generation
-  createDefaults: (user) => ({
-    status: 'draft',
-    requested_by: user.userId,
-  }),
-});
-
-procurementReceiving.route('', paymentCrud);
 
 // ────────────────────────────────────────────────────────────────────────────
 // Purchase Receipt Items — standalone CRUD via factory

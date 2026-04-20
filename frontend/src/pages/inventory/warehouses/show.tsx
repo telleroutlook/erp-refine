@@ -2,7 +2,7 @@ import React from 'react';
 import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions } from 'antd';
-import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
+import { StatusTag } from '../../../components/shared/StatusTag';
 
 export const WarehouseShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'warehouses' });
@@ -15,7 +15,7 @@ export const WarehouseShow: React.FC = () => {
         <Descriptions.Item label="仓库名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="位置">{record?.location}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <ActiveStatusTag value={record?.is_active} />
+          <StatusTag status={record?.status} />
         </Descriptions.Item>
         {record?.notes && <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>

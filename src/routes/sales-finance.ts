@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { adjustStock, createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 
@@ -264,28 +264,19 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     throw ApiError.invalidState('SalesReturn', salesReturn.status, 'receive', requestId);
   }
 
-  // 3. Process each item: adjust stock (increase) + record transaction
-  for (const item of salesReturn.items) {
-    // 3a. Adjust stock (return to inventory)
-    await adjustStock(db, {
-      organizationId: user.organizationId,
-      warehouseId: salesReturn.warehouse_id,
-      productId: item.product_id,
-      qtyDelta: item.quantity,
-    }, requestId);
-
-    // 3b. Record stock transaction
+  // 3. Process each item: record stock-in transaction (trigger updates stock_records)
+  await Promise.all(salesReturn.items.map(async (item: Record<string, unknown>) => {
     await createStockTransaction(db, {
       organizationId: user.organizationId,
       warehouseId: salesReturn.warehouse_id,
-      productId: item.product_id,
+      productId: item.product_id as string,
       transactionType: 'in',
-      qty: item.quantity,
+      qty: item.quantity as number,
       referenceType: 'sales_return',
       referenceId: salesReturn.id,
       createdBy: user.userId,
     }, requestId);
-  }
+  }));
 
   // 4. Update return status to 'received'
   const { error: updateError } = await db

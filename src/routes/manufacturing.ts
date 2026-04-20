@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { adjustStock, createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
 const manufacturing = new Hono<{ Bindings: Env }>();
@@ -259,23 +259,14 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   const issuedMaterials: string[] = [];
 
   // 2. For each material, issue remaining quantity
-  for (const mat of materials) {
-    const issueQty = mat.required_quantity - mat.issued_quantity;
-    if (issueQty <= 0) continue;
+  await Promise.all(materials.map(async (mat: Record<string, unknown>) => {
+    const issueQty = (mat.required_quantity as number) - (mat.issued_quantity as number);
+    if (issueQty <= 0) return;
 
-    // a. Adjust stock (deduct from warehouse)
-    await adjustStock(db, {
-      organizationId: user.organizationId,
-      warehouseId: wo.warehouse_id,
-      productId: mat.product_id,
-      qtyDelta: -issueQty,
-    }, requestId);
-
-    // b. Create stock transaction
     await createStockTransaction(db, {
       organizationId: user.organizationId,
       warehouseId: wo.warehouse_id,
-      productId: mat.product_id,
+      productId: mat.product_id as string,
       transactionType: 'out',
       qty: issueQty,
       referenceType: 'production',
@@ -283,15 +274,14 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
       createdBy: user.userId,
     }, requestId);
 
-    // c. Update material: issued_quantity
-    const newIssuedQty = mat.issued_quantity + issueQty;
+    const newIssuedQty = (mat.issued_quantity as number) + issueQty;
     await db
       .from('work_order_materials')
       .update({ issued_quantity: newIssuedQty })
       .eq('id', mat.id);
 
-    issuedMaterials.push(mat.id);
-  }
+    issuedMaterials.push(mat.id as string);
+  }));
 
   // 3. Update work order status to 'in_progress' if not already
   if (wo.status !== 'in_progress') {
@@ -324,15 +314,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     throw ApiError.invalidState('Work Order', wo.status, 'complete', requestId);
   }
 
-  // 2. Adjust stock: add completed finished product
-  await adjustStock(db, {
-    organizationId: user.organizationId,
-    warehouseId: wo.warehouse_id,
-    productId: wo.product_id,
-    qtyDelta: wo.completed_quantity,
-  }, requestId);
-
-  // 3. Create stock transaction for finished goods receipt
+  // 2. Record finished goods stock-in (trigger updates stock_records)
   await createStockTransaction(db, {
     organizationId: user.organizationId,
     warehouseId: wo.warehouse_id,

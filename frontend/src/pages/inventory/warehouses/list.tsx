@@ -4,7 +4,7 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
-import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
+import { StatusTag } from '../../../components/shared/StatusTag';
 import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const WarehouseList: React.FC = () => {
@@ -31,10 +31,10 @@ export const WarehouseList: React.FC = () => {
         <Table.Column dataIndex="name" title="仓库名称" />
         <Table.Column dataIndex="location" title="位置" />
         <Table.Column
-          dataIndex="is_active"
+          dataIndex="status"
           title={t('common.status')}
           width={100}
-          render={(v) => <ActiveStatusTag value={v} />}
+          render={(v) => <StatusTag status={v} />}
         />
         <Table.Column
           title={t('common.actions')}

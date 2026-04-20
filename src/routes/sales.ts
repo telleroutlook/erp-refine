@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { adjustStock, createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
 const sales = new Hono<{ Bindings: Env }>();
@@ -71,7 +71,7 @@ sales.post('/sales-orders', async (c) => {
       itemsTable: 'sales_order_items',
       headerFk: 'sales_order_id',
       headerReturnSelect: 'id, order_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
       autoLineNo: true,
     },
     {
@@ -138,10 +138,10 @@ const soItemsConfig: CrudConfig = {
   table: 'sales_order_items',
   path: '/sales-order-items',
   resourceName: 'SalesOrderItem',
-  listSelect: 'id, line_number, qty, shipped_qty, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, shipped_quantity, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, qty, unit_price',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, quantity, unit_price',
+  defaultSort: 'line_no',
   softDelete: true,
   orgScoped: false,
 };
@@ -314,10 +314,10 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get shipment with items
+  // 1. Get shipment (no need to fetch items — trigger handles stock/qty/SO-status updates)
   const { data: shipment, error: fetchError } = await db
     .from('sales_shipments')
-    .select('*, items:sales_shipment_items(*)')
+    .select('id, status, shipment_number')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -325,89 +325,26 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
 
   if (fetchError || !shipment) throw ApiError.notFound('SalesShipment', id, requestId);
 
-  // 2. Validate status (must be 'draft' or 'confirmed')
-  if (shipment.status !== 'draft' && shipment.status !== 'confirmed') {
+  // 2. Validate status
+  if (shipment.status !== 'draft') {
     throw ApiError.invalidState('SalesShipment', shipment.status, 'confirm', requestId);
   }
 
-  // 3. Process each item: deduct stock + record transaction + update SO item shipped_qty
-  for (const item of shipment.items) {
-    // 3a. Adjust stock (decrease on-hand)
-    await adjustStock(db, {
-      organizationId: user.organizationId,
-      warehouseId: shipment.warehouse_id,
-      productId: item.product_id,
-      qtyDelta: -item.qty,
-    }, requestId);
-
-    // 3b. Record stock transaction
-    await createStockTransaction(db, {
-      organizationId: user.organizationId,
-      warehouseId: shipment.warehouse_id,
-      productId: item.product_id,
-      transactionType: 'out',
-      qty: item.qty,
-      referenceType: 'sales',
-      referenceId: shipment.id,
-      createdBy: user.userId,
-    }, requestId);
-
-    // 3c. Update SO item shipped_qty (atomic update to avoid read-modify-write races)
-    if (item.sales_order_item_id) {
-      const { error: updateErr } = await db.rpc('atomic_increment_shipped_qty', {
-        p_id: item.sales_order_item_id,
-        p_delta: item.qty,
-      });
-      if (updateErr) {
-        throw ApiError.database(`Failed to update shipped_qty: ${updateErr.message}`, requestId);
-      }
-    }
-  }
-
-  // 4. Update shipment status to 'shipped'
+  // 3. Update status to 'confirmed' — triggers handle stock transactions,
+  //    shipped_quantity on SO items, and SO status automatically.
   const { error: updateError } = await db
     .from('sales_shipments')
     .update({
-      status: 'shipped',
+      status: 'confirmed',
+      confirmed_by: user.userId,
+      confirmed_at: new Date().toISOString(),
     })
     .eq('id', id);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 
-  // 5. Check SO completion: if all items fully shipped, update SO status
-  if (shipment.sales_order_id) {
-    const { data: soItems } = await db
-      .from('sales_order_items')
-      .select('id, qty, shipped_qty')
-      .eq('sales_order_id', shipment.sales_order_id);
-
-    if (soItems && soItems.length > 0) {
-      const allShipped = soItems.every(
-        (si: { qty: number; shipped_qty: number }) => (si.shipped_qty ?? 0) >= si.qty
-      );
-      const someShipped = soItems.some(
-        (si: { qty: number; shipped_qty: number }) => (si.shipped_qty ?? 0) > 0
-      );
-
-      let soStatus: string | undefined;
-      if (allShipped) {
-        soStatus = 'shipped';
-      } else if (someShipped) {
-        soStatus = 'partially_shipped';
-      }
-
-      if (soStatus) {
-        await db
-          .from('sales_orders')
-          .update({ status: soStatus })
-          .eq('id', shipment.sales_order_id);
-      }
-    }
-  }
-
-  // 6. Return confirmed shipment
   return c.json({
-    data: { id: shipment.id, shipment_number: shipment.shipment_number, status: 'shipped' },
+    data: { id: shipment.id, shipment_number: shipment.shipment_number, status: 'confirmed' },
   });
 });
 
@@ -419,9 +356,9 @@ sales.route('', buildCrudRoutes({
   table: 'sales_shipment_items',
   path: '/sales-shipment-items',
   resourceName: 'SalesShipmentItem',
-  listSelect: 'id, qty, product:products(id,name,code)',
+  listSelect: 'id, quantity, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, qty',
+  createReturnSelect: 'id, quantity',
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,

@@ -26,8 +26,8 @@ export function rateLimitMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
       if (res.status === 429) {
         return c.json({ error: 'Rate limit exceeded' }, 429);
       }
-    } catch {
-      // Fail open — don't block requests if rate limiter is unavailable
+    } catch (e) {
+      console.warn('[rate-limit] DO unavailable, failing open:', e);
     }
 
     await next();
