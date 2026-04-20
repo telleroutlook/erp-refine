@@ -290,7 +290,7 @@ finance.post('/budgets', async (c) => {
       itemsTable: 'budget_lines',
       headerFk: 'budget_id',
       headerReturnSelect: 'id, name, status',
-      itemsReturnSelect: 'id, account_code, planned_amount',
+      itemsReturnSelect: 'id, account_subject_id, planned_amount',
     },
     {
       header: {
@@ -423,10 +423,10 @@ const budgetLinesConfig: CrudConfig = {
   table: 'budget_lines',
   path: '/budget-lines',
   resourceName: 'BudgetLine',
-  listSelect: 'id, account_code, period_month, planned_amount, actual_amount, description, cost_center:cost_centers(id,code,name)',
+  listSelect: 'id, account_subject_id, period, planned_amount, actual_amount, notes, cost_center:cost_centers(id,code,name)',
   detailSelect: '*, cost_center:cost_centers(id,code,name)',
-  createReturnSelect: 'id, account_code, period_month, planned_amount',
-  defaultSort: 'period_month',
+  createReturnSelect: 'id, account_subject_id, period, planned_amount',
+  defaultSort: 'period',
   softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'budget_id', parentTable: 'budgets' },
@@ -447,7 +447,7 @@ const voucherEntriesConfig: CrudConfig = {
   defaultSort: 'sequence',
   softDelete: false,
   orgScoped: false,
-  parentOwnership: { parentFk: 'voucher_id', parentTable: 'accounting_vouchers' },
+  parentOwnership: { parentFk: 'voucher_id', parentTable: 'vouchers' },
 };
 finance.route('', buildCrudRoutes(voucherEntriesConfig));
 

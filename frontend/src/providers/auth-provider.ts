@@ -46,7 +46,39 @@ export const authProvider: AuthProvider = {
     const token = localStorage.getItem('access_token');
     if (!token) return { authenticated: false, redirectTo: '/login' };
 
-    // Lightweight check using stored user
+    // Check JWT expiry from the exp claim
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < nowSec) {
+        // Token expired — attempt refresh
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          const res = await fetch(`${API_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          if (res.ok) {
+            const { data } = await res.json();
+            localStorage.setItem('access_token', data.session.accessToken);
+            localStorage.setItem('refresh_token', data.session.refreshToken);
+            return { authenticated: true };
+          }
+        }
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        return { authenticated: false, redirectTo: '/login' };
+      }
+    } catch {
+      // Malformed token — treat as unauthenticated
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      return { authenticated: false, redirectTo: '/login' };
+    }
+
     const user = localStorage.getItem('user');
     if (user) return { authenticated: true };
 

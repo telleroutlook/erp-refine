@@ -22,7 +22,7 @@ masterData.get('/products', async (c) => {
 
   const { data, count, error } = await db
     .from('products')
-    .select('id, name, code, description, type, uom, cost_price, list_price, category:product_categories(id,name)', { count: 'exact' })
+    .select('id, name, code, description, type, cost_price, list_price, category:product_categories(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -38,7 +38,7 @@ masterData.get('/products/:id', async (c) => {
 
   const { data, error } = await db
     .from('products')
-    .select('id, name, code, description, type, unit, uom, cost_price, list_price, category_id, default_tax_code, status, is_lot_controlled, is_serial_controlled, safety_stock_days, average_daily_consumption, min_stock, max_stock, deleted_at, created_at, updated_at, category:product_categories(id,name)')
+    .select('id, name, code, description, type, unit, cost_price, list_price, category_id, default_tax_code_id, status, is_lot_controlled, is_serial_controlled, safety_stock_days, average_daily_consumption, min_stock, max_stock, deleted_at, created_at, updated_at, category:product_categories(id,name)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -132,8 +132,8 @@ const warehousesConfig: CrudConfig = {
   table: 'warehouses',
   path: '/warehouses',
   resourceName: 'Warehouse',
-  listSelect: 'id, name, code, location, type, status',
-  detailSelect: 'id, code, name, location, type, status, manager_id, organization_id, deleted_at, created_at, updated_at, manager:employees(id,name), locations:storage_locations(id,code,name,zone,is_active)',
+  listSelect: 'id, name, code, location, warehouse_type, status',
+  detailSelect: 'id, code, name, location, warehouse_type, status, manager_id, organization_id, deleted_at, created_at, updated_at, manager:employees(id,name), locations:storage_locations(id,code,name,zone,is_active)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'code',
   softDelete: true,
