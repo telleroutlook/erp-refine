@@ -27,11 +27,24 @@ export const dataProvider: DataProvider = {
       _order: sortOrder,
     });
 
-    // Append filters
+    // Append filters — map Refine operators to query params
     if (filters) {
       for (const filter of filters) {
         if ('field' in filter) {
-          params.append(filter.field, String(filter.value));
+          const { field, operator, value } = filter;
+          if (operator === 'eq' || operator === undefined) {
+            params.append(field, String(value));
+          } else if (operator === 'ne') {
+            params.append(`${field}_ne`, String(value));
+          } else if (operator === 'contains') {
+            params.append(`${field}_like`, String(value));
+          } else if (operator === 'in') {
+            params.append(`${field}_in`, Array.isArray(value) ? value.join(',') : String(value));
+          } else if (operator === 'null') {
+            params.append(`${field}_is`, 'null');
+          } else if (operator === 'nnull') {
+            params.append(`${field}_is`, 'not.null');
+          }
         }
       }
     }
@@ -54,7 +67,10 @@ export const dataProvider: DataProvider = {
       headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Not found');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail ?? err.error ?? `HTTP ${response.status}`);
+    }
     const json = await response.json();
     return { data: json.data };
   },

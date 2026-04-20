@@ -29,7 +29,7 @@ export const PurchaseReceiptShow: React.FC = () => {
               { dataIndex: ['product', 'name'], title: '产品' },
               { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
               { dataIndex: 'quantity', title: '收货数量', width: 100, align: 'right' },
-              { dataIndex: 'uom', title: '单位', width: 80 },
+              { dataIndex: ['product', 'uom'], title: '单位', width: 80 },
             ]}
           />
         </>

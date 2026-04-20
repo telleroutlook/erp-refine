@@ -2,7 +2,7 @@ import React from 'react';
 import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions } from 'antd';
-import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
+import { StatusTag } from '../../../components/shared/StatusTag';
 
 export const CustomerShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'customers' });
@@ -14,9 +14,9 @@ export const CustomerShow: React.FC = () => {
         <Descriptions.Item label="客户编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="客户名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <ActiveStatusTag value={record?.is_active} />
+          <StatusTag status={record?.status} />
         </Descriptions.Item>
-        <Descriptions.Item label="联系人">{record?.contact_name}</Descriptions.Item>
+        <Descriptions.Item label="联系人">{record?.contact}</Descriptions.Item>
         <Descriptions.Item label="电话">{record?.phone}</Descriptions.Item>
         <Descriptions.Item label="邮箱">{record?.email}</Descriptions.Item>
         {record?.address && (

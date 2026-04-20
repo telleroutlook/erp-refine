@@ -65,7 +65,7 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'purchase_receipt',
   });
-  if (seqError) throw ApiError.database(`Failed to generate receipt number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -99,9 +99,25 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['status', 'notes', 'received_date']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('purchase_receipts')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('PurchaseReceipt', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('purchase_receipts')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -220,7 +236,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'supplier_invoice',
   });
-  if (seqError) throw ApiError.database(`Failed to generate invoice number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -238,7 +254,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
         invoice_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
-        uploaded_by: user.userId,
+        created_by: user.userId,
       },
       items: items ?? [],
     },
@@ -254,9 +270,25 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['status', 'notes', 'due_date', 'tax_amount']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('supplier_invoices')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('SupplierInvoice', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('supplier_invoices')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -294,7 +326,7 @@ procurementReceiving.get('/three-way-match', async (c) => {
   const { data, count, error } = await db
     .from('three_way_match_results')
     .select(
-      'id, match_status, quantity_variance, price_variance, amount_variance, purchase_order:purchase_orders(id,order_number), created_at',
+      'id, match_status, po_amount, receipt_amount, invoice_amount, quantity_variance, price_variance, amount_variance, purchase_order:purchase_orders(id,order_number), created_at',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -324,15 +356,14 @@ procurementReceiving.post('/three-way-match', async (c) => {
   const { data: receiptItems, error: rcptErr } = await db
     .from('purchase_receipt_items')
     .select('quantity, purchase_order_item_id')
-    .eq('purchase_receipt_id', purchase_receipt_id)
-    .eq('organization_id', user.organizationId);
+    .eq('purchase_receipt_id', purchase_receipt_id);
 
   if (rcptErr) throw ApiError.database(rcptErr.message, requestId);
 
   let receiptAmount = 0;
   if (receiptItems && receiptItems.length > 0) {
     const poItemIds = receiptItems
-      .map((ri: { quantity: any; purchase_order_item_id: string }) => ri.purchase_order_item_id)
+      .map((ri: { quantity: unknown; purchase_order_item_id: string }) => ri.purchase_order_item_id)
       .filter(Boolean);
 
     if (poItemIds.length > 0) {
@@ -347,7 +378,7 @@ procurementReceiving.post('/three-way-match', async (c) => {
 
       for (const ri of receiptItems) {
         const unitPrice = priceMap.get(ri.purchase_order_item_id) ?? 0;
-        receiptAmount += ri.quantity * unitPrice;
+        receiptAmount += (ri.quantity as number) * unitPrice;
       }
     }
   }
@@ -386,13 +417,16 @@ procurementReceiving.post('/three-way-match', async (c) => {
       purchase_order_id,
       purchase_receipt_id,
       supplier_invoice_id,
+      po_amount: poAmount,
+      receipt_amount: receiptAmount,
+      invoice_amount: invoiceAmount,
       quantity_variance: Math.abs(poAmount - receiptAmount),
       price_variance: Math.abs(poAmount - invoiceAmount),
       amount_variance: variance,
       match_status: matchStatus,
       matched_at: new Date().toISOString(),
     })
-    .select('id, match_status, quantity_variance, price_variance, amount_variance')
+    .select('id, match_status, po_amount, receipt_amount, invoice_amount, quantity_variance, price_variance, amount_variance')
     .single();
 
   if (insertErr) throw ApiError.database(insertErr.message, requestId);

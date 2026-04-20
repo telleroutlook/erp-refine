@@ -19,10 +19,10 @@ export const StockRecordList: React.FC = () => {
         <Table.Column dataIndex="qty_on_hand" title="在手数量" width={100} align="right" />
         <Table.Column dataIndex="qty_reserved" title="预留数量" width={100} align="right" />
         <Table.Column
+          dataIndex="qty_available"
           title="可用数量"
           width={100}
           align="right"
-          render={(_, r: any) => r.qty_on_hand - r.qty_reserved}
         />
       </Table>
     </List>

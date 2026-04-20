@@ -162,7 +162,7 @@ procurement.get('/suppliers', async (c) => {
 
   const { data, count, error } = await db
     .from('suppliers')
-    .select('id, name, code, contact, email, phone, status', { count: 'exact' })
+    .select('id, name, code, contact_email, contact_phone, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -184,7 +184,7 @@ procurement.get('/purchase-requisitions', async (c) => {
   const { data, count, error } = await db
     .from('purchase_requisitions')
     .select(
-      'id, requisition_number, request_date, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name), created_at',
+      'id, requisition_number, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name), request_date',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -263,9 +263,25 @@ procurement.put('/purchase-requisitions/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['status', 'notes', 'priority']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('purchase_requisitions')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('PurchaseRequisition', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('purchase_requisitions')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -379,9 +395,25 @@ procurement.put('/rfq-headers/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['status', 'notes', 'due_date', 'rfq_number']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('rfq_headers')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('RfqHeader', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('rfq_headers')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -466,7 +498,8 @@ procurement.post('/supplier-quotations', async (c) => {
     {
       header: {
         ...headerFields,
-        status: headerFields.status ?? 'draft',
+        organization_id: user.organizationId,
+        status: 'draft',
       },
       items: items ?? [],
     },
@@ -488,9 +521,25 @@ procurement.put('/supplier-quotations/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['status', 'notes', 'validity_date', 'total_amount', 'currency']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('supplier_quotations')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('SupplierQuotation', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('supplier_quotations')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')

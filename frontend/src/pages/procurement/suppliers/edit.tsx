@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, Switch, Row, Col } from 'antd';
+import { Form, Input, Select, Row, Col } from 'antd';
 
 export const SupplierEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'suppliers' });
@@ -20,23 +20,27 @@ export const SupplierEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="联系人" name="contact_name">
+            <Form.Item label="联系人" name="contact_person">
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="电话" name="phone">
+            <Form.Item label="电话" name="contact_phone">
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="邮箱" name="email" rules={[{ type: 'email' }]}>
+            <Form.Item label="邮箱" name="contact_email" rules={[{ type: 'email' }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="启用" name="is_active" valuePropName="checked">
-              <Switch />
+            <Form.Item label="状态" name="status">
+              <Select options={[
+                { label: '启用', value: 'active' },
+                { label: '停用', value: 'inactive' },
+                { label: '待审批', value: 'pending_approval' },
+              ]} />
             </Form.Item>
           </Col>
           <Col span={24}>

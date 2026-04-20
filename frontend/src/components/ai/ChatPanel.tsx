@@ -5,7 +5,23 @@ import ReactMarkdown from 'react-markdown';
 
 const { Text } = Typography;
 
+/** Stable module-level ReactMarkdown component overrides — avoids object recreation on each render */
+const MD_COMPONENTS = {
+  p: ({ children }: any) => <p style={{ margin: '4px 0' }}>{children}</p>,
+  h3: ({ children }: any) => <h3 style={{ margin: '8px 0 4px', fontSize: 14 }}>{children}</h3>,
+  h4: ({ children }: any) => <h4 style={{ margin: '6px 0 2px', fontSize: 13 }}>{children}</h4>,
+  ul: ({ children }: any) => <ul style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ul>,
+  li: ({ children }: any) => <li style={{ margin: '2px 0' }}>{children}</li>,
+  strong: ({ children }: any) => <strong>{children}</strong>,
+  code: ({ children }: any) => (
+    <code style={{ background: '#e8e8e8', padding: '1px 4px', borderRadius: 3, fontSize: 12 }}>
+      {children}
+    </code>
+  ),
+};
+
 interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
@@ -62,7 +78,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
     if (!text.trim()) return;
 
     if (!confirmed) {
-      setMessages((prev) => [...prev, { role: 'user', content: text, timestamp: new Date() }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'user', content: text, timestamp: new Date() },
+      ]);
       setInput('');
     }
     setLoading(true);
@@ -82,19 +101,27 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
       const response = data.data as Record<string, unknown>;
       const content = extractContent(response);
 
-      setMessages((prev) => [...prev, {
-        role: 'assistant',
-        content,
-        timestamp: new Date(),
-        requiresConfirmation: !!response.requiresConfirmation,
-        originalUserMessage: text,
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content,
+          timestamp: new Date(),
+          requiresConfirmation: !!response.requiresConfirmation,
+          originalUserMessage: text,
+        },
+      ]);
     } catch {
-      setMessages((prev) => [...prev, {
-        role: 'assistant',
-        content: '发生网络错误，请重试',
-        timestamp: new Date(),
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '发生网络错误，请重试',
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -112,8 +139,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
             <small>例如：查看采购订单、销售分析、库存情况...</small>
           </Text>
         )}
-        {messages.map((msg, idx) => (
-          <div key={idx} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+        {messages.map((msg) => (
+          <div key={msg.id} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
             <div
               style={{
                 maxWidth: '85%',
@@ -127,17 +154,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
             >
               {msg.role === 'assistant' ? (
                 <div style={{ overflowX: 'auto' }}>
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p style={{ margin: '4px 0' }}>{children}</p>,
-                      h3: ({ children }) => <h3 style={{ margin: '8px 0 4px', fontSize: 14 }}>{children}</h3>,
-                      h4: ({ children }) => <h4 style={{ margin: '6px 0 2px', fontSize: 13 }}>{children}</h4>,
-                      ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ul>,
-                      li: ({ children }) => <li style={{ margin: '2px 0' }}>{children}</li>,
-                      strong: ({ children }) => <strong>{children}</strong>,
-                      code: ({ children }) => <code style={{ background: '#e8e8e8', padding: '1px 4px', borderRadius: 3, fontSize: 12 }}>{children}</code>,
-                    }}
-                  >
+                  <ReactMarkdown components={MD_COMPONENTS}>
                     {msg.content}
                   </ReactMarkdown>
                   {msg.requiresConfirmation && (

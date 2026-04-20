@@ -216,13 +216,17 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       }
 
       if (softDelete) {
-        const { error } = await db
+        let q = db
           .from(table)
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);
+        if (orgScoped) q = q.eq('organization_id', user.organizationId);
+        const { error } = await q;
         if (error) throw ApiError.database(error.message, requestId);
       } else {
-        const { error } = await db.from(table).delete().eq('id', id);
+        let q = db.from(table).delete().eq('id', id);
+        if (orgScoped) q = q.eq('organization_id', user.organizationId);
+        const { error } = await q;
         if (error) throw ApiError.database(error.message, requestId);
       }
 

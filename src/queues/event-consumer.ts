@@ -90,7 +90,7 @@ async function handleSummarizeSession(job: SummarizeSessionJob, env: Env): Promi
 }
 
 async function processEvent(event: ERPEvent, db: ReturnType<typeof createServiceClient>): Promise<void> {
-  await db.from('business_events').insert({
+  const { error } = await db.from('business_events').insert({
     organization_id: event.organizationId,
     event_type: event.type,
     resource_type: event.resourceType,
@@ -98,6 +98,7 @@ async function processEvent(event: ERPEvent, db: ReturnType<typeof createService
     payload: event.payload,
     created_at: event.timestamp,
   });
+  if (error) throw new Error(`Failed to persist event: ${error.message}`);
 
   switch (event.type) {
     case 'purchase_order.approved':

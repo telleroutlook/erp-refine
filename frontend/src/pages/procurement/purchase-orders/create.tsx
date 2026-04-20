@@ -13,11 +13,6 @@ export const PurchaseOrderCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="订单号" name="order_number" rules={[{ required: true, message: '请输入订单号' }]}>
-              <Input placeholder="如：PO-2026-001" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
             <Form.Item label="状态" name="status" initialValue="draft">
               <Select options={STATUS_OPTIONS} />
             </Form.Item>

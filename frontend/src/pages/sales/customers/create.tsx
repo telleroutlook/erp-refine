@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
-import { Form, Input, Switch, Row, Col } from 'antd';
+import { Form, Input, Select, Row, Col } from 'antd';
 
 export const CustomerCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'customers' });
@@ -20,7 +20,7 @@ export const CustomerCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="联系人" name="contact_name">
+            <Form.Item label="联系人" name="contact">
               <Input />
             </Form.Item>
           </Col>
@@ -35,8 +35,12 @@ export const CustomerCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="启用" name="is_active" valuePropName="checked" initialValue={true}>
-              <Switch />
+            <Form.Item label="状态" name="status" initialValue="active">
+              <Select options={[
+                { label: '启用', value: 'active' },
+                { label: '停用', value: 'inactive' },
+                { label: '黑名单', value: 'blocked' },
+              ]} />
             </Form.Item>
           </Col>
           <Col span={24}>

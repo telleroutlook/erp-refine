@@ -19,6 +19,7 @@ interface ToolEvent {
 }
 
 interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
@@ -66,7 +67,7 @@ export const AiSidebar: React.FC = () => {
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || streaming) return;
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: text, timestamp: new Date() }]);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text, timestamp: new Date() }]);
     setStreaming(true);
     setStreamingText('');
     setActiveTools([]);
@@ -145,6 +146,7 @@ export const AiSidebar: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
+          id: crypto.randomUUID(),
           role: 'assistant',
           content: accText || '（无响应）',
           timestamp: new Date(),
@@ -155,7 +157,7 @@ export const AiSidebar: React.FC = () => {
       if ((err as Error).name !== 'AbortError') {
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: '网络错误，请重试。', timestamp: new Date() },
+          { id: crypto.randomUUID(), role: 'assistant', content: '网络错误，请重试。', timestamp: new Date() },
         ]);
       }
     } finally {
@@ -219,8 +221,8 @@ export const AiSidebar: React.FC = () => {
           </div>
         )}
 
-        {messages.map((msg, idx) => (
-          <div key={idx}>
+        {messages.map((msg) => (
+          <div key={msg.id}>
             {/* Tool events for assistant message */}
             {msg.role === 'assistant' && msg.toolEvents && msg.toolEvents.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, paddingLeft: 4 }}>

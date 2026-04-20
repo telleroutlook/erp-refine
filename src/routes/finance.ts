@@ -20,7 +20,7 @@ const accountSubjectsConfig: CrudConfig = {
   table: 'account_subjects',
   path: '/account-subjects',
   resourceName: 'AccountSubject',
-  listSelect: 'id, code, name, category, balance_direction, parent_id, is_leaf, status',
+  listSelect: 'id, code, name, category, balance_direction, parent_id, is_leaf, is_active, status',
   detailSelect: '*, parent:account_subjects(id,code,name)',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
@@ -59,7 +59,6 @@ finance.get('/vouchers', async (c) => {
     .from('vouchers')
     .select('id, voucher_number, voucher_date, voucher_type, notes, total_debit, total_credit, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -160,7 +159,7 @@ finance.put('/vouchers/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'voucher_date', 'voucher_type', 'description',
+  const permitted = ['voucher_date', 'voucher_type', 'notes',
     'reference_type', 'reference_id', 'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 

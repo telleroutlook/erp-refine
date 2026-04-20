@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { createStockTransaction } from '../utils/stock-helpers';
+import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
 const manufacturing = new Hono<{ Bindings: Env }>();
@@ -121,9 +121,8 @@ manufacturing.get('/work-orders', async (c) => {
 
   const { data, count, error } = await db
     .from('work_orders')
-    .select('id, work_order_number, planned_qty, completed_qty, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
+    .select('id, work_order_number, planned_qty, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -160,6 +159,15 @@ manufacturing.post('/work-orders', async (c) => {
   // Look up BOM items to auto-create work order materials
   let bomItems: any[] = [];
   if (body.bom_header_id) {
+    // Verify the BOM header belongs to the caller's org before fetching its items
+    const { data: bomHeader, error: bomHeaderErr } = await db
+      .from('bom_headers')
+      .select('id')
+      .eq('id', body.bom_header_id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (bomHeaderErr || !bomHeader) throw ApiError.notFound('BomHeader', body.bom_header_id, requestId);
+
     const { data: bom, error: bomError } = await db
       .from('bom_items')
       .select('product_id, qty, unit, scrap_rate, sequence')
@@ -190,8 +198,8 @@ manufacturing.post('/work-orders', async (c) => {
     const materials = bomItems.map((item: any) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
-      required_qty: item.qty * (body.planned_qty ?? 1),
-      issued_qty: 0,
+      required_quantity: item.qty * (body.planned_qty ?? 1),
+      issued_quantity: 0,
       warehouse_id: body.warehouse_id,
     }));
 
@@ -255,7 +263,7 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   // 1. Get work order with materials, validate status
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_qty, issued_qty)')
+    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_quantity, issued_quantity)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -270,12 +278,15 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   const materials = (wo.materials ?? []) as any[];
   const issuedMaterials: string[] = [];
 
-  // 2. For each material, issue remaining quantity
-  await Promise.all(materials.map(async (mat: Record<string, unknown>) => {
-    const issueQty = (mat.required_qty as number) - (mat.issued_qty as number);
-    if (issueQty <= 0) return;
+  // 2. Build batch arrays — compute issue quantities up-front
+  const stockTxInputs: Parameters<typeof batchCreateStockTransactions>[1] = [];
+  const materialUpdates: Array<{ id: string; newIssuedQty: number }> = [];
 
-    await createStockTransaction(db, {
+  for (const mat of materials as Record<string, unknown>[]) {
+    const issueQty = (mat.required_quantity as number) - (mat.issued_quantity as number);
+    if (issueQty <= 0) continue;
+
+    stockTxInputs.push({
       organizationId: user.organizationId,
       warehouseId: wo.warehouse_id,
       productId: mat.product_id as string,
@@ -284,16 +295,25 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
       referenceType: 'production',
       referenceId: wo.id,
       createdBy: user.userId,
-    }, requestId);
+    });
 
-    const newIssuedQty = (mat.issued_qty as number) + issueQty;
-    await db
-      .from('work_order_materials')
-      .update({ issued_qty: newIssuedQty })
-      .eq('id', mat.id);
+    materialUpdates.push({
+      id: mat.id as string,
+      newIssuedQty: (mat.issued_quantity as number) + issueQty,
+    });
 
     issuedMaterials.push(mat.id as string);
-  }));
+  }
+
+  // Single batch insert for all stock transactions
+  await batchCreateStockTransactions(db, stockTxInputs, requestId);
+
+  // Batch update work_order_materials — one request per row (Supabase lacks multi-row UPDATE)
+  await Promise.all(
+    materialUpdates.map(({ id, newIssuedQty }) =>
+      db.from('work_order_materials').update({ issued_quantity: newIssuedQty }).eq('id', id)
+    )
+  );
 
   // 3. Update work order status to 'in_progress' if not already
   if (wo.status !== 'in_progress') {
@@ -315,7 +335,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
   // 1. Get work order, validate status
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, product_id, warehouse_id, completed_qty')
+    .select('id, status, product_id, warehouse_id, completed_quantity')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -333,7 +353,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     warehouseId: wo.warehouse_id,
     productId: wo.product_id,
     transactionType: 'in',
-    qty: wo.completed_qty,
+    qty: wo.completed_quantity,
     referenceType: 'work_order',
     referenceId: wo.id,
     createdBy: user.userId,
@@ -377,6 +397,15 @@ manufacturing.post('/work-order-productions', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
 
+  // Verify the work order belongs to the caller's org before inserting
+  const { data: wo, error: woErr } = await db
+    .from('work_orders')
+    .select('id')
+    .eq('id', body.work_order_id)
+    .eq('organization_id', user.organizationId)
+    .single();
+  if (woErr || !wo) throw ApiError.notFound('WorkOrder', body.work_order_id, requestId);
+
   // Insert production record
   const { data, error } = await db
     .from('work_order_productions')
@@ -398,8 +427,9 @@ manufacturing.post('/work-order-productions', async (c) => {
       .single();
     await db
       .from('work_orders')
-      .update({ completed_qty: (sumRow as any)?.total ?? 0 })
-      .eq('id', data.work_order_id);
+      .update({ completed_quantity: (sumRow as any)?.total ?? 0 })
+      .eq('id', data.work_order_id)
+      .eq('organization_id', user.organizationId);
   }
 
   return c.json({ data }, 201);
@@ -426,9 +456,9 @@ manufacturing.route('', buildCrudRoutes({
   table: 'work_order_materials',
   path: '/work-order-materials',
   resourceName: 'WorkOrderMaterial',
-  listSelect: 'id, required_qty, issued_qty, notes, product:products(id,name,code)',
+  listSelect: 'id, required_quantity, issued_quantity, warehouse_id, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, required_qty',
+  createReturnSelect: 'id, required_quantity',
   defaultSort: 'id',
   softDelete: false,
   orgScoped: false,

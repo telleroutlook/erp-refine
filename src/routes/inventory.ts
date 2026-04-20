@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { createStockTransaction } from '../utils/stock-helpers';
+import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
 const inventory = new Hono<{ Bindings: Env }>();
@@ -169,7 +169,7 @@ inventory.post('/inventory-counts', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'inventory_count',
   });
-  if (seqError) throw ApiError.database(`Failed to generate count number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate count number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { lines, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -179,7 +179,7 @@ inventory.post('/inventory-counts', async (c) => {
       itemsTable: 'inventory_count_lines',
       headerFk: 'inventory_count_id',
       headerReturnSelect: 'id, count_number, status',
-      itemsReturnSelect: 'id, product_id, system_qty, counted_qty, variance_qty',
+      itemsReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity',
     },
     {
       header: {
@@ -210,7 +210,7 @@ inventory.put('/inventory-counts/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'count_date', 'warehouse_id', 'initiated_by'];
+  const permitted = ['status', 'notes', 'count_date', 'warehouse_id', 'created_by'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -265,12 +265,14 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
   }
 
-  // 3. For each line with variance, record stock adjustment transaction
-  await Promise.all(countDoc.lines.map(async (line: Record<string, unknown>) => {
-    const varianceQty = (line.counted_qty as number ?? 0) - (line.system_qty as number ?? 0);
-    if (varianceQty === 0) return;
+  // 3. Collect lines with variance and batch-insert a single stock adjustment transaction set
+  const stockTxInputs: Parameters<typeof batchCreateStockTransactions>[1] = [];
 
-    await createStockTransaction(db, {
+  for (const line of countDoc.lines as Record<string, unknown>[]) {
+    const varianceQty = (line.counted_quantity as number ?? 0) - (line.system_quantity as number ?? 0);
+    if (varianceQty === 0) continue;
+
+    stockTxInputs.push({
       organizationId: user.organizationId,
       warehouseId: countDoc.warehouse_id,
       productId: line.product_id as string,
@@ -278,15 +280,12 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
       qty: varianceQty,
       referenceType: 'inventory_count',
       referenceId: countDoc.id,
-      notes: `Count variance: system=${line.system_qty}, counted=${line.counted_qty}, diff=${varianceQty}`,
+      notes: `Count variance: system=${line.system_quantity}, counted=${line.counted_quantity}, diff=${varianceQty}`,
       createdBy: user.userId,
-    }, requestId);
+    });
+  }
 
-    await db
-      .from('inventory_count_lines')
-      .update({ variance_qty: varianceQty })
-      .eq('id', line.id);
-  }));
+  await batchCreateStockTransactions(db, stockTxInputs, requestId);
 
   // 4. Update count status to 'completed'
   const { error: updateError } = await db

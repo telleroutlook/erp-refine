@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { createSupabaseClient } from '../utils/supabase';
+import { createSupabaseClient, createAuthenticatedClient } from '../utils/supabase';
 
 const auth = new Hono<{ Bindings: Env }>();
 
@@ -35,9 +35,10 @@ auth.post('/login', async (c) => {
 
 auth.post('/logout', async (c) => {
   const authHeader = c.req.header('Authorization');
-  if (!authHeader) return c.json({ error: 'No token' }, 401);
+  if (!authHeader?.startsWith('Bearer ')) return c.json({ error: 'No token' }, 401);
 
-  const db = createSupabaseClient(c.env);
+  const jwt = authHeader.slice(7);
+  const db = createAuthenticatedClient(c.env, jwt);
   const { error } = await db.auth.signOut();
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ data: { message: 'Logged out' } });

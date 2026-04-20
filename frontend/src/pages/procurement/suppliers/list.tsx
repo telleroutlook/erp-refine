@@ -29,9 +29,9 @@ export const SupplierList: React.FC = () => {
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="code" title="供应商编号" width={140} />
         <Table.Column dataIndex="name" title="供应商名称" />
-        <Table.Column dataIndex="contact" title="联系人" width={120} />
-        <Table.Column dataIndex="phone" title="电话" width={140} />
-        <Table.Column dataIndex="email" title="邮箱" width={180} />
+        <Table.Column dataIndex="contact_person" title="联系人" width={120} />
+        <Table.Column dataIndex="contact_phone" title="电话" width={140} />
+        <Table.Column dataIndex="contact_email" title="邮箱" width={180} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

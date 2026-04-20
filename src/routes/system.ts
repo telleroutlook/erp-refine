@@ -64,11 +64,21 @@ system.get('/notifications/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
+  const { data: emp } = await db
+    .from('employees')
+    .select('id')
+    .eq('organization_id', user.organizationId)
+    .eq('user_id', user.userId)
+    .single();
+
+  if (!emp) throw ApiError.notFound('Notification', id, requestId);
+
   const { data, error } = await db
     .from('notifications')
     .select('id, title, body, notification_type, entity_type, entity_id, is_read, read_at, created_at')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .eq('recipient_id', emp.id)
     .single();
 
   if (error || !data) throw ApiError.notFound('Notification', id, requestId);
@@ -80,11 +90,21 @@ system.post('/notifications/:id/read', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
+  const { data: emp } = await db
+    .from('employees')
+    .select('id')
+    .eq('organization_id', user.organizationId)
+    .eq('user_id', user.userId)
+    .single();
+
+  if (!emp) throw ApiError.notFound('Notification', id, requestId);
+
   const { data, error } = await db
     .from('notifications')
     .update({ is_read: true, read_at: new Date().toISOString() })
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .eq('recipient_id', emp.id)
     .select('id, is_read, read_at')
     .single();
 

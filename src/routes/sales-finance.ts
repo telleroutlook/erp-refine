@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { createStockTransaction } from '../utils/stock-helpers';
+import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 
@@ -65,7 +65,7 @@ salesFinance.post('/sales-invoices', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'sales_invoice',
   });
-  if (seqError) throw ApiError.database(`Failed to generate invoice number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -99,9 +99,26 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  // status is intentionally excluded — invoice status must change through workflow endpoints
+  const PERMITTED = new Set(['notes', 'due_date', 'tax_amount', 'discount_amount']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('sales_invoices')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('SalesInvoice', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('sales_invoices')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -178,7 +195,7 @@ salesFinance.post('/sales-returns', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'sales_return',
   });
-  if (seqError) throw ApiError.database(`Failed to generate return number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate return number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
@@ -212,9 +229,25 @@ salesFinance.put('/sales-returns/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['status', 'notes', 'reason', 'warehouse_id']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('sales_returns')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('SalesReturn', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('sales_returns')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -264,19 +297,21 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     throw ApiError.invalidState('SalesReturn', salesReturn.status, 'receive', requestId);
   }
 
-  // 3. Process each item: record stock-in transaction (trigger updates stock_records)
-  await Promise.all(salesReturn.items.map(async (item: Record<string, unknown>) => {
-    await createStockTransaction(db, {
+  // 3. Batch-insert all stock-in transactions (trigger updates stock_records per row)
+  await batchCreateStockTransactions(
+    db,
+    (salesReturn.items as Record<string, unknown>[]).map((item) => ({
       organizationId: user.organizationId,
       warehouseId: salesReturn.warehouse_id,
       productId: item.product_id as string,
-      transactionType: 'in',
+      transactionType: 'in' as const,
       qty: item.quantity as number,
       referenceType: 'sales_return',
       referenceId: salesReturn.id,
       createdBy: user.userId,
-    }, requestId);
-  }));
+    })),
+    requestId
+  );
 
   // 4. Update return status to 'received'
   const { error: updateError } = await db
@@ -344,7 +379,7 @@ salesFinance.post('/customer-receipts', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'customer_receipt',
   });
-  if (seqError) throw ApiError.database(`Failed to generate receipt number: ${seqError.message}`, requestId);
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { data: receipt, error: insertError } = await db
     .from('customer_receipts')
@@ -401,9 +436,25 @@ salesFinance.put('/customer-receipts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const PERMITTED = new Set(['notes', 'payment_method', 'bank_account']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('customer_receipts')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('CustomerReceipt', id, requestId);
+    return c.json({ data: existing });
+  }
+
   const { data, error } = await db
     .from('customer_receipts')
-    .update(body)
+    .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -428,10 +479,6 @@ salesFinance.delete('/customer-receipts/:id', async (c) => {
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
 });
-
-export default salesFinance;
-
-// NOTE: sales_shipment_items standalone routes are in sales.ts
 
 // ────────────────────────────────────────────────────────────────────────────
 // Sales Invoice Items — standalone CRUD via factory
@@ -466,3 +513,5 @@ salesFinance.route('', buildCrudRoutes({
   orgScoped: false,
   parentOwnership: { parentFk: 'sales_return_id', parentTable: 'sales_returns' },
 }));
+
+export default salesFinance;

@@ -190,7 +190,7 @@ quality.put('/quality-inspections/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'result', 'qualified_qty', 'defective_qty',
+  const permitted = ['status', 'notes', 'result', 'qualified_quantity', 'defective_quantity',
     'sample_qty', 'inspector_id', 'defect_code_id', 'completed_at', 'inspection_date'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
@@ -248,7 +248,7 @@ quality.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: false,
   orgScoped: false,
-  parentOwnership: { parentFk: 'inspection_id', parentTable: 'quality_inspections' },
+  parentOwnership: { parentFk: 'quality_inspection_id', parentTable: 'quality_inspections' },
 }));
 
 export default quality;

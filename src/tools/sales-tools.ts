@@ -129,7 +129,10 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
         }));
 
         const { error: lineErr } = await db.from('sales_order_items').insert(lineItems);
-        if (lineErr) throw new Error(lineErr.message);
+        if (lineErr) {
+          await db.from('sales_orders').delete().eq('id', so.id);
+          throw new Error(lineErr.message);
+        }
 
         return { id: so.id, orderNumber: so.order_number, status: 'draft', totalAmount };
       },

@@ -38,7 +38,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           .from('purchase_orders')
           .select(`
             *, supplier:suppliers(id,name,code,contact_email),
-            items:purchase_order_items(*, product:products(id,name,code,uom:uoms(name)))
+            items:purchase_order_items(*, product:products(id,name,code,uom))
           `)
           .eq('id', id)
           .eq('organization_id', organizationId)
@@ -117,7 +117,10 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         }));
 
         const { error: lineErr } = await db.from('purchase_order_items').insert(lineItems);
-        if (lineErr) throw new Error(lineErr.message);
+        if (lineErr) {
+          await db.from('purchase_orders').delete().eq('id', po.id);
+          throw new Error(lineErr.message);
+        }
 
         return { id: po.id, orderNumber: po.order_number, status: 'draft', totalAmount };
       },

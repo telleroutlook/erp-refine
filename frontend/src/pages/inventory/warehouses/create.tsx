@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
-import { Form, Input, Switch, Row, Col } from 'antd';
+import { Form, Input, Select, Row, Col } from 'antd';
 
 export const WarehouseCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'warehouses' });
@@ -25,8 +25,22 @@ export const WarehouseCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="启用" name="is_active" valuePropName="checked" initialValue={true}>
-              <Switch />
+            <Form.Item label="仓库类型" name="type" initialValue="standard">
+              <Select options={[
+                { label: '标准', value: 'standard' },
+                { label: '冷库', value: 'cold_storage' },
+                { label: '危险品', value: 'hazardous' },
+                { label: '保税', value: 'bonded' },
+                { label: '虚拟', value: 'virtual' },
+              ]} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="状态" name="status" initialValue="active">
+              <Select options={[
+                { label: '启用', value: 'active' },
+                { label: '停用', value: 'inactive' },
+              ]} />
             </Form.Item>
           </Col>
           <Col span={24}>

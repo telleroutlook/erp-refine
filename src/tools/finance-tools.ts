@@ -59,13 +59,13 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ okToPay, limit }) => {
         let query = db
           .from('payment_requests')
-          .select('id, request_number, amount, currency, due_date, ok_to_pay, supplier:suppliers(id,name), created_at')
+          .select('id, request_number, amount, due_date, currency, ok_to_pay, supplier:suppliers(id,name), created_at')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (okToPay !== undefined) query = query.eq('ok_to_pay', okToPay);
 
-        const { data, error } = await query.order('due_date', { ascending: true }).limit(limit);
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
         if (error) throw new Error(error.message);
         return data ?? [];
       },

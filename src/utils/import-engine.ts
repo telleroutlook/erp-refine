@@ -114,7 +114,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
     references: { category_id: 'product_categories' },
-    excludeFields: ['list_price', 'is_active', 'safety_stock'],
+    excludeFields: ['list_price', 'status', 'min_stock', 'is_active', 'safety_stock'],
   },
   customers: {
     table: 'customers',

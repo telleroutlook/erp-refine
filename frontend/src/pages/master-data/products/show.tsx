@@ -2,7 +2,7 @@ import React from 'react';
 import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions } from 'antd';
-import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
+import { StatusTag } from '../../../components/shared/StatusTag';
 
 export const ProductShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'products' });
@@ -14,7 +14,7 @@ export const ProductShow: React.FC = () => {
         <Descriptions.Item label="产品编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="产品名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <ActiveStatusTag value={record?.is_active} />
+          <StatusTag status={record?.status} />
         </Descriptions.Item>
         <Descriptions.Item label="单位">{record?.uom}</Descriptions.Item>
         {record?.description && (
