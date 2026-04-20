@@ -2,6 +2,7 @@
 // Finance REST API — Account subjects, cost centers, vouchers, budgets, payments
 
 import { Hono } from 'hono';
+import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
@@ -20,7 +21,7 @@ const accountSubjectsConfig: CrudConfig = {
   table: 'account_subjects',
   path: '/account-subjects',
   resourceName: 'AccountSubject',
-  listSelect: 'id, code, name, category, balance_direction, parent_id, is_leaf, is_active, status',
+  listSelect: 'id, code, name, category, balance_direction, parent_id, is_leaf, status',
   detailSelect: '*, parent:account_subjects(id,code,name)',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
@@ -435,7 +436,16 @@ const paymentRequestsCrud = buildCrudRoutes({
   softDelete: true,
   orgScoped: true,
   audit: true,
-  disableCreate: true, // POST handled above with sequence generation
+  disableCreate: true,
+  updateSchema: z.object({
+    status: z.string().optional(),
+    ok_to_pay: z.boolean().optional(),
+    notes: z.string().optional(),
+    payment_method: z.string().optional(),
+    amount: z.number().optional(),
+    due_date: z.string().optional(),
+    currency: z.string().optional(),
+  }).strict(),
   createDefaults: (user) => ({
     status: 'draft',
     created_by: user.userId,
@@ -469,7 +479,7 @@ const voucherEntriesConfig: CrudConfig = {
   table: 'voucher_entries',
   path: '/voucher-entries',
   resourceName: 'VoucherEntry',
-  listSelect: 'id, entry_type, amount, description, sequence, account:account_subjects(id,code,name)',
+  listSelect: 'id, entry_type, amount, summary, sequence, account:account_subjects(id,code,name)',
   detailSelect: '*, account:account_subjects(id,code,name)',
   createReturnSelect: 'id, entry_type, amount',
   defaultSort: 'sequence',

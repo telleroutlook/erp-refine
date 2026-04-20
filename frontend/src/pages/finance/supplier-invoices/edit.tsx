@@ -28,7 +28,7 @@ export const SupplierInvoiceEdit: React.FC = () => {
               getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={{ width: '100%' }} disabled />
             </Form.Item>
           </Col>
           <Col span={12}>

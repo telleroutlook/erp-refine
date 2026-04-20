@@ -11,8 +11,8 @@ export const PaymentRequestEdit: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="申请单号" name="request_number" rules={[{ required: true }]}>
-              <Input />
+            <Form.Item label="申请单号" name="request_number">
+              <Input disabled />
             </Form.Item>
           </Col>
           <Col span={12}>

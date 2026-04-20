@@ -56,7 +56,7 @@ contracts.post('/contracts', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'contract',
   });
-  if (seqError) throw ApiError.database(`Sequence generation failed: ${seqError.message}`, requestId);
+  if (seqError || !num) throw ApiError.database(`Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const result = await atomicCreateWithItems(db, {
     headerTable: 'contracts',

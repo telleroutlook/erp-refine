@@ -164,7 +164,7 @@ quality.post('/quality-inspections', async (c) => {
     p_organization_id: user.organizationId,
     p_sequence_name: 'quality_inspection',
   });
-  if (seqError) throw ApiError.database(`Sequence generation failed: ${seqError.message}`, requestId);
+  if (seqError || !num) throw ApiError.database(`Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const result = await atomicCreateWithItems(db, {
     headerTable: 'quality_inspections',
@@ -177,6 +177,7 @@ quality.post('/quality-inspections', async (c) => {
       ...headerFields,
       inspection_number: num,
       organization_id: user.organizationId,
+      created_by: user.userId,
     },
     items: items ?? [],
   });

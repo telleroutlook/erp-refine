@@ -57,7 +57,7 @@ export class ApiError extends HTTPException {
   static database(detail: string, requestId?: string, hint?: string): ApiError {
     return new ApiError({
       code: ErrorCode.DATABASE_ERROR,
-      detail,
+      detail: 'A database error occurred. Please verify your input and try again.',
       requestId,
       hint: hint ?? 'Check that all referenced foreign keys exist and required fields are provided.',
     });

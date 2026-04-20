@@ -553,7 +553,7 @@ const prLinesConfig: CrudConfig = {
   table: 'purchase_requisition_lines',
   path: '/purchase-requisition-lines',
   resourceName: 'PurchaseRequisitionLine',
-  listSelect: 'id, line_no, quantity, estimated_unit_price, notes, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, unit_price, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
   createReturnSelect: 'id, line_no, quantity',
   defaultSort: 'line_no',

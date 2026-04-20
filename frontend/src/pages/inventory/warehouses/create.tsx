@@ -43,11 +43,6 @@ export const WarehouseCreate: React.FC = () => {
               ]} />
             </Form.Item>
           </Col>
-          <Col span={24}>
-            <Form.Item label="备注" name="notes">
-              <Input.TextArea rows={2} />
-            </Form.Item>
-          </Col>
         </Row>
       </Form>
     </Create>

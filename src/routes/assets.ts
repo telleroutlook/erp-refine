@@ -78,9 +78,9 @@ assets.put('/fixed-assets/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['asset_name', 'description', 'category', 'residual_value', 'useful_life_months',
-    'depreciation_method', 'department_id', 'cost_center_id', 'warehouse_id',
-    'responsible_person_id', 'serial_number', 'status', 'disposed_date', 'disposed_amount'];
+  const permitted = ['asset_name', 'category', 'salvage_value', 'useful_life_months',
+    'depreciation_method', 'department', 'cost_center_id',
+    'custodian_id', 'status'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -155,9 +155,15 @@ assets.post('/asset-depreciations', async (c) => {
     .single();
   if (assetErr || !asset) throw ApiError.notFound('FixedAsset', body.asset_id, requestId);
 
+  const PERMITTED_DEPRECIATION = new Set(['asset_id', 'period_year', 'period_month', 'depreciation_amount', 'accumulated_depreciation', 'book_value_after']);
+  const insertData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED_DEPRECIATION.has(k)) insertData[k] = v;
+  }
+
   const { data, error } = await db
     .from('asset_depreciations')
-    .insert({ ...body })
+    .insert(insertData)
     .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after')
     .single();
 

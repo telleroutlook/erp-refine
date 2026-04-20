@@ -18,7 +18,7 @@ const customersConfig: CrudConfig = {
   path: '/customers',
   resourceName: 'Customer',
   listSelect:
-    'id, name, code, customer_type, classification, email, phone, status, credit_limit, payment_terms',
+    'id, name, code, customer_type, classification, contact, email, phone, status, credit_limit, payment_terms',
   detailSelect:
     '*, addresses:customer_addresses(id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default), bank_accounts:customer_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',

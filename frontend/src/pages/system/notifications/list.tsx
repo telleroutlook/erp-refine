@@ -12,6 +12,8 @@ const typeLabels: Record<string, string> = {
   info: '通知', warning: '警告', action_required: '待处理', approval: '待审批', system: '系统',
 };
 
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+
 export const NotificationList: React.FC = () => {
   const { show } = useNavigation();
   const { mutate: markRead } = useCustomMutation();
@@ -24,7 +26,7 @@ export const NotificationList: React.FC = () => {
 
   const handleMarkRead = (id: string) => {
     markRead({
-      url: `/api/notifications/${id}/read`,
+      url: `${API_URL}/notifications/${id}/read`,
       method: 'post',
       values: {},
     }, {
@@ -34,7 +36,7 @@ export const NotificationList: React.FC = () => {
 
   const handleMarkAllRead = () => {
     markRead({
-      url: '/api/notifications/read-all',
+      url: `${API_URL}/notifications/read-all`,
       method: 'post',
       values: {},
     }, {

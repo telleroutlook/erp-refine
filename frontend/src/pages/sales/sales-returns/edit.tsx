@@ -12,8 +12,8 @@ export const SalesReturnEdit: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="退货单号" name="return_number" rules={[{ required: true }]}>
-              <Input />
+            <Form.Item label="退货单号" name="return_number">
+              <Input disabled />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -28,12 +28,12 @@ export const SalesReturnEdit: React.FC = () => {
               getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={{ width: '100%' }} disabled />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="货币" name="currency">
-              <Select options={CURRENCY_OPTIONS} />
+              <Select options={CURRENCY_OPTIONS} disabled />
             </Form.Item>
           </Col>
           <Col span={24}>

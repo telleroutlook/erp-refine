@@ -382,7 +382,7 @@ salesFinance.post('/customer-receipts', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const PERMITTED_RECEIPT = new Set(['receipt_date', 'amount', 'reference_type', 'reference_id', 'payment_method', 'notes']);
+  const PERMITTED_RECEIPT = new Set(['receipt_date', 'amount', 'reference_type', 'reference_id', 'payment_method', 'notes', 'customer_id']);
   const insertData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED_RECEIPT.has(k)) insertData[k] = v;
@@ -414,7 +414,7 @@ salesFinance.post('/customer-receipts', async (c) => {
 
     if (!sumError && receiptsSum) {
       const totalPaid = receiptsSum.reduce(
-        (sum: number, r: { amount: number }) => sum + (r.amount ?? 0),
+        (sum: number, r: { amount: number }) => sum + Number(r.amount ?? 0),
         0
       );
 

@@ -22,7 +22,7 @@ masterData.get('/products', async (c) => {
 
   const { data, count, error } = await db
     .from('products')
-    .select('id, name, code, description, type, uom, status, cost_price, list_price, category:product_categories(id,name)', { count: 'exact' })
+    .select('id, name, code, description, type, uom, status, cost_price, sale_price, category:product_categories(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -38,7 +38,7 @@ masterData.get('/products/:id', async (c) => {
 
   const { data, error } = await db
     .from('products')
-    .select('id, name, code, description, type, uom, cost_price, list_price, category_id, default_tax_code, status, is_active, is_lot_controlled, is_serial_controlled, safety_stock_days, average_daily_consumption, min_stock, max_stock, deleted_at, created_at, updated_at, category:product_categories(id,name)')
+    .select('id, name, code, description, type, uom, cost_price, sale_price, category_id, default_tax_code, status, is_active, is_lot_controlled, is_serial_controlled, safety_stock_days, average_daily_consumption, min_stock, max_stock, deleted_at, created_at, updated_at, category:product_categories(id,name)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -50,7 +50,17 @@ masterData.get('/products/:id', async (c) => {
 
 masterData.post('/products', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const body = await c.req.json();
+  const raw = await c.req.json();
+
+  const ALLOWED: Record<string, boolean> = {
+    category_id: true, code: true, name: true, description: true,
+    uom: true, type: true, is_lot_controlled: true, is_serial_controlled: true,
+    safety_stock_days: true, average_daily_consumption: true,
+    cost_price: true, sale_price: true,
+    min_stock: true, max_stock: true, status: true,
+    default_tax_code: true, is_active: true,
+  };
+  const body = Object.fromEntries(Object.entries(raw).filter(([k]) => ALLOWED[k]));
 
   const { data, error } = await db
     .from('products')
@@ -73,7 +83,7 @@ masterData.put('/products/:id', async (c) => {
     uom: true, type: true,
     is_lot_controlled: true, is_serial_controlled: true,
     safety_stock_days: true, average_daily_consumption: true,
-    cost_price: true, list_price: true,
+    cost_price: true, sale_price: true,
     min_stock: true, max_stock: true, status: true,
     default_tax_code: true,
   };

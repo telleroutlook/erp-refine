@@ -23,7 +23,6 @@ manufacturing.get('/bom-headers', async (c) => {
     .from('bom_headers')
     .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -123,7 +122,6 @@ manufacturing.get('/work-orders', async (c) => {
     .from('work_orders')
     .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -140,7 +138,6 @@ manufacturing.get('/work-orders/:id', async (c) => {
     .select('*, product:products(id,name,code), bom:bom_headers(id,bom_number), materials:work_order_materials(*, product:products(id,name,code)), productions:work_order_productions(*)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Work Order', id, requestId);
@@ -225,7 +222,7 @@ manufacturing.put('/work-orders/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'priority', 'planned_quantity', 'warehouse_id',
+  const permitted = ['status', 'notes', 'planned_quantity', 'warehouse_id',
     'planned_completion_date', 'actual_completion_date', 'start_date'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
@@ -268,7 +265,6 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
     .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_quantity, issued_quantity)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -341,7 +337,6 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     .select('id, status, product_id, warehouse_id, completed_quantity')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);

@@ -21,7 +21,10 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
-        if (search) query = query.or(`name.ilike.%${search}%,code.ilike.%${search}%`);
+        if (search) {
+          const s = search.replace(/[%_,().]/g, '');
+          query = query.or(`name.ilike.%${s}%,code.ilike.%${s}%`);
+        }
         if (categoryId) query = query.eq('category_id', categoryId);
 
         const { data, error } = await query.order('name').limit(limit);
@@ -68,7 +71,10 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
-        if (search) query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+        if (search) {
+          const s = search.replace(/[%_,().]/g, '');
+          query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%`);
+        }
 
         const { data, error } = await query.order('name').limit(50);
         if (error) throw new Error(error.message);

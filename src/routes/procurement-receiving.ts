@@ -327,11 +327,10 @@ procurementReceiving.get('/three-way-match', async (c) => {
   const { data, count, error } = await db
     .from('three_way_match_results')
     .select(
-      'id, match_status, po_amount, receipt_amount, invoice_amount, quantity_variance, price_variance, amount_variance, purchase_order:purchase_orders(id,order_number), created_at',
+      'id, match_status, quantity_variance, price_variance, amount_variance, purchase_order:purchase_orders(id,order_number), created_at',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -345,7 +344,16 @@ procurementReceiving.post('/three-way-match', async (c) => {
   const body = await c.req.json();
   const { purchase_order_id, purchase_receipt_id, supplier_invoice_id } = body;
 
-  // 1. Look up PO, receipt items, and invoice in parallel
+  // 1. Verify receipt belongs to caller's org before querying items
+  const { data: receiptCheck, error: receiptCheckErr } = await db
+    .from('purchase_receipts')
+    .select('id')
+    .eq('id', purchase_receipt_id)
+    .eq('organization_id', user.organizationId)
+    .single();
+  if (receiptCheckErr || !receiptCheck) throw ApiError.notFound('PurchaseReceipt', purchase_receipt_id, requestId);
+
+  // 2. Look up PO, receipt items, and invoice in parallel
   const [poResult, receiptItemsResult, invoiceResult] = await Promise.all([
     db.from('purchase_orders')
       .select('id, total_amount')

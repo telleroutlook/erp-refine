@@ -40,7 +40,8 @@ export interface AuditContext {
 export async function executeWithAudit<T>(
   db: SupabaseClient,
   operation: () => Promise<{ data: T | null; error: unknown }>,
-  audit: AuditContext
+  audit: AuditContext,
+  waitUntil?: (promise: PromiseLike<unknown>) => void
 ): Promise<T> {
   const start = Date.now();
   let success = false;
@@ -71,7 +72,7 @@ export async function executeWithAudit<T>(
 
     // Best-effort: write to business_events (fire-and-forget)
     if (success) {
-      db.from('business_events').insert({
+      const auditPromise = db.from('business_events').insert({
         organization_id: audit.organizationId,
         event_type: audit.action,
         resource_type: audit.resource,
@@ -81,6 +82,7 @@ export async function executeWithAudit<T>(
       }).then(({ error: e }) => {
         if (e) logger.warn('Failed to write business_event', e);
       });
+      if (waitUntil) waitUntil(auditPromise);
     }
   }
 }
