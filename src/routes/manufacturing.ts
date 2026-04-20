@@ -82,9 +82,13 @@ manufacturing.put('/bom-headers/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['description', 'qty', 'effective_date', 'expiry_date', 'status', 'version'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('bom_headers')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -210,9 +214,14 @@ manufacturing.put('/work-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['status', 'notes', 'priority', 'planned_qty', 'warehouse_id',
+    'planned_completion_date', 'actual_completion_date', 'start_date'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('work_orders')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -380,20 +389,17 @@ manufacturing.post('/work-order-productions', async (c) => {
 
   if (error) throw ApiError.database(error.message, requestId);
 
-  // Update parent work order's completed_qty (sum of all production qualified_qty)
+  // Update parent work order's completed_qty via aggregate
   if (data.work_order_id) {
-    const { data: sumData, error: sumError } = await db
+    const { data: sumRow } = await db
       .from('work_order_productions')
-      .select('qualified_qty')
-      .eq('work_order_id', data.work_order_id);
-
-    if (!sumError && sumData) {
-      const totalQualified = sumData.reduce((acc: number, r: any) => acc + (r.qualified_qty ?? 0), 0);
-      await db
-        .from('work_orders')
-        .update({ completed_qty: totalQualified })
-        .eq('id', data.work_order_id);
-    }
+      .select('total:qualified_qty.sum()')
+      .eq('work_order_id', data.work_order_id)
+      .single();
+    await db
+      .from('work_orders')
+      .update({ completed_qty: (sumRow as any)?.total ?? 0 })
+      .eq('id', data.work_order_id);
   }
 
   return c.json({ data }, 201);

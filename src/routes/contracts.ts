@@ -82,9 +82,14 @@ contracts.put('/contracts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['title', 'start_date', 'end_date', 'total_amount', 'currency',
+    'payment_terms', 'status', 'notes', 'signed_by', 'signed_at', 'contract_type'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('contracts')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')

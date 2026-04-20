@@ -4,7 +4,7 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
-import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
+import { StatusTag } from '../../../components/shared/StatusTag';
 import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const ProductList: React.FC = () => {
@@ -30,10 +30,10 @@ export const ProductList: React.FC = () => {
         <Table.Column dataIndex="code" title="产品编号" width={140} />
         <Table.Column dataIndex="name" title="产品名称" />
         <Table.Column
-          dataIndex="is_active"
+          dataIndex="status"
           title={t('common.status')}
           width={100}
-          render={(v) => <ActiveStatusTag value={v} />}
+          render={(v) => <StatusTag status={v} />}
         />
         <Table.Column dataIndex="uom" title="单位" width={80} />
         <Table.Column dataIndex="description" title="描述" ellipsis />

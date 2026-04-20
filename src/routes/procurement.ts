@@ -101,9 +101,14 @@ procurement.put('/purchase-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['status', 'notes', 'expected_date', 'warehouse_id', 'payment_terms',
+    'shipping_method', 'currency', 'supplier_id', 'approved_by', 'approved_at'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('purchase_orders')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -157,7 +162,7 @@ procurement.get('/suppliers', async (c) => {
 
   const { data, count, error } = await db
     .from('suppliers')
-    .select('id, name, code, contact_email, contact_phone, status', { count: 'exact' })
+    .select('id, name, code, contact, email, phone, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })

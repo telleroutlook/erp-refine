@@ -59,6 +59,7 @@ finance.get('/vouchers', async (c) => {
     .from('vouchers')
     .select('id, voucher_number, voucher_date, voucher_type, notes, total_debit, total_credit, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -158,9 +159,14 @@ finance.put('/vouchers/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['status', 'notes', 'voucher_date', 'voucher_type', 'description',
+    'reference_type', 'reference_id', 'approved_by', 'approved_at'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('vouchers')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -224,7 +230,6 @@ finance.post('/vouchers/:id/post', async (c) => {
     .from('vouchers')
     .update({
       status: 'posted',
-      posted_by: user.userId,
       posted_at: new Date().toISOString(),
     })
     .eq('id', id);
@@ -318,9 +323,14 @@ finance.put('/budgets/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['name', 'fiscal_year', 'total_amount', 'currency', 'status',
+    'department_id', 'cost_center_id', 'approved_by', 'approved_at'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('budgets')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')

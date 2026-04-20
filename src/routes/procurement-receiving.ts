@@ -324,7 +324,8 @@ procurementReceiving.post('/three-way-match', async (c) => {
   const { data: receiptItems, error: rcptErr } = await db
     .from('purchase_receipt_items')
     .select('quantity, purchase_order_item_id')
-    .eq('purchase_receipt_id', purchase_receipt_id);
+    .eq('purchase_receipt_id', purchase_receipt_id)
+    .eq('organization_id', user.organizationId);
 
   if (rcptErr) throw ApiError.database(rcptErr.message, requestId);
 

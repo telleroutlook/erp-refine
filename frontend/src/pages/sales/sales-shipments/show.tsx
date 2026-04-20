@@ -28,8 +28,7 @@ export const SalesShipmentShow: React.FC = () => {
             columns={[
               { dataIndex: ['product', 'name'], title: '产品' },
               { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
-              { dataIndex: 'quantity', title: '发货数量', width: 100, align: 'right' },
-              { dataIndex: 'uom', title: '单位', width: 80 },
+              { dataIndex: 'qty', title: '发货数量', width: 100, align: 'right' },
             ]}
           />
         </>

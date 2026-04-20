@@ -22,7 +22,7 @@ masterData.get('/products', async (c) => {
 
   const { data, count, error } = await db
     .from('products')
-    .select('id, name, code, description, type, uom, cost_price, list_price, category:product_categories(id,name)', { count: 'exact' })
+    .select('id, name, code, description, type, uom, status, cost_price, list_price, category:product_categories(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })

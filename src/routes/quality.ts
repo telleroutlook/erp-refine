@@ -88,9 +88,14 @@ quality.put('/quality-standards/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['name', 'product_id', 'product_category_id', 'applicable_to',
+    'version', 'is_active'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('quality_standards')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -184,9 +189,14 @@ quality.put('/quality-inspections/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['status', 'notes', 'result', 'qualified_qty', 'defective_qty',
+    'sample_qty', 'inspector_id', 'defect_code_id', 'completed_at', 'inspection_date'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('quality_inspections')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')

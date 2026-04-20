@@ -67,9 +67,15 @@ assets.put('/fixed-assets/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['name', 'description', 'category', 'residual_value', 'useful_life_months',
+    'depreciation_method', 'department_id', 'cost_center_id', 'warehouse_id',
+    'responsible_person_id', 'serial_number', 'status', 'disposed_date', 'disposed_amount'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('fixed_assets')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -104,6 +110,7 @@ assets.get('/asset-depreciations', async (c) => {
   const { data, count, error } = await db
     .from('asset_depreciations')
     .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted, fixed_asset:fixed_assets(id,asset_number,asset_name)', { count: 'exact' })
+    .eq('organization_id', user.organizationId)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -119,6 +126,7 @@ assets.get('/asset-depreciations/:id', async (c) => {
     .from('asset_depreciations')
     .select('*, fixed_asset:fixed_assets(id,asset_number,asset_name)')
     .eq('id', id)
+    .eq('organization_id', user.organizationId)
     .single();
 
   if (error) throw ApiError.notFound('Asset Depreciation', id, requestId);

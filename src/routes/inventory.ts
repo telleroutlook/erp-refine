@@ -23,14 +23,13 @@ inventory.get('/stock-records', async (c) => {
 
   const { data, count, error } = await db
     .from('stock_records')
-    .select('id, qty_on_hand, qty_reserved, product:products(id,name,code), warehouse:warehouses(id,name)', { count: 'exact' })
+    .select('id, qty_on_hand, qty_reserved, qty_available, product:products(id,name,code), warehouse:warehouses(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
   if (error) throw ApiError.database(error.message, c.get('requestId'), `Failed to list StockRecords. Check sort field '${sortField}' exists.`);
-  const result = (data ?? []).map((r: any) => ({ ...r, qty_available: r.qty_on_hand - r.qty_reserved }));
-  return c.json({ data: result, total: count ?? 0, page, pageSize });
+  return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
 inventory.get('/stock-records/:id', async (c) => {
@@ -45,9 +44,7 @@ inventory.get('/stock-records/:id', async (c) => {
     .single();
 
   if (error) throw ApiError.notFound('StockRecord', id, requestId);
-  return c.json({
-    data: { ...data, qty_available: (data as any).qty_on_hand - (data as any).qty_reserved },
-  });
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -182,7 +179,7 @@ inventory.post('/inventory-counts', async (c) => {
       itemsTable: 'inventory_count_lines',
       headerFk: 'inventory_count_id',
       headerReturnSelect: 'id, count_number, status',
-      itemsReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity',
+      itemsReturnSelect: 'id, product_id, system_qty, counted_qty, variance_qty',
     },
     {
       header: {
@@ -212,9 +209,13 @@ inventory.put('/inventory-counts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['status', 'notes', 'count_date', 'warehouse_id', 'initiated_by'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('inventory_counts')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -266,7 +267,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
 
   // 3. For each line with variance, record stock adjustment transaction
   await Promise.all(countDoc.lines.map(async (line: Record<string, unknown>) => {
-    const varianceQty = (line.counted_quantity as number ?? 0) - (line.system_quantity as number ?? 0);
+    const varianceQty = (line.counted_qty as number ?? 0) - (line.system_qty as number ?? 0);
     if (varianceQty === 0) return;
 
     await createStockTransaction(db, {
@@ -277,20 +278,20 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
       qty: varianceQty,
       referenceType: 'inventory_count',
       referenceId: countDoc.id,
-      notes: `Count variance: system=${line.system_quantity}, counted=${line.counted_quantity}, diff=${varianceQty}`,
+      notes: `Count variance: system=${line.system_qty}, counted=${line.counted_qty}, diff=${varianceQty}`,
       createdBy: user.userId,
     }, requestId);
 
     await db
       .from('inventory_count_lines')
-      .update({ variance_quantity: varianceQty })
+      .update({ variance_qty: varianceQty })
       .eq('id', line.id);
   }));
 
   // 4. Update count status to 'completed'
   const { error: updateError } = await db
     .from('inventory_counts')
-    .update({ status: 'completed', approved_by: user.userId })
+    .update({ status: 'completed', completed_at: new Date().toISOString() })
     .eq('id', id);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);

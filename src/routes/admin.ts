@@ -87,24 +87,21 @@ admin.post('/link-employees', async (c) => {
     });
   }
 
-  let linked = 0;
-  const errors: Array<{ employee_email: string; message: string }> = [];
+  const results = await Promise.all(
+    mappings.map(async (m: { employee_email: string; auth_email: string }) => {
+      const { data, error } = await serviceDb.rpc('link_employee_to_auth', {
+        p_employee_email: m.employee_email,
+        p_auth_email: m.auth_email,
+        p_org_id: user.organizationId,
+      });
+      if (error) return { ok: false, employee_email: m.employee_email, message: error.message };
+      if (!data) return { ok: false, employee_email: m.employee_email, message: `Auth user '${m.auth_email}' not found` };
+      return { ok: true, employee_email: m.employee_email };
+    })
+  );
 
-  for (const m of mappings) {
-    const { data, error } = await serviceDb.rpc('link_employee_to_auth', {
-      p_employee_email: m.employee_email,
-      p_auth_email: m.auth_email,
-      p_org_id: user.organizationId,
-    });
-
-    if (error) {
-      errors.push({ employee_email: m.employee_email, message: error.message });
-    } else if (!data) {
-      errors.push({ employee_email: m.employee_email, message: `Auth user '${m.auth_email}' not found` });
-    } else {
-      linked++;
-    }
-  }
+  const linked = results.filter((r) => r.ok).length;
+  const errors = results.filter((r) => !r.ok).map(({ employee_email, message }) => ({ employee_email, message: message! }));
 
   return c.json({ data: { linked, errors } });
 });

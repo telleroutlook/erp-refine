@@ -44,17 +44,20 @@ auth.post('/logout', async (c) => {
 });
 
 auth.post('/refresh', async (c) => {
-  const body = await c.req.json<{ refreshToken: string }>();
-  if (!body.refreshToken) return c.json({ error: 'Refresh token required' }, 400);
+  const body = await c.req.json<{ refresh_token: string }>();
+  if (!body.refresh_token) return c.json({ error: 'Refresh token required' }, 400);
 
   const db = createSupabaseClient(c.env);
-  const { data, error } = await db.auth.refreshSession({ refresh_token: body.refreshToken });
+  const { data, error } = await db.auth.refreshSession({ refresh_token: body.refresh_token });
   if (error) return c.json({ error: error.message }, 401);
 
   return c.json({
     data: {
-      accessToken: data.session?.access_token,
-      expiresAt: data.session?.expires_at,
+      session: {
+        accessToken: data.session?.access_token,
+        refreshToken: data.session?.refresh_token,
+        expiresAt: data.session?.expires_at,
+      },
     },
   });
 });

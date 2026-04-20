@@ -102,9 +102,14 @@ sales.put('/sales-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  const allowed: Record<string, unknown> = {};
+  const permitted = ['status', 'notes', 'delivery_date', 'warehouse_id', 'payment_terms',
+    'shipping_method', 'currency', 'customer_id', 'contract_id', 'approved_by', 'approved_at'];
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
   const { data, error } = await db
     .from('sales_orders')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .select('id')
@@ -157,7 +162,7 @@ sales.get('/customers', async (c) => {
 
   const { data, count, error } = await db
     .from('customers')
-    .select('id, name, code, email, phone, status', { count: 'exact' })
+    .select('id, name, code, email, phone, contact, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -356,9 +361,9 @@ sales.route('', buildCrudRoutes({
   table: 'sales_shipment_items',
   path: '/sales-shipment-items',
   resourceName: 'SalesShipmentItem',
-  listSelect: 'id, quantity, product:products(id,name,code)',
+  listSelect: 'id, qty, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, quantity',
+  createReturnSelect: 'id, qty',
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,

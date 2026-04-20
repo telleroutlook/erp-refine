@@ -61,7 +61,7 @@ export async function createStockTransaction(
     warehouse_id: tx.warehouseId,
     product_id: tx.productId,
     transaction_type: tx.transactionType,
-    quantity: tx.qty,
+    qty: tx.qty,
     reference_type: tx.referenceType,
     reference_id: tx.referenceId,
     notes: tx.notes,
