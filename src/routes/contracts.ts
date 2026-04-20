@@ -121,6 +121,7 @@ contracts.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'contract_id', parentTable: 'contracts' },
 }));
 
 export default contracts;

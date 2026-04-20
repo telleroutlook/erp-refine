@@ -111,7 +111,8 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <Row gutter={24}>
-          {/* Quick login panel */}
+          {/* Quick login panel — only shown in development builds */}
+          {import.meta.env.DEV && (
           <Col xs={24} md={14}>
             <Card
               title={
@@ -159,14 +160,14 @@ export const LoginPage: React.FC = () => {
 
               <Divider style={{ margin: '8px 0 4px' }} />
               <Text type="secondary" style={{ fontSize: 11 }}>
-                {t('All demo accounts use password: ', '所有演示账号密码：')}
-                <Text code style={{ fontSize: 11 }}>Admin2026!</Text>
+                {t('All demo accounts use the configured demo password.', '所有演示账号使用统一演示密码。')}
               </Text>
             </Card>
           </Col>
+          )}
 
           {/* Manual login form */}
-          <Col xs={24} md={10}>
+          <Col xs={24} md={import.meta.env.DEV ? 10 : 24}>
             <Card
               title={
                 <Space>

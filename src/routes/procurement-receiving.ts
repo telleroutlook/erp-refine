@@ -412,6 +412,7 @@ procurementReceiving.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'purchase_receipt_id', parentTable: 'purchase_receipts' },
 }));
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -428,6 +429,7 @@ procurementReceiving.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'supplier_invoice_id', parentTable: 'supplier_invoices' },
 }));
 
 export default procurementReceiving;

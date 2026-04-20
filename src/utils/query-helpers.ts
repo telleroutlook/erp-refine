@@ -16,10 +16,12 @@ export interface RefineQuery {
 
 /** Parse Refine-compatible query parameters from the request */
 export function parseRefineQuery(c: Context, defaultSort = 'created_at'): RefineQuery {
+  const rawSort = c.req.query('_sort') ?? defaultSort;
+  const sortField = /^[a-z][a-z0-9_]*$/.test(rawSort) ? rawSort : defaultSort;
   return {
     page: parseInt(c.req.query('_page') ?? '1', 10),
     pageSize: parseInt(c.req.query('_limit') ?? '20', 10),
-    sortField: c.req.query('_sort') ?? defaultSort,
+    sortField,
     sortOrder: (c.req.query('_order') ?? 'desc') as 'asc' | 'desc',
   };
 }

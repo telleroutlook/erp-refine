@@ -32,6 +32,12 @@ export interface CrudConfig {
   softDelete?: boolean;
   /** Whether this table has organization_id — default true */
   orgScoped?: boolean;
+  /**
+   * For child tables (orgScoped: false), specify the parent FK column and parent table
+   * so that update/delete can verify org ownership via the parent record.
+   * e.g. { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' }
+   */
+  parentOwnership?: { parentFk: string; parentTable: string };
 
   /** Zod schema for create validation (optional — skips validation if not provided) */
   createSchema?: z.ZodType;
@@ -70,6 +76,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
     defaultSort = 'created_at',
     softDelete = true,
     orgScoped = true,
+    parentOwnership,
     createSchema,
     updateSchema,
     createDefaults,
@@ -158,8 +165,20 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       const rawBody = await c.req.json();
       const body = updateSchema ? validateBody(updateSchema, rawBody, requestId) : rawBody;
 
+      if (!orgScoped && parentOwnership) {
+        // Verify org ownership via parent record before mutating child
+        const { data: child } = await db.from(table).select(parentOwnership.parentFk).eq('id', id).single();
+        if (child) {
+          const parentId = (child as unknown as Record<string, unknown>)[parentOwnership.parentFk] as string;
+          const { data: parent } = await db.from(parentOwnership.parentTable).select('id').eq('id', parentId).eq('organization_id', user.organizationId).single();
+          if (!parent) throw ApiError.notFound(resourceName, id, requestId);
+        }
+      }
+
       const doUpdate = async () => {
-        const result = await db.from(table).update(body).eq('id', id).eq('organization_id', user.organizationId).select('id').single();
+        let q = db.from(table).update(body).eq('id', id);
+        if (orgScoped) q = q.eq('organization_id', user.organizationId);
+        const result = await q.select('id').single();
         return result as { data: unknown; error: { message: string; code?: string } | null };
       };
 
@@ -188,15 +207,24 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       const { db, user, requestId } = getDbAndUser(c);
       const id = c.req.param('id');
 
+      if (!orgScoped && parentOwnership) {
+        // Verify org ownership via parent record before deleting child
+        const { data: child } = await db.from(table).select(parentOwnership.parentFk).eq('id', id).single();
+        if (child) {
+          const parentId = (child as unknown as Record<string, unknown>)[parentOwnership.parentFk] as string;
+          const { data: parent } = await db.from(parentOwnership.parentTable).select('id').eq('id', parentId).eq('organization_id', user.organizationId).single();
+          if (!parent) throw ApiError.notFound(resourceName, id, requestId);
+        }
+      }
+
       if (softDelete) {
         const { error } = await db
           .from(table)
           .update({ deleted_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', user.organizationId);
+          .eq('id', id);
         if (error) throw ApiError.database(error.message, requestId);
       } else {
-        const { error } = await db.from(table).delete().eq('id', id).eq('organization_id', user.organizationId);
+        const { error } = await db.from(table).delete().eq('id', id);
         if (error) throw ApiError.database(error.message, requestId);
       }
 

@@ -13,8 +13,9 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
         productId: z.string().uuid().optional(),
         warehouseId: z.string().uuid().optional(),
         lowStockOnly: z.boolean().optional().describe('Only return products with zero or negative available qty'),
+        limit: z.number().min(1).max(500).default(200),
       }),
-      execute: async ({ productId, warehouseId, lowStockOnly }) => {
+      execute: async ({ productId, warehouseId, lowStockOnly, limit }) => {
         let query = db
           .from('stock_records')
           .select('id, qty_on_hand, qty_reserved, product:products(id,name,code), warehouse:warehouses(id,name,code)')
@@ -23,7 +24,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
         if (productId) query = query.eq('product_id', productId);
         if (warehouseId) query = query.eq('warehouse_id', warehouseId);
 
-        const { data, error } = await query.order('qty_on_hand', { ascending: true });
+        const { data, error } = await query.order('qty_on_hand', { ascending: true }).limit(limit);
         if (error) throw new Error(error.message);
 
         const result = (data ?? []).map((r: any) => ({ ...r, qty_available: r.qty_on_hand - r.qty_reserved }));

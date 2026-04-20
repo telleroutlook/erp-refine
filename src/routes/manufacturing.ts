@@ -23,6 +23,7 @@ manufacturing.get('/bom-headers', async (c) => {
     .from('bom_headers')
     .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -62,7 +63,7 @@ manufacturing.post('/bom-headers', async (c) => {
     itemsTable: 'bom_items',
     headerFk: 'bom_header_id',
     headerReturnSelect: 'id, bom_number',
-    itemsReturnSelect: 'id, product_id, quantity, unit, scrap_rate, sequence',
+    itemsReturnSelect: 'id, product_id, qty, unit, scrap_rate, sequence',
   }, {
     header: {
       ...headerFields,
@@ -116,8 +117,9 @@ manufacturing.get('/work-orders', async (c) => {
 
   const { data, count, error } = await db
     .from('work_orders')
-    .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
+    .select('id, work_order_number, planned_qty, completed_qty, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -156,7 +158,7 @@ manufacturing.post('/work-orders', async (c) => {
   if (body.bom_header_id) {
     const { data: bom, error: bomError } = await db
       .from('bom_items')
-      .select('product_id, quantity, unit, scrap_rate, sequence')
+      .select('product_id, qty, unit, scrap_rate, sequence')
       .eq('bom_header_id', body.bom_header_id);
 
     if (bomError) throw ApiError.database(`Failed to fetch BOM items: ${bomError.message}`, requestId);
@@ -184,8 +186,8 @@ manufacturing.post('/work-orders', async (c) => {
     const materials = bomItems.map((item: any) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
-      required_quantity: item.quantity * (body.planned_quantity ?? 1),
-      issued_quantity: 0,
+      required_qty: item.qty * (body.planned_qty ?? 1),
+      issued_qty: 0,
       warehouse_id: body.warehouse_id,
     }));
 
@@ -244,9 +246,10 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   // 1. Get work order with materials, validate status
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_quantity, issued_quantity)')
+    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_qty, issued_qty)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -260,7 +263,7 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
 
   // 2. For each material, issue remaining quantity
   await Promise.all(materials.map(async (mat: Record<string, unknown>) => {
-    const issueQty = (mat.required_quantity as number) - (mat.issued_quantity as number);
+    const issueQty = (mat.required_qty as number) - (mat.issued_qty as number);
     if (issueQty <= 0) return;
 
     await createStockTransaction(db, {
@@ -274,10 +277,10 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
       createdBy: user.userId,
     }, requestId);
 
-    const newIssuedQty = (mat.issued_quantity as number) + issueQty;
+    const newIssuedQty = (mat.issued_qty as number) + issueQty;
     await db
       .from('work_order_materials')
-      .update({ issued_quantity: newIssuedQty })
+      .update({ issued_qty: newIssuedQty })
       .eq('id', mat.id);
 
     issuedMaterials.push(mat.id as string);
@@ -303,9 +306,10 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
   // 1. Get work order, validate status
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, product_id, warehouse_id, completed_quantity')
+    .select('id, status, product_id, warehouse_id, completed_qty')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -320,7 +324,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     warehouseId: wo.warehouse_id,
     productId: wo.product_id,
     transactionType: 'in',
-    qty: wo.completed_quantity,
+    qty: wo.completed_qty,
     referenceType: 'work_order',
     referenceId: wo.id,
     createdBy: user.userId,
@@ -387,7 +391,7 @@ manufacturing.post('/work-order-productions', async (c) => {
       const totalQualified = sumData.reduce((acc: number, r: any) => acc + (r.qualified_qty ?? 0), 0);
       await db
         .from('work_orders')
-        .update({ completed_quantity: totalQualified })
+        .update({ completed_qty: totalQualified })
         .eq('id', data.work_order_id);
     }
   }
@@ -401,12 +405,13 @@ manufacturing.route('', buildCrudRoutes({
   table: 'bom_items',
   path: '/bom-items',
   resourceName: 'BomItem',
-  listSelect: 'id, quantity, unit, scrap_rate, sequence, notes, product:products(id,name,code)',
+  listSelect: 'id, qty, unit, scrap_rate, sequence, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, quantity, sequence',
+  createReturnSelect: 'id, qty, sequence',
   defaultSort: 'sequence',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'bom_header_id', parentTable: 'bom_headers' },
 }));
 
 // ─── Work Order Materials ────────────────────────────────────────────────────
@@ -415,12 +420,13 @@ manufacturing.route('', buildCrudRoutes({
   table: 'work_order_materials',
   path: '/work-order-materials',
   resourceName: 'WorkOrderMaterial',
-  listSelect: 'id, required_quantity, issued_quantity, notes, product:products(id,name,code)',
+  listSelect: 'id, required_qty, issued_qty, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, required_quantity',
+  createReturnSelect: 'id, required_qty',
   defaultSort: 'id',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'work_order_id', parentTable: 'work_orders' },
 }));
 
 export default manufacturing;

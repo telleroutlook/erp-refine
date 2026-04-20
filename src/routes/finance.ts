@@ -429,6 +429,7 @@ const budgetLinesConfig: CrudConfig = {
   defaultSort: 'period_month',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'budget_id', parentTable: 'budgets' },
 };
 finance.route('', buildCrudRoutes(budgetLinesConfig));
 
@@ -446,6 +447,7 @@ const voucherEntriesConfig: CrudConfig = {
   defaultSort: 'sequence',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'voucher_id', parentTable: 'accounting_vouchers' },
 };
 finance.route('', buildCrudRoutes(voucherEntriesConfig));
 

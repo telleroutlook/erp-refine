@@ -152,6 +152,7 @@ assets.route('', buildCrudRoutes({
   defaultSort: 'performed_at',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'asset_id', parentTable: 'assets' },
 }));
 
 export default assets;

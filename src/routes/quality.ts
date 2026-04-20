@@ -223,6 +223,7 @@ quality.route('', buildCrudRoutes({
   defaultSort: 'sequence_order',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'quality_standard_id', parentTable: 'quality_standards' },
 }));
 
 // ─── Quality Inspection Items ───────────────────────────────────────────────
@@ -237,6 +238,7 @@ quality.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'inspection_id', parentTable: 'quality_inspections' },
 }));
 
 export default quality;

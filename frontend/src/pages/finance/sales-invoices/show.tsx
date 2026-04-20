@@ -35,8 +35,8 @@ export const SalesInvoiceShow: React.FC = () => {
             columns={[
               { dataIndex: ['product', 'name'], title: '产品' },
               { dataIndex: 'qty', title: '数量', width: 80, align: 'right' },
-              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v, r: any) => <AmountDisplay value={v} currency={r.currency} /> },
-              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v, r: any) => <AmountDisplay value={v} currency={r.currency} /> },
+              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
+              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
             ]}
           />
         </>

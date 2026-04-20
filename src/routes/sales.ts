@@ -138,14 +138,14 @@ const soItemsConfig: CrudConfig = {
   table: 'sales_order_items',
   path: '/sales-order-items',
   resourceName: 'SalesOrderItem',
-  listSelect: 'id, line_no, quantity, shipped_quantity, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
+  listSelect: 'id, line_number, qty, shipped_qty, unit_price, tax_rate, discount_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, quantity, unit_price',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, line_number, qty, unit_price',
+  defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'sales_order_id', parentTable: 'sales_orders' },
 };
-sales.route('', buildCrudRoutes(soItemsConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
 // Customers — list only (full CRUD in partners.ts)
@@ -362,6 +362,7 @@ sales.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'sales_shipment_id', parentTable: 'sales_shipments' },
 }));
 
 export default sales;

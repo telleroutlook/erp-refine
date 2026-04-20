@@ -40,7 +40,7 @@ procurement.get('/purchase-orders/:id', async (c) => {
 
   const { data, error } = await db
     .from('purchase_orders')
-    .select('*, supplier:suppliers(id,name,code,contact_email,contact_phone), items:purchase_order_items(*, product:products(id,name,code))')
+    .select('*, supplier:suppliers(id,name,code,email,phone), items:purchase_order_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -143,6 +143,7 @@ const poItemsConfig: CrudConfig = {
   defaultSort: 'line_number',
   softDelete: false,
   orgScoped: false,
+  parentOwnership: { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' },
 };
 procurement.route('', buildCrudRoutes(poItemsConfig));
 
@@ -156,7 +157,7 @@ procurement.get('/suppliers', async (c) => {
 
   const { data, count, error } = await db
     .from('suppliers')
-    .select('id, name, code, contact_email, contact_phone, status', { count: 'exact' })
+    .select('id, name, code, email, phone, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -524,6 +525,7 @@ const prLinesConfig: CrudConfig = {
   defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'purchase_requisition_id', parentTable: 'purchase_requisitions' },
 };
 procurement.route('', buildCrudRoutes(prLinesConfig));
 
@@ -541,6 +543,7 @@ const rfqLinesConfig: CrudConfig = {
   defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'rfq_id', parentTable: 'rfq_headers' },
 };
 procurement.route('', buildCrudRoutes(rfqLinesConfig));
 
@@ -558,6 +561,7 @@ const sqLinesConfig: CrudConfig = {
   defaultSort: 'created_at',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'quotation_id', parentTable: 'supplier_quotations' },
 };
 procurement.route('', buildCrudRoutes(sqLinesConfig));
 

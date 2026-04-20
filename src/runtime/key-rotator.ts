@@ -42,8 +42,15 @@ export function markKeyExhausted(key: string): void {
 export function pickAvailableKey(keys: string[]): string {
   const now = Date.now();
 
-  // Shuffle for load distribution
-  const shuffled = [...keys].sort(() => Math.random() - 0.5);
+  // Shuffle for load distribution using cryptographically secure randomness
+  const arr = [...keys];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const j = buf[0]! % (i + 1);
+    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+  }
+  const shuffled = arr;
 
   for (const key of shuffled) {
     const state = getState(key);

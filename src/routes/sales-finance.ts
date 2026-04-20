@@ -447,6 +447,7 @@ salesFinance.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'sales_invoice_id', parentTable: 'sales_invoices' },
 }));
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -463,4 +464,5 @@ salesFinance.route('', buildCrudRoutes({
   defaultSort: 'id',
   softDelete: true,
   orgScoped: false,
+  parentOwnership: { parentFk: 'sales_return_id', parentTable: 'sales_returns' },
 }));
