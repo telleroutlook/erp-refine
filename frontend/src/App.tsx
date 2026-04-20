@@ -369,7 +369,7 @@ const App: React.FC = () => {
               >
                 <Route index element={<Navigate to="/procurement/purchase-orders" replace />} />
 
-                <Suspense fallback={PAGE_SPINNER}>
+                <Route element={<Suspense fallback={PAGE_SPINNER}><Outlet /></Suspense>}>
                   {/* Procurement */}
                   <Route path="/procurement/purchase-orders" element={<PurchaseOrderList />} />
                   <Route path="/procurement/purchase-orders/create" element={<PurchaseOrderCreate />} />
@@ -439,7 +439,7 @@ const App: React.FC = () => {
                       </div>
                     }
                   />
-                </Suspense>
+                </Route>
 
                 {/* Catch-all */}
                 <Route path="*" element={<ErrorComponent />} />
