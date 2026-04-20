@@ -16,11 +16,12 @@ const chat = new Hono<{ Bindings: Env }>();
 chat.use('*', authMiddleware());
 
 /** Load recent conversation history from the Durable Object */
-async function loadRecentHistory(env: Env, sessionId: string, n = 10): Promise<{ messages: Message[]; summary: string | null }> {
+async function loadRecentHistory(env: Env, userId: string, sessionId: string, n = 10): Promise<{ messages: Message[]; summary: string | null }> {
   try {
-    const doId = env.CHAT_DO.idFromName(sessionId);
+    const doKey = `${userId}:${sessionId}`;
+    const doId = env.CHAT_DO.idFromName(doKey);
     const stub = env.CHAT_DO.get(doId);
-    const res = await stub.fetch(new Request(`http://do/${sessionId}/history/recent?n=${n}`));
+    const res = await stub.fetch(new Request(`http://do/${doKey}/history/recent?n=${n}`));
     return await res.json<{ messages: Message[]; summary: string | null }>();
   } catch {
     return { messages: [], summary: null };
@@ -28,10 +29,11 @@ async function loadRecentHistory(env: Env, sessionId: string, n = 10): Promise<{
 }
 
 /** Append a message to the Durable Object (fire-and-forget) */
-function appendMessage(env: Env, sessionId: string, role: 'user' | 'assistant', content: string): void {
-  const doId = env.CHAT_DO.idFromName(sessionId);
+function appendMessage(env: Env, userId: string, sessionId: string, role: 'user' | 'assistant', content: string): void {
+  const doKey = `${userId}:${sessionId}`;
+  const doId = env.CHAT_DO.idFromName(doKey);
   const stub = env.CHAT_DO.get(doId);
-  stub.fetch(new Request(`http://do/${sessionId}/message`, {
+  stub.fetch(new Request(`http://do/${doKey}/message`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ role, content }),
@@ -62,16 +64,17 @@ chat.post('/', async (c) => {
   }>();
 
   if (!body.message?.trim()) return c.json({ error: 'Message required' }, 400);
+  if (body.message.length > 4000) return c.json({ error: 'Message too long (max 4000 chars)' }, 400);
 
   const sessionId = body.sessionId ?? crypto.randomUUID();
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
 
   // Load conversation history
-  const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, sessionId);
+  const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 
   // Persist user message (fire-and-forget)
-  appendMessage(c.env, sessionId, 'user', body.message);
+  appendMessage(c.env, user.userId, sessionId, 'user', body.message);
 
   const tools = buildToolSet({ db, organizationId: user.organizationId });
 
@@ -100,7 +103,7 @@ chat.post('/', async (c) => {
   if (response.executionResult && typeof response.executionResult === 'object') {
     const result = response.executionResult as { result?: unknown };
     if (result.result) {
-      appendMessage(c.env, sessionId, 'assistant', typeof result.result === 'string' ? result.result : JSON.stringify(result.result));
+      appendMessage(c.env, user.userId, sessionId, 'assistant', typeof result.result === 'string' ? result.result : JSON.stringify(result.result));
     }
   }
 
@@ -113,6 +116,7 @@ chat.post('/stream', async (c) => {
   const body = await c.req.json<{ message: string; sessionId?: string }>();
 
   if (!body.message?.trim()) return c.json({ error: 'Message required' }, 400);
+  if (body.message.length > 4000) return c.json({ error: 'Message too long (max 4000 chars)' }, 400);
 
   const sessionId = body.sessionId ?? crypto.randomUUID();
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
@@ -120,7 +124,7 @@ chat.post('/stream', async (c) => {
   const tools = buildToolSet({ db, organizationId: user.organizationId });
 
   // Load recent history for context
-  const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, sessionId);
+  const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 
   const systemPrompt = [
@@ -129,7 +133,7 @@ chat.post('/stream', async (c) => {
   ].filter(Boolean).join('\n\n');
 
   // Persist user message
-  appendMessage(c.env, sessionId, 'user', body.message);
+  appendMessage(c.env, user.userId, sessionId, 'user', body.message);
 
   const { fullStream } = streamText({
     model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
@@ -175,7 +179,7 @@ chat.post('/stream', async (c) => {
 
         // Persist assistant reply after stream completes
         if (assistantReply) {
-          appendMessage(c.env, sessionId, 'assistant', assistantReply);
+          appendMessage(c.env, user.userId, sessionId, 'assistant', assistantReply);
         }
       } catch (err) {
         enqueue('error', { type: 'error', message: err instanceof Error ? err.message : String(err) });

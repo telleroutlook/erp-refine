@@ -33,8 +33,8 @@ export const SalesReturnShow: React.FC = () => {
               { dataIndex: ['product', 'name'], title: '产品' },
               { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
               { dataIndex: 'quantity', title: '退货数量', width: 100, align: 'right' },
-              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v, r: any) => <AmountDisplay value={v} currency={r.currency} /> },
-              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v, r: any) => <AmountDisplay value={v} currency={r.currency} /> },
+              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.currency} /> },
+              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.currency} /> },
             ]}
           />
         </>

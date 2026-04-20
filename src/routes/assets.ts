@@ -49,10 +49,20 @@ assets.post('/fixed-assets', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
 
+  const PERMITTED = new Set([
+    'asset_number', 'asset_name', 'category', 'status', 'acquisition_date',
+    'acquisition_cost', 'salvage_value', 'useful_life_months', 'depreciation_method',
+    'current_book_value', 'location', 'department', 'custodian_id', 'cost_center_id', 'notes',
+  ]);
+  const insertData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) insertData[k] = v;
+  }
+
   const { data, error } = await db
     .from('fixed_assets')
     .insert({
-      ...body,
+      ...insertData,
       organization_id: user.organizationId,
     })
     .select('id, asset_number, asset_name')

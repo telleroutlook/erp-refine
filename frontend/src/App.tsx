@@ -174,7 +174,9 @@ const NotificationShow = lazy(() =>
 );
 
 // AI
-import { ChatPanel } from './components/ai/ChatPanel';
+const ChatPanel = lazy(() =>
+  import('./components/ai/ChatPanel').then((m) => ({ default: m.ChatPanel }))
+);
 
 // Icons
 import {

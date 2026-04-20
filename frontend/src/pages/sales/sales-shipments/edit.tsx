@@ -12,8 +12,8 @@ export const SalesShipmentEdit: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="发货单号" name="shipment_number" rules={[{ required: true }]}>
-              <Input />
+            <Form.Item label="发货单号" name="shipment_number">
+              <Input disabled />
             </Form.Item>
           </Col>
           <Col span={12}>

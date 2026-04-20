@@ -176,7 +176,8 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       confirmed_by: user.userId,
       confirmed_at: new Date().toISOString(),
     })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 
@@ -344,23 +345,32 @@ procurementReceiving.post('/three-way-match', async (c) => {
   const body = await c.req.json();
   const { purchase_order_id, purchase_receipt_id, supplier_invoice_id } = body;
 
-  // 1. Look up PO total
-  const { data: po, error: poErr } = await db
-    .from('purchase_orders')
-    .select('id, total_amount')
-    .eq('id', purchase_order_id)
-    .eq('organization_id', user.organizationId)
-    .single();
-  if (poErr || !po) throw ApiError.notFound('PurchaseOrder', purchase_order_id, requestId);
+  // 1. Look up PO, receipt items, and invoice in parallel
+  const [poResult, receiptItemsResult, invoiceResult] = await Promise.all([
+    db.from('purchase_orders')
+      .select('id, total_amount')
+      .eq('id', purchase_order_id)
+      .eq('organization_id', user.organizationId)
+      .single(),
+    db.from('purchase_receipt_items')
+      .select('quantity, purchase_order_item_id')
+      .eq('purchase_receipt_id', purchase_receipt_id),
+    db.from('supplier_invoices')
+      .select('id, total_amount')
+      .eq('id', supplier_invoice_id)
+      .eq('organization_id', user.organizationId)
+      .single(),
+  ]);
 
-  // 2. Look up receipt total (sum of item qty * unit_price from PO items)
-  const { data: receiptItems, error: rcptErr } = await db
-    .from('purchase_receipt_items')
-    .select('quantity, purchase_order_item_id')
-    .eq('purchase_receipt_id', purchase_receipt_id);
+  if (poResult.error || !poResult.data) throw ApiError.notFound('PurchaseOrder', purchase_order_id, requestId);
+  if (receiptItemsResult.error) throw ApiError.database(receiptItemsResult.error.message, requestId);
+  if (invoiceResult.error || !invoiceResult.data) throw ApiError.notFound('SupplierInvoice', supplier_invoice_id, requestId);
 
-  if (rcptErr) throw ApiError.database(rcptErr.message, requestId);
+  const po = poResult.data;
+  const receiptItems = receiptItemsResult.data;
+  const invoice = invoiceResult.data;
 
+  // 2. Look up PO item prices for receipt total calculation
   let receiptAmount = 0;
   if (receiptItems && receiptItems.length > 0) {
     const poItemIds = receiptItems
@@ -383,15 +393,6 @@ procurementReceiving.post('/three-way-match', async (c) => {
       }
     }
   }
-
-  // 3. Look up invoice total
-  const { data: invoice, error: invErr } = await db
-    .from('supplier_invoices')
-    .select('id, total_amount')
-    .eq('id', supplier_invoice_id)
-    .eq('organization_id', user.organizationId)
-    .single();
-  if (invErr || !invoice) throw ApiError.notFound('SupplierInvoice', supplier_invoice_id, requestId);
 
   const poAmount = po.total_amount ?? 0;
   const invoiceAmount = invoice.total_amount ?? 0;

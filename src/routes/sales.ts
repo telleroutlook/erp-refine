@@ -154,26 +154,6 @@ const soItemsConfig: CrudConfig = {
 sales.route('', buildCrudRoutes(soItemsConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
-// Customers — list only (full CRUD in partners.ts)
-// ────────────────────────────────────────────────────────────────────────────
-
-sales.get('/customers', async (c) => {
-  const { db, user } = getDbAndUser(c);
-  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
-
-  const { data, count, error } = await db
-    .from('customers')
-    .select('id, name, code, email, phone, contact, status', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .order(sortField, { ascending: sortOrder === 'asc' })
-    .range((page - 1) * pageSize, page * pageSize - 1);
-
-  if (error) throw ApiError.database(error.message, c.get('requestId'));
-  return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
-});
-
-// ────────────────────────────────────────────────────────────────────────────
 // Sales Shipments — atomic create (header + items)
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -185,7 +165,7 @@ sales.get('/sales-shipments', async (c) => {
   const { data, count, error } = await db
     .from('sales_shipments')
     .select(
-      'id, shipment_number, shipment_date, tracking_number, status, carrier:carriers(id,name), sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
+      'id, shipment_number, shipment_date, tracking_number, carrier, status, sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -234,7 +214,7 @@ sales.post('/sales-shipments', async (c) => {
       itemsTable: 'sales_shipment_items',
       headerFk: 'sales_shipment_id',
       headerReturnSelect: 'id, shipment_number, status',
-      itemsReturnSelect: 'id, product_id, qty',
+      itemsReturnSelect: 'id, product_id, quantity',
     },
     {
       header: {
@@ -264,7 +244,7 @@ sales.put('/sales-shipments/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'shipment_date', 'carrier_id', 'tracking_number', 'warehouse_id']);
+  const PERMITTED = new Set(['status', 'notes', 'shipment_date', 'carrier', 'tracking_number', 'warehouse_id']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -341,7 +321,8 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       confirmed_by: user.userId,
       confirmed_at: new Date().toISOString(),
     })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 

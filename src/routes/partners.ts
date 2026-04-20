@@ -88,7 +88,7 @@ const suppliersConfig: CrudConfig = {
   path: '/suppliers',
   resourceName: 'Supplier',
   listSelect:
-    'id, name, code, supplier_type, contact_email, contact_phone, status, currency, payment_terms, lead_time_days, reliability_score',
+    'id, name, code, supplier_type, contact_person, contact_email, contact_phone, status, currency, payment_terms, lead_time_days, reliability_score',
   detailSelect:
     '*, sites:supplier_sites(id, site_code, site_name, address, city, province, postal_code, country, contact_name, contact_phone, is_active), bank_accounts:supplier_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',

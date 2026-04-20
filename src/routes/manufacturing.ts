@@ -74,7 +74,7 @@ manufacturing.post('/bom-headers', async (c) => {
     items: items ?? [],
   });
 
-  return c.json({ data: result }, 201);
+  return c.json({ data: result.header }, 201);
 });
 
 manufacturing.put('/bom-headers/:id', async (c) => {

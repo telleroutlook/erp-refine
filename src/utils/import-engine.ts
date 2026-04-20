@@ -225,7 +225,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   'purchase-order-items': {
     table: 'purchase_order_items',
     returnSelect: 'id',
-    requiredFields: ['purchase_order_id', 'product_id', 'qty', 'unit_price'],
+    requiredFields: ['purchase_order_id', 'product_id', 'quantity', 'unit_price'],
     orgScoped: false,
     references: { purchase_order_id: 'purchase_orders', product_id: 'products' },
   },
@@ -240,7 +240,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
   'sales-order-items': {
     table: 'sales_order_items',
     returnSelect: 'id',
-    requiredFields: ['sales_order_id', 'product_id', 'qty', 'unit_price'],
+    requiredFields: ['sales_order_id', 'product_id', 'quantity', 'unit_price'],
     orgScoped: false,
     references: { sales_order_id: 'sales_orders', product_id: 'products' },
   },

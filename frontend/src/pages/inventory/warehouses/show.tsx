@@ -17,7 +17,7 @@ export const WarehouseShow: React.FC = () => {
         <Descriptions.Item label="状态">
           <StatusTag status={record?.status} />
         </Descriptions.Item>
-        {record?.notes && <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>}
+        {record?.type && <Descriptions.Item label="类型">{record.type}</Descriptions.Item>}
       </Descriptions>
     </Show>
   );

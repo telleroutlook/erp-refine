@@ -70,7 +70,7 @@ procurement.post('/purchase-orders', async (c) => {
       itemsTable: 'purchase_order_items',
       headerFk: 'purchase_order_id',
       headerReturnSelect: 'id, order_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
       autoLineNo: true,
     },
     {
@@ -153,26 +153,6 @@ const poItemsConfig: CrudConfig = {
 procurement.route('', buildCrudRoutes(poItemsConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
-// Suppliers — list only (full CRUD is in partners.ts)
-// ────────────────────────────────────────────────────────────────────────────
-
-procurement.get('/suppliers', async (c) => {
-  const { db, user } = getDbAndUser(c);
-  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
-
-  const { data, count, error } = await db
-    .from('suppliers')
-    .select('id, name, code, contact_person, contact_email, contact_phone, status', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .order(sortField, { ascending: sortOrder === 'asc' })
-    .range((page - 1) * pageSize, page * pageSize - 1);
-
-  if (error) throw ApiError.database(error.message, c.get('requestId'));
-  return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
-});
-
-// ────────────────────────────────────────────────────────────────────────────
 // Purchase Requisitions — atomic create (header + lines)
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -233,7 +213,7 @@ procurement.post('/purchase-requisitions', async (c) => {
       itemsTable: 'purchase_requisition_lines',
       headerFk: 'purchase_requisition_id',
       headerReturnSelect: 'id, requisition_number, status',
-      itemsReturnSelect: 'id, product_id, qty, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {
@@ -573,10 +553,10 @@ const prLinesConfig: CrudConfig = {
   table: 'purchase_requisition_lines',
   path: '/purchase-requisition-lines',
   resourceName: 'PurchaseRequisitionLine',
-  listSelect: 'id, line_number, qty, estimated_unit_price, notes, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, estimated_unit_price, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, qty',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, quantity',
+  defaultSort: 'line_no',
   softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_requisition_id', parentTable: 'purchase_requisitions' },

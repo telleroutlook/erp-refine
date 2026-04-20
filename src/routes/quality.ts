@@ -80,7 +80,7 @@ quality.post('/quality-standards', async (c) => {
     items: items ?? [],
   });
 
-  return c.json({ data: result }, 201);
+  return c.json({ data: result.header }, 201);
 });
 
 quality.put('/quality-standards/:id', async (c) => {
@@ -181,7 +181,7 @@ quality.post('/quality-inspections', async (c) => {
     items: items ?? [],
   });
 
-  return c.json({ data: result }, 201);
+  return c.json({ data: result.header }, 201);
 });
 
 quality.put('/quality-inspections/:id', async (c) => {

@@ -12,8 +12,8 @@ export const PurchaseReceiptEdit: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="收货单号" name="receipt_number" rules={[{ required: true }]}>
-              <Input />
+            <Form.Item label="收货单号" name="receipt_number">
+              <Input disabled />
             </Form.Item>
           </Col>
           <Col span={12}>

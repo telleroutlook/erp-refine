@@ -176,10 +176,22 @@ finance.put('/vouchers/:id', async (c) => {
   return c.json({ data });
 });
 
-// DELETE (hard delete — vouchers has no deleted_at)
+// DELETE (hard delete — vouchers has no deleted_at; only draft vouchers can be deleted)
 finance.delete('/vouchers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
+
+  const { data: voucher, error: fetchError } = await db
+    .from('vouchers')
+    .select('id, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .single();
+
+  if (fetchError || !voucher) throw ApiError.notFound('Voucher', id, requestId);
+  if (voucher.status !== 'draft') {
+    throw ApiError.validation('Only draft vouchers can be deleted. Use void/reverse for posted vouchers.', [], requestId);
+  }
 
   const { error } = await db
     .from('vouchers')

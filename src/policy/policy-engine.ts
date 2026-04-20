@@ -59,16 +59,12 @@ export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
   // 2. Find matching rule
   const rule = REGISTERED_RULES.find((r) => matchesRule(r, ctx));
 
-  // 3. No rule found — apply default policy
+  // 3. No rule found — deny unregistered actions (default-deny)
   if (!rule) {
-    const isWrite = isWriteAction(action);
-    if (!isWrite) {
-      return allow(DecisionLevel.D0, 'Default: read-only action auto-approved');
-    }
     return {
       decision: 'deny',
       level: DecisionLevel.D5,
-      reason: 'No policy registered for this write action',
+      reason: `No policy rule registered for action '${action}'`,
       requiresConfirmation: false,
       requiresApproval: false,
     };

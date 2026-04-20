@@ -74,7 +74,7 @@ contracts.post('/contracts', async (c) => {
     items: items ?? [],
   });
 
-  return c.json({ data: result }, 201);
+  return c.json({ data: result.header }, 201);
 });
 
 contracts.put('/contracts/:id', async (c) => {

@@ -210,7 +210,7 @@ inventory.put('/inventory-counts/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'count_date', 'warehouse_id', 'created_by'];
+  const permitted = ['status', 'notes', 'count_date', 'warehouse_id'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -291,7 +291,8 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
   const { error: updateError } = await db
     .from('inventory_counts')
     .update({ status: 'completed', completed_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 

@@ -319,7 +319,8 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     .update({
       status: 'received',
     })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
 
   if (updateError) throw ApiError.database(updateError.message, requestId);
 

@@ -97,7 +97,8 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
 
     const { data, count, error } = await query;
     if (error) {
-      throw ApiError.database(error.message, c.get('requestId') as string, `Failed to list ${resourceName}. Check sort field '${sortField}' exists.`);
+      console.error(`[crud-factory] ${resourceName} list error:`, error.message);
+      throw ApiError.database('Query failed', c.get('requestId') as string, `Failed to list ${resourceName}. Check sort field '${sortField}' exists.`);
     }
     return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
   });
