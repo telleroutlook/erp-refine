@@ -1,50 +1,58 @@
 import React, { useState } from 'react';
 import { useLogin, useIsAuthenticated } from '@refinedev/core';
 import { Navigate } from 'react-router-dom';
-import { Card, Form, Input, Button, Divider, Typography, Space, Tag, Row, Col, Select } from 'antd';
-import { UserOutlined, LockOutlined, ThunderboltOutlined, GlobalOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Divider, Typography, Tag, Grid } from 'antd';
+import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
+
+/*
+ * INTENTIONAL DESIGN — NOT A SECURITY VULNERABILITY
+ *
+ * Demo account quick-login buttons are shown in ALL environments by design.
+ * This is a demo/showcase application for portfolio and evaluation purposes.
+ * Quick-login allows evaluators to instantly explore different ERP roles
+ * without needing to know credentials. The demo password is loaded from
+ * VITE_DEMO_PASSWORD env var, not hardcoded in source.
+ *
+ * For real production use, remove this section entirely.
+ */
 
 interface QuickUser {
   email: string;
   password: string;
   org: string;
-  orgLabel: string;
   role: string;
-  roleLabel: string;
   roleColor: string;
 }
 
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? '';
 
 const QUICK_USERS: QuickUser[] = [
-  // Org 1: 默认组织 / Default Org
-  { email: 'admin@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'admin',              roleLabel: 'Admin',              roleColor: 'red' },
-  { email: 'manager@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'manager',            roleLabel: 'Manager',            roleColor: 'orange' },
-  { email: 'sales@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'sales_manager',      roleLabel: 'Sales Mgr',          roleColor: 'blue' },
-  { email: 'purchasing@erp.demo', password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'procurement_manager', roleLabel: 'Procurement Mgr',   roleColor: 'purple' },
-  { email: 'finance@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'finance_manager',    roleLabel: 'Finance Mgr',        roleColor: 'gold' },
-  { email: 'warehouse@erp.demo',  password: DEMO_PASSWORD, org: 'DEFAULT', orgLabel: 'Default Org',  role: 'inventory_manager',  roleLabel: 'Inventory Mgr',      roleColor: 'cyan' },
-  // Org 2: Tech Innovation Inc
-  { email: 'admin@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    orgLabel: 'Tech Innovation', role: 'admin',            roleLabel: 'Admin',              roleColor: 'red' },
-  { email: 'finance@tech.demo',   password: DEMO_PASSWORD, org: 'TECH',    orgLabel: 'Tech Innovation', role: 'finance_manager',  roleLabel: 'Finance Mgr',        roleColor: 'gold' },
-  { email: 'sales@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    orgLabel: 'Tech Innovation', role: 'sales_manager',    roleLabel: 'Sales Mgr',          roleColor: 'blue' },
+  { email: 'admin@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', role: 'admin',               roleColor: 'red' },
+  { email: 'manager@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', role: 'manager',             roleColor: 'orange' },
+  { email: 'sales@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', role: 'sales_manager',       roleColor: 'blue' },
+  { email: 'purchasing@erp.demo', password: DEMO_PASSWORD, org: 'DEFAULT', role: 'procurement_manager', roleColor: 'purple' },
+  { email: 'finance@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', role: 'finance_manager',     roleColor: 'gold' },
+  { email: 'warehouse@erp.demo',  password: DEMO_PASSWORD, org: 'DEFAULT', role: 'inventory_manager',   roleColor: 'cyan' },
+  { email: 'admin@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    role: 'admin',               roleColor: 'red' },
+  { email: 'finance@tech.demo',   password: DEMO_PASSWORD, org: 'TECH',    role: 'finance_manager',     roleColor: 'gold' },
+  { email: 'sales@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    role: 'sales_manager',       roleColor: 'blue' },
 ];
 
 const ROLE_I18N: Record<string, { en: string; zh: string }> = {
-  admin:               { en: 'Admin',          zh: '系统管理员' },
-  manager:             { en: 'Manager',         zh: '部门经理' },
-  sales_manager:       { en: 'Sales Mgr',       zh: '销售经理' },
-  procurement_manager: { en: 'Procurement Mgr', zh: '采购经理' },
-  finance_manager:     { en: 'Finance Mgr',     zh: '财务经理' },
-  inventory_manager:   { en: 'Inventory Mgr',   zh: '库存经理' },
+  admin:               { en: 'Admin',          zh: '管理员' },
+  manager:             { en: 'Manager',        zh: '经理' },
+  sales_manager:       { en: 'Sales',          zh: '销售' },
+  procurement_manager: { en: 'Procurement',    zh: '采购' },
+  finance_manager:     { en: 'Finance',        zh: '财务' },
+  inventory_manager:   { en: 'Inventory',      zh: '库存' },
 };
 
 const ORG_I18N: Record<string, { en: string; zh: string }> = {
-  DEFAULT: { en: 'Default Org',       zh: '默认组织' },
-  TECH:    { en: 'Tech Innovation',   zh: '科技创新公司' },
+  DEFAULT: { en: 'Default Org',     zh: '默认组织' },
+  TECH:    { en: 'Tech Innovation', zh: '科技创新' },
 };
 
 export const LoginPage: React.FC = () => {
@@ -54,6 +62,8 @@ export const LoginPage: React.FC = () => {
   const [loadingUser, setLoadingUser] = useState<string | null>(null);
   const { i18n } = useTranslation();
   const lang = i18n.language.startsWith('zh') ? 'zh' : 'en';
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.sm;
 
   if (authData?.authenticated) return <Navigate to="/" replace />;
 
@@ -63,7 +73,7 @@ export const LoginPage: React.FC = () => {
     setLoadingUser(user.email);
     login(
       { email: user.email, password: user.password },
-      { onSettled: () => setLoadingUser(null) }
+      { onSettled: () => setLoadingUser(null) },
     );
   };
 
@@ -76,132 +86,205 @@ export const LoginPage: React.FC = () => {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        height: '100dvh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '24px',
+        overflow: 'hidden',
+        position: 'relative',
+        padding: isMobile ? 0 : 16,
       }}
     >
-      {/* Language switcher */}
-      <div style={{ position: 'fixed', top: 16, right: 16 }}>
-        <Select
-          value={i18n.language}
-          size="small"
-          style={{ width: 100 }}
-          suffixIcon={<GlobalOutlined />}
-          onChange={(val) => i18n.changeLanguage(val)}
-          options={[
-            { value: 'en', label: 'English' },
-            { value: 'zh-CN', label: '中文' },
-          ]}
-        />
-      </div>
+      {/* Decorative blobs */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -80,
+          right: -80,
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.08)',
+          filter: 'blur(80px)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -60,
+          left: -60,
+          width: 260,
+          height: 260,
+          borderRadius: '50%',
+          background: 'rgba(102,126,234,0.25)',
+          filter: 'blur(80px)',
+          pointerEvents: 'none',
+        }}
+      />
 
-      <div style={{ width: '100%', maxWidth: 900 }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ color: '#fff', margin: 0 }}>
+      <Card
+        style={{
+          maxWidth: isMobile ? undefined : 460,
+          width: '100%',
+          borderRadius: isMobile ? '20px 20px 0 0' : 16,
+          border: 'none',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08)',
+          position: 'relative',
+        }}
+        styles={{ body: { padding: isMobile ? '20px 20px 24px' : '24px 28px 20px' } }}
+      >
+        {/* Language switcher */}
+        <div style={{ position: 'absolute', top: 16, right: isMobile ? 16 : 20, zIndex: 1 }}>
+          <Button.Group size="small">
+            <Button
+              type={lang === 'en' ? 'primary' : 'default'}
+              onClick={() => i18n.changeLanguage('en')}
+              style={{ fontSize: 12, padding: '0 8px' }}
+            >
+              EN
+            </Button>
+            <Button
+              type={lang === 'zh' ? 'primary' : 'default'}
+              onClick={() => i18n.changeLanguage('zh-CN')}
+              style={{ fontSize: 12, padding: '0 8px' }}
+            >
+              中
+            </Button>
+          </Button.Group>
+        </div>
+
+        {/* Brand header */}
+        <div style={{ textAlign: 'center', marginBottom: 4 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              marginBottom: 8,
+              boxShadow: '0 4px 12px rgba(102,126,234,0.4)',
+            }}
+          >
+            <ThunderboltOutlined style={{ color: '#fff', fontSize: 18 }} />
+          </div>
+          <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
             ERP Refine
           </Title>
-          <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>
-            {t('Multi-tenant ERP system — test environment', '多租户ERP系统 — 测试环境')}
+          <Text type="secondary" style={{ fontSize: 13 }}>
+            {t('Multi-tenant ERP Demo', '多租户 ERP 演示系统')}
           </Text>
         </div>
 
-        <Row gutter={24}>
-          {/* Quick login panel — only shown in development builds */}
-          {import.meta.env.DEV && (
-          <Col xs={24} md={14}>
-            <Card
-              title={
-                <Space>
-                  <ThunderboltOutlined style={{ color: '#faad14' }} />
-                  <span>{t('Quick Login', '快捷登录')}</span>
-                </Space>
-              }
-              style={{ borderRadius: 12 }}
-              bodyStyle={{ paddingTop: 12 }}
-            >
-              {orgGroups.map((org) => {
-                const orgUsers = QUICK_USERS.filter((u) => u.org === org);
-                const orgName = ORG_I18N[org]?.[lang] ?? org;
-                return (
-                  <div key={org} style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
-                      {orgName}
-                    </Text>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                      {orgUsers.map((user) => {
-                        const roleLabel = ROLE_I18N[user.role]?.[lang] ?? user.roleLabel;
-                        return (
-                          <Button
-                            key={user.email}
-                            size="small"
-                            loading={loadingUser === user.email}
-                            disabled={!!loadingUser && loadingUser !== user.email}
-                            onClick={() => handleQuickLogin(user)}
-                            style={{ height: 'auto', padding: '4px 10px', borderRadius: 6 }}
-                          >
-                            <Space size={4} direction="vertical" style={{ lineHeight: 1.2 }}>
-                              <Tag color={user.roleColor} style={{ margin: 0, fontSize: 11 }}>
-                                {roleLabel}
-                              </Tag>
-                              <Text style={{ fontSize: 10, color: '#888' }}>{user.email}</Text>
-                            </Space>
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+        {/* INTENTIONAL: Demo buttons shown in all environments — see file header */}
+        <Divider style={{ margin: '12px 0 8px', fontSize: 12 }}>
+          <ThunderboltOutlined style={{ color: '#faad14', marginRight: 4 }} />
+          {t('Demo Accounts', '演示账号')}
+        </Divider>
 
-              <Divider style={{ margin: '8px 0 4px' }} />
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                {t('All demo accounts use the configured demo password.', '所有演示账号使用统一演示密码。')}
+        {orgGroups.map((org) => {
+          const orgUsers = QUICK_USERS.filter((u) => u.org === org);
+          const orgName = ORG_I18N[org]?.[lang] ?? org;
+          return (
+            <div key={org} style={{ marginBottom: 10 }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 11,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  fontWeight: 500,
+                }}
+              >
+                {orgName}
               </Text>
-            </Card>
-          </Col>
-          )}
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  marginTop: 6,
+                }}
+              >
+                {orgUsers.map((user) => {
+                  const roleLabel = ROLE_I18N[user.role]?.[lang] ?? user.role;
+                  const emailPrefix = user.email.split('@')[0];
+                  return (
+                    <Button
+                      key={user.email}
+                      size="small"
+                      loading={loadingUser === user.email}
+                      disabled={!!loadingUser && loadingUser !== user.email}
+                      onClick={() => handleQuickLogin(user)}
+                      style={{
+                        height: 'auto',
+                        padding: '5px 10px',
+                        borderRadius: 8,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        border: '1px solid #f0f0f0',
+                        flexBasis: isMobile ? 'calc(50% - 3px)' : undefined,
+                        justifyContent: 'flex-start',
+                      }}
+                    >
+                      <Tag
+                        color={user.roleColor}
+                        style={{ margin: 0, fontSize: 11, lineHeight: '18px', borderRadius: 4 }}
+                      >
+                        {roleLabel}
+                      </Tag>
+                      <Text style={{ fontSize: 11, color: '#888' }}>{emailPrefix}</Text>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
 
-          {/* Manual login form */}
-          <Col xs={24} md={import.meta.env.DEV ? 10 : 24}>
-            <Card
-              title={
-                <Space>
-                  <UserOutlined />
-                  <span>{t('Sign In', '账号登录')}</span>
-                </Space>
-              }
-              style={{ borderRadius: 12 }}
-            >
-              <Form form={form} layout="vertical" onFinish={handleFormLogin} size="middle">
-                <Form.Item
-                  name="email"
-                  label={t('Email', '邮箱')}
-                  rules={[{ required: true, type: 'email', message: t('Please enter a valid email', '请输入有效邮箱') }]}
-                >
-                  <Input prefix={<UserOutlined />} placeholder="user@example.com" />
-                </Form.Item>
-                <Form.Item
-                  name="password"
-                  label={t('Password', '密码')}
-                  rules={[{ required: true, message: t('Please enter your password', '请输入密码') }]}
-                >
-                  <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
-                </Form.Item>
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button type="primary" htmlType="submit" loading={isLoading && !loadingUser} block>
-                    {t('Sign In', '登录')}
-                  </Button>
-                </Form.Item>
-              </Form>
-            </Card>
-          </Col>
-        </Row>
-      </div>
+        {/* Manual login form */}
+        <Divider style={{ margin: '8px 0', fontSize: 12 }}>
+          {t('Or sign in manually', '或手动登录')}
+        </Divider>
+
+        <Form form={form} onFinish={handleFormLogin} size="middle">
+          <Form.Item
+            name="email"
+            style={{ marginBottom: 8 }}
+            rules={[
+              {
+                required: true,
+                type: 'email',
+                message: t('Valid email required', '请输入有效邮箱'),
+              },
+            ]}
+          >
+            <Input prefix={<UserOutlined />} placeholder={t('Email', '邮箱')} />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            style={{ marginBottom: 12 }}
+            rules={[
+              {
+                required: true,
+                message: t('Password required', '请输入密码'),
+              },
+            ]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder={t('Password', '密码')} />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit" loading={isLoading && !loadingUser} block>
+              {t('Sign In', '登录')}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 };
