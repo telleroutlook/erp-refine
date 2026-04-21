@@ -195,3 +195,10 @@ export const CUSTOMER_RECEIPT_STATUS_OPTIONS = [
   { value: 'confirmed', label: '已确认' },
   { value: 'cancelled', label: '已取消' },
 ];
+
+export const RESERVATION_STATUS_OPTIONS = [
+  { value: 'active', label: '生效' },
+  { value: 'released', label: '已释放' },
+  { value: 'expired', label: '已过期' },
+  { value: 'cancelled', label: '已取消' },
+];

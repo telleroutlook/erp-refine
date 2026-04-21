@@ -160,7 +160,14 @@
     "currencies": "Currencies",
     "uoms": "Units of Measure",
     "system": "System",
+    "inventoryReservations": "Inventory Reservations",
     "notifications": "Notifications",
+    "documentAttachments": "Document Attachments",
+    "documentRelations": "Document Relations",
+    "workflows": "Workflows",
+    "approvalRules": "Approval Rules",
+    "approvalRecords": "Approval Records",
+    "profileChangeRequests": "Profile Change Requests",
     "schemaManager": "Dynamic Forms"
   },
   "status": {

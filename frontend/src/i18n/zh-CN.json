@@ -160,7 +160,14 @@
     "currencies": "币种",
     "uoms": "计量单位",
     "system": "系统管理",
+    "inventoryReservations": "库存预留",
     "notifications": "通知中心",
+    "documentAttachments": "文档附件",
+    "documentRelations": "单据关联",
+    "workflows": "工作流",
+    "approvalRules": "审批规则",
+    "approvalRecords": "审批记录",
+    "profileChangeRequests": "变更申请",
     "schemaManager": "动态表单"
   },
   "status": {

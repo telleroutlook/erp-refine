@@ -210,4 +210,43 @@ const messageFeedbackConfig: CrudConfig = {
 };
 system.route('', buildCrudRoutes(messageFeedbackConfig));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Approval Rules — CRUD (also available via /api/admin for admin-only)
+// ────────────────────────────────────────────────────────────────────────────
+
+const approvalRulesConfig: CrudConfig = {
+  table: 'approval_rules',
+  path: '/approval-rules',
+  resourceName: 'ApprovalRule',
+  listSelect:
+    'id, rule_name, document_type, min_amount, max_amount, required_roles, sequence_order, is_active',
+  detailSelect: '*',
+  createReturnSelect: 'id, rule_name, document_type, sequence_order',
+  defaultSort: 'document_type',
+  softDelete: true,
+  orgScoped: true,
+};
+system.route('', buildCrudRoutes(approvalRulesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Approval Records — read-only (list + show)
+// ────────────────────────────────────────────────────────────────────────────
+
+const approvalRecordsConfig: CrudConfig = {
+  table: 'approval_records',
+  path: '/approval-records',
+  resourceName: 'ApprovalRecord',
+  listSelect:
+    'id, document_type, document_id, rule_id, decision_level, decision_by, decision_at, status, comments, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id',
+  defaultSort: 'created_at',
+  softDelete: true,
+  orgScoped: true,
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+system.route('', buildCrudRoutes(approvalRecordsConfig));
+
 export default system;

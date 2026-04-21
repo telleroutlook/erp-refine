@@ -43,6 +43,10 @@ const SupplierQuotationList = lazy(() => import('./pages/procurement/supplier-qu
 const SupplierQuotationShow = lazy(() => import('./pages/procurement/supplier-quotations/show').then((m) => ({ default: m.SupplierQuotationShow })));
 const SupplierQuotationCreate = lazy(() => import('./pages/procurement/supplier-quotations/create').then((m) => ({ default: m.SupplierQuotationCreate })));
 const SupplierQuotationEdit = lazy(() => import('./pages/procurement/supplier-quotations/edit').then((m) => ({ default: m.SupplierQuotationEdit })));
+const ProfileChangeRequestList = lazy(() => import('./pages/procurement/profile-change-requests/list').then((m) => ({ default: m.ProfileChangeRequestList })));
+const ProfileChangeRequestShow = lazy(() => import('./pages/procurement/profile-change-requests/show').then((m) => ({ default: m.ProfileChangeRequestShow })));
+const ProfileChangeRequestCreate = lazy(() => import('./pages/procurement/profile-change-requests/create').then((m) => ({ default: m.ProfileChangeRequestCreate })));
+const ProfileChangeRequestEdit = lazy(() => import('./pages/procurement/profile-change-requests/edit').then((m) => ({ default: m.ProfileChangeRequestEdit })));
 
 // ── Sales ──
 const SalesOrderList = lazy(() => import('./pages/sales/sales-orders/list').then((m) => ({ default: m.SalesOrderList })));
@@ -83,6 +87,10 @@ const SerialNumberCreate = lazy(() => import('./pages/inventory/serial-numbers/c
 const SerialNumberEdit = lazy(() => import('./pages/inventory/serial-numbers/edit').then((m) => ({ default: m.SerialNumberEdit })));
 const StockTransactionList = lazy(() => import('./pages/inventory/stock-transactions/list').then((m) => ({ default: m.StockTransactionList })));
 const StockTransactionShow = lazy(() => import('./pages/inventory/stock-transactions/show').then((m) => ({ default: m.StockTransactionShow })));
+const InventoryReservationList = lazy(() => import('./pages/inventory/inventory-reservations/list').then((m) => ({ default: m.InventoryReservationList })));
+const InventoryReservationShow = lazy(() => import('./pages/inventory/inventory-reservations/show').then((m) => ({ default: m.InventoryReservationShow })));
+const InventoryReservationCreate = lazy(() => import('./pages/inventory/inventory-reservations/create').then((m) => ({ default: m.InventoryReservationCreate })));
+const InventoryReservationEdit = lazy(() => import('./pages/inventory/inventory-reservations/edit').then((m) => ({ default: m.InventoryReservationEdit })));
 
 // ── Manufacturing ──
 const BomHeaderList = lazy(() => import('./pages/manufacturing/bom-headers/list').then((m) => ({ default: m.BomHeaderList })));
@@ -200,6 +208,22 @@ const UomShow = lazy(() => import('./pages/master-data/uoms/show').then((m) => (
 // ── System ──
 const NotificationList = lazy(() => import('./pages/system/notifications/list').then((m) => ({ default: m.NotificationList })));
 const NotificationShow = lazy(() => import('./pages/system/notifications/show').then((m) => ({ default: m.NotificationShow })));
+const DocumentAttachmentList = lazy(() => import('./pages/system/document-attachments/list').then((m) => ({ default: m.DocumentAttachmentList })));
+const DocumentAttachmentShow = lazy(() => import('./pages/system/document-attachments/show').then((m) => ({ default: m.DocumentAttachmentShow })));
+const DocumentAttachmentCreate = lazy(() => import('./pages/system/document-attachments/create').then((m) => ({ default: m.DocumentAttachmentCreate })));
+const DocumentAttachmentEdit = lazy(() => import('./pages/system/document-attachments/edit').then((m) => ({ default: m.DocumentAttachmentEdit })));
+const DocumentRelationList = lazy(() => import('./pages/system/document-relations/list').then((m) => ({ default: m.DocumentRelationList })));
+const DocumentRelationShow = lazy(() => import('./pages/system/document-relations/show').then((m) => ({ default: m.DocumentRelationShow })));
+const DocumentRelationCreate = lazy(() => import('./pages/system/document-relations/create').then((m) => ({ default: m.DocumentRelationCreate })));
+const DocumentRelationEdit = lazy(() => import('./pages/system/document-relations/edit').then((m) => ({ default: m.DocumentRelationEdit })));
+const WorkflowList = lazy(() => import('./pages/system/workflows/list').then((m) => ({ default: m.WorkflowList })));
+const WorkflowShow = lazy(() => import('./pages/system/workflows/show').then((m) => ({ default: m.WorkflowShow })));
+const ApprovalRuleList = lazy(() => import('./pages/system/approval-rules/list').then((m) => ({ default: m.ApprovalRuleList })));
+const ApprovalRuleShow = lazy(() => import('./pages/system/approval-rules/show').then((m) => ({ default: m.ApprovalRuleShow })));
+const ApprovalRuleCreate = lazy(() => import('./pages/system/approval-rules/create').then((m) => ({ default: m.ApprovalRuleCreate })));
+const ApprovalRuleEdit = lazy(() => import('./pages/system/approval-rules/edit').then((m) => ({ default: m.ApprovalRuleEdit })));
+const ApprovalRecordList = lazy(() => import('./pages/system/approval-records/list').then((m) => ({ default: m.ApprovalRecordList })));
+const ApprovalRecordShow = lazy(() => import('./pages/system/approval-records/show').then((m) => ({ default: m.ApprovalRecordShow })));
 
 // Icons
 import {
@@ -217,6 +241,7 @@ import {
   FileProtectOutlined,
   SolutionOutlined, IdcardOutlined,
   TagsOutlined, EnvironmentOutlined, DatabaseOutlined, DollarCircleOutlined, ColumnWidthOutlined,
+  LockOutlined, SafetyOutlined, LinkOutlined, PaperClipOutlined, NodeIndexOutlined, PartitionOutlined, FormOutlined,
 } from '@ant-design/icons';
 
 const PAGE_SPINNER = (
@@ -296,6 +321,14 @@ const App: React.FC = () => {
                 edit: '/procurement/supplier-quotations/:id/edit',
                 create: '/procurement/supplier-quotations/create',
                 meta: { parent: 'procurement', icon: <ProfileOutlined /> },
+              },
+              {
+                name: 'profile-change-requests',
+                list: '/procurement/profile-change-requests',
+                show: '/procurement/profile-change-requests/:id',
+                edit: '/procurement/profile-change-requests/:id/edit',
+                create: '/procurement/profile-change-requests/create',
+                meta: { parent: 'procurement', icon: <FormOutlined /> },
               },
               // ── Sales ──
               { name: 'sales' },
@@ -380,6 +413,14 @@ const App: React.FC = () => {
                 list: '/inventory/stock-transactions',
                 show: '/inventory/stock-transactions/:id',
                 meta: { parent: 'inventory', icon: <SwapOutlined /> },
+              },
+              {
+                name: 'inventory-reservations',
+                list: '/inventory/inventory-reservations',
+                show: '/inventory/inventory-reservations/:id',
+                edit: '/inventory/inventory-reservations/:id/edit',
+                create: '/inventory/inventory-reservations/create',
+                meta: { parent: 'inventory', icon: <LockOutlined /> },
               },
               // ── Manufacturing ──
               { name: 'manufacturing' },
@@ -614,6 +655,42 @@ const App: React.FC = () => {
                 show: '/system/notifications/:id',
                 meta: { parent: 'system', icon: <BellOutlined /> },
               },
+              {
+                name: 'document-attachments',
+                list: '/system/document-attachments',
+                show: '/system/document-attachments/:id',
+                edit: '/system/document-attachments/:id/edit',
+                create: '/system/document-attachments/create',
+                meta: { parent: 'system', icon: <PaperClipOutlined /> },
+              },
+              {
+                name: 'document-relations',
+                list: '/system/document-relations',
+                show: '/system/document-relations/:id',
+                edit: '/system/document-relations/:id/edit',
+                create: '/system/document-relations/create',
+                meta: { parent: 'system', icon: <LinkOutlined /> },
+              },
+              {
+                name: 'workflows',
+                list: '/system/workflows',
+                show: '/system/workflows/:id',
+                meta: { parent: 'system', icon: <PartitionOutlined /> },
+              },
+              {
+                name: 'approval-rules',
+                list: '/system/approval-rules',
+                show: '/system/approval-rules/:id',
+                edit: '/system/approval-rules/:id/edit',
+                create: '/system/approval-rules/create',
+                meta: { parent: 'system', icon: <SafetyOutlined /> },
+              },
+              {
+                name: 'approval-records',
+                list: '/system/approval-records',
+                show: '/system/approval-records/:id',
+                meta: { parent: 'system', icon: <NodeIndexOutlined /> },
+              },
             ]}
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}
           >
@@ -656,6 +733,10 @@ const App: React.FC = () => {
                   <Route path="/procurement/supplier-quotations/create" element={<SupplierQuotationCreate />} />
                   <Route path="/procurement/supplier-quotations/:id" element={<SupplierQuotationShow />} />
                   <Route path="/procurement/supplier-quotations/:id/edit" element={<SupplierQuotationEdit />} />
+                  <Route path="/procurement/profile-change-requests" element={<ProfileChangeRequestList />} />
+                  <Route path="/procurement/profile-change-requests/create" element={<ProfileChangeRequestCreate />} />
+                  <Route path="/procurement/profile-change-requests/:id" element={<ProfileChangeRequestShow />} />
+                  <Route path="/procurement/profile-change-requests/:id/edit" element={<ProfileChangeRequestEdit />} />
 
                   {/* Sales */}
                   <Route path="/sales/sales-orders" element={<SalesOrderList />} />
@@ -696,6 +777,10 @@ const App: React.FC = () => {
                   <Route path="/inventory/serial-numbers/:id/edit" element={<SerialNumberEdit />} />
                   <Route path="/inventory/stock-transactions" element={<StockTransactionList />} />
                   <Route path="/inventory/stock-transactions/:id" element={<StockTransactionShow />} />
+                  <Route path="/inventory/inventory-reservations" element={<InventoryReservationList />} />
+                  <Route path="/inventory/inventory-reservations/create" element={<InventoryReservationCreate />} />
+                  <Route path="/inventory/inventory-reservations/:id" element={<InventoryReservationShow />} />
+                  <Route path="/inventory/inventory-reservations/:id/edit" element={<InventoryReservationEdit />} />
 
                   {/* Manufacturing */}
                   <Route path="/manufacturing/bom-headers" element={<BomHeaderList />} />
@@ -813,6 +898,22 @@ const App: React.FC = () => {
                   {/* System */}
                   <Route path="/system/notifications" element={<NotificationList />} />
                   <Route path="/system/notifications/:id" element={<NotificationShow />} />
+                  <Route path="/system/document-attachments" element={<DocumentAttachmentList />} />
+                  <Route path="/system/document-attachments/create" element={<DocumentAttachmentCreate />} />
+                  <Route path="/system/document-attachments/:id" element={<DocumentAttachmentShow />} />
+                  <Route path="/system/document-attachments/:id/edit" element={<DocumentAttachmentEdit />} />
+                  <Route path="/system/document-relations" element={<DocumentRelationList />} />
+                  <Route path="/system/document-relations/create" element={<DocumentRelationCreate />} />
+                  <Route path="/system/document-relations/:id" element={<DocumentRelationShow />} />
+                  <Route path="/system/document-relations/:id/edit" element={<DocumentRelationEdit />} />
+                  <Route path="/system/workflows" element={<WorkflowList />} />
+                  <Route path="/system/workflows/:id" element={<WorkflowShow />} />
+                  <Route path="/system/approval-rules" element={<ApprovalRuleList />} />
+                  <Route path="/system/approval-rules/create" element={<ApprovalRuleCreate />} />
+                  <Route path="/system/approval-rules/:id" element={<ApprovalRuleShow />} />
+                  <Route path="/system/approval-rules/:id/edit" element={<ApprovalRuleEdit />} />
+                  <Route path="/system/approval-records" element={<ApprovalRecordList />} />
+                  <Route path="/system/approval-records/:id" element={<ApprovalRecordShow />} />
                 </Route>
 
                 {/* Catch-all */}
