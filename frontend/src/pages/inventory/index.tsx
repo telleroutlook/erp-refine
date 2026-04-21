@@ -8,6 +8,7 @@ export const StockRecordList: React.FC = () => {
 
   const { tableProps } = useTable({
     resource: 'stock-records',
+    sorters: { initial: [{ field: 'updated_at', order: 'desc' }] },
   });
 
   return (
