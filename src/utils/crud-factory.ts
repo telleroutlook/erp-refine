@@ -37,7 +37,7 @@ export interface CrudConfig {
    * so that update/delete can verify org ownership via the parent record.
    * e.g. { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' }
    */
-  parentOwnership?: { parentFk: string; parentTable: string };
+  parentOwnership?: { parentFk: string; parentTable: string; parentSoftDelete?: boolean };
 
   /** Zod schema for create validation (optional — skips validation if not provided) */
   createSchema?: z.ZodType;
@@ -169,12 +169,14 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       const body = updateSchema ? validateBody(updateSchema, rawBody, requestId) : rawBody;
 
       if (!orgScoped && parentOwnership) {
-        // Verify org ownership via parent record before mutating child
-        const { data: child, error: childErr } = await db.from(table).select(parentOwnership.parentFk).eq('id', id).single();
+        const parentAlias = `parent_check:${parentOwnership.parentTable}!inner(id)`;
+        const { data: child, error: childErr } = await db
+          .from(table)
+          .select(`id, ${parentAlias}`)
+          .eq('id', id)
+          .eq(`${parentOwnership.parentTable}.organization_id`, user.organizationId)
+          .single();
         if (childErr || !child) throw ApiError.notFound(resourceName, id, requestId);
-        const parentId = (child as unknown as Record<string, unknown>)[parentOwnership.parentFk] as string;
-        const { data: parent } = await db.from(parentOwnership.parentTable).select('id').eq('id', parentId).eq('organization_id', user.organizationId).is('deleted_at', null).single();
-        if (!parent) throw ApiError.notFound(resourceName, id, requestId);
       }
 
       const doUpdate = async () => {
@@ -213,12 +215,14 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       const id = c.req.param('id');
 
       if (!orgScoped && parentOwnership) {
-        // Verify org ownership via parent record before deleting child
-        const { data: child, error: childErr } = await db.from(table).select(parentOwnership.parentFk).eq('id', id).single();
+        const parentAlias = `parent_check:${parentOwnership.parentTable}!inner(id)`;
+        const { data: child, error: childErr } = await db
+          .from(table)
+          .select(`id, ${parentAlias}`)
+          .eq('id', id)
+          .eq(`${parentOwnership.parentTable}.organization_id`, user.organizationId)
+          .single();
         if (childErr || !child) throw ApiError.notFound(resourceName, id, requestId);
-        const parentId = (child as unknown as Record<string, unknown>)[parentOwnership.parentFk] as string;
-        const { data: parent } = await db.from(parentOwnership.parentTable).select('id').eq('id', parentId).eq('organization_id', user.organizationId).is('deleted_at', null).single();
-        if (!parent) throw ApiError.notFound(resourceName, id, requestId);
       }
 
       if (softDelete) {
@@ -449,6 +453,7 @@ export async function performSoftDelete(
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
     .eq('organization_id', organizationId)
+    .is('deleted_at', null)
     .select('id')
     .maybeSingle();
   if (error) throw ApiError.database(error.message, requestId);

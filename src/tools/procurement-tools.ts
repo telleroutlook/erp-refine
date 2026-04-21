@@ -136,7 +136,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
-        if (search) query = query.ilike('name', `%${search}%`);
+        if (search) { const s = search.replace(/[%_]/g, ''); query = query.ilike('name', `%${s}%`); }
 
         const { data, error } = await query.order('name').limit(50);
         if (error) throw new Error(error.message);

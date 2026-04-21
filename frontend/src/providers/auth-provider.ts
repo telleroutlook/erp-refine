@@ -54,7 +54,8 @@ export const authProvider: AuthProvider = {
       const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
       const payload = JSON.parse(atob(padded));
       const nowSec = Math.floor(Date.now() / 1000);
-      if (payload.exp && payload.exp < nowSec) {
+      const EXPIRY_BUFFER_SEC = 60;
+      if (payload.exp && payload.exp < nowSec + EXPIRY_BUFFER_SEC) {
         // Token expired — attempt refresh
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {

@@ -410,6 +410,8 @@ procurementReceiving.post('/three-way-match', async (c) => {
     matchStatus = 'matched';
   } else if (Math.abs(poAmount - invoiceAmount) < 0.01 && Math.abs(poAmount - receiptAmount) < 0.01) {
     matchStatus = 'matched';
+  } else if (poAmount === 0) {
+    matchStatus = (invoiceAmount === 0 && receiptAmount === 0) ? 'matched' : 'mismatch';
   } else if (variance < poAmount * 0.05) {
     matchStatus = 'partial';
   } else {

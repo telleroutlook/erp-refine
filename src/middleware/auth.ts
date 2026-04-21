@@ -57,31 +57,27 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
 
     let result: JWTVerifyResult;
     try {
-      // Detect algorithm from token header
       const headerB64 = token.split('.')[0] ?? '';
       const header = JSON.parse(atob(headerB64));
+      const supabaseUrl = c.env.SUPABASE_URL;
 
-      if (header.alg === 'HS256' && c.env.JWT_SECRET) {
+      if (header.kid && supabaseUrl) {
+        if (!supabaseUrl) {
+          return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
+        }
+        const key = await getVerifyKey(supabaseUrl, header.kid);
+        result = await jwtVerify(token, key, {
+          algorithms: ['ES256'],
+          issuer: new URL('/auth/v1', supabaseUrl).toString(),
+        });
+      } else if (c.env.JWT_SECRET) {
         const secret = new TextEncoder().encode(c.env.JWT_SECRET);
         result = await jwtVerify(token, secret, {
           algorithms: ['HS256'],
           issuer: new URL('/auth/v1', c.env.SUPABASE_URL).toString(),
         });
-      } else if (header.alg === 'ES256') {
-        const supabaseUrl = c.env.SUPABASE_URL;
-        if (!supabaseUrl) {
-          return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
-        }
-        if (!header.kid) {
-          return c.json({ error: 'Invalid or expired token' }, 401);
-        }
-        const key = await getVerifyKey(supabaseUrl, header.kid);
-        result = await jwtVerify(token, key, {
-          algorithms: ['ES256'],
-          issuer: new URL('/auth/v1', c.env.SUPABASE_URL).toString(),
-        });
       } else {
-        return c.json({ error: 'Unsupported JWT algorithm' }, 401);
+        return c.json({ error: 'Invalid or expired token' }, 401);
       }
     } catch {
       return c.json({ error: 'Invalid or expired token' }, 401);

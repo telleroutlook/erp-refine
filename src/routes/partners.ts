@@ -56,7 +56,7 @@ partners.route('', buildNestedCrudRoutes({
   childListSelect: 'id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default',
   childReturnSelect: 'id, address_type, contact_name',
   defaultSort: 'is_default',
-  softDelete: true,
+  softDelete: false,
 }));
 
 // ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -140,56 +140,24 @@ procurement.delete('/purchase-orders/:id', async (c) => {
 procurement.post('/purchase-orders/:id/submit', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-
-  const { data: po, error: fetchError } = await db
-    .from('purchase_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !po) throw ApiError.notFound('PurchaseOrder', id, requestId);
-  if (po.status !== 'draft') {
-    throw ApiError.invalidState('PurchaseOrder', po.status, 'submit', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('purchase_orders')
-    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: po.id, order_number: po.order_number, status: 'submitted' } });
+  const { data, error } = await atomicStatusTransition(db, 'purchase_orders', id, user.organizationId, 'draft', {
+    status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PurchaseOrder', 'unknown', 'submit', requestId);
+  return c.json({ data });
 });
 
 // POST /purchase-orders/:id/approve — submitted → approved
 procurement.post('/purchase-orders/:id/approve', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-
-  const { data: po, error: fetchError } = await db
-    .from('purchase_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !po) throw ApiError.notFound('PurchaseOrder', id, requestId);
-  if (po.status !== 'submitted') {
-    throw ApiError.invalidState('PurchaseOrder', po.status, 'approve', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('purchase_orders')
-    .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: po.id, order_number: po.order_number, status: 'approved' } });
+  const { data, error } = await atomicStatusTransition(db, 'purchase_orders', id, user.organizationId, 'submitted', {
+    status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PurchaseOrder', 'unknown', 'approve', requestId);
+  return c.json({ data });
 });
 
 // POST /purchase-orders/:id/reject — submitted → rejected
@@ -197,28 +165,12 @@ procurement.post('/purchase-orders/:id/reject', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
-
-  const { data: po, error: fetchError } = await db
-    .from('purchase_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !po) throw ApiError.notFound('PurchaseOrder', id, requestId);
-  if (po.status !== 'submitted') {
-    throw ApiError.invalidState('PurchaseOrder', po.status, 'reject', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('purchase_orders')
-    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: po.id, order_number: po.order_number, status: 'rejected' } });
+  const { data, error } = await atomicStatusTransition(db, 'purchase_orders', id, user.organizationId, 'submitted', {
+    status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PurchaseOrder', 'unknown', 'reject', requestId);
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -252,7 +204,7 @@ procurement.get('/purchase-requisitions', async (c) => {
   let query = db
     .from('purchase_requisitions')
     .select(
-      'id, requisition_number, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name)',
+      'id, requisition_number, request_date, required_date, total_amount, status, department:departments(id,name), requester:employees!purchase_requisitions_requester_id_fkey(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -273,7 +225,7 @@ procurement.get('/purchase-requisitions/:id', async (c) => {
 
   const { data, error } = await db
     .from('purchase_requisitions')
-    .select('*, lines:purchase_requisition_lines(*, product:products(id,name,code)), department:departments(id,name), requester:employees(id,name)')
+    .select('*, lines:purchase_requisition_lines(*, product:products(id,name,code)), department:departments(id,name), requester:employees!purchase_requisitions_requester_id_fkey(id,name)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -333,7 +285,7 @@ procurement.put('/purchase-requisitions/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'priority']);
+  const PERMITTED = new Set(['status', 'notes']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -378,56 +330,24 @@ procurement.delete('/purchase-requisitions/:id', async (c) => {
 procurement.post('/purchase-requisitions/:id/submit', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-
-  const { data: pr, error: fetchError } = await db
-    .from('purchase_requisitions')
-    .select('id, requisition_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !pr) throw ApiError.notFound('PurchaseRequisition', id, requestId);
-  if (pr.status !== 'draft') {
-    throw ApiError.invalidState('PurchaseRequisition', pr.status, 'submit', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('purchase_requisitions')
-    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: pr.id, requisition_number: pr.requisition_number, status: 'submitted' } });
+  const { data, error } = await atomicStatusTransition(db, 'purchase_requisitions', id, user.organizationId, 'draft', {
+    status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId,
+  }, 'id, requisition_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PurchaseRequisition', 'unknown', 'submit', requestId);
+  return c.json({ data });
 });
 
 // POST /purchase-requisitions/:id/approve — submitted → approved
 procurement.post('/purchase-requisitions/:id/approve', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-
-  const { data: pr, error: fetchError } = await db
-    .from('purchase_requisitions')
-    .select('id, requisition_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !pr) throw ApiError.notFound('PurchaseRequisition', id, requestId);
-  if (pr.status !== 'submitted') {
-    throw ApiError.invalidState('PurchaseRequisition', pr.status, 'approve', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('purchase_requisitions')
-    .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: pr.id, requisition_number: pr.requisition_number, status: 'approved' } });
+  const { data, error } = await atomicStatusTransition(db, 'purchase_requisitions', id, user.organizationId, 'submitted', {
+    status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId,
+  }, 'id, requisition_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PurchaseRequisition', 'unknown', 'approve', requestId);
+  return c.json({ data });
 });
 
 // POST /purchase-requisitions/:id/reject — submitted → rejected
@@ -435,28 +355,12 @@ procurement.post('/purchase-requisitions/:id/reject', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
-
-  const { data: pr, error: fetchError } = await db
-    .from('purchase_requisitions')
-    .select('id, requisition_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !pr) throw ApiError.notFound('PurchaseRequisition', id, requestId);
-  if (pr.status !== 'submitted') {
-    throw ApiError.invalidState('PurchaseRequisition', pr.status, 'reject', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('purchase_requisitions')
-    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: pr.id, requisition_number: pr.requisition_number, status: 'rejected' } });
+  const { data, error } = await atomicStatusTransition(db, 'purchase_requisitions', id, user.organizationId, 'submitted', {
+    status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null,
+  }, 'id, requisition_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PurchaseRequisition', 'unknown', 'reject', requestId);
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────

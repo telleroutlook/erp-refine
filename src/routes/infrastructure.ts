@@ -3,12 +3,21 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware, writeMethodGuard } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard, requireRole } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 
 const infrastructure = new Hono<{ Bindings: Env }>();
 infrastructure.use('*', authMiddleware());
 infrastructure.use('*', writeMethodGuard());
+
+// Admin-only write guard for sensitive resources
+const adminWriteGuard = requireRole('admin');
+infrastructure.post('/organizations', adminWriteGuard);
+infrastructure.put('/organizations/:id', adminWriteGuard);
+infrastructure.delete('/organizations/:id', adminWriteGuard);
+infrastructure.post('/number-sequences', adminWriteGuard);
+infrastructure.put('/number-sequences/:id', adminWriteGuard);
+infrastructure.delete('/number-sequences/:id', adminWriteGuard);
 
 // ---------------------------------------------------------------------------
 // Organizations — tenant root entity, read for all, write for admin only

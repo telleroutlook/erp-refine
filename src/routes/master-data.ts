@@ -169,7 +169,7 @@ const storageLocationsConfig: CrudConfig = {
   detailSelect: 'id, warehouse_id, organization_id, code, name, zone, is_active, deleted_at, created_at, updated_at, warehouse:warehouses(id,name,code)',
   createReturnSelect: 'id, code, zone',
   defaultSort: 'code',
-  softDelete: false,
+  softDelete: true,
   orgScoped: true,
 };
 masterData.route('', buildCrudRoutes(storageLocationsConfig));

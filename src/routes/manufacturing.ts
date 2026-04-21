@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performHardDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -359,19 +359,13 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     createdBy: user.userId,
   }, requestId);
 
-  // 4. Update work order: status='completed', actual_completion_date=NOW()
-  const { error: updateError } = await db
-    .from('work_orders')
-    .update({
-      status: 'completed',
-      actual_completion_date: new Date().toISOString(),
-    })
-    .eq('id', wo.id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-
-  return c.json({ data: { success: true, id: wo.id, status: 'completed' } });
+  // 3. Atomic status transition: in_progress → completed
+  const { data, error } = await atomicStatusTransition(db, 'work_orders', id, user.organizationId,
+    'in_progress', { status: 'completed', actual_completion_date: new Date().toISOString() },
+    'id, work_order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('Work Order', 'unknown', 'complete', requestId);
+  return c.json({ data });
 });
 
 // ─── Work Order Productions ─────────────────────────────────────────────────

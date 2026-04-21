@@ -101,7 +101,8 @@ storage.get('/storage/download/:id', async (c) => {
   }
 
   c.header('Content-Type', attachment.mime_type || 'application/octet-stream');
-  c.header('Content-Disposition', `attachment; filename="${attachment.file_name}"`);
+  const safeFileName = (attachment.file_name ?? 'download').replace(/[^\w.\- ]/g, '_');
+  c.header('Content-Disposition', `attachment; filename="${safeFileName}"`);
   if (object.size) c.header('Content-Length', String(object.size));
 
   return c.body(object.body as ReadableStream);

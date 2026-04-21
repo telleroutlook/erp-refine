@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -252,7 +252,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get count with lines
+  // 1. Get count with lines (need lines for variance calculations)
   const { data: countDoc, error: fetchError } = await db
     .from('inventory_counts')
     .select('*, lines:inventory_count_lines(*)')
@@ -263,7 +263,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
 
   if (fetchError || !countDoc) throw ApiError.notFound('InventoryCount', id, requestId);
 
-  // 2. Validate status (must be 'in_progress' or 'counted')
+  // 2. Validate status before running side effects (must be 'in_progress' or 'counted')
   if (countDoc.status !== 'in_progress' && countDoc.status !== 'counted') {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
   }
@@ -290,18 +290,12 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
 
   await batchCreateStockTransactions(db, stockTxInputs, requestId);
 
-  // 4. Update count status to 'completed'
-  const { error: updateError } = await db
-    .from('inventory_counts')
-    .update({ status: 'completed' })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-
-  return c.json({
-    data: { id: countDoc.id, count_number: countDoc.count_number, status: 'completed' },
-  });
+  // 4. Atomic status transition: in_progress/counted → completed
+  const { data, error } = await atomicStatusTransition(db, 'inventory_counts', id, user.organizationId,
+    ['in_progress', 'counted'], { status: 'completed' }, 'id, count_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('InventoryCount', 'unknown', 'complete', requestId);
+  return c.json({ data });
 });
 
 export default inventory;

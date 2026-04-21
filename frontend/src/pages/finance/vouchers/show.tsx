@@ -41,7 +41,7 @@ export const VoucherShow: React.FC = () => {
             pagination={false}
             columns={[
               { dataIndex: 'sequence', title: '序号', width: 60 },
-              { dataIndex: ['account_subject', 'name'], title: '会计科目', render: (v: string, row: any) => v || row.account_subject_id },
+              { dataIndex: ['account', 'name'], title: '会计科目', render: (v: string, row: any) => v || row.account_subject_id },
               { dataIndex: 'entry_type', title: '借/贷', width: 80, render: (v: string) => (v === 'debit' ? '借' : '贷') },
               { dataIndex: 'amount', title: '金额', width: 140, align: 'right' as const, render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency="CNY" /> },
               { dataIndex: 'summary', title: '摘要' },

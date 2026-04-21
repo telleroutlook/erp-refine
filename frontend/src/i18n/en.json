@@ -182,6 +182,8 @@
     "invoiced": "Invoiced",
     "posted": "Posted",
     "void": "Void",
+    "voided": "Voided",
+    "counted": "Counted",
     "pending": "Pending",
     "in_progress": "In Progress",
     "completed": "Completed",

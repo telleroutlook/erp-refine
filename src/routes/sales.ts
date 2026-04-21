@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -141,56 +141,24 @@ sales.delete('/sales-orders/:id', async (c) => {
 sales.post('/sales-orders/:id/submit', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-
-  const { data: so, error: fetchError } = await db
-    .from('sales_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
-  if (so.status !== 'draft') {
-    throw ApiError.invalidState('SalesOrder', so.status, 'submit', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('sales_orders')
-    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'submitted' } });
+  const { data, error } = await atomicStatusTransition(db, 'sales_orders', id, user.organizationId, 'draft', {
+    status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('SalesOrder', 'unknown', 'submit', requestId);
+  return c.json({ data });
 });
 
 // POST /sales-orders/:id/approve — submitted → approved
 sales.post('/sales-orders/:id/approve', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
-
-  const { data: so, error: fetchError } = await db
-    .from('sales_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
-  if (so.status !== 'submitted') {
-    throw ApiError.invalidState('SalesOrder', so.status, 'approve', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('sales_orders')
-    .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'approved' } });
+  const { data, error } = await atomicStatusTransition(db, 'sales_orders', id, user.organizationId, 'submitted', {
+    status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('SalesOrder', 'unknown', 'approve', requestId);
+  return c.json({ data });
 });
 
 // POST /sales-orders/:id/reject — submitted → rejected
@@ -198,57 +166,25 @@ sales.post('/sales-orders/:id/reject', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
-
-  const { data: so, error: fetchError } = await db
-    .from('sales_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
-  if (so.status !== 'submitted') {
-    throw ApiError.invalidState('SalesOrder', so.status, 'reject', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('sales_orders')
-    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'rejected' } });
+  const { data, error } = await atomicStatusTransition(db, 'sales_orders', id, user.organizationId, 'submitted', {
+    status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('SalesOrder', 'unknown', 'reject', requestId);
+  return c.json({ data });
 });
 
-// POST /sales-orders/:id/cancel — approved → cancelled
+// POST /sales-orders/:id/cancel — draft/submitted/approved → cancelled
 sales.post('/sales-orders/:id/cancel', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
-
-  const { data: so, error: fetchError } = await db
-    .from('sales_orders')
-    .select('id, order_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
-  if (!['approved', 'submitted', 'draft'].includes(so.status)) {
-    throw ApiError.invalidState('SalesOrder', so.status, 'cancel', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('sales_orders')
-    .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), cancelled_by: user.userId, cancellation_reason: body.reason ?? null })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'cancelled' } });
+  const { data, error } = await atomicStatusTransition(db, 'sales_orders', id, user.organizationId, ['approved', 'submitted', 'draft'], {
+    status: 'cancelled', cancelled_at: new Date().toISOString(), cancelled_by: user.userId, cancellation_reason: body.reason ?? null,
+  }, 'id, order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('SalesOrder', 'unknown', 'cancel', requestId);
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -408,39 +344,13 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get shipment (no need to fetch items — trigger handles stock/qty/SO-status updates)
-  const { data: shipment, error: fetchError } = await db
-    .from('sales_shipments')
-    .select('id, status, shipment_number')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
+  const { data, error } = await atomicStatusTransition(db, 'sales_shipments', id, user.organizationId, 'draft', {
+    status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString(),
+  }, 'id, shipment_number, status');
 
-  if (fetchError || !shipment) throw ApiError.notFound('SalesShipment', id, requestId);
-
-  // 2. Validate status
-  if (shipment.status !== 'draft') {
-    throw ApiError.invalidState('SalesShipment', shipment.status, 'confirm', requestId);
-  }
-
-  // 3. Update status to 'confirmed' — triggers handle stock transactions,
-  //    shipped_quantity on SO items, and SO status automatically.
-  const { error: updateError } = await db
-    .from('sales_shipments')
-    .update({
-      status: 'confirmed',
-      confirmed_by: user.userId,
-      confirmed_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-
-  return c.json({
-    data: { id: shipment.id, shipment_number: shipment.shipment_number, status: 'confirmed' },
-  });
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('SalesShipment', 'unknown', 'confirm', requestId);
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────

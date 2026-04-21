@@ -28,6 +28,10 @@ export function rateLimitMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
       }
     } catch (e) {
       console.warn('[rate-limit] DO unavailable, failing open:', e);
+      const path = new URL(c.req.url).pathname;
+      if (path.startsWith('/api/auth')) {
+        return c.json({ error: 'Service temporarily unavailable' }, 503);
+      }
     }
 
     await next();

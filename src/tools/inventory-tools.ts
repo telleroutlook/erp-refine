@@ -95,7 +95,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
 
         if (productId) query = query.eq('product_id', productId);
         if (status) query = query.eq('status', status);
-        if (search) query = query.ilike('serial_number', `%${search}%`);
+        if (search) { const s = search.replace(/[%_]/g, ''); query = query.ilike('serial_number', `%${s}%`); }
 
         const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
         if (error) throw new Error(error.message);

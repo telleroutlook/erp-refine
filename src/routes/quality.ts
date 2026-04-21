@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -217,24 +217,11 @@ quality.delete('/quality-inspections/:id', async (c) => {
 
 // ─── Quality Inspection Workflow — complete ─────────────────────────────────
 
-// POST /quality-inspections/:id/complete — in_progress → completed
+// POST /quality-inspections/:id/complete — draft/in_progress → completed
 quality.post('/quality-inspections/:id/complete', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
-
-  const { data: qi, error: fetchError } = await db
-    .from('quality_inspections')
-    .select('id, inspection_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !qi) throw ApiError.notFound('QualityInspection', id, requestId);
-  if (!['draft', 'in_progress'].includes(qi.status)) {
-    throw ApiError.invalidState('QualityInspection', qi.status, 'complete', requestId);
-  }
 
   const updatePayload: Record<string, unknown> = {
     status: 'completed',
@@ -243,14 +230,11 @@ quality.post('/quality-inspections/:id/complete', async (c) => {
   };
   if (body.result) updatePayload.result = body.result;
 
-  const { error: updateError } = await db
-    .from('quality_inspections')
-    .update(updatePayload)
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: qi.id, inspection_number: qi.inspection_number, status: 'completed', result: body.result ?? null } });
+  const { data, error } = await atomicStatusTransition(db, 'quality_inspections', id, user.organizationId,
+    ['draft', 'in_progress'], updatePayload, 'id, inspection_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('QualityInspection', 'unknown', 'complete', requestId);
+  return c.json({ data });
 });
 
 // ─── Quality Standard Items ─────────────────────────────────────────────────

@@ -7,7 +7,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -44,7 +44,7 @@ const costCentersConfig: CrudConfig = {
   detailSelect: '*, parent:cost_centers(id,code,name)',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
-  softDelete: false,
+  softDelete: true,
   orgScoped: true,
 };
 finance.route('', buildCrudRoutes(costCentersConfig));
@@ -228,22 +228,16 @@ finance.post('/vouchers/:id/post', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get voucher
+  // 1. Read-only precondition: validate debit == credit
   const { data: voucher, error: fetchError } = await db
     .from('vouchers')
-    .select('id, voucher_number, status, total_debit, total_credit')
+    .select('total_debit, total_credit')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .single();
 
   if (fetchError || !voucher) throw ApiError.notFound('Voucher', id, requestId);
 
-  // 2. Validate status
-  if (voucher.status !== 'draft') {
-    throw ApiError.invalidState('Voucher', voucher.status, 'post', requestId);
-  }
-
-  // 3. Validate debit == credit
   if (Math.abs((voucher.total_debit ?? 0) - (voucher.total_credit ?? 0)) > 0.01) {
     throw ApiError.validation(
       `Cannot post voucher: debit (${voucher.total_debit}) does not equal credit (${voucher.total_credit}).`,
@@ -253,21 +247,16 @@ finance.post('/vouchers/:id/post', async (c) => {
     );
   }
 
-  // 4. Update status to 'posted'
-  const { error: updateError } = await db
-    .from('vouchers')
-    .update({
-      status: 'posted',
-      posted_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
+  // 2. Atomic status transition: draft → posted
+  const { data, error } = await atomicStatusTransition(db, 'vouchers', id, user.organizationId, 'draft', {
+    status: 'posted',
+    posted_at: new Date().toISOString(),
+  }, 'id, voucher_number, status');
 
-  if (updateError) throw ApiError.database(updateError.message, requestId);
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('Voucher', 'unknown', 'post', requestId);
 
-  return c.json({
-    data: { id: voucher.id, voucher_number: voucher.voucher_number, status: 'posted' },
-  });
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -279,27 +268,17 @@ finance.post('/vouchers/:id/void', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
 
-  const { data: voucher, error: fetchError } = await db
-    .from('vouchers')
-    .select('id, voucher_number, status, voucher_type, voucher_date, total_debit, total_credit, notes')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .single();
+  const { data, error } = await atomicStatusTransition(db, 'vouchers', id, user.organizationId, 'posted', {
+    status: 'voided',
+    voided_at: new Date().toISOString(),
+    voided_by: user.userId,
+    void_reason: body.reason ?? null,
+  }, 'id, voucher_number, status');
 
-  if (fetchError || !voucher) throw ApiError.notFound('Voucher', id, requestId);
-  if (voucher.status !== 'posted') {
-    throw ApiError.invalidState('Voucher', voucher.status, 'void', requestId);
-  }
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('Voucher', 'unknown', 'void', requestId);
 
-  const { error: updateError } = await db
-    .from('vouchers')
-    .update({ status: 'voided', voided_at: new Date().toISOString(), voided_by: user.userId, void_reason: body.reason ?? null })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-
-  return c.json({ data: { id: voucher.id, voucher_number: voucher.voucher_number, status: 'voided' } });
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -507,27 +486,16 @@ finance.post('/payment-requests/:id/submit', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { data: pr, error: fetchError } = await db
-    .from('payment_requests')
-    .select('id, request_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
+  const { data, error } = await atomicStatusTransition(db, 'payment_requests', id, user.organizationId, 'draft', {
+    status: 'submitted',
+    submitted_at: new Date().toISOString(),
+    submitted_by: user.userId,
+  }, 'id, request_number, status');
 
-  if (fetchError || !pr) throw ApiError.notFound('PaymentRequest', id, requestId);
-  if (pr.status !== 'draft') {
-    throw ApiError.invalidState('PaymentRequest', pr.status, 'submit', requestId);
-  }
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PaymentRequest', 'unknown', 'submit', requestId);
 
-  const { error: updateError } = await db
-    .from('payment_requests')
-    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: pr.id, request_number: pr.request_number, status: 'submitted' } });
+  return c.json({ data });
 });
 
 // POST /payment-requests/:id/approve — submitted → approved
@@ -535,27 +503,17 @@ finance.post('/payment-requests/:id/approve', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { data: pr, error: fetchError } = await db
-    .from('payment_requests')
-    .select('id, request_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
+  const { data, error } = await atomicStatusTransition(db, 'payment_requests', id, user.organizationId, 'submitted', {
+    status: 'approved',
+    ok_to_pay: true,
+    approved_at: new Date().toISOString(),
+    approved_by: user.userId,
+  }, 'id, request_number, status');
 
-  if (fetchError || !pr) throw ApiError.notFound('PaymentRequest', id, requestId);
-  if (pr.status !== 'submitted') {
-    throw ApiError.invalidState('PaymentRequest', pr.status, 'approve', requestId);
-  }
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PaymentRequest', 'unknown', 'approve', requestId);
 
-  const { error: updateError } = await db
-    .from('payment_requests')
-    .update({ status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString(), approved_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: pr.id, request_number: pr.request_number, status: 'approved' } });
+  return c.json({ data });
 });
 
 // POST /payment-requests/:id/reject — submitted → rejected
@@ -564,27 +522,17 @@ finance.post('/payment-requests/:id/reject', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
 
-  const { data: pr, error: fetchError } = await db
-    .from('payment_requests')
-    .select('id, request_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
+  const { data, error } = await atomicStatusTransition(db, 'payment_requests', id, user.organizationId, 'submitted', {
+    status: 'rejected',
+    rejected_at: new Date().toISOString(),
+    rejected_by: user.userId,
+    rejection_reason: body.reason ?? null,
+  }, 'id, request_number, status');
 
-  if (fetchError || !pr) throw ApiError.notFound('PaymentRequest', id, requestId);
-  if (pr.status !== 'submitted') {
-    throw ApiError.invalidState('PaymentRequest', pr.status, 'reject', requestId);
-  }
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('PaymentRequest', 'unknown', 'reject', requestId);
 
-  const { error: updateError } = await db
-    .from('payment_requests')
-    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: pr.id, request_number: pr.request_number, status: 'rejected' } });
+  return c.json({ data });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -619,7 +567,7 @@ const voucherEntriesConfig: CrudConfig = {
   defaultSort: 'sequence',
   softDelete: false,
   orgScoped: false,
-  parentOwnership: { parentFk: 'voucher_id', parentTable: 'vouchers' },
+  parentOwnership: { parentFk: 'voucher_id', parentTable: 'vouchers', parentSoftDelete: false },
 };
 finance.route('', buildCrudRoutes(voucherEntriesConfig));
 

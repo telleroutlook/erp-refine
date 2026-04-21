@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -120,27 +120,12 @@ contracts.post('/contracts/:id/activate', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { data: contract, error: fetchError } = await db
-    .from('contracts')
-    .select('id, contract_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !contract) throw ApiError.notFound('Contract', id, requestId);
-  if (contract.status !== 'draft') {
-    throw ApiError.invalidState('Contract', contract.status, 'activate', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('contracts')
-    .update({ status: 'active', activated_at: new Date().toISOString(), activated_by: user.userId })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: contract.id, contract_number: contract.contract_number, status: 'active' } });
+  const { data, error } = await atomicStatusTransition(db, 'contracts', id, user.organizationId,
+    'draft', { status: 'active', activated_at: new Date().toISOString(), activated_by: user.userId },
+    'id, contract_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('Contract', 'unknown', 'activate', requestId);
+  return c.json({ data });
 });
 
 // POST /contracts/:id/terminate — active → terminated
@@ -149,32 +134,16 @@ contracts.post('/contracts/:id/terminate', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
 
-  const { data: contract, error: fetchError } = await db
-    .from('contracts')
-    .select('id, contract_number, status')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (fetchError || !contract) throw ApiError.notFound('Contract', id, requestId);
-  if (contract.status !== 'active') {
-    throw ApiError.invalidState('Contract', contract.status, 'terminate', requestId);
-  }
-
-  const { error: updateError } = await db
-    .from('contracts')
-    .update({
+  const { data, error } = await atomicStatusTransition(db, 'contracts', id, user.organizationId,
+    'active', {
       status: 'terminated',
       terminated_at: new Date().toISOString(),
       terminated_by: user.userId,
       termination_reason: body.reason ?? null,
-    })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
-  return c.json({ data: { id: contract.id, contract_number: contract.contract_number, status: 'terminated' } });
+    }, 'id, contract_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('Contract', 'unknown', 'terminate', requestId);
+  return c.json({ data });
 });
 
 // POST /contracts/:id/renew — active → create new contract from existing

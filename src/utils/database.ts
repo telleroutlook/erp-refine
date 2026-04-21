@@ -131,3 +131,30 @@ export function applyPagination(
   query = (query as any).range(from, from + pageSize - 1);
   return query;
 }
+
+/**
+ * Atomic status transition — single UPDATE with WHERE status = expectedStatus.
+ * Returns the updated row or null if 0 rows matched (stale status).
+ */
+export async function atomicStatusTransition(
+  db: SupabaseClient,
+  table: string,
+  id: string,
+  organizationId: string,
+  expectedStatus: string | string[],
+  newFields: Record<string, unknown>,
+  returnSelect = 'id, status'
+): Promise<{ data: Record<string, unknown> | null; error: unknown }> {
+  let q = db
+    .from(table)
+    .update(newFields)
+    .eq('id', id)
+    .eq('organization_id', organizationId);
+  if (Array.isArray(expectedStatus)) {
+    q = q.in('status', expectedStatus);
+  } else {
+    q = q.eq('status', expectedStatus);
+  }
+  const { data, error } = await q.select(returnSelect).maybeSingle();
+  return { data: data as Record<string, unknown> | null, error };
+}
