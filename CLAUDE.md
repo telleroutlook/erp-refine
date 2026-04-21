@@ -9,11 +9,14 @@
 
 ### Schema 变更流程
 
-1. 写迁移文件 `supabase/migrations/NNN_description.sql`
-2. 应用迁移：`npm run db:migrate`
-3. 重新生成类型：从 Supabase MCP 获取最新 `database.ts`，然后 `npm run schema:sync`
-4. 修复所有引用：validator 会显示每个不匹配的 `file:line`
-5. 部署：`npm run deploy`（自动运行 schema:validate）
+1. 写迁移 `supabase/migrations/NNN_description.sql`
+2. 通过 Supabase MCP `apply_migration` 应用到远端
+3. 通过 Supabase MCP `generate_typescript_types` 获取最新类型 → 写入 `src/types/database.ts`
+4. `npm run schema:sync` — 从 `database.ts` 重新生成 `src/schema/columns.ts`
+5. `npx tsc --noEmit` — 确保无类型错误
+6. 修复所有引用（validator 会显示每个不匹配的 `file:line`）
+
+**注意**：新增列时需同步检查目标表的 CHECK 约束（如 status 枚举），否则新状态值写入会报 DB 错误。
 
 ### 迁移文件规范
 
@@ -98,6 +101,41 @@ frontend/
 
 supabase/migrations/      # SQL 迁移文件（唯一 schema 权威）
 ```
+
+## 部署与生产验证
+
+```bash
+# 1. 类型检查
+npx tsc --noEmit
+
+# 2. 跑测试
+npx vitest run
+
+# 3. 构建前端
+cd frontend && npm run build && cd ..
+
+# 4. 部署 Worker（含前端静态资源）
+npx wrangler deploy
+
+# 5. 生产冒烟测试（用 curl 验证关键 API）
+TOKEN=$(curl -s 'https://erp.3we.org/api/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@erp.demo","password":"Admin2026!"}' \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['data']['session']['accessToken'])")
+curl -s "https://erp.3we.org/api/<resource>?_start=0&_end=1" -H "Authorization: Bearer $TOKEN"
+```
+
+**注意**：`git push` 不会自动部署，必须手动执行 `npx wrangler deploy`。
+
+## 新增路由/工具检查清单
+
+添加新的 API 路由或 AI 工具时，按此顺序检查：
+
+1. DB 表是否有该列？→ 查 `information_schema.columns` 或 `src/types/database.ts`
+2. 是否有 CHECK 约束限制状态值？→ 查 `pg_constraint` 并按需扩展
+3. 路由写在 `src/routes/<domain>.ts`，工具写在 `src/tools/<domain>-tools.ts`
+4. D2+ 工具必须在 `src/tools/tool-registry.ts` 注册 + `src/policy/rules/<domain>-rules.ts` 添加规则
+5. 工具的 `confirmed` 参数：`false` 返回 dry-run 预览，`true` 才执行写入
 
 ## Git 规范
 
