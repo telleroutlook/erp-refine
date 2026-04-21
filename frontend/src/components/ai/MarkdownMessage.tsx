@@ -14,8 +14,8 @@ const REHYPE_PLUGINS = [rehypeHighlight];
 const MD_COMPONENTS = {
   pre: ({ children }: any) => (
     <pre style={{
-      background: '#f6f8fa',
-      border: '1px solid #e1e4e8',
+      background: 'var(--md-code-bg)',
+      border: '1px solid var(--md-code-border)',
       borderRadius: 6,
       padding: '12px 16px',
       overflowX: 'auto',
@@ -32,8 +32,8 @@ const MD_COMPONENTS = {
       <code className={className} {...props}>{children}</code>
     ) : (
       <code style={{
-        background: '#f0f2f5',
-        color: '#d63384',
+        background: 'var(--md-code-inline-bg)',
+        color: 'var(--md-code-inline-color)',
         padding: '1px 5px',
         borderRadius: 3,
         fontSize: '0.875em',
@@ -54,9 +54,9 @@ const MD_COMPONENTS = {
   ),
   th: ({ children }: any) => (
     <th style={{
-      border: '1px solid #d0d7de',
+      border: '1px solid var(--md-table-border)',
       padding: '6px 12px',
-      background: '#f6f8fa',
+      background: 'var(--md-table-header-bg)',
       fontWeight: 600,
       textAlign: 'left',
     }}>
@@ -65,7 +65,7 @@ const MD_COMPONENTS = {
   ),
   td: ({ children }: any) => (
     <td style={{
-      border: '1px solid #d0d7de',
+      border: '1px solid var(--md-table-border)',
       padding: '6px 12px',
     }}>
       {children}
@@ -73,11 +73,11 @@ const MD_COMPONENTS = {
   ),
   blockquote: ({ children }: any) => (
     <blockquote style={{
-      borderLeft: '3px solid #0969da',
+      borderLeft: '3px solid var(--md-blockquote-border)',
       margin: '8px 0',
       paddingLeft: 12,
-      color: '#57606a',
-      background: '#f0f6ff',
+      color: 'var(--md-blockquote-text)',
+      background: 'var(--md-blockquote-bg)',
       borderRadius: '0 4px 4px 0',
     }}>
       {children}
@@ -91,11 +91,11 @@ const MD_COMPONENTS = {
   ol: ({ children }: any) => <ol style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ol>,
   li: ({ children }: any) => <li style={{ margin: '2px 0' }}>{children}</li>,
   a: ({ href, children }: any) => (
-    <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#0969da' }}>
+    <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--md-link-color)' }}>
       {children}
     </a>
   ),
-  hr: () => <hr style={{ border: 'none', borderTop: '1px solid #e1e4e8', margin: '12px 0' }} />,
+  hr: () => <hr style={{ border: 'none', borderTop: '1px solid var(--md-hr-color)', margin: '12px 0' }} />,
 };
 
 export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => {

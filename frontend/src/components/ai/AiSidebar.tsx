@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Button, Input, Spin, Tag, Tooltip, Typography } from 'antd';
+import { Button, Input, Spin, Tag, Tooltip, Typography, theme } from 'antd';
 import {
   SendOutlined,
   RobotOutlined,
@@ -46,6 +46,7 @@ function toolLabel(name: string) {
 }
 
 export const AiSidebar: React.FC = () => {
+  const { token } = theme.useToken();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -72,7 +73,7 @@ export const AiSidebar: React.FC = () => {
     setStreamingText('');
     setActiveTools([]);
 
-    const token = localStorage.getItem('access_token');
+    const accessToken = localStorage.getItem('access_token');
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -84,7 +85,7 @@ export const AiSidebar: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ message: text, sessionId: sessionId.current }),
         signal: controller.signal,
@@ -107,7 +108,6 @@ export const AiSidebar: React.FC = () => {
         for (const part of parts) {
           if (!part.trim()) continue;
 
-          // Parse SSE: may have "event: X\ndata: Y" or just "data: Y"
           let eventType = 'message';
           let dataLine = '';
 
@@ -177,16 +177,16 @@ export const AiSidebar: React.FC = () => {
   }, [stop]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: token.colorBgContainer }}>
       {/* Header */}
       <div style={{
         padding: '10px 14px',
-        borderBottom: '1px solid #f0f0f0',
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexShrink: 0,
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'var(--ai-gradient)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <RobotOutlined style={{ color: '#fff', fontSize: 16 }} />
@@ -213,9 +213,9 @@ export const AiSidebar: React.FC = () => {
       }}>
         {messages.length === 0 && !streaming && (
           <div style={{ textAlign: 'center', paddingTop: 48 }}>
-            <RobotOutlined style={{ fontSize: 32, color: '#bbb', marginBottom: 12 }} />
-            <div style={{ color: '#999', fontSize: 13 }}>您好！请告诉我您需要什么帮助。</div>
-            <div style={{ color: '#bbb', fontSize: 12, marginTop: 4 }}>
+            <RobotOutlined style={{ fontSize: 32, color: token.colorTextQuaternary, marginBottom: 12 }} />
+            <div style={{ color: token.colorTextTertiary, fontSize: 13 }}>您好！请告诉我您需要什么帮助。</div>
+            <div style={{ color: token.colorTextQuaternary, fontSize: 12, marginTop: 4 }}>
               例如：销售分析、查看采购订单、库存情况...
             </div>
           </div>
@@ -223,7 +223,6 @@ export const AiSidebar: React.FC = () => {
 
         {messages.map((msg) => (
           <div key={msg.id}>
-            {/* Tool events for assistant message */}
             {msg.role === 'assistant' && msg.toolEvents && msg.toolEvents.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, paddingLeft: 4 }}>
                 {msg.toolEvents.map((t) => (
@@ -243,11 +242,11 @@ export const AiSidebar: React.FC = () => {
                 maxWidth: '90%',
                 padding: '8px 12px',
                 borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-                background: msg.role === 'user' ? '#5D36FF' : '#f7f8fc',
-                color: msg.role === 'user' ? '#fff' : '#1a1a1a',
+                background: msg.role === 'user' ? 'var(--ai-primary)' : 'var(--ai-bg-bubble)',
+                color: msg.role === 'user' ? '#fff' : token.colorText,
                 fontSize: 13,
                 lineHeight: 1.6,
-                border: msg.role === 'assistant' ? '1px solid #eee' : 'none',
+                border: msg.role === 'assistant' ? '1px solid var(--ai-border-bubble)' : 'none',
                 wordBreak: 'break-word',
               }}>
                 {msg.role === 'assistant' ? (
@@ -263,7 +262,6 @@ export const AiSidebar: React.FC = () => {
         {/* Streaming state */}
         {streaming && (
           <div>
-            {/* Active tool chips */}
             {activeTools.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, paddingLeft: 4 }}>
                 {activeTools.map((t) => (
@@ -285,20 +283,20 @@ export const AiSidebar: React.FC = () => {
                   maxWidth: '90%',
                   padding: '8px 12px',
                   borderRadius: '12px 12px 12px 4px',
-                  background: '#f7f8fc',
-                  border: '1px solid #eee',
+                  background: 'var(--ai-bg-bubble)',
+                  border: '1px solid var(--ai-border-bubble)',
                   fontSize: 13,
                   lineHeight: 1.6,
                 }}>
                   <MarkdownMessage content={streamingText} />
-                  <span style={{ display: 'inline-block', width: 6, height: 14, background: '#5D36FF', borderRadius: 1, marginLeft: 2, verticalAlign: 'middle', animation: 'blink 1s step-end infinite' }} />
+                  <span style={{ display: 'inline-block', width: 6, height: 14, background: 'var(--ai-primary)', borderRadius: 1, marginLeft: 2, verticalAlign: 'middle', animation: 'blink 1s step-end infinite' }} />
                 </div>
               </div>
             ) : (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <div style={{ padding: '8px 12px', background: '#f7f8fc', borderRadius: '12px 12px 12px 4px', border: '1px solid #eee' }}>
+                <div style={{ padding: '8px 12px', background: 'var(--ai-bg-bubble)', borderRadius: '12px 12px 12px 4px', border: '1px solid var(--ai-border-bubble)' }}>
                   <Spin size="small" indicator={<LoadingOutlined />} />
-                  <span style={{ marginLeft: 8, fontSize: 12, color: '#888' }}>
+                  <span style={{ marginLeft: 8, fontSize: 12, color: token.colorTextSecondary }}>
                     {activeTools.some((t) => t.status === 'running') ? '执行中...' : '思考中...'}
                   </span>
                 </div>
@@ -313,11 +311,11 @@ export const AiSidebar: React.FC = () => {
       {/* Input */}
       <div style={{
         padding: '10px 12px',
-        borderTop: '1px solid #f0f0f0',
+        borderTop: `1px solid ${token.colorBorderSecondary}`,
         display: 'flex',
         gap: 8,
         flexShrink: 0,
-        background: '#fafafa',
+        background: 'var(--ai-input-bg)',
       }}>
         <Input.TextArea
           value={input}
@@ -347,17 +345,10 @@ export const AiSidebar: React.FC = () => {
             icon={<SendOutlined />}
             onClick={() => sendMessage(input)}
             disabled={!input.trim()}
-            style={{ flexShrink: 0, background: '#5D36FF', borderColor: '#5D36FF' }}
+            style={{ flexShrink: 0, background: 'var(--ai-primary)', borderColor: 'var(--ai-primary)' }}
           />
         )}
       </div>
-
-      <style>{`
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };

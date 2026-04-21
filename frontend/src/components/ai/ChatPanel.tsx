@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Card, Space, Typography, Spin } from 'antd';
+import { Input, Button, Card, Space, Typography, Spin, theme } from 'antd';
 import { SendOutlined, RobotOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 
 const { Text } = Typography;
 
-/** Stable module-level ReactMarkdown component overrides — avoids object recreation on each render */
 const MD_COMPONENTS = {
   p: ({ children }: any) => <p style={{ margin: '4px 0' }}>{children}</p>,
   h3: ({ children }: any) => <h3 style={{ margin: '8px 0 4px', fontSize: 14 }}>{children}</h3>,
@@ -14,7 +13,7 @@ const MD_COMPONENTS = {
   li: ({ children }: any) => <li style={{ margin: '2px 0' }}>{children}</li>,
   strong: ({ children }: any) => <strong>{children}</strong>,
   code: ({ children }: any) => (
-    <code style={{ background: '#e8e8e8', padding: '1px 4px', borderRadius: 3, fontSize: 12 }}>
+    <code style={{ background: 'var(--md-code-inline-bg)', padding: '1px 4px', borderRadius: 3, fontSize: 12 }}>
       {children}
     </code>
   ),
@@ -33,7 +32,6 @@ interface ChatPanelProps {
   sessionId?: string;
 }
 
-/** Extract the human-readable text from the orchestrator response */
 function extractContent(response: Record<string, unknown>): string {
   if (response.error) return `错误: ${response.error}`;
 
@@ -64,6 +62,7 @@ function extractContent(response: Record<string, unknown>): string {
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionId }) => {
+  const { token } = theme.useToken();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,12 +86,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
+      const accessToken = localStorage.getItem('access_token');
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ message: text, sessionId: sid, confirmed }),
       });
@@ -146,8 +145,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
                 maxWidth: '85%',
                 padding: '8px 12px',
                 borderRadius: 8,
-                background: msg.role === 'user' ? '#1677ff' : '#f5f5f5',
-                color: msg.role === 'user' ? '#fff' : '#000',
+                background: msg.role === 'user' ? token.colorPrimary : 'var(--ai-bg-bubble)',
+                color: msg.role === 'user' ? '#fff' : token.colorText,
                 fontSize: 13,
                 lineHeight: 1.6,
               }}
@@ -176,7 +175,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
         ))}
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: 8 }}>
+            <div style={{ padding: '8px 12px', background: 'var(--ai-bg-bubble)', borderRadius: 8 }}>
               <Spin size="small" /> <span style={{ marginLeft: 8, fontSize: 13 }}>思考中...</span>
             </div>
           </div>

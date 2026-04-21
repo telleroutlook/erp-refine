@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useOne } from '@refinedev/core';
-import { Spin, Result, message } from 'antd';
+import { Spin, Result, message, theme } from 'antd';
 import { DynamicFormRenderer } from '../../components/dynamic-form/DynamicFormRenderer';
 
 interface DynamicFormPageProps {
@@ -8,6 +8,7 @@ interface DynamicFormPageProps {
 }
 
 export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) => {
+  const { token } = theme.useToken();
   const [submitting, setSubmitting] = useState(false);
 
   const { data, isLoading, isError } = useOne({
@@ -27,12 +28,12 @@ export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) =>
   const handleSubmit = async (formData: Record<string, unknown>) => {
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
+      const accessToken = localStorage.getItem('access_token');
       const res = await fetch('/api/dynamic-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ schemaId, data: formData }),
       });
@@ -49,7 +50,7 @@ export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) =>
   return (
     <div style={{ maxWidth: 800, margin: '24px auto' }}>
       <h2>{schema.name}</h2>
-      {schema.description && <p style={{ color: '#666' }}>{schema.description}</p>}
+      {schema.description && <p style={{ color: token.colorTextSecondary }}>{schema.description}</p>}
       <DynamicFormRenderer
         jsonSchema={schema.json_schema}
         uiSchema={schema.ui_schema}

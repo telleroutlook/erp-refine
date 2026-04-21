@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLogin, useIsAuthenticated } from '@refinedev/core';
 import { Navigate } from 'react-router-dom';
-import { Card, Form, Input, Button, Divider, Typography, Tag, Grid } from 'antd';
+import { Card, Form, Input, Button, Divider, Typography, Tag, Grid, theme } from 'antd';
 import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -64,6 +64,7 @@ export const LoginPage: React.FC = () => {
   const lang = i18n.language.startsWith('zh') ? 'zh' : 'en';
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.sm;
+  const { token } = theme.useToken();
 
   if (authData?.authenticated) return <Navigate to="/" replace />;
 
@@ -90,7 +91,7 @@ export const LoginPage: React.FC = () => {
         display: 'flex',
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'var(--login-gradient)',
         overflow: 'hidden',
         position: 'relative',
         padding: isMobile ? 0 : 16,
@@ -130,7 +131,7 @@ export const LoginPage: React.FC = () => {
           width: '100%',
           borderRadius: isMobile ? '20px 20px 0 0' : 16,
           border: 'none',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--login-card-shadow)',
           position: 'relative',
         }}
         styles={{ body: { padding: isMobile ? '20px 20px 24px' : '24px 28px 20px' } }}
@@ -165,9 +166,9 @@ export const LoginPage: React.FC = () => {
               width: 40,
               height: 40,
               borderRadius: 12,
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              background: 'var(--ai-gradient)',
               marginBottom: 8,
-              boxShadow: '0 4px 12px rgba(102,126,234,0.4)',
+              boxShadow: 'var(--login-icon-glow)',
             }}
           >
             <ThunderboltOutlined style={{ color: '#fff', fontSize: 18 }} />
@@ -182,7 +183,7 @@ export const LoginPage: React.FC = () => {
 
         {/* INTENTIONAL: Demo buttons shown in all environments — see file header */}
         <Divider style={{ margin: '12px 0 8px', fontSize: 12 }}>
-          <ThunderboltOutlined style={{ color: '#faad14', marginRight: 4 }} />
+          <ThunderboltOutlined style={{ color: token.colorWarning, marginRight: 4 }} />
           {t('Demo Accounts', '演示账号')}
         </Divider>
 
@@ -227,7 +228,7 @@ export const LoginPage: React.FC = () => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
-                        border: '1px solid #f0f0f0',
+                        border: `1px solid ${token.colorBorderSecondary}`,
                         flexBasis: isMobile ? 'calc(50% - 3px)' : undefined,
                         justifyContent: 'flex-start',
                       }}
@@ -238,7 +239,7 @@ export const LoginPage: React.FC = () => {
                       >
                         {roleLabel}
                       </Tag>
-                      <Text style={{ fontSize: 11, color: '#888' }}>{emailPrefix}</Text>
+                      <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{emailPrefix}</Text>
                     </Button>
                   );
                 })}

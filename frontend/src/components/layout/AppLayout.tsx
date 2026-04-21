@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
 import { ThemedLayoutV2 } from '@refinedev/antd';
-import { Button, Tooltip, Spin } from 'antd';
+import { Button, Tooltip, Spin, theme } from 'antd';
 import { RobotOutlined, RightOutlined } from '@ant-design/icons';
 import { Sider } from './Sider';
 import { Header } from './Header';
@@ -15,6 +15,7 @@ const STORAGE_KEY = 'erp_ai_sidebar_width';
 const COLLAPSED_KEY = 'erp_ai_sidebar_collapsed';
 
 export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const { token } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     return localStorage.getItem(COLLAPSED_KEY) === 'true';
   });
@@ -28,7 +29,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
   const dragStartWidth = useRef(0);
   const currentWidth = useRef(sidebarWidth);
 
-  // Keep ref in sync so the mouseup handler gets the latest value
   useEffect(() => {
     currentWidth.current = sidebarWidth;
   }, [sidebarWidth]);
@@ -44,7 +44,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     if (!isDragging) return;
 
     const onMove = (e: MouseEvent) => {
-      // Moving left increases sidebar width (sidebar is on the right)
       const delta = dragStartX.current - e.clientX;
       const next = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, dragStartWidth.current + delta));
       setSidebarWidth(next);
@@ -71,7 +70,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     });
   }, []);
 
-  const transition = isDragging ? 'none' : 'all 0.25s ease';
+  const transition = isDragging ? 'none' : 'all 0.25s var(--ease-spring)';
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
@@ -90,7 +89,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
             width: HANDLE_W,
             cursor: 'col-resize',
             flexShrink: 0,
-            background: isDragging ? '#5D36FF22' : 'transparent',
+            background: isDragging ? 'rgba(93, 54, 255, 0.13)' : 'transparent',
             position: 'relative',
             zIndex: 10,
             transition: 'background 0.15s',
@@ -104,7 +103,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
             transform: 'translate(-50%, -50%)',
             width: 2,
             height: isDragging ? 80 : 40,
-            background: isDragging ? '#5D36FF' : '#d9d9d9',
+            background: isDragging ? 'var(--ai-primary)' : token.colorBorder,
             borderRadius: 2,
             transition: 'height 0.15s, background 0.15s',
           }} />
@@ -128,9 +127,9 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
             icon={collapsed ? <RobotOutlined /> : <RightOutlined />}
             onClick={toggleCollapsed}
             style={{
-              background: '#5D36FF',
-              borderColor: '#5D36FF',
-              boxShadow: '0 2px 8px rgba(93,54,255,0.4)',
+              background: 'var(--ai-primary)',
+              borderColor: 'var(--ai-primary)',
+              boxShadow: 'var(--ai-glow)',
               width: 28,
               height: 28,
               minWidth: 28,
@@ -145,7 +144,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
         <div style={{
           width: sidebarWidth,
           flexShrink: 0,
-          borderLeft: '1px solid #f0f0f0',
+          borderLeft: `1px solid ${token.colorBorderSecondary}`,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
