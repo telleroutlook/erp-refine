@@ -39,13 +39,8 @@ export const CustomerEdit: React.FC = () => {
               <Select options={[
                 { label: '启用', value: 'active' },
                 { label: '停用', value: 'inactive' },
-                { label: '黑名单', value: 'blocked' },
+                { label: '暂停', value: 'suspended' },
               ]} />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item label="地址" name="street">
-              <Input.TextArea rows={2} />
             </Form.Item>
           </Col>
         </Row>

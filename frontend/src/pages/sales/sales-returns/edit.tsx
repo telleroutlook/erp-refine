@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import dayjs from 'dayjs';
-import { RETURN_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { RETURN_STATUS_OPTIONS } from '../../../constants/options';
 
 export const SalesReturnEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'sales-returns' });
@@ -29,11 +29,6 @@ export const SalesReturnEdit: React.FC = () => {
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
               <DatePicker style={{ width: '100%' }} disabled />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="货币" name="currency">
-              <Select options={CURRENCY_OPTIONS} disabled />
             </Form.Item>
           </Col>
           <Col span={24}>
