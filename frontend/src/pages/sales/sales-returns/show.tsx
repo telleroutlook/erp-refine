@@ -19,7 +19,7 @@ export const SalesReturnShow: React.FC = () => {
           <DateField value={record?.return_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
         <Descriptions.Item label="合计">
-          <AmountDisplay value={record?.total_amount} currency={record?.currency} />
+          <AmountDisplay value={record?.total_amount} currency={record?.sales_order?.currency} />
         </Descriptions.Item>
         {record?.notes && <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>
@@ -32,8 +32,8 @@ export const SalesReturnShow: React.FC = () => {
               { dataIndex: ['product', 'name'], title: '产品' },
               { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
               { dataIndex: 'quantity', title: '退货数量', width: 100, align: 'right' },
-              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.currency} /> },
-              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.currency} /> },
+              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.sales_order?.currency} /> },
+              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.sales_order?.currency} /> },
             ]}
           />
         </>

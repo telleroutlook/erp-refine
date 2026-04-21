@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performHardDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -19,11 +20,15 @@ manufacturing.use('*', writeMethodGuard());
 manufacturing.get('/bom-headers', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('bom_headers')
     .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .eq('organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -110,11 +115,15 @@ manufacturing.delete('/bom-headers/:id', async (c) => {
 manufacturing.get('/work-orders', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('work_orders')
     .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .eq('organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -370,14 +379,18 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
 manufacturing.get('/work-order-productions', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('work_order_productions')
     .select(
       'id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_at, work_order:work_orders!inner(id, work_order_number, organization_id)',
       { count: 'exact' }
     )
-    .eq('work_order.organization_id', user.organizationId)
+    .eq('work_order.organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

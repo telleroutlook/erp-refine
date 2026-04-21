@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -21,11 +22,15 @@ inventory.use('*', writeMethodGuard());
 inventory.get('/stock-records', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, 'updated_at');
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('stock_records')
     .select('id, qty_on_hand, qty_reserved, qty_available, product:products(id,name,code), warehouse:warehouses(id,name,code)', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .eq('organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -127,15 +132,19 @@ inventory.route('', buildCrudRoutes(inventoryReservationsConfig));
 inventory.get('/inventory-counts', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('inventory_counts')
     .select(
       'id, count_number, count_date, status, warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -219,6 +228,7 @@ inventory.put('/inventory-counts/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -283,7 +293,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
   // 4. Update count status to 'completed'
   const { error: updateError } = await db
     .from('inventory_counts')
-    .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .update({ status: 'completed' })
     .eq('id', id)
     .eq('organization_id', user.organizationId);
 

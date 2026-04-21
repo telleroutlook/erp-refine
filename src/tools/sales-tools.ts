@@ -10,7 +10,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
     list_sales_orders: tool({
       description: 'List sales orders with optional filters',
       inputSchema: z.object({
-        status: z.enum(['draft','confirmed','approved','shipping','shipped','completed','cancelled']).optional(),
+        status: z.enum(['draft','submitted','approved','partially_shipped','shipped','invoiced','closed','cancelled']).optional(),
         customerId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

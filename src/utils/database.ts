@@ -70,28 +70,26 @@ export async function executeWithAudit<T>(
       error: errorMsg,
     });
 
-    // Best-effort: write to business_events (fire-and-forget)
-    if (success) {
-      const auditPromise = db.from('business_events').insert({
-        organization_id: audit.organizationId,
-        event_type: audit.action,
-        resource_type: audit.resource,
-        resource_id: audit.resourceId,
-        actor_id: audit.userId,
-        payload: { duration },
-      }).then(({ error: e }) => {
-        if (e) logger.warn('Failed to write business_event', e);
-      });
-      if (waitUntil) waitUntil(auditPromise);
-    }
+    // Best-effort: write to business_events (fire-and-forget) for both success and failure
+    const auditPromise = db.from('business_events').insert({
+      organization_id: audit.organizationId,
+      event_type: audit.action,
+      resource_type: audit.resource,
+      resource_id: audit.resourceId,
+      actor_id: audit.userId,
+      payload: { duration, success, error_message: errorMsg ?? null },
+    }).then(({ error: e }) => {
+      if (e) logger.warn('Failed to write business_event', e);
+    });
+    if (waitUntil) waitUntil(auditPromise);
   }
 }
 
 /** Build Supabase query from Refine-style filter params */
-export function applyFilters(
-  query: ReturnType<SupabaseClient['from']>,
+export function applyFilters<T>(
+  query: T,
   filters: FilterParam[]
-): ReturnType<SupabaseClient['from']> {
+): T {
   for (const f of filters) {
     switch (f.operator) {
       case 'eq': query = (query as any).eq(f.field, f.value); break;
@@ -100,8 +98,16 @@ export function applyFilters(
       case 'lte': query = (query as any).lte(f.field, f.value); break;
       case 'gt': query = (query as any).gt(f.field, f.value); break;
       case 'gte': query = (query as any).gte(f.field, f.value); break;
-      case 'contains': query = (query as any).ilike(f.field, `%${f.value}%`); break;
-      case 'startswith': query = (query as any).ilike(f.field, `${f.value}%`); break;
+      case 'contains': {
+        const esc = String(f.value).replace(/%/g, '\\%').replace(/_/g, '\\_');
+        query = (query as any).ilike(f.field, `%${esc}%`);
+        break;
+      }
+      case 'startswith': {
+        const esc = String(f.value).replace(/%/g, '\\%').replace(/_/g, '\\_');
+        query = (query as any).ilike(f.field, `${esc}%`);
+        break;
+      }
       case 'null': query = (query as any).is(f.field, null); break;
       case 'nnull': query = (query as any).not(f.field, 'is', null); break;
       case 'in': query = (query as any).in(f.field, f.value as unknown[]); break;

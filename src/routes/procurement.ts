@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -21,12 +22,15 @@ procurement.use('*', writeMethodGuard());
 procurement.get('/purchase-orders', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('purchase_orders')
     .select('id, order_number, status, order_date, total_amount, currency, supplier:suppliers(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -104,7 +108,7 @@ procurement.put('/purchase-orders/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   const permitted = ['status', 'notes', 'expected_date', 'warehouse_id', 'payment_terms',
-    'shipping_method', 'currency', 'supplier_id', 'approved_by', 'approved_at'];
+    'currency', 'supplier_id', 'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -112,6 +116,7 @@ procurement.put('/purchase-orders/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -153,15 +158,18 @@ procurement.route('', buildCrudRoutes(poItemsConfig));
 procurement.get('/purchase-requisitions', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('purchase_requisitions')
     .select(
       'id, requisition_number, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -257,6 +265,7 @@ procurement.put('/purchase-requisitions/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -280,12 +289,15 @@ procurement.delete('/purchase-requisitions/:id', async (c) => {
 procurement.get('/rfq-headers', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('rfq_headers')
     .select('id, rfq_number, due_date, status, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -381,6 +393,7 @@ procurement.put('/rfq-headers/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -404,15 +417,18 @@ procurement.delete('/rfq-headers/:id', async (c) => {
 procurement.get('/supplier-quotations', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('supplier_quotations')
     .select(
       'id, quotation_number, validity_date, currency, status, supplier:suppliers(id,name), rfq:rfq_headers(id,rfq_number)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -499,6 +515,7 @@ procurement.put('/supplier-quotations/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 

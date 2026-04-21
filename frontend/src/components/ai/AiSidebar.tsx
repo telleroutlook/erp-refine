@@ -56,8 +56,12 @@ export const AiSidebar: React.FC = () => {
   const abortRef = useRef<AbortController | null>(null);
   const sessionId = useRef(crypto.randomUUID());
 
+  const scrollRafRef = useRef(0);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    cancelAnimationFrame(scrollRafRef.current);
+    scrollRafRef.current = requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
   }, [messages, streamingText, activeTools]);
 
   const stop = useCallback(() => {

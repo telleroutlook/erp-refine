@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -22,12 +23,15 @@ sales.use('*', writeMethodGuard());
 sales.get('/sales-orders', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('sales_orders')
     .select('id, order_number, status, order_date, total_amount, currency, customer:customers(id,name)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -105,7 +109,7 @@ sales.put('/sales-orders/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   const permitted = ['status', 'notes', 'delivery_date', 'warehouse_id', 'payment_terms',
-    'shipping_method', 'currency', 'customer_id', 'contract_id', 'approved_by', 'approved_at'];
+    'currency', 'customer_id', 'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -113,6 +117,7 @@ sales.put('/sales-orders/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -154,15 +159,18 @@ sales.route('', buildCrudRoutes(soItemsConfig));
 sales.get('/sales-shipments', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('sales_shipments')
     .select(
       'id, shipment_number, shipment_date, tracking_number, carrier, status, sales_order:sales_orders(id,order_number,customer:customers(id,name)), warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -258,6 +266,7 @@ sales.put('/sales-shipments/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 

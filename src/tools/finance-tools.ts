@@ -28,20 +28,17 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
     }),
 
     get_budget_vs_actual: tool({
-      description: 'Compare budget vs actual spending by department and period',
+      description: 'Compare budget vs actual spending by period',
       inputSchema: z.object({
         year: z.number().int().min(2020).max(2030),
-        departmentId: z.string().uuid().optional(),
       }),
-      execute: async ({ year, departmentId }) => {
-        let query = db
+      execute: async ({ year }) => {
+        const query = db
           .from('budgets')
-          .select('id, budget_name, budget_year, department:departments(id,name), budget_lines(account:account_subjects(name), planned_amount, actual_amount)')
+          .select('id, budget_name, budget_year, budget_lines(account:account_subjects(name), planned_amount, actual_amount)')
           .eq('organization_id', organizationId)
           .eq('budget_year', year)
           .is('deleted_at', null);
-
-        if (departmentId) query = query.eq('department_id', departmentId);
 
         const { data, error } = await query.limit(200);
         if (error) throw new Error(error.message);

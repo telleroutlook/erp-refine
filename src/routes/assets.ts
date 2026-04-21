@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
 
 const assets = new Hono<{ Bindings: Env }>();
@@ -17,12 +18,16 @@ assets.use('*', writeMethodGuard());
 assets.get('/fixed-assets', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('fixed_assets')
     .select('id, asset_number, asset_name, category, acquisition_date, acquisition_cost, current_book_value, status, department, cost_center:cost_centers(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -89,6 +94,7 @@ assets.put('/fixed-assets/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -109,11 +115,15 @@ assets.delete('/fixed-assets/:id', async (c) => {
 assets.get('/asset-depreciations', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('asset_depreciations')
     .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted, fixed_asset:fixed_assets!inner(id,asset_number,asset_name,organization_id)', { count: 'exact' })
-    .eq('fixed_asset.organization_id', user.organizationId)
+    .eq('fixed_asset.organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

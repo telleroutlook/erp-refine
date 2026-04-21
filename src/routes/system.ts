@@ -6,7 +6,8 @@ import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
 
 const system = new Hono<{ Bindings: Env }>();
@@ -58,11 +59,15 @@ system.get('/notifications', async (c) => {
 
   if (!emp) return c.json({ data: [], total: 0, page, pageSize });
 
-  const { data, count, error } = await db
+  const filters = parseRefineFilters(c);
+  let query = db
     .from('notifications')
     .select('id, title, body, notification_type, entity_type, entity_id, is_read, read_at, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .eq('recipient_id', emp.id)
+    .eq('recipient_id', emp.id);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

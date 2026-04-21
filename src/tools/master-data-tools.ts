@@ -17,7 +17,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
       execute: async ({ search, categoryId, limit }) => {
         let query = db
           .from('products')
-          .select('id, name, code, description, category:product_categories(id,name), uom:uoms(id,name)')
+          .select('id, name, code, description, category:product_categories(id,name), uom:uoms(id,uom_code,uom_name)')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 

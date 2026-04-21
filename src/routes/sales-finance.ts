@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -23,15 +24,18 @@ salesFinance.use('*', writeMethodGuard());
 salesFinance.get('/sales-invoices', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('sales_invoices')
     .select(
       'id, invoice_number, invoice_date, due_date, total_amount, tax_amount, currency, status, customer:customers(id,name), sales_order:sales_orders(id,order_number)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -122,6 +126,7 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -145,15 +150,18 @@ salesFinance.delete('/sales-invoices/:id', async (c) => {
 salesFinance.get('/sales-returns', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('sales_returns')
     .select(
       'id, return_number, return_date, total_amount, status, reason, customer:customers(id,name), sales_order:sales_orders(id,order_number)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -168,7 +176,7 @@ salesFinance.get('/sales-returns/:id', async (c) => {
 
   const { data, error } = await db
     .from('sales_returns')
-    .select('*, customer:customers(id,name,code), items:sales_return_items(*, product:products(id,name,code))')
+    .select('*, customer:customers(id,name,code), sales_order:sales_orders(id,order_number,currency), items:sales_return_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -243,6 +251,7 @@ salesFinance.put('/sales-returns/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -322,15 +331,18 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
 salesFinance.get('/customer-receipts', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('customer_receipts')
     .select(
       'id, receipt_number, receipt_date, amount, payment_method, reference_type, reference_id, status, customer:customers(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -428,7 +440,7 @@ salesFinance.put('/customer-receipts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['notes', 'payment_method', 'bank_account']);
+  const PERMITTED = new Set(['notes', 'payment_method']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;

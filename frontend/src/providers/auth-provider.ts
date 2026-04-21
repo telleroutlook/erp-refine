@@ -67,6 +67,7 @@ export const authProvider: AuthProvider = {
             const { data } = await res.json();
             localStorage.setItem('access_token', data.session.accessToken);
             localStorage.setItem('refresh_token', data.session.refreshToken);
+            if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
             return { authenticated: true };
           }
         }

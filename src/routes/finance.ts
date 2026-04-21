@@ -6,7 +6,8 @@ import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -56,11 +57,15 @@ finance.route('', buildCrudRoutes(costCentersConfig));
 finance.get('/vouchers', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('vouchers')
     .select('id, voucher_number, voucher_date, voucher_type, notes, total_debit, total_credit, status', { count: 'exact' })
-    .eq('organization_id', user.organizationId)
+    .eq('organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -75,7 +80,7 @@ finance.get('/vouchers/:id', async (c) => {
 
   const { data, error } = await db
     .from('vouchers')
-    .select('*, entries:voucher_entries(*, account:account_subjects(id,code,name), cost_center:cost_centers(id,code,name))')
+    .select('*, entries:voucher_entries(*, account:account_subjects(id,code,name))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .single();
@@ -162,7 +167,7 @@ finance.put('/vouchers/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   const permitted = ['voucher_date', 'voucher_type', 'notes',
-    'reference_type', 'reference_id', 'approved_by', 'approved_at'];
+    'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -263,15 +268,19 @@ finance.post('/vouchers/:id/post', async (c) => {
 finance.get('/budgets', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('budgets')
     .select(
       'id, budget_name, budget_year, total_amount, currency, status',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -339,7 +348,7 @@ finance.put('/budgets/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   const permitted = ['budget_name', 'budget_year', 'total_amount', 'currency', 'status',
-    'department_id', 'cost_center_id', 'approved_by', 'approved_at'];
+    'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -347,6 +356,7 @@ finance.put('/budgets/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 

@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -23,15 +24,18 @@ procurementReceiving.use('*', writeMethodGuard());
 procurementReceiving.get('/purchase-receipts', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('purchase_receipts')
     .select(
       'id, receipt_number, receipt_date, status, purchase_order:purchase_orders(id,order_number), supplier:suppliers(id,name), warehouse:warehouses(id,name), created_at',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -46,7 +50,7 @@ procurementReceiving.get('/purchase-receipts/:id', async (c) => {
 
   const { data, error } = await db
     .from('purchase_receipts')
-    .select('*, purchase_order:purchase_orders(id,order_number), supplier:suppliers(id,name), items:purchase_receipt_items(*, product:products(id,name,code))')
+    .select('*, purchase_order:purchase_orders(id,order_number), supplier:suppliers(id,name), items:purchase_receipt_items(*, product:products(id,name,code,uom))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -121,6 +125,7 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -187,15 +192,18 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
 procurementReceiving.get('/supplier-invoices', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('supplier_invoices')
     .select(
       'id, invoice_number, invoice_date, due_date, total_amount, tax_amount, currency, status, supplier:suppliers(id,name), purchase_order:purchase_orders(id,order_number)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -285,6 +293,7 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -308,14 +317,17 @@ procurementReceiving.delete('/supplier-invoices/:id', async (c) => {
 procurementReceiving.get('/three-way-match', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('three_way_match_results')
     .select(
       'id, match_status, quantity_variance, price_variance, amount_variance, purchase_order:purchase_orders(id,order_number), created_at',
       { count: 'exact' }
     )
-    .eq('organization_id', user.organizationId)
+    .eq('organization_id', user.organizationId);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

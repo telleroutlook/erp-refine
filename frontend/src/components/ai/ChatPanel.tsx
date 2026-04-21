@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input, Button, Card, Space, Typography, Spin, theme } from 'antd';
 import { SendOutlined, RobotOutlined } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 
 const { Text } = Typography;
 
@@ -158,7 +159,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
             >
               {msg.role === 'assistant' ? (
                 <div style={{ overflowX: 'auto' }}>
-                  <ReactMarkdown components={MD_COMPONENTS}>
+                  <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={MD_COMPONENTS}>
                     {msg.content}
                   </ReactMarkdown>
                   {msg.requiresConfirmation && (

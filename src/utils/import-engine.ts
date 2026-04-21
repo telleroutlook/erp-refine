@@ -363,24 +363,54 @@ export async function importEntity(
   let imported = 0;
   let skipped = 0;
 
+  // --- Pre-fetch sequence numbers in batch ---
+  const needsSequence = sequenceField && sequenceName;
+  let sequenceNumbers: string[] = [];
+  if (needsSequence && !dryRun) {
+    const countNeeding = records.filter(r => !r[sequenceField!]).length;
+    if (countNeeding > 0) {
+      const seqPromises = [];
+      for (let i = 0; i < countNeeding; i++) {
+        seqPromises.push(ctx.db.rpc('get_next_sequence', {
+          p_organization_id: ctx.organizationId,
+          p_sequence_name: sequenceName,
+        }));
+      }
+      const seqResults = await Promise.all(seqPromises);
+      for (const { data: seqData, error: seqError } of seqResults) {
+        if (seqError || !seqData) {
+          return {
+            entity,
+            imported: 0,
+            skipped: records.length,
+            errors: [{ row: 0, field: sequenceField, message: seqError?.message ?? 'Sequence generation failed' }],
+            dryRun,
+          };
+        }
+        sequenceNumbers.push(seqData as string);
+      }
+    }
+  }
+  let seqIdx = 0;
+
+  // --- Validate and prepare all records ---
+  const validRecords: Record<string, unknown>[] = [];
+
   for (let i = 0; i < records.length; i++) {
     const rowNum = i + 1;
     let record = { ...records[i] };
 
     try {
-      // --- Validate required fields ---
       for (const field of requiredFields) {
         if (record[field] === undefined || record[field] === null || record[field] === '') {
           throw { field, message: `Required field '${field}' is missing.`, hint: `Provide a value for '${field}'.` };
         }
       }
 
-      // --- Remove excluded fields ---
       if (excludeFields) {
         for (const f of excludeFields) delete record[f];
       }
 
-      // --- Enforce field allowlist (strip system fields and unknown columns) ---
       if (allowedFields) {
         const allowed = new Set([...allowedFields, 'organization_id']);
         for (const key of Object.keys(record)) {
@@ -390,76 +420,83 @@ export async function importEntity(
         throw { field: '*', message: 'Entity config missing allowedFields — import rejected for safety.', hint: 'Add allowedFields to this entity config.' };
       }
 
-      // --- Inject org scope ---
       if (orgScoped) {
         record.organization_id = ctx.organizationId;
       }
 
-      // --- Generate sequence number if needed ---
-      if (sequenceField && sequenceName && !record[sequenceField]) {
-        const { data: seqData, error: seqError } = await ctx.db.rpc('get_next_sequence', {
-          p_organization_id: ctx.organizationId,
-          p_sequence_name: sequenceName,
-        });
-        if (seqError || !seqData) {
-          errors.push({ row: rowNum, field: sequenceField, message: seqError?.message ?? 'Sequence unavailable' });
-          if (onError === 'abort') return { entity, imported, skipped: records.length - imported, errors, dryRun };
-          skipped++;
-          continue;
-        }
-        record[sequenceField] = seqData;
+      if (needsSequence && !record[sequenceField!]) {
+        record[sequenceField!] = sequenceNumbers[seqIdx++];
       }
 
-      // --- Apply transform ---
       if (transform) {
         record = transform(record, ctx);
       }
 
-      if (dryRun) {
-        imported++;
-        continue;
-      }
-
-      // --- Upsert check ---
-      if (upsert && uniqueKey && uniqueKey.length > 0) {
-        let query = ctx.db.from(table).select('id').limit(1);
-        for (const key of uniqueKey) {
-          const val = key === 'organization_id' ? ctx.organizationId : record[key];
-          if (val !== undefined) query = query.eq(key, val as string);
-        }
-        const { data: existing } = await query.single();
-        if (existing) {
-          // Update existing
-          const { id: _id, organization_id: _oid, ...updateData } = record as any;
-          const { error } = await ctx.db
-            .from(table)
-            .update(updateData)
-            .eq('id', (existing as any).id);
-          if (error) throw { message: error.message, hint: 'Update failed during upsert.' };
-          imported++;
-          continue;
-        }
-      }
-
-      // --- Insert ---
-      const { error } = await ctx.db.from(table).insert(record).select(returnSelect);
-      if (error) {
-        throw { message: error.message, hint: hintFromPgError(error.message) };
-      }
-      imported++;
+      validRecords.push(record);
     } catch (err: any) {
-      const rowError: ImportRowError = {
+      errors.push({
         row: rowNum,
         field: err.field,
         message: err.message ?? String(err),
         hint: err.hint,
-      };
-      errors.push(rowError);
-
+      });
       if (onError === 'abort') {
         return { entity, imported, skipped: records.length - imported, errors, dryRun };
       }
       skipped++;
+    }
+  }
+
+  if (dryRun) {
+    return { entity, imported: validRecords.length, skipped, errors, dryRun };
+  }
+
+  if (validRecords.length === 0) {
+    return { entity, imported: 0, skipped, errors, dryRun };
+  }
+
+  // --- Batch upsert or insert ---
+  if (upsert && uniqueKey && uniqueKey.length > 0) {
+    const BATCH_SIZE = 100;
+    for (let b = 0; b < validRecords.length; b += BATCH_SIZE) {
+      const batch = validRecords.slice(b, b + BATCH_SIZE);
+      const { error } = await ctx.db
+        .from(table)
+        .upsert(batch, { onConflict: uniqueKey.join(','), ignoreDuplicates: false })
+        .select(returnSelect);
+      if (error) {
+        errors.push({ row: b + 1, message: error.message, hint: hintFromPgError(error.message) });
+        if (onError === 'abort') {
+          return { entity, imported, skipped: validRecords.length - imported, errors, dryRun };
+        }
+        skipped += batch.length;
+      } else {
+        imported += batch.length;
+      }
+    }
+  } else {
+    const BATCH_SIZE = 100;
+    for (let b = 0; b < validRecords.length; b += BATCH_SIZE) {
+      const batch = validRecords.slice(b, b + BATCH_SIZE);
+      const { error } = await ctx.db.from(table).insert(batch).select(returnSelect);
+      if (error) {
+        if (onError === 'abort') {
+          errors.push({ row: b + 1, message: error.message, hint: hintFromPgError(error.message) });
+          return { entity, imported, skipped: validRecords.length - imported, errors, dryRun };
+        }
+        // Fall back to per-row insert to identify the failing row
+        for (let j = 0; j < batch.length; j++) {
+          const { error: rowErr } = await ctx.db.from(table).insert(batch[j]!).select(returnSelect);
+          if (rowErr) {
+            errors.push({ row: b + j + 1, message: rowErr.message, hint: hintFromPgError(rowErr.message) });
+            skipped++;
+          } else {
+            imported++;
+          }
+        }
+      } else {
+        imported += batch.length;
+      }
     }
   }
 

@@ -121,7 +121,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
       execute: async ({ warehouseId }) => {
         let query = db
           .from('stock_records')
-          .select('quantity, product:products(id,name,code)')
+          .select('qty_on_hand, product:products(id,name,code)')
           .eq('organization_id', organizationId);
 
         if (warehouseId) query = query.eq('warehouse_id', warehouseId);
@@ -131,7 +131,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
 
         return {
           totalSkus: (data ?? []).length,
-          totalQty: (data ?? []).reduce((sum: number, r: any) => sum + Number(r.quantity ?? 0), 0),
+          totalQty: (data ?? []).reduce((sum: number, r: any) => sum + Number(r.qty_on_hand ?? 0), 0),
         };
       },
     }),

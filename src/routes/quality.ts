@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -32,12 +33,16 @@ quality.route('', buildCrudRoutes({
 quality.get('/quality-standards', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('quality_standards')
     .select('id, standard_code, standard_name, is_active, description, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -90,8 +95,7 @@ quality.put('/quality-standards/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['name', 'product_id', 'product_category_id', 'applicable_to',
-    'version', 'is_active'];
+  const permitted = ['standard_name', 'standard_code', 'description', 'is_active'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -118,12 +122,16 @@ quality.delete('/quality-standards/:id', async (c) => {
 quality.get('/quality-inspections', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('quality_inspections')
     .select('id, inspection_number, inspection_date, reference_type, total_quantity, qualified_quantity, defective_quantity, result, status, inspector_id, product:products(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -185,7 +193,7 @@ quality.put('/quality-inspections/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   const permitted = ['status', 'notes', 'result', 'qualified_quantity', 'defective_quantity',
-    'sample_qty', 'inspector_id', 'defect_code_id', 'completed_at', 'inspection_date'];
+    'inspector_id', 'inspection_date', 'total_quantity'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db

@@ -5,11 +5,11 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import type { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getDbAndUser, parseRefineQuery } from './query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from './query-helpers';
 import { ApiError } from './api-error';
 import { validateBody } from './zod-helpers';
 import { ErrorCode } from '../types/errors';
-import { executeWithAudit } from './database';
+import { executeWithAudit, applyFilters } from './database';
 
 export interface CrudConfig {
   /** DB table name (e.g. 'products') */
@@ -87,10 +87,12 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
   router.get(path, async (c) => {
     const { db, user } = getDbAndUser(c);
     const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, defaultSort);
+    const filters = parseRefineFilters(c);
 
     let query = db.from(table).select(listSelect, { count: 'exact' });
     if (orgScoped) query = query.eq('organization_id', user.organizationId);
     if (softDelete) query = query.is('deleted_at', null);
+    query = applyFilters(query, filters);
     query = query
       .order(sortField, { ascending: sortOrder === 'asc' })
       .range((page - 1) * pageSize, page * pageSize - 1);
@@ -381,11 +383,13 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
     const rawBody = await c.req.json();
     const BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by']);
     const body = Object.fromEntries(Object.entries(rawBody).filter(([k]) => !BLOCKED.has(k)));
-    const { data, error } = await db
+    let q = db
       .from(childTable)
       .update(body)
       .eq('id', id)
-      .eq(parentFk, parentId)
+      .eq(parentFk, parentId);
+    if (softDelete) q = q.is('deleted_at', null);
+    const { data, error } = await q
       .select('id')
       .single();
     if (error) throw ApiError.database(error.message, requestId);

@@ -5,6 +5,7 @@ import type { Context } from 'hono';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from '../types/env';
 import type { UserContext } from '../middleware/auth';
+import type { FilterParam } from './database';
 import { createAuthenticatedClient } from './supabase';
 
 export interface RefineQuery {
@@ -24,6 +25,35 @@ export function parseRefineQuery(c: Context, defaultSort = 'created_at'): Refine
     sortField,
     sortOrder: (c.req.query('_order') ?? 'desc') === 'asc' ? 'asc' as const : 'desc' as const,
   };
+}
+
+const RESERVED_PARAMS = new Set(['_page', '_limit', '_sort', '_order']);
+const FIELD_RE = /^[a-z][a-z0-9_]*$/;
+
+/** Parse Refine-compatible filter query parameters into FilterParam[] */
+export function parseRefineFilters(c: Context): FilterParam[] {
+  const filters: FilterParam[] = [];
+  const url = new URL(c.req.url);
+  for (const [key, value] of url.searchParams.entries()) {
+    if (RESERVED_PARAMS.has(key) || !value) continue;
+
+    if (key.endsWith('_ne') && FIELD_RE.test(key.slice(0, -3))) {
+      filters.push({ field: key.slice(0, -3), operator: 'ne', value });
+    } else if (key.endsWith('_like') && FIELD_RE.test(key.slice(0, -5))) {
+      filters.push({ field: key.slice(0, -5), operator: 'contains', value });
+    } else if (key.endsWith('_in') && FIELD_RE.test(key.slice(0, -3))) {
+      filters.push({ field: key.slice(0, -3), operator: 'in', value: value.split(',') });
+    } else if (key.endsWith('_is') && FIELD_RE.test(key.slice(0, -3))) {
+      if (value === 'null') {
+        filters.push({ field: key.slice(0, -3), operator: 'null', value: null });
+      } else if (value === 'not.null') {
+        filters.push({ field: key.slice(0, -3), operator: 'nnull', value: null });
+      }
+    } else if (FIELD_RE.test(key)) {
+      filters.push({ field: key, operator: 'eq', value });
+    }
+  }
+  return filters;
 }
 
 export interface DbContext {

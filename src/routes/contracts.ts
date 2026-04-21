@@ -5,7 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
+import { applyFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -18,12 +19,16 @@ contracts.use('*', writeMethodGuard());
 contracts.get('/contracts', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
 
-  const { data, count, error } = await db
+  let query = db
     .from('contracts')
     .select('id, contract_number, party_type, contract_type, start_date, end_date, total_amount, currency, status, created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+
+  const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -84,8 +89,8 @@ contracts.put('/contracts/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['title', 'start_date', 'end_date', 'total_amount', 'currency',
-    'payment_terms', 'status', 'notes', 'signed_by', 'signed_at', 'contract_type'];
+  const permitted = ['start_date', 'end_date', 'total_amount', 'currency',
+    'payment_terms', 'status', 'notes', 'contract_type'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db

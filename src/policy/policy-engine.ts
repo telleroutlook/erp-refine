@@ -134,6 +134,16 @@ export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
     };
   }
 
+  if (rule.level === DecisionLevel.D4) {
+    return {
+      decision: 'deny',
+      level: DecisionLevel.D4,
+      reason: `D4 controlled automation is not yet enabled (Phase 2+)`,
+      requiresConfirmation: false,
+      requiresApproval: false,
+    };
+  }
+
   return allow(rule.level, `Rule '${rule.id}' allowed`);
 }
 

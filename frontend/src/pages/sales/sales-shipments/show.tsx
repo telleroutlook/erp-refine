@@ -14,7 +14,7 @@ export const SalesShipmentShow: React.FC = () => {
         <Descriptions.Item label="发货单号">{record?.shipment_number}</Descriptions.Item>
         <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="销售订单号">{record?.sales_order?.order_number}</Descriptions.Item>
-        <Descriptions.Item label="客户">{record?.customer?.name}</Descriptions.Item>
+        <Descriptions.Item label="客户">{record?.sales_order?.customer?.name}</Descriptions.Item>
         <Descriptions.Item label="发货日期">
           <DateField value={record?.shipment_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
