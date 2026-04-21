@@ -5,13 +5,13 @@
 //   3b. DB CHECK constraints ↔ frontend status color/tag mappings
 //   3c. DB CHECK constraints ↔ i18n status translations
 //
+// Source of truth: src/schema/check-constraints.ts (generated from live DB)
 // Run: npx tsx scripts/validate-status.ts
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 
 const ROOT = resolve(new URL('.', import.meta.url).pathname, '..');
-const MIGRATIONS_DIR = join(ROOT, 'supabase/migrations');
 const FRONTEND = join(ROOT, 'frontend/src');
 const EN_PATH = join(FRONTEND, 'i18n/en.json');
 
@@ -25,62 +25,17 @@ const issues: Issue[] = [];
 function error(check: string, msg: string) { issues.push({ level: 'error', check, message: msg }); }
 function warn(check: string, msg: string) { issues.push({ level: 'warn', check, message: msg }); }
 
-// ─── Parse CHECK constraints from migrations ────────────────────────────────
+// ─── Load CHECK constraints from generated snapshot ─────────────────────────
 
-interface CheckConstraint {
-  table: string;
-  column: string;
-  values: string[];
-  file: string;
+async function loadConstraints() {
+  const mod = await import(resolve(ROOT, 'src/schema/check-constraints.ts'));
+  return {
+    constraints: mod.CHECK_CONSTRAINTS as Array<{ table: string; column: string; values: string[] }>,
+    lookup: mod.CONSTRAINT_LOOKUP as Map<string, Map<string, Set<string>>>,
+  };
 }
 
-function parseMigrations(): CheckConstraint[] {
-  const constraints: CheckConstraint[] = [];
-  let files: string[];
-  try { files = readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql')).sort(); } catch { return constraints; }
-
-  // Track ALTER operations that drop/add constraints
-  const constraintMap = new Map<string, CheckConstraint>(); // key: table.column
-
-  for (const file of files) {
-    const content = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8');
-
-    // Match: CHECK (status IN ('draft', 'submitted', ...))
-    // or: CHECK (column_name IN ('val1', 'val2'))
-    // Context: CREATE TABLE or ALTER TABLE
-    const lines = content.split('\n');
-    let currentTable: string | null = null;
-
-    for (const line of lines) {
-      // Track CREATE TABLE xxx
-      const createMatch = line.match(/CREATE TABLE\s+(?:IF NOT EXISTS\s+)?(?:public\.)?(\w+)/i);
-      if (createMatch) currentTable = createMatch[1]!;
-
-      // Track ALTER TABLE xxx
-      const alterMatch = line.match(/ALTER TABLE\s+(?:ONLY\s+)?(?:public\.)?(\w+)/i);
-      if (alterMatch) currentTable = alterMatch[1]!;
-
-      // Match CHECK constraint: (column IN ('val1', 'val2', ...))
-      const checkMatch = line.match(/CHECK\s*\(\s*(\w+)\s+IN\s*\(([^)]+)\)/i);
-      if (checkMatch) {
-        const column = checkMatch[1]!;
-        const valStr = checkMatch[2]!;
-        const values = [...valStr.matchAll(/'([^']+)'/g)].map(m => m[1]!);
-        const table = currentTable ?? '(unknown)';
-        const key = `${table}.${column}`;
-        constraintMap.set(key, { table, column, values, file });
-      }
-
-      // Track DROP CONSTRAINT (to handle migrations that modify constraints)
-      const dropMatch = line.match(/DROP CONSTRAINT\s+(?:IF EXISTS\s+)?(\w+)/i);
-      if (dropMatch && currentTable) {
-        // We can't easily map constraint name to column, so we let the re-add override
-      }
-    }
-  }
-
-  return [...constraintMap.values()];
-}
+const { constraints, lookup: constraintLookup } = await loadConstraints();
 
 // ─── Extract status assignments from backend code ───────────────────────────
 
@@ -135,24 +90,16 @@ function extractBackendStatuses(): StatusAssignment[] {
 
 // ─── 3a: DB CHECK ↔ Backend status assignments ─────────────────────────────
 
-const constraints = parseMigrations();
 const backendStatuses = extractBackendStatuses();
-
-// Build constraint lookup: table → column → allowed values
-const constraintLookup = new Map<string, Map<string, Set<string>>>();
-for (const c of constraints) {
-  if (!constraintLookup.has(c.table)) constraintLookup.set(c.table, new Map());
-  constraintLookup.get(c.table)!.set(c.column, new Set(c.values));
-}
 
 for (const sa of backendStatuses) {
   const tableConstraints = constraintLookup.get(sa.table);
   if (!tableConstraints) continue;
-  const statusValues = tableConstraints.get('status');
-  if (!statusValues) continue;
-  if (!statusValues.has(sa.value)) {
-    warn('3a:check↔backend',
-      `${sa.file}:${sa.line} sets status='${sa.value}' on table '${sa.table}', but migration CHECK allows: [${[...statusValues].join(', ')}] (verify live DB if migration was altered)`);
+  const allowedValues = tableConstraints.get('status');
+  if (!allowedValues) continue;
+  if (!allowedValues.has(sa.value)) {
+    error('3a:check↔backend',
+      `${sa.file}:${sa.line} sets status='${sa.value}' on table '${sa.table}', but CHECK allows: [${[...allowedValues].join(', ')}]`);
   }
 }
 
@@ -198,7 +145,6 @@ for (const c of constraints) {
     for (const v of c.values) allDbStatusValues.add(v);
   }
 }
-
 for (const status of allDbStatusValues) {
   if (!frontendStatusValues.has(status) && !['idle'].includes(status)) {
     warn('3b:check↔frontend',
@@ -227,7 +173,6 @@ for (const status of i18nStatuses) {
 // ─── Summary ────────────────────────────────────────────────────────────────
 
 const statusConstraintCount = constraints.filter(c => c.column === 'status').length;
-
 const errors = issues.filter(i => i.level === 'error');
 const warns = issues.filter(i => i.level === 'warn');
 
