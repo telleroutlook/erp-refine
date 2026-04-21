@@ -3,11 +3,12 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 
 const infrastructure = new Hono<{ Bindings: Env }>();
 infrastructure.use('*', authMiddleware());
+infrastructure.use('*', writeMethodGuard());
 
 // ---------------------------------------------------------------------------
 // Departments — tree structure with parent_id and level

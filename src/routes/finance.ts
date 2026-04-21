@@ -309,7 +309,7 @@ finance.post('/budgets', async (c) => {
       headerTable: 'budgets',
       itemsTable: 'budget_lines',
       headerFk: 'budget_id',
-      headerReturnSelect: 'id, name, status',
+      headerReturnSelect: 'id, budget_name, status',
       itemsReturnSelect: 'id, account_code, planned_amount',
     },
     {
@@ -339,7 +339,7 @@ finance.put('/budgets/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['name', 'budget_year', 'total_amount', 'currency', 'status',
+  const permitted = ['budget_name', 'budget_year', 'total_amount', 'currency', 'status',
     'department_id', 'cost_center_id', 'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 

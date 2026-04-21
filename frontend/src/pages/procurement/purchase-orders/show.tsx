@@ -38,7 +38,7 @@ export const PurchaseOrderShow: React.FC = () => {
             size="small"
             pagination={false}
             columns={[
-              { dataIndex: 'line_number', title: '行号', width: 60 },
+              { dataIndex: 'line_no', title: '行号', width: 60 },
               { dataIndex: ['product', 'name'], title: '产品' },
               { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
               { dataIndex: 'quantity', title: '数量', width: 80, align: 'right' },

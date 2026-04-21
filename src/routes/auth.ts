@@ -76,7 +76,12 @@ auth.get('/me', async (c) => {
   const { data: { user }, error } = await db.auth.getUser(authHeader.slice(7));
   if (error || !user) return c.json({ error: 'Invalid token' }, 401);
 
-  return c.json({ data: user });
+  return c.json({ data: {
+    id: user.id,
+    email: user.email,
+    role: user.app_metadata?.role,
+    organizationId: user.app_metadata?.organization_id,
+  } });
 });
 
 export default auth;

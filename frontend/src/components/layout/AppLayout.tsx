@@ -28,6 +28,8 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
   const currentWidth = useRef(sidebarWidth);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     currentWidth.current = sidebarWidth;
@@ -46,11 +48,14 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     const onMove = (e: MouseEvent) => {
       const delta = dragStartX.current - e.clientX;
       const next = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, dragStartWidth.current + delta));
-      setSidebarWidth(next);
+      currentWidth.current = next;
+      if (sidebarRef.current) sidebarRef.current.style.width = `${next}px`;
+      if (toggleRef.current) toggleRef.current.style.right = `${next + HANDLE_W + 4}px`;
     };
 
     const onUp = () => {
       setIsDragging(false);
+      setSidebarWidth(currentWidth.current);
       localStorage.setItem(STORAGE_KEY, String(currentWidth.current));
     };
 
@@ -111,7 +116,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
       )}
 
       {/* Toggle button */}
-      <div style={{
+      <div ref={toggleRef} style={{
         position: 'absolute',
         right: collapsed ? 4 : sidebarWidth + HANDLE_W + 4,
         top: '50%',
@@ -141,7 +146,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
 
       {/* AI Sidebar */}
       {!collapsed && (
-        <div style={{
+        <div ref={sidebarRef} style={{
           width: sidebarWidth,
           flexShrink: 0,
           borderLeft: `1px solid ${token.colorBorderSecondary}`,

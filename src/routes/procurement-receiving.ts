@@ -264,7 +264,7 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'due_date', 'tax_amount']);
+  const PERMITTED = new Set(['status', 'notes', 'due_date', 'tax_amount', 'currency']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -316,6 +316,7 @@ procurementReceiving.get('/three-way-match', async (c) => {
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

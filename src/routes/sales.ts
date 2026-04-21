@@ -177,7 +177,7 @@ sales.get('/sales-shipments/:id', async (c) => {
 
   const { data, error } = await db
     .from('sales_shipments')
-    .select('*, items:sales_shipment_items(*, product:products(id,name,code)), sales_order:sales_orders(id,order_number), warehouse:warehouses(id,name,code)')
+    .select('*, items:sales_shipment_items(*, product:products(id,name,code)), sales_order:sales_orders(id,order_number,customer:customers(id,name)), warehouse:warehouses(id,name,code)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

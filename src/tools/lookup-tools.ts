@@ -35,7 +35,7 @@ export function createLookupTools(db: SupabaseClient, organizationId: string) {
         };
 
         const { data, error } = await (db.from(table) as any)
-          .select('*')
+          .select('id, status, notes, created_at, ' + (numberColumn[table] ?? 'order_number'))
           .eq('organization_id', organizationId)
           .eq(numberColumn[table] ?? 'order_number', documentNumber)
           .is('deleted_at', null)

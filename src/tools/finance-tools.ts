@@ -37,14 +37,14 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ year, departmentId }) => {
         let query = db
           .from('budgets')
-          .select('id, name, fiscal_year, department:departments(id,name), budget_lines(account:account_subjects(name), planned_amount, actual_amount)')
+          .select('id, budget_name, fiscal_year, department:departments(id,name), budget_lines(account:account_subjects(name), planned_amount, actual_amount)')
           .eq('organization_id', organizationId)
           .eq('fiscal_year', year)
           .is('deleted_at', null);
 
         if (departmentId) query = query.eq('department_id', departmentId);
 
-        const { data, error } = await query;
+        const { data, error } = await query.limit(200);
         if (error) throw new Error(error.message);
         return data ?? [];
       },
@@ -59,11 +59,11 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ okToPay, limit }) => {
         let query = db
           .from('payment_requests')
-          .select('id, request_number, amount, due_date, currency, ok_to_pay, supplier:suppliers(id,name), created_at')
+          .select('id, request_number, amount, due_date, currency, ok_to_pay_flag, supplier:suppliers(id,name), created_at')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
-        if (okToPay !== undefined) query = query.eq('ok_to_pay', okToPay);
+        if (okToPay !== undefined) query = query.eq('ok_to_pay_flag', okToPay);
 
         const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
         if (error) throw new Error(error.message);

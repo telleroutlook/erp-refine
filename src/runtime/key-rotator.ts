@@ -85,9 +85,9 @@ export async function withKeyRotation<T>(
   } catch (err) {
     if (isRateLimitError(err)) {
       markKeyExhausted(key);
-      // Try once more with a different key
-      const nextKey = pickAvailableKey(keys.filter((k) => k !== key));
-      if (nextKey !== key) {
+      const remaining = keys.filter((k) => k !== key);
+      if (remaining.length > 0) {
+        const nextKey = pickAvailableKey(remaining);
         return fn(nextKey);
       }
     }

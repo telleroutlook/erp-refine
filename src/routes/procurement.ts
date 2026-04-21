@@ -206,7 +206,7 @@ procurement.post('/purchase-requisitions', async (c) => {
       itemsTable: 'purchase_requisition_lines',
       headerFk: 'purchase_requisition_id',
       headerReturnSelect: 'id, requisition_number, status',
-      itemsReturnSelect: 'id, product_id, quantity, estimated_unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
     },
     {
       header: {

@@ -24,7 +24,7 @@ export const PurchaseReceiptEdit: React.FC = () => {
           <Col span={12}>
             <Form.Item
               label="收货日期"
-              name="received_date"
+              name="receipt_date"
               getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >

@@ -49,6 +49,7 @@ export const authProvider: AuthProvider = {
     // Check JWT expiry from the exp claim
     try {
       const base64Url = token.split('.')[1];
+      if (!base64Url) return { authenticated: false, redirectTo: '/login' };
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
       const payload = JSON.parse(atob(padded));
@@ -100,9 +101,8 @@ export const authProvider: AuthProvider = {
     }
     return {
       id: parsed['id'],
-      name: (parsed['user_metadata'] as Record<string, unknown>)?.['full_name'] ?? parsed['email'],
+      name: parsed['email'] as string,
       email: parsed['email'],
-      avatar: (parsed['user_metadata'] as Record<string, unknown>)?.['avatar_url'],
     };
   },
 

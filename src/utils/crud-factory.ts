@@ -180,6 +180,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
         const sanitized = updateSchema ? body : Object.fromEntries(Object.entries(body).filter(([k]) => !BLOCKED_FIELDS.has(k)));
         let q = db.from(table).update(sanitized).eq('id', id);
         if (orgScoped) q = q.eq('organization_id', user.organizationId);
+        if (softDelete) q = q.is('deleted_at', null);
         const result = await q.select('id').single();
         return result as { data: unknown; error: { message: string; code?: string } | null };
       };
@@ -224,6 +225,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);
         if (orgScoped) q = q.eq('organization_id', user.organizationId);
+        q = q.is('deleted_at', null);
         const { data, error } = await q.select('id').maybeSingle();
         if (error) throw ApiError.database(error.message, requestId);
         if (!data) throw ApiError.notFound(resourceName, id, requestId);
@@ -355,7 +357,9 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
     await assertParentOwned(db, parentId, user.organizationId, requestId);
 
     const body = await c.req.json();
-    const insertData: Record<string, unknown> = { ...body, [parentFk]: parentId };
+    const BLOCKED_FIELDS = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by']);
+    const sanitizedBody = Object.fromEntries(Object.entries(body).filter(([k]) => !BLOCKED_FIELDS.has(k)));
+    const insertData: Record<string, unknown> = { ...sanitizedBody, [parentFk]: parentId };
     if (createExtras) Object.assign(insertData, createExtras(user));
 
     const { data, error } = await db

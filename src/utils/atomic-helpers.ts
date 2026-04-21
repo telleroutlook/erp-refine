@@ -40,9 +40,14 @@ export async function atomicCreateWithItems(
   const { headerTable, itemsTable, headerFk, headerReturnSelect, itemsReturnSelect } = config;
   const { header, items } = input;
 
+  const HEADER_BLOCKED = new Set(['id', 'deleted_at', 'created_at', 'approved_by', 'approved_at', 'posted_at']);
+  const sanitizedHeader = Object.fromEntries(
+    Object.entries(header).filter(([k]) => !HEADER_BLOCKED.has(k))
+  );
+
   // Step 1: Insert header
   const insertHeader = async () => {
-    const result = await db.from(headerTable).insert(header).select(headerReturnSelect).single();
+    const result = await db.from(headerTable).insert(sanitizedHeader).select(headerReturnSelect).single();
     return result as { data: Record<string, unknown> | null; error: { message: string } | null };
   };
 
@@ -70,7 +75,7 @@ export async function atomicCreateWithItems(
         [headerFk]: headerId,
       };
       if (config.autoLineNo) {
-        row.line_number = item.line_number ?? idx + 1;
+        row.line_no = item.line_no ?? idx + 1;
       }
       return row;
     });
@@ -81,8 +86,10 @@ export async function atomicCreateWithItems(
       .select(itemsReturnSelect);
 
     if (itemsError) {
-      // Rollback: delete header (CASCADE removes any partial items)
-      await db.from(headerTable).delete().eq('id', headerId);
+      const { error: rollbackError } = await db.from(headerTable).delete().eq('id', headerId);
+      if (rollbackError) {
+        console.error(`[atomic] Rollback failed for ${headerTable} id=${headerId}:`, rollbackError.message);
+      }
       throw ApiError.database(
         itemsError.message,
         audit?.requestId,

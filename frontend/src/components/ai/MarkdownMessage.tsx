@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSanitize from 'rehype-sanitize';
 import 'highlight.js/styles/github.css';
 
 interface MarkdownMessageProps {
@@ -9,7 +10,7 @@ interface MarkdownMessageProps {
 }
 
 const REMARK_PLUGINS = [remarkGfm];
-const REHYPE_PLUGINS = [rehypeHighlight];
+const REHYPE_PLUGINS = [rehypeSanitize, rehypeHighlight];
 
 const MD_COMPONENTS = {
   pre: ({ children }: any) => (

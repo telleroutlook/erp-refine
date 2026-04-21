@@ -94,7 +94,10 @@ admin.post('/link-employees', async (c) => {
         p_auth_email: m.auth_email,
         p_org_id: user.organizationId,
       });
-      if (error) return { ok: false, employee_email: m.employee_email, message: error.message };
+      if (error) {
+        console.error('[admin] link failed:', error.message);
+        return { ok: false, employee_email: m.employee_email, message: 'Link operation failed' };
+      }
       if (!data) return { ok: false, employee_email: m.employee_email, message: `Auth user '${m.auth_email}' not found` };
       return { ok: true, employee_email: m.employee_email };
     })

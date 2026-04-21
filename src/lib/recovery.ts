@@ -132,6 +132,11 @@ export async function executeWithRecovery(
         continue;
       }
 
+      // No strategy matched — continue retrying up to maxAttempts
+      if (attempt < maxAttempts - 1) {
+        recoverySteps.push(`retry-attempt-${attempt}`);
+        continue;
+      }
       break;
     }
   }

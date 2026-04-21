@@ -20,6 +20,7 @@ export interface ToolExecutionOptions {
   retryDelay?: number; // ms, default 1000
   inputHash?: string;  // used for cache key (must be caller-provided to be stable)
   env?: Env;           // required to enable KV caching
+  waitUntil?: (p: Promise<unknown>) => void; // Cloudflare Workers ctx.waitUntil
 }
 
 export interface ToolResult<T = unknown> {
@@ -71,6 +72,7 @@ export async function executeTool<T>(
     retryDelay = 1_000,
     inputHash,
     env,
+    waitUntil,
   } = options;
 
   // KV cache check for D0 tools (read-only, cacheable)
@@ -95,15 +97,16 @@ export async function executeTool<T>(
 
       logger.info('tool.success', { toolName, sessionId, durationMs, attempts });
 
-      // Store in KV cache for cacheable D0 tools
       if (env && inputHash && isToolCacheable(toolName) && data !== undefined) {
         const cache = new KVCache(env.CACHE);
         const key = cacheKey('tool', toolName, organizationId, inputHash);
-        cache.set(key, data, CACHE_TTL_SECONDS).catch(() => {});
+        const cacheWrite = cache.set(key, data, CACHE_TTL_SECONDS).catch(() => {});
+        if (waitUntil) waitUntil(cacheWrite);
       }
 
       if (db) {
-        recordMetric(db, { toolName, sessionId, organizationId, userId, durationMs, success: true, attempts });
+        const metricWrite = recordMetric(db, { toolName, sessionId, organizationId, userId, durationMs, success: true, attempts });
+        if (waitUntil) waitUntil(metricWrite);
       }
       return { success: true, data, durationMs, retries: attempts };
 
@@ -115,7 +118,8 @@ export async function executeTool<T>(
         const durationMs = Date.now() - start;
         logger.error('tool.failed', { toolName, sessionId, durationMs, attempts, error });
         if (db) {
-          recordMetric(db, { toolName, sessionId, organizationId, userId, durationMs, success: false, attempts, error });
+          const metricWrite = recordMetric(db, { toolName, sessionId, organizationId, userId, durationMs, success: false, attempts, error });
+          if (waitUntil) waitUntil(metricWrite);
         }
         return { success: false, error, durationMs, retries: attempts };
       }
@@ -138,8 +142,8 @@ function recordMetric(
     attempts: number;
     error?: string;
   }
-): void {
-  db.from('tool_call_metrics').insert({
+): Promise<void> {
+  return Promise.resolve(db.from('tool_call_metrics').insert({
     tool_name: data.toolName,
     session_id: data.sessionId,
     organization_id: data.organizationId,
@@ -148,7 +152,7 @@ function recordMetric(
     success: data.success,
     retries: data.attempts - 1,
     error_message: data.error ?? null,
-  }).then(({ error: e }) => {
+  })).then(({ error: e }) => {
     if (e) logger.warn('Failed to record tool metric', e);
   });
 }

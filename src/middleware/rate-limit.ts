@@ -27,8 +27,7 @@ export function rateLimitMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
         return c.json({ error: 'Rate limit exceeded' }, 429);
       }
     } catch (e) {
-      console.warn('[rate-limit] DO unavailable, failing closed:', e);
-      return c.json({ error: 'Service temporarily unavailable' }, 503);
+      console.warn('[rate-limit] DO unavailable, failing open:', e);
     }
 
     await next();

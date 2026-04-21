@@ -132,7 +132,6 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         return {
           totalSkus: (data ?? []).length,
           totalQty: (data ?? []).reduce((sum: number, r: any) => sum + Number(r.quantity ?? 0), 0),
-          items: data ?? [],
         };
       },
     }),

@@ -168,7 +168,7 @@ salesFinance.get('/sales-returns/:id', async (c) => {
 
   const { data, error } = await db
     .from('sales_returns')
-    .select('*, items:sales_return_items(*, product:products(id,name,code))')
+    .select('*, customer:customers(id,name,code), items:sales_return_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

@@ -72,6 +72,7 @@ schema.post('/generate', async (c) => {
 /** POST /api/schema/:id/activate */
 schema.post('/:id/activate', async (c) => {
   const user = c.get('user');
+  if (user.role !== 'admin') return c.json({ error: 'Forbidden' }, 403);
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const registry = new SchemaRegistry(db, user.organizationId);
   const data = await registry.activate(c.req.param('id'), user.userId);
@@ -81,6 +82,7 @@ schema.post('/:id/activate', async (c) => {
 /** POST /api/schema/:id/archive */
 schema.post('/:id/archive', async (c) => {
   const user = c.get('user');
+  if (user.role !== 'admin') return c.json({ error: 'Forbidden' }, 403);
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const registry = new SchemaRegistry(db, user.organizationId);
   await registry.archive(c.req.param('id'));

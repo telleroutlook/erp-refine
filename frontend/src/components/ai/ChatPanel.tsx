@@ -96,6 +96,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId: initialSessionI
         body: JSON.stringify({ message: text, sessionId: sid, confirmed }),
       });
 
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error((errBody as Record<string, string>).error ?? `Request failed (${res.status})`);
+      }
+
       const data = await res.json();
       const response = data.data as Record<string, unknown>;
       const content = extractContent(response);
