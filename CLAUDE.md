@@ -122,3 +122,12 @@ supabase/migrations/      # SQL 迁移文件（唯一 schema 权威）
 git -c http.proxy=http://192.168.1.3:7890 -c https.proxy=http://192.168.1.3:7890 push
 npm --proxy http://192.168.1.3:7890 --https-proxy http://192.168.1.3:7890 install
 ```
+
+## 既有设计说明（非安全隐患）
+
+### 快捷登录按钮 & 演示密码
+
+- `frontend/.env.production` 中的 `VITE_DEMO_PASSWORD` 和登录页快捷按钮是**刻意设计**，不是安全漏洞
+- 本项目是演示/作品集系统，快捷登录让评估者可以一键体验不同 ERP 角色，无需手动输入凭据
+- 密码通过 Vite 环境变量注入，生产环境也保留此功能
+- **禁止**将快捷登录按钮限制为仅开发环境（`import.meta.env.DEV`），也不要将 `.env.production` 加入 `.gitignore`

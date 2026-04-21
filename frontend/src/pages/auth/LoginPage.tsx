@@ -169,7 +169,7 @@ export const LoginPage: React.FC = () => {
           </Text>
         </div>
 
-        {import.meta.env.DEV && DEMO_PASSWORD && (
+        {DEMO_PASSWORD && (
           <>
             <Divider style={{ margin: '12px 0 8px', fontSize: 12 }}>
               <ThunderboltOutlined style={{ color: token.colorWarning, marginRight: 4 }} />

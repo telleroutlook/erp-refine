@@ -15,8 +15,6 @@ frontend/dist/
 .env.local
 .env.*.local
 .dev.vars
-frontend/.env.production
-frontend/.env.example
 
 # IDE
 .idea/
