@@ -66,7 +66,7 @@ export function createSystemTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ unreadOnly, limit }) => {
         let query = db
           .from('notifications')
-          .select('id, title, message, type, is_read, entity_type, entity_id, created_at')
+          .select('id, title, body, notification_type, is_read, entity_type, entity_id, created_at')
           .eq('organization_id', organizationId);
 
         if (unreadOnly) query = query.eq('is_read', false);
@@ -78,19 +78,69 @@ export function createSystemTools(db: SupabaseClient, organizationId: string) {
     }),
 
     list_document_attachments: tool({
-      description: 'List file attachments for a specific document',
+      description: 'List file attachments for a specific entity',
       inputSchema: z.object({
-        documentType: z.string().describe('e.g. purchase_orders, sales_orders, contracts'),
-        documentId: z.string().uuid(),
+        entityType: z.string().describe('e.g. purchase_orders, sales_orders, contracts'),
+        entityId: z.string().uuid(),
       }),
-      execute: async ({ documentType, documentId }) => {
+      execute: async ({ entityType, entityId }) => {
         const { data, error } = await db
           .from('document_attachments')
-          .select('id, file_name, file_type, file_size, storage_path, uploaded_by, created_at')
+          .select('id, file_name, mime_type, file_size, file_path, uploaded_by, created_at')
           .eq('organization_id', organizationId)
-          .eq('document_type', documentType)
-          .eq('document_id', documentId)
+          .eq('entity_type', entityType)
+          .eq('entity_id', entityId)
           .order('created_at', { ascending: false });
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_approval_rules: tool({
+      description: 'List approval rules configured for the organization',
+      inputSchema: z.object({
+        documentType: z.string().optional().describe('Filter by document_type, e.g. purchase_orders'),
+        activeOnly: z.boolean().default(true),
+      }),
+      execute: async ({ documentType, activeOnly }) => {
+        let query = db
+          .from('approval_rules')
+          .select('id, rule_name, document_type, min_amount, max_amount, required_roles, sequence_order, is_active, created_at')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+        if (documentType) query = query.eq('document_type', documentType);
+        if (activeOnly) query = query.eq('is_active', true);
+        const { data, error } = await query.order('document_type').limit(100);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_roles: tool({
+      description: 'List roles defined in the organization',
+      inputSchema: z.object({}),
+      execute: async () => {
+        const { data, error } = await db
+          .from('roles')
+          .select('id, name, description, is_system, created_at')
+          .eq('organization_id', organizationId)
+          .order('name');
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_workflow_steps: tool({
+      description: 'List steps of a specific workflow instance',
+      inputSchema: z.object({
+        workflowId: z.string().uuid(),
+      }),
+      execute: async ({ workflowId }) => {
+        const { data, error } = await db
+          .from('workflow_steps')
+          .select('id, step_name, step_order, step_type, action, assignee_role, status, condition, completed_by, completed_at, created_at')
+          .eq('workflow_id', workflowId)
+          .order('step_order');
         if (error) throw new Error(error.message);
         return data ?? [];
       },

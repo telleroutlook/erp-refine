@@ -56,7 +56,7 @@ const approvalRecordsConfig: CrudConfig = {
   path: '/approval-records',
   resourceName: 'ApprovalRecord',
   listSelect:
-    'id, entity_type, entity_id, rule_id, step_no, approver_id, action, acted_at, created_at',
+    'id, document_type, document_id, rule_id, decision_level, decision_by, decision_at, status, created_at',
   detailSelect: '*',
   createReturnSelect: 'id',
   defaultSort: 'created_at',

@@ -194,20 +194,6 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
       },
     }),
 
-    list_tax_codes: tool({
-      description: 'List tax codes',
-      inputSchema: z.object({}),
-      execute: async () => {
-        const { data, error } = await db
-          .from('tax_codes')
-          .select('id, code, name, rate, tax_type, is_active')
-          .eq('organization_id', organizationId)
-          .order('code');
-        if (error) throw new Error(error.message);
-        return data ?? [];
-      },
-    }),
-
     list_storage_locations: tool({
       description: 'List storage locations (bins/racks) within warehouses',
       inputSchema: z.object({
@@ -301,6 +287,45 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
         }
 
         const { data, error } = await query.order('name').limit(50);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_price_list_lines: tool({
+      description: 'List price list lines (product prices) for a specific price list',
+      inputSchema: z.object({
+        priceListId: z.string().uuid(),
+        productId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(200).default(50),
+      }),
+      execute: async ({ priceListId, productId, limit }) => {
+        let query = db
+          .from('price_list_lines')
+          .select('id, price_list_id, product_id, unit_price, min_quantity, discount_rate, effective_from, effective_to, created_at')
+          .eq('price_list_id', priceListId)
+          .is('deleted_at', null);
+        if (productId) query = query.eq('product_id', productId);
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_product_cost_history: tool({
+      description: 'Get cost history for a product over time',
+      inputSchema: z.object({
+        productId: z.string().uuid(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ productId, limit }) => {
+        const { data, error } = await db
+          .from('product_cost_history')
+          .select('id, product_id, unit_cost, total_value, total_quantity, cost_method, effective_date, reference_type, reference_id, created_at')
+          .eq('organization_id', organizationId)
+          .eq('product_id', productId)
+          .order('effective_date', { ascending: false })
+          .limit(limit);
         if (error) throw new Error(error.message);
         return data ?? [];
       },

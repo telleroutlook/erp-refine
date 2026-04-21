@@ -390,5 +390,22 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
         return { id: ret.id, returnNumber: ret.return_number, status: 'received' };
       },
     }),
+
+    list_shipment_tracking: tool({
+      description: 'List tracking events for a sales shipment',
+      inputSchema: z.object({
+        shipmentId: z.string().uuid(),
+      }),
+      execute: async ({ shipmentId }) => {
+        const { data, error } = await db
+          .from('shipment_tracking_events')
+          .select('id, shipment_id, event_type, location, notes, occurred_at, created_at')
+          .eq('organization_id', organizationId)
+          .eq('shipment_id', shipmentId)
+          .order('occurred_at', { ascending: false });
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

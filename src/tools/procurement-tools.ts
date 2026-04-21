@@ -627,5 +627,25 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         return { id: receipt.id, receiptNumber: receipt.receipt_number, status: 'confirmed' };
       },
     }),
+
+    list_three_way_match_results: tool({
+      description: 'List three-way match results (PO vs receipt vs invoice) for AP verification',
+      inputSchema: z.object({
+        matchStatus: z.string().optional().describe('e.g. matched, mismatched, pending'),
+        purchaseOrderId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ matchStatus, purchaseOrderId, limit }) => {
+        let query = db
+          .from('three_way_match_results')
+          .select('id, purchase_order_id, purchase_receipt_id, supplier_invoice_id, match_status, quantity_variance, price_variance, amount_variance, matched_by, matched_at, notes, created_at')
+          .eq('organization_id', organizationId);
+        if (matchStatus) query = query.eq('match_status', matchStatus);
+        if (purchaseOrderId) query = query.eq('purchase_order_id', purchaseOrderId);
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

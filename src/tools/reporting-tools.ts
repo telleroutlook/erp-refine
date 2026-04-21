@@ -215,5 +215,124 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         };
       },
     }),
+
+    get_customer_summary: tool({
+      description: 'Get customer summary with order counts, total amounts, and unpaid orders',
+      inputSchema: z.object({
+        status: z.string().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, limit }) => {
+        let query = db
+          .from('v_customer_summary')
+          .select('id, code, name, type, credit_limit, status, order_count, total_order_amount, unpaid_orders')
+          .eq('organization_id', organizationId);
+        if (status) query = query.eq('status', status);
+        const { data, error } = await query.order('total_order_amount', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_supplier_summary: tool({
+      description: 'Get supplier summary with order counts, total amounts, and reliability scores',
+      inputSchema: z.object({
+        status: z.string().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, limit }) => {
+        let query = db
+          .from('v_supplier_summary')
+          .select('id, code, name, supplier_type, reliability_score, status, order_count, total_order_amount, open_orders')
+          .eq('organization_id', organizationId);
+        if (status) query = query.eq('status', status);
+        const { data, error } = await query.order('total_order_amount', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_purchase_order_overview: tool({
+      description: 'Get purchase order overview with line counts and receipt progress',
+      inputSchema: z.object({
+        status: z.string().optional(),
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, supplierId, limit }) => {
+        let query = db
+          .from('v_purchase_order_summary')
+          .select('id, order_number, order_date, expected_date, supplier_id, supplier_name, total_amount, currency, status, line_count, total_quantity, total_received, created_at')
+          .eq('organization_id', organizationId);
+        if (status) query = query.eq('status', status);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_sales_order_overview: tool({
+      description: 'Get sales order overview with line counts, shipment progress, and payment status',
+      inputSchema: z.object({
+        status: z.string().optional(),
+        customerId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, customerId, limit }) => {
+        let query = db
+          .from('v_sales_order_summary')
+          .select('id, order_number, order_date, delivery_date, customer_id, customer_name, total_amount, currency, status, payment_status, line_count, total_quantity, total_shipped, created_at')
+          .eq('organization_id', organizationId);
+        if (status) query = query.eq('status', status);
+        if (customerId) query = query.eq('customer_id', customerId);
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_stock_overview: tool({
+      description: 'Get stock summary across warehouses with stock status (normal, low, overstock)',
+      inputSchema: z.object({
+        warehouseId: z.string().uuid().optional(),
+        stockStatus: z.enum(['normal', 'low', 'overstock']).optional(),
+        search: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+      execute: async ({ warehouseId, stockStatus, search, limit }) => {
+        let query = db
+          .from('v_stock_summary')
+          .select('id, warehouse_id, warehouse_name, product_id, product_code, product_name, unit, quantity_on_hand, quantity_reserved, quantity_available, min_stock, max_stock, stock_status, updated_at')
+          .eq('organization_id', organizationId);
+        if (warehouseId) query = query.eq('warehouse_id', warehouseId);
+        if (stockStatus) query = query.eq('stock_status', stockStatus);
+        if (search) {
+          const s = search.replace(/[%_]/g, '');
+          query = query.or(`product_name.ilike.%${s}%,product_code.ilike.%${s}%`);
+        }
+        const { data, error } = await query.order('product_name').limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_pending_approvals: tool({
+      description: 'Get AI agent decisions pending human approval',
+      inputSchema: z.object({
+        riskLevel: z.string().optional().describe('Filter by risk level'),
+        limit: z.number().min(1).max(50).default(20),
+      }),
+      execute: async ({ riskLevel, limit }) => {
+        let query = db
+          .from('v_pending_approvals')
+          .select('decision_id, agent_id, risk_level, decision, tools_called, reasoning_summary, confidence, created_at, requested_by_name')
+          .eq('organization_id', organizationId);
+        if (riskLevel) query = query.eq('risk_level', riskLevel);
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }
