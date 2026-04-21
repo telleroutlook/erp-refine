@@ -10,7 +10,6 @@ import {
 import {
   useTranslate,
   useLogout,
-  CanAccess,
   type ITreeMenu,
   useIsExistAuthentication,
   useMenu,
@@ -101,11 +100,9 @@ export const Sider: React.FC = () => {
 
       if (children.length > 0) {
         return (
-          <CanAccess key={key} resource={name} action="list" params={{ resource: item }}>
-            <Menu.SubMenu key={key} icon={icon ?? <UnorderedListOutlined />} title={label}>
-              {renderTreeView(children, activeKey)}
-            </Menu.SubMenu>
-          </CanAccess>
+          <Menu.SubMenu key={key} icon={icon ?? <UnorderedListOutlined />} title={label}>
+            {renderTreeView(children, activeKey)}
+          </Menu.SubMenu>
         );
       }
 
@@ -116,12 +113,10 @@ export const Sider: React.FC = () => {
       );
 
       return (
-        <CanAccess key={key} resource={name} action="list" params={{ resource: item }}>
-          <Menu.Item key={key} icon={icon ?? (isRoute && <UnorderedListOutlined />)}>
-            <Link to={route ?? ''}>{label}</Link>
-            {!siderCollapsed && isSelected && <div className="ant-menu-tree-arrow" />}
-          </Menu.Item>
-        </CanAccess>
+        <Menu.Item key={key} icon={icon ?? (isRoute && <UnorderedListOutlined />)}>
+          <Link to={route ?? ''}>{label}</Link>
+          {!siderCollapsed && isSelected && <div className="ant-menu-tree-arrow" />}
+        </Menu.Item>
       );
     });
   };
