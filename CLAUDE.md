@@ -4,8 +4,12 @@
 
 - **`src/types/database.ts`** 是列名的唯一权威参考（从 Supabase 生成）
 - `src/schema/columns.ts` 由 `scripts/generate-columns.ts` 从 `database.ts` 提取
-- `scripts/validate-schema.ts` 交叉验证所有 `.select()` 字符串、`dataIndex`、前端类型
-- **`npm run deploy` 自动运行 `schema:validate`** — 有任何列名不匹配就会阻止部署
+- `src/schema/check-constraints.ts` 是 CHECK 约束的唯一权威参考（从 live DB `pg_constraint` 导出）
+- **`npm run deploy` 自动运行 `npm run validate`** — 4 个验证器任一失败即阻止部署：
+  - `validate-schema.ts` — 后端列名（select/filter/order/update/insert）
+  - `validate-frontend-api.ts` — 前端资源 ↔ API 路由 ↔ DB 列名
+  - `validate-i18n.ts` — 翻译完整性（en↔zh 同步、资源名、菜单、状态、硬编码中文检测）
+  - `validate-status.ts` — 状态枚举一致性（DB CHECK ↔ 后端代码 ↔ 前端 ↔ i18n）
 
 ### Schema 变更流程
 
@@ -13,15 +17,28 @@
 2. 通过 Supabase MCP `apply_migration` 应用到远端
 3. 通过 Supabase MCP `generate_typescript_types` 获取最新类型 → 写入 `src/types/database.ts`
 4. `npm run schema:sync` — 从 `database.ts` 重新生成 `src/schema/columns.ts`
-5. `npx tsc --noEmit` — 确保无类型错误
-6. 修复所有引用（validator 会显示每个不匹配的 `file:line`）
+5. 通过 Supabase MCP 查询 `pg_constraint` 更新 `src/schema/check-constraints.ts`
+6. `npx tsc --noEmit` — 确保无类型错误
+7. `npm run validate` — 运行全部 4 个验证器
+8. 修复所有引用（validator 会显示每个不匹配的 `file:line`）
 
 **注意**：新增列时需同步检查目标表的 CHECK 约束（如 status 枚举），否则新状态值写入会报 DB 错误。
+
+### CHECK 约束变更规范
+
+- **禁止**直接在 DB 上执行 ALTER TABLE 修改 CHECK 约束而不写迁移文件
+- 修改 CHECK 约束**必须**同时：
+  1. 在 `supabase/migrations/` 写 ALTER TABLE 迁移
+  2. 通过 `apply_migration` 应用
+  3. 更新 `src/schema/check-constraints.ts`（从 live DB 重新导出）
+  4. 更新 i18n `status` 翻译（如果是状态枚举变更）
+- `validate-status.ts` 会交叉验证 check-constraints.ts ↔ 后端代码，任何不一致都会报 error 阻止部署
 
 ### 迁移文件规范
 
 - Supabase 迁移：在 `supabase/migrations/` 目录下
 - 文件名格式: `NNN_description.sql`（NNN 为 3 位数字前缀）
+- **迁移文件是 DB schema 的完整历史记录**，禁止跳过迁移直接操作 DB
 
 ## 技术栈
 
@@ -108,13 +125,16 @@ supabase/migrations/      # SQL 迁移文件（唯一 schema 权威）
 # 1. 类型检查
 npx tsc --noEmit
 
-# 2. 跑测试
+# 2. 全量一致性验证（4 个验证器）
+npm run validate
+
+# 3. 跑测试
 npx vitest run
 
-# 3. 构建前端
+# 4. 构建前端
 cd frontend && npm run build && cd ..
 
-# 4. 部署 Worker（含前端静态资源）
+# 5. 部署 Worker（含前端静态资源）
 npx wrangler deploy
 
 # 5. 生产冒烟测试（用 curl 验证关键 API）
