@@ -701,14 +701,15 @@ const App: React.FC = () => {
                 element={
                   <Authenticated key="protected" fallback={<Navigate to="/login" replace />}>
                     <AppLayout>
-                      <Outlet />
+                      <Suspense fallback={PAGE_SPINNER}>
+                        <Outlet />
+                      </Suspense>
                     </AppLayout>
                   </Authenticated>
                 }
               >
                 <Route index element={<Navigate to="/procurement/purchase-orders" replace />} />
 
-                <Route element={<Suspense fallback={PAGE_SPINNER}><Outlet /></Suspense>}>
                   {/* Procurement */}
                   <Route path="/procurement/purchase-orders" element={<PurchaseOrderList />} />
                   <Route path="/procurement/purchase-orders/create" element={<PurchaseOrderCreate />} />
@@ -914,7 +915,6 @@ const App: React.FC = () => {
                   <Route path="/system/approval-rules/:id/edit" element={<ApprovalRuleEdit />} />
                   <Route path="/system/approval-records" element={<ApprovalRecordList />} />
                   <Route path="/system/approval-records/:id" element={<ApprovalRecordShow />} />
-                </Route>
 
                 {/* Catch-all */}
                 <Route path="*" element={<ErrorComponent />} />

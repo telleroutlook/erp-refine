@@ -14,6 +14,7 @@ i18n
     },
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
+    react: { useSuspense: false },
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],

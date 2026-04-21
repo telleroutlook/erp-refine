@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
-import { ThemedLayoutV2 } from '@refinedev/antd';
-import { Button, Tooltip, Spin, theme } from 'antd';
+import { Layout, Button, Tooltip, Spin, theme } from 'antd';
 import { RobotOutlined, RightOutlined } from '@ant-design/icons';
+import { ThemedLayoutContextProvider } from '@refinedev/antd';
 import { Sider } from './Sider';
 import { Header } from './Header';
 
@@ -81,9 +81,19 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       {/* Main content area */}
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', transition }}>
-        <ThemedLayoutV2 Header={Header} Sider={Sider}>
-          {children}
-        </ThemedLayoutV2>
+        <ThemedLayoutContextProvider>
+          <Layout style={{ minHeight: '100vh' }} hasSider>
+            <Sider />
+            <Layout>
+              <Header />
+              <Layout.Content>
+                <div style={{ minHeight: 360, padding: 24 }}>
+                  {children}
+                </div>
+              </Layout.Content>
+            </Layout>
+          </Layout>
+        </ThemedLayoutContextProvider>
       </div>
 
       {/* Resize handle */}
