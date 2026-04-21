@@ -113,7 +113,10 @@ export const dataProvider: DataProvider = {
       headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Delete failed');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error((err as any).message ?? 'Delete failed');
+    }
     const json = await response.json();
     return { data: json.data };
   },

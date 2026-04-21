@@ -28,7 +28,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
         if (error) throw new Error(error.message);
 
         const result = (data ?? []).map((r: any) => ({ ...r }));
-        return lowStockOnly ? result.filter((r: any) => r.available_quantity <= 0) : result;
+        return lowStockOnly ? result.filter((r: any) => r.qty_available <= 0) : result;
       },
     }),
 

@@ -29,15 +29,17 @@ async function loadRecentHistory(env: Env, userId: string, sessionId: string, n 
 }
 
 /** Append a message to the Durable Object (fire-and-forget) */
-function appendMessage(env: Env, userId: string, sessionId: string, role: 'user' | 'assistant', content: string): void {
+function appendMessage(env: Env, ctx: ExecutionContext, userId: string, sessionId: string, role: 'user' | 'assistant', content: string): void {
   const doKey = `${userId}:${sessionId}`;
   const doId = env.CHAT_DO.idFromName(doKey);
   const stub = env.CHAT_DO.get(doId);
-  stub.fetch(new Request(`http://do/${doKey}/message`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role, content }),
-  })).catch(() => {});
+  ctx.waitUntil(
+    stub.fetch(new Request(`http://do/${doKey}/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, content }),
+    })).catch(() => {})
+  );
 }
 
 /** Build a context string from recent messages for injection into prompts */
@@ -74,7 +76,7 @@ chat.post('/', async (c) => {
   const historyContext = buildHistoryContext(historyMsgs, summary);
 
   // Persist user message (fire-and-forget)
-  appendMessage(c.env, user.userId, sessionId, 'user', body.message);
+  appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'user', body.message);
 
   const tools = buildToolSet({ db, organizationId: user.organizationId });
 
@@ -103,7 +105,7 @@ chat.post('/', async (c) => {
   if (response.executionResult && typeof response.executionResult === 'object') {
     const result = response.executionResult as { result?: unknown };
     if (result.result) {
-      appendMessage(c.env, user.userId, sessionId, 'assistant', typeof result.result === 'string' ? result.result : JSON.stringify(result.result));
+      appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'assistant', typeof result.result === 'string' ? result.result : JSON.stringify(result.result));
     }
   }
 
@@ -133,7 +135,7 @@ chat.post('/stream', async (c) => {
   ].filter(Boolean).join('\n\n');
 
   // Persist user message
-  appendMessage(c.env, user.userId, sessionId, 'user', body.message);
+  appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'user', body.message);
 
   const { fullStream } = streamText({
     model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
@@ -179,10 +181,10 @@ chat.post('/stream', async (c) => {
 
         // Persist assistant reply after stream completes
         if (assistantReply) {
-          appendMessage(c.env, user.userId, sessionId, 'assistant', assistantReply);
+          appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'assistant', assistantReply);
         }
       } catch (err) {
-        enqueue('error', { type: 'error', message: err instanceof Error ? err.message : String(err) });
+        enqueue('error', { type: 'error', message: 'An error occurred processing your request' });
       } finally {
         controller.close();
       }

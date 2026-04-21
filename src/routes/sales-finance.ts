@@ -135,13 +135,16 @@ salesFinance.delete('/sales-invoices/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('sales_invoices')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('SalesInvoice', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -264,13 +267,16 @@ salesFinance.delete('/sales-returns/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('sales_returns')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('SalesReturn', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -426,11 +432,12 @@ salesFinance.post('/customer-receipts', async (c) => {
     const invoice = invoiceResult.data;
 
     if (invoice && totalPaid >= (invoice.total_amount ?? 0)) {
-      await db
+      const { error: paidErr } = await db
         .from('sales_invoices')
         .update({ status: 'paid' })
         .eq('id', receipt.reference_id)
         .eq('organization_id', user.organizationId);
+      if (paidErr) throw ApiError.database(paidErr.message, requestId);
     }
   }
 
@@ -477,13 +484,16 @@ salesFinance.delete('/customer-receipts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('customer_receipts')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('CustomerReceipt', id, requestId);
   return c.json({ data: { success: true } });
 });
 

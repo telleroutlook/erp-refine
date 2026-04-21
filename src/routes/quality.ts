@@ -111,13 +111,16 @@ quality.delete('/quality-standards/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('quality_standards')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('QualityStandard', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -213,13 +216,16 @@ quality.delete('/quality-inspections/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('quality_inspections')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('QualityInspection', id, requestId);
   return c.json({ data: { success: true } });
 });
 

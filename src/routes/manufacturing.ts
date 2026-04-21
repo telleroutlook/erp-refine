@@ -105,13 +105,16 @@ manufacturing.delete('/bom-headers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('bom_headers')
     .delete()
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('BomHeader', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -248,13 +251,16 @@ manufacturing.delete('/work-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('work_orders')
     .delete()
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('WorkOrder', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -322,11 +328,12 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
 
   // 3. Update work order status to 'in_progress' if not already
   if (wo.status !== 'in_progress') {
-    await db
+    const { error: statusErr } = await db
       .from('work_orders')
       .update({ status: 'in_progress' })
       .eq('id', wo.id)
       .eq('organization_id', user.organizationId);
+    if (statusErr) throw ApiError.database(statusErr.message, requestId);
   }
 
   return c.json({ data: { success: true, issued_material_ids: issuedMaterials } });
@@ -434,10 +441,11 @@ manufacturing.post('/work-order-productions', async (c) => {
 
   // Atomically increment completed_quantity to avoid TOCTOU race
   if (data.work_order_id) {
-    await db.rpc('increment_completed_qty', {
+    const { error: rpcErr } = await db.rpc('increment_completed_qty', {
       p_work_order_id: data.work_order_id,
       p_delta: data.qualified_quantity ?? 0,
     });
+    if (rpcErr) throw ApiError.database(rpcErr.message, requestId);
   }
 
   return c.json({ data }, 201);

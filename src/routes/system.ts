@@ -2,6 +2,7 @@
 // System REST API — Document Attachments, Notifications
 
 import { Hono } from 'hono';
+import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
@@ -16,6 +17,15 @@ system.use('*', authMiddleware());
 // Note: file_path is an R2 object key; upload via separate R2 presigned URL API
 // ────────────────────────────────────────────────────────────────────────────
 
+const documentAttachmentCreateSchema = z.object({
+  entity_type: z.string().min(1).max(100),
+  entity_id: z.string().uuid(),
+  file_name: z.string().min(1).max(500),
+  file_path: z.string().min(1).max(1000),
+  file_size: z.number().int().nonnegative().optional(),
+  mime_type: z.string().max(200).optional(),
+});
+
 const documentAttachmentsConfig: CrudConfig = {
   table: 'document_attachments',
   path: '/document-attachments',
@@ -26,6 +36,7 @@ const documentAttachmentsConfig: CrudConfig = {
   defaultSort: 'created_at',
   softDelete: false,
   orgScoped: true,
+  createSchema: documentAttachmentCreateSchema,
 };
 system.route('', buildCrudRoutes(documentAttachmentsConfig));
 

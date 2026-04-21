@@ -34,8 +34,13 @@ schema.get('/:id', async (c) => {
 /** POST /api/schema/generate — AI generates a schema draft */
 schema.post('/generate', async (c) => {
   const user = c.get('user');
+  if (user.role !== 'admin') return c.json({ error: 'Admin role required' }, 403);
+
   const body = await c.req.json<{ spec: unknown }>();
   if (!body.spec) return c.json({ error: 'spec required' }, 400);
+
+  const specStr = JSON.stringify(body.spec);
+  if (specStr.length > 50_000) return c.json({ error: 'spec too large (max 50KB)' }, 400);
 
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const registry = new SchemaRegistry(db, user.organizationId);

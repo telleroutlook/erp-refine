@@ -101,13 +101,16 @@ assets.delete('/fixed-assets/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('fixed_assets')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('FixedAsset', id, requestId);
   return c.json({ data: { success: true } });
 });
 

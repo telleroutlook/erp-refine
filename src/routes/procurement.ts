@@ -125,13 +125,16 @@ procurement.delete('/purchase-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('purchase_orders')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('PurchaseOrder', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -143,10 +146,10 @@ const poItemsConfig: CrudConfig = {
   table: 'purchase_order_items',
   path: '/purchase-order-items',
   resourceName: 'PurchaseOrderItem',
-  listSelect: 'id, line_number, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, quantity, unit_price',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, quantity, unit_price',
+  defaultSort: 'line_no',
   softDelete: false,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' },
@@ -278,13 +281,16 @@ procurement.delete('/purchase-requisitions/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('purchase_requisitions')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('PurchaseRequisition', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -410,13 +416,16 @@ procurement.delete('/rfq-headers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('rfq_headers')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('RfqHeader', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -536,13 +545,16 @@ procurement.delete('/supplier-quotations/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('supplier_quotations')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('SupplierQuotation', id, requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -554,10 +566,10 @@ const prLinesConfig: CrudConfig = {
   table: 'purchase_requisition_lines',
   path: '/purchase-requisition-lines',
   resourceName: 'PurchaseRequisitionLine',
-  listSelect: 'id, line_number, quantity, estimated_unit_price, notes, product:products(id,name,code)',
+  listSelect: 'id, line_no, quantity, unit_price, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_number, quantity',
-  defaultSort: 'line_number',
+  createReturnSelect: 'id, line_no, quantity',
+  defaultSort: 'line_no',
   softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_requisition_id', parentTable: 'purchase_requisitions' },

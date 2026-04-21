@@ -225,7 +225,7 @@ finance.post('/vouchers/:id/post', async (c) => {
   if (fetchError || !voucher) throw ApiError.notFound('Voucher', id, requestId);
 
   // 2. Validate status
-  if (voucher.status !== 'draft' && voucher.status !== 'reviewed') {
+  if (voucher.status !== 'draft') {
     throw ApiError.invalidState('Voucher', voucher.status, 'post', requestId);
   }
 
@@ -268,7 +268,7 @@ finance.get('/budgets', async (c) => {
   const { data, count, error } = await db
     .from('budgets')
     .select(
-      'id, budget_name, name, budget_year, total_amount, currency, status',
+      'id, budget_name, budget_year, total_amount, currency, status',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -361,13 +361,16 @@ finance.delete('/budgets/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { error } = await db
+  const { data, error } = await db
     .from('budgets')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .select('id')
+    .maybeSingle();
 
   if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('Budget', id, requestId);
   return c.json({ data: { success: true } });
 });
 
