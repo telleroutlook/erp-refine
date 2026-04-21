@@ -29,18 +29,16 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
     list_quality_standards: tool({
       description: 'List quality standards',
       inputSchema: z.object({
-        productId: z.string().uuid().optional(),
         status: z.enum(['active','inactive']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
-      execute: async ({ productId, status, limit }) => {
+      execute: async ({ status, limit }) => {
         let query = db
           .from('quality_standards')
-          .select('id, standard_code, standard_name, is_active, product:products(id,name,code)')
+          .select('id, standard_code, standard_name, description, is_active')
           .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
-        if (productId) query = query.eq('product_id', productId);
         if (status === 'active') query = query.eq('is_active', true);
         else if (status === 'inactive') query = query.eq('is_active', false);
 
