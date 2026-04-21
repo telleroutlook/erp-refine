@@ -105,7 +105,7 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
   const body = await c.req.json();
 
   // status is intentionally excluded — invoice status must change through workflow endpoints
-  const PERMITTED = new Set(['notes', 'due_date', 'tax_amount', 'discount_amount']);
+  const PERMITTED = new Set(['notes', 'due_date', 'tax_amount']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -461,6 +461,7 @@ salesFinance.put('/customer-receipts/:id', async (c) => {
     .update(updateData)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 

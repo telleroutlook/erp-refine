@@ -23,12 +23,12 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
 
         if (productId) query = query.eq('product_id', productId);
         if (warehouseId) query = query.eq('warehouse_id', warehouseId);
+        if (lowStockOnly) query = query.lte('available_quantity', 0);
 
-        const { data, error } = await query.order('quantity', { ascending: true }).limit(limit);
+        const { data, error } = await query.order('available_quantity', { ascending: true }).limit(limit);
         if (error) throw new Error(error.message);
 
-        const result = (data ?? []).map((r: any) => ({ ...r }));
-        return lowStockOnly ? result.filter((r: any) => r.available_quantity <= 0) : result;
+        return (data ?? []).map((r: any) => ({ ...r }));
       },
     }),
 

@@ -96,7 +96,7 @@ export async function executeWithRecovery(
       logger.warn('recovery.attempt', { attempt, error: String(err).slice(0, 200) });
 
       // Strategy 1: token overflow — compress system prompt
-      if (isTokenOverflow(err) && attempt === 0) {
+      if (isTokenOverflow(err) && attempt <= 1) {
         recoverySteps.push('token-overflow');
         current = {
           ...current,

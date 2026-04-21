@@ -5903,6 +5903,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           notes: string | null
+          organization_id: string
           quotation_number: string | null
           rfq_id: string
           status: string
@@ -5916,6 +5917,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           notes?: string | null
+          organization_id: string
           quotation_number?: string | null
           rfq_id: string
           status?: string
@@ -5929,6 +5931,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string
           quotation_number?: string | null
           rfq_id?: string
           status?: string

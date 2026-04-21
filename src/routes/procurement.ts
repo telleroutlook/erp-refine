@@ -144,7 +144,7 @@ const poItemsConfig: CrudConfig = {
   detailSelect: '*, product:products(id,name,code)',
   createReturnSelect: 'id, line_number, quantity, unit_price',
   defaultSort: 'line_number',
-  softDelete: false,
+  softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' },
 };
@@ -458,6 +458,13 @@ procurement.post('/supplier-quotations', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
 
+  // Auto-generate quotation_number via RPC
+  const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'supplier_quotation',
+  });
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate quotation number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
+
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
@@ -471,6 +478,7 @@ procurement.post('/supplier-quotations', async (c) => {
     {
       header: {
         ...headerFields,
+        quotation_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
       },

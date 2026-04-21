@@ -18,22 +18,20 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         if (fromDate && !dateRe.test(fromDate)) throw new Error('Invalid fromDate format, expected YYYY-MM-DD');
         if (toDate && !dateRe.test(toDate)) throw new Error('Invalid toDate format, expected YYYY-MM-DD');
 
-        let query = db
-          .from('purchase_orders')
-          .select('status, total_amount')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null);
-        if (fromDate) query = query.gte('order_date', fromDate);
-        if (toDate) query = query.lte('order_date', toDate);
-        const { data: rows, error } = await query.limit(5000);
+        const { data, error } = await db.rpc('rpc_procurement_summary', {
+          p_org_id: organizationId,
+          p_from_date: fromDate ?? null,
+          p_to_date: toDate ?? null,
+        });
         if (error) throw new Error(error.message);
-        const summary = (rows ?? []).reduce((acc: Record<string, { count: number; total: number }>, row: any) => {
-          if (!acc[row.status]) acc[row.status] = { count: 0, total: 0 };
-          acc[row.status]!.count++;
-          acc[row.status]!.total += Number(row.total_amount);
-          return acc;
-        }, {});
-        return { byStatus: summary, totalOrders: (rows ?? []).length, truncated: (rows ?? []).length >= 5000 };
+        const rows = data ?? [];
+        const byStatus: Record<string, { count: number; total: number }> = {};
+        let totalOrders = 0;
+        for (const r of rows) {
+          byStatus[r.status] = { count: Number(r.order_count), total: Number(r.total_amount) };
+          totalOrders += Number(r.order_count);
+        }
+        return { byStatus, totalOrders };
       },
     }),
 
@@ -49,69 +47,57 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         if (fromDate && !dateRe.test(fromDate)) throw new Error('Invalid fromDate format, expected YYYY-MM-DD');
         if (toDate && !dateRe.test(toDate)) throw new Error('Invalid toDate format, expected YYYY-MM-DD');
 
-        let query = db
-          .from('sales_orders')
-          .select('status, total_amount, currency, order_date, customer:customers(id,name)')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null);
-
-        if (fromDate) query = query.gte('order_date', fromDate);
-        if (toDate) query = query.lte('order_date', toDate);
-
-        const { data, error } = await query.limit(5000);
-        if (error) throw new Error(error.message);
-
-        const active = (data ?? []).filter((r: any) => !['cancelled', 'draft'].includes(r.status));
-        const revenue = active.reduce((sum: number, r: any) => sum + Number(r.total_amount), 0);
-
-        if (!groupBy || groupBy === 'month') {
-          const byMonth: Record<string, { count: number; total: number }> = {};
-          for (const r of active) {
-            const month = (r.order_date as string).slice(0, 7);
-            if (!byMonth[month]) byMonth[month] = { count: 0, total: 0 };
-            byMonth[month]!.count++;
-            byMonth[month]!.total += Number(r.total_amount);
-          }
-          return { totalRevenue: revenue, orderCount: active.length, groupBy: 'month', breakdown: byMonth };
-        }
-
         if (groupBy === 'customer') {
-          const byCustomer: Record<string, { name: string; count: number; total: number }> = {};
-          for (const r of active) {
-            const id: string = (r.customer as any)?.id ?? 'unknown';
-            const name: string = (r.customer as any)?.name ?? 'Unknown';
-            if (!byCustomer[id]) byCustomer[id] = { name, count: 0, total: 0 };
-            byCustomer[id]!.count++;
-            byCustomer[id]!.total += Number(r.total_amount);
+          const { data, error } = await db.rpc('rpc_sales_summary_by_customer', {
+            p_org_id: organizationId,
+            p_from_date: fromDate ?? null,
+            p_to_date: toDate ?? null,
+          });
+          if (error) throw new Error(error.message);
+          const rows = data ?? [];
+          const breakdown: Record<string, { name: string; count: number; total: number }> = {};
+          let revenue = 0, orderCount = 0;
+          for (const r of rows) {
+            breakdown[r.customer_id] = { name: r.customer_name, count: Number(r.order_count), total: Number(r.total_amount) };
+            revenue += Number(r.total_amount);
+            orderCount += Number(r.order_count);
           }
-          return { totalRevenue: revenue, orderCount: active.length, groupBy: 'customer', breakdown: byCustomer };
+          return { totalRevenue: revenue, orderCount, groupBy: 'customer', breakdown };
         }
 
         if (groupBy === 'product') {
-          let itemQuery = db
-            .from('sales_order_items')
-            .select('quantity, unit_price, product:products(id,name,code), sales_order:sales_orders!inner(status, organization_id, order_date)')
-            .eq('sales_order.organization_id', organizationId)
-            .not('sales_order.status', 'in', '("cancelled","draft")');
-          if (fromDate) itemQuery = itemQuery.gte('sales_order.order_date', fromDate);
-          if (toDate) itemQuery = itemQuery.lte('sales_order.order_date', toDate);
-
-          const { data: itemData, error: itemError } = await itemQuery.limit(5000);
-          if (itemError) throw new Error(itemError.message);
-
-          const byProduct: Record<string, { name: string; code: string; qty: number; total: number }> = {};
-          for (const i of (itemData ?? [])) {
-            const id: string = (i.product as any)?.id ?? 'unknown';
-            const name: string = (i.product as any)?.name ?? 'Unknown';
-            const code: string = (i.product as any)?.code ?? '';
-            if (!byProduct[id]) byProduct[id] = { name, code, qty: 0, total: 0 };
-            byProduct[id]!.qty += Number(i.quantity);
-            byProduct[id]!.total += Number(i.quantity) * Number(i.unit_price);
+          const { data, error } = await db.rpc('rpc_sales_summary_by_product', {
+            p_org_id: organizationId,
+            p_from_date: fromDate ?? null,
+            p_to_date: toDate ?? null,
+          });
+          if (error) throw new Error(error.message);
+          const rows = data ?? [];
+          const breakdown: Record<string, { name: string; code: string; qty: number; total: number }> = {};
+          let revenue = 0;
+          for (const r of rows) {
+            breakdown[r.product_id] = { name: r.product_name, code: r.product_code, qty: Number(r.total_qty), total: Number(r.total_amount) };
+            revenue += Number(r.total_amount);
           }
-          return { totalRevenue: revenue, orderCount: active.length, groupBy: 'product', breakdown: byProduct };
+          return { totalRevenue: revenue, orderCount: rows.length, groupBy: 'product', breakdown };
         }
 
-        return { totalRevenue: revenue, orderCount: active.length };
+        // Default: by month
+        const { data, error } = await db.rpc('rpc_sales_summary_by_month', {
+          p_org_id: organizationId,
+          p_from_date: fromDate ?? null,
+          p_to_date: toDate ?? null,
+        });
+        if (error) throw new Error(error.message);
+        const rows = data ?? [];
+        const breakdown: Record<string, { count: number; total: number }> = {};
+        let revenue = 0, orderCount = 0;
+        for (const r of rows) {
+          breakdown[r.month] = { count: Number(r.order_count), total: Number(r.total_amount) };
+          revenue += Number(r.total_amount);
+          orderCount += Number(r.order_count);
+        }
+        return { totalRevenue: revenue, orderCount, groupBy: 'month', breakdown };
       },
     }),
 
@@ -185,32 +171,26 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         if (fromDate && !dateRe.test(fromDate)) throw new Error('Invalid fromDate format');
         if (toDate && !dateRe.test(toDate)) throw new Error('Invalid toDate format');
 
-        let query = db
-          .from('work_orders')
-          .select('status, planned_quantity, completed_quantity')
-          .eq('organization_id', organizationId);
-
-        if (fromDate) query = query.gte('start_date', fromDate);
-        if (toDate) query = query.lte('start_date', toDate);
-
-        const { data, error } = await query.limit(5000);
+        const { data, error } = await db.rpc('rpc_manufacturing_summary', {
+          p_org_id: organizationId,
+          p_from_date: fromDate ?? null,
+          p_to_date: toDate ?? null,
+        });
         if (error) throw new Error(error.message);
 
         const rows = data ?? [];
-        const byStatus = rows.reduce((acc: Record<string, { count: number; planned: number; completed: number }>, r: any) => {
-          if (!acc[r.status]) acc[r.status] = { count: 0, planned: 0, completed: 0 };
-          acc[r.status]!.count++;
-          acc[r.status]!.planned += Number(r.planned_quantity ?? 0);
-          acc[r.status]!.completed += Number(r.completed_quantity ?? 0);
-          return acc;
-        }, {});
-
-        const totalPlanned = rows.reduce((s: number, r: any) => s + Number(r.planned_quantity ?? 0), 0);
-        const totalCompleted = rows.reduce((s: number, r: any) => s + Number(r.completed_quantity ?? 0), 0);
+        const byStatus: Record<string, { count: number; planned: number; completed: number }> = {};
+        let totalOrders = 0, totalPlanned = 0, totalCompleted = 0;
+        for (const r of rows) {
+          byStatus[r.status] = { count: Number(r.order_count), planned: Number(r.planned_qty), completed: Number(r.completed_qty) };
+          totalOrders += Number(r.order_count);
+          totalPlanned += Number(r.planned_qty);
+          totalCompleted += Number(r.completed_qty);
+        }
         const completionRate = totalPlanned > 0 ? Math.round((totalCompleted / totalPlanned) * 100) : 0;
 
         return {
-          totalOrders: rows.length,
+          totalOrders,
           totalPlannedQty: totalPlanned,
           totalCompletedQty: totalCompleted,
           completionRate: `${completionRate}%`,
@@ -223,19 +203,15 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
       description: 'Get inventory valuation summary',
       inputSchema: z.object({ warehouseId: z.string().uuid().optional() }),
       execute: async ({ warehouseId }) => {
-        let query = db
-          .from('stock_records')
-          .select('quantity, product:products(id,name,code)')
-          .eq('organization_id', organizationId);
-
-        if (warehouseId) query = query.eq('warehouse_id', warehouseId);
-
-        const { data, error } = await query.limit(5000);
+        const { data, error } = await db.rpc('rpc_inventory_valuation', {
+          p_org_id: organizationId,
+          p_warehouse_id: warehouseId ?? null,
+        });
         if (error) throw new Error(error.message);
-
+        const row = (data ?? [])[0];
         return {
-          totalSkus: (data ?? []).length,
-          totalQty: (data ?? []).reduce((sum: number, r: any) => sum + Number(r.quantity ?? 0), 0),
+          totalSkus: Number(row?.total_skus ?? 0),
+          totalQty: Number(row?.total_qty ?? 0),
         };
       },
     }),

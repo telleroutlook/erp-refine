@@ -369,26 +369,21 @@ export async function importEntity(
   if (needsSequence && !dryRun) {
     const countNeeding = records.filter(r => !r[sequenceField!]).length;
     if (countNeeding > 0) {
-      const seqPromises = [];
-      for (let i = 0; i < countNeeding; i++) {
-        seqPromises.push(ctx.db.rpc('get_next_sequence', {
-          p_organization_id: ctx.organizationId,
-          p_sequence_name: sequenceName,
-        }));
+      const { data: seqData, error: seqError } = await ctx.db.rpc('get_next_sequence_batch', {
+        p_organization_id: ctx.organizationId,
+        p_sequence_name: sequenceName,
+        p_count: countNeeding,
+      });
+      if (seqError || !seqData) {
+        return {
+          entity,
+          imported: 0,
+          skipped: records.length,
+          errors: [{ row: 0, field: sequenceField, message: seqError?.message ?? 'Batch sequence generation failed' }],
+          dryRun,
+        };
       }
-      const seqResults = await Promise.all(seqPromises);
-      for (const { data: seqData, error: seqError } of seqResults) {
-        if (seqError || !seqData) {
-          return {
-            entity,
-            imported: 0,
-            skipped: records.length,
-            errors: [{ row: 0, field: sequenceField, message: seqError?.message ?? 'Sequence generation failed' }],
-            dryRun,
-          };
-        }
-        sequenceNumbers.push(seqData as string);
-      }
+      sequenceNumbers = seqData as string[];
     }
   }
   let seqIdx = 0;

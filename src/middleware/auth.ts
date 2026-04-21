@@ -72,13 +72,16 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
         if (!supabaseUrl) {
           return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
         }
-        const key = await getVerifyKey(supabaseUrl, header.kid ?? '');
+        if (!header.kid) {
+          return c.json({ error: 'Invalid or expired token' }, 401);
+        }
+        const key = await getVerifyKey(supabaseUrl, header.kid);
         result = await jwtVerify(token, key, {
           algorithms: ['ES256'],
           issuer: new URL('/auth/v1', c.env.SUPABASE_URL).toString(),
         });
       } else {
-        return c.json({ error: `Unsupported JWT algorithm: ${header.alg}` }, 401);
+        return c.json({ error: 'Unsupported JWT algorithm' }, 401);
       }
     } catch {
       return c.json({ error: 'Invalid or expired token' }, 401);

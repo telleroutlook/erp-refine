@@ -165,6 +165,16 @@ finance.put('/vouchers/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  // Posted vouchers cannot be updated — must be reversed first
+  const { data: existing, error: fetchErr } = await db
+    .from('vouchers')
+    .select('id, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .single();
+  if (fetchErr || !existing) throw ApiError.notFound('Voucher', id, requestId);
+  if (existing.status === 'posted') throw ApiError.invalidState('Voucher', 'posted', 'update', requestId);
+
   const allowed: Record<string, unknown> = {};
   const permitted = ['voucher_date', 'voucher_type', 'notes',
     'approved_by', 'approved_at'];

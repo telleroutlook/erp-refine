@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, useSelect, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
 
@@ -8,8 +7,11 @@ const STATUS_OPTIONS = PO_STATUS_OPTIONS.slice(0, 3);
 
 export const PurchaseOrderCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'purchase-orders' });
-  const { data: suppliersData } = useList({ resource: 'suppliers', pagination: { pageSize: 500 } });
-  const supplierOptions = (suppliersData?.data ?? []).map((s: any) => ({ label: `${s.code} - ${s.name}`, value: s.id }));
+  const { selectProps: supplierSelectProps } = useSelect({
+    resource: 'suppliers',
+    optionLabel: 'name',
+    optionValue: 'id',
+  });
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建采购订单">
@@ -17,7 +19,7 @@ export const PurchaseOrderCreate: React.FC = () => {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="供应商" name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
-              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder="选择供应商" />
+              <Select {...supplierSelectProps} showSearch placeholder="选择供应商" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -52,11 +54,6 @@ export const PurchaseOrderCreate: React.FC = () => {
           <Col span={12}>
             <Form.Item label="付款条件（天）" name="payment_terms">
               <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="运输方式" name="shipping_method">
-              <Input />
             </Form.Item>
           </Col>
           <Col span={24}>

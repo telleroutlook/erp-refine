@@ -199,7 +199,7 @@ manufacturing.post('/work-orders', async (c) => {
     const materials = bomItems.map((item: any) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
-      required_quantity: item.quantity * (body.planned_quantity ?? 1),
+      required_quantity: Math.ceil(item.quantity * (body.planned_quantity ?? 1) / (1 - (item.scrap_rate || 0))),
       issued_quantity: 0,
       warehouse_id: body.warehouse_id,
     }));

@@ -130,7 +130,7 @@ export class SchemaRegistry {
 
     if (status) query = query.eq('status', status);
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query.order('created_at', { ascending: false }).limit(200);
     if (error) throw new Error(error.message);
     return (data ?? []) as SchemaRecord[];
   }

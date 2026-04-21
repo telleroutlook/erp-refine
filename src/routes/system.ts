@@ -211,24 +211,6 @@ const messageFeedbackConfig: CrudConfig = {
 system.route('', buildCrudRoutes(messageFeedbackConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
-// Approval Rules — CRUD (also available via /api/admin for admin-only)
-// ────────────────────────────────────────────────────────────────────────────
-
-const approvalRulesConfig: CrudConfig = {
-  table: 'approval_rules',
-  path: '/approval-rules',
-  resourceName: 'ApprovalRule',
-  listSelect:
-    'id, rule_name, document_type, min_amount, max_amount, required_roles, sequence_order, is_active',
-  detailSelect: '*',
-  createReturnSelect: 'id, rule_name, document_type, sequence_order',
-  defaultSort: 'document_type',
-  softDelete: true,
-  orgScoped: true,
-};
-system.route('', buildCrudRoutes(approvalRulesConfig));
-
-// ────────────────────────────────────────────────────────────────────────────
 // Approval Records — read-only (list + show)
 // ────────────────────────────────────────────────────────────────────────────
 

@@ -48,6 +48,12 @@ export class ERPChatAgent {
       await this.state.storage.put('messages', messages);
 
       // Trigger async summarization when history is long enough
+      const summarizingAt = await this.state.storage.get<number>('summarizingAt');
+      const summarizingStale = summarizingAt && (Date.now() - summarizingAt) > 5 * 60_000;
+      if (summarizingStale) {
+        await this.state.storage.delete('summarizing');
+        await this.state.storage.delete('summarizingAt');
+      }
       const shouldSummarize = messages.length >= SUMMARY_THRESHOLD
         && !await this.state.storage.get<boolean>('summarizing');
 
@@ -66,6 +72,7 @@ export class ERPChatAgent {
       const { summary } = await request.json<{ summary: string }>();
       await this.state.storage.put('summary', summary);
       await this.state.storage.delete('summarizing');
+      await this.state.storage.delete('summarizingAt');
       return Response.json({ success: true });
     }
 
@@ -82,6 +89,7 @@ export class ERPChatAgent {
   private async triggerSummarization(userId: string, sessionId: string, messages: Message[]): Promise<void> {
     try {
       await this.state.storage.put('summarizing', true);
+      await this.state.storage.put('summarizingAt', Date.now());
       await this.env.EVENT_BUS.send({
         type: 'summarize_session',
         userId,
@@ -92,6 +100,7 @@ export class ERPChatAgent {
       } as never);
     } catch {
       await this.state.storage.delete('summarizing');
+      await this.state.storage.delete('summarizingAt');
     }
   }
 }
