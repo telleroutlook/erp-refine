@@ -304,6 +304,34 @@ for (const { file, line, interfaceName, field } of typeRefs) {
   }
 }
 
+// Check 4: Spurious deleted_at filters on tables that have no deleted_at column
+const tablesWithDeletedAt = new Set<string>();
+for (const [tbl, cols] of tableColumns) {
+  if (cols.has('deleted_at')) tablesWithDeletedAt.add(tbl);
+}
+
+for (const dir of backendDirs) {
+  let files: string[];
+  try { files = (await import('node:fs')).readdirSync(dir).filter((f: string) => f.endsWith('.ts')); }
+  catch { continue; }
+  for (const file of files) {
+    const fullPath = join(dir, file);
+    const content = readFileSync(fullPath, 'utf-8');
+    const lines = content.split('\n');
+    const relPath = relative(ROOT, fullPath);
+    let currentTable: string | null = null;
+    for (let i = 0; i < lines.length; i++) {
+      const fromMatch = lines[i]!.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
+      if (fromMatch) currentTable = fromMatch[1]!;
+      if ((lines[i]!.includes(".is('deleted_at'") || lines[i]!.includes('.is("deleted_at"')) && currentTable) {
+        if (tableColumns.has(currentTable) && !tablesWithDeletedAt.has(currentTable)) {
+          violations.push({ file: relPath, line: i + 1, table: currentTable, column: 'deleted_at', context: 'spurious-filter' });
+        }
+      }
+    }
+  }
+}
+
 // ─── Report ─────────────────────────────────────────────────────────────────
 
 if (violations.length > 0) {

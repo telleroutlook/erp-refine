@@ -24,7 +24,6 @@ manufacturing.get('/bom-headers', async (c) => {
     .from('bom_headers')
     .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -41,7 +40,6 @@ manufacturing.get('/bom-headers/:id', async (c) => {
     .select('*, product:products(id,name,code), items:bom_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('BOM', id, requestId);
@@ -117,7 +115,6 @@ manufacturing.get('/work-orders', async (c) => {
     .from('work_orders')
     .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -134,7 +131,6 @@ manufacturing.get('/work-orders/:id', async (c) => {
     .select('*, product:products(id,name,code), bom:bom_headers(id,bom_number), materials:work_order_materials(*, product:products(id,name,code)), productions:work_order_productions(*)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Work Order', id, requestId);

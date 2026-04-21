@@ -61,7 +61,6 @@ finance.get('/vouchers', async (c) => {
     .from('vouchers')
     .select('id, voucher_number, voucher_date, voucher_type, notes, total_debit, total_credit, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 

@@ -54,7 +54,6 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
           .from('departments')
           .select('id, name, code, parent_id')
           .eq('organization_id', organizationId)
-          .is('deleted_at', null)
           .order('name');
         if (error) throw new Error(error.message);
         return data ?? [];
@@ -68,8 +67,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
         let query = db
           .from('employees')
           .select('id, employee_number, name, email, department:departments!department_id(id,name)')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null);
+          .eq('organization_id', organizationId);
 
         if (search) {
           const s = search.replace(/[%_,().]/g, '');

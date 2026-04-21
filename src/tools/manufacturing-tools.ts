@@ -17,8 +17,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         let query = db
           .from('work_orders')
           .select('id, work_order_number, status, start_date, planned_completion_date, planned_quantity, completed_quantity, product:products(id,name,code)')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null);
+          .eq('organization_id', organizationId);
 
         if (status) query = query.eq('status', status);
 
