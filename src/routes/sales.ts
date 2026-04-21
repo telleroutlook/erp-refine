@@ -342,4 +342,21 @@ sales.route('', buildCrudRoutes({
   parentOwnership: { parentFk: 'sales_shipment_id', parentTable: 'sales_shipments' },
 }));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Shipment Tracking Events — carrier tracking updates for shipments
+// ────────────────────────────────────────────────────────────────────────────
+
+const shipmentTrackingEventsConfig: CrudConfig = {
+  table: 'shipment_tracking_events',
+  path: '/shipment-tracking-events',
+  resourceName: 'ShipmentTrackingEvent',
+  listSelect: 'id, shipment_id, event_type, location, occurred_at, notes, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, shipment_id, event_type',
+  defaultSort: 'occurred_at',
+  softDelete: false,
+  orgScoped: true,
+};
+sales.route('', buildCrudRoutes(shipmentTrackingEventsConfig));
+
 export default sales;

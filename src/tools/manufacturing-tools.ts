@@ -116,5 +116,89 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         return data ?? [];
       },
     }),
+
+    create_work_order: tool({
+      description: 'Create a new work order from a BOM (requires D2 confirmation)',
+      inputSchema: z.object({
+        productId: z.string().uuid(),
+        bomHeaderId: z.string().uuid(),
+        plannedQuantity: z.number().positive(),
+        startDate: z.string().describe('ISO date string').optional(),
+        plannedCompletionDate: z.string().describe('ISO date string').optional(),
+        warehouseId: z.string().uuid().optional(),
+        notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe(
+          'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
+        ),
+      }),
+      execute: async ({ productId, bomHeaderId, plannedQuantity, startDate, plannedCompletionDate, warehouseId, notes, confirmed }) => {
+        const { data: bomItems, error: bomErr } = await db
+          .from('bom_items')
+          .select('product_id, quantity')
+          .eq('bom_header_id', bomHeaderId);
+        if (bomErr) throw new Error(bomErr.message);
+
+        const materials = (bomItems ?? []).map(bi => ({
+          productId: bi.product_id,
+          requiredQuantity: bi.quantity * plannedQuantity,
+        }));
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run preview — set confirmed=true to execute',
+            productId,
+            bomHeaderId,
+            plannedQuantity,
+            materialCount: materials.length,
+            materials: materials.slice(0, 10),
+          };
+        }
+
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'work_order',
+        });
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+
+        const { data: wo, error: woErr } = await db
+          .from('work_orders')
+          .insert({
+            organization_id: organizationId,
+            work_order_number: seqData,
+            product_id: productId,
+            bom_header_id: bomHeaderId,
+            planned_quantity: plannedQuantity,
+            completed_quantity: 0,
+            start_date: startDate ?? null,
+            planned_completion_date: plannedCompletionDate ?? null,
+            warehouse_id: warehouseId ?? null,
+            status: 'draft',
+            notes: notes ?? null,
+          })
+          .select('id, work_order_number')
+          .single();
+
+        if (woErr) throw new Error(woErr.message);
+
+        if (materials.length > 0) {
+          const matRows = materials.map(m => ({
+            work_order_id: wo.id,
+            product_id: m.productId,
+            required_quantity: m.requiredQuantity,
+            issued_quantity: 0,
+            status: 'pending',
+            warehouse_id: warehouseId ?? null,
+          }));
+          const { error: matErr } = await db.from('work_order_materials').insert(matRows);
+          if (matErr) {
+            await db.from('work_orders').delete().eq('id', wo.id);
+            throw new Error(matErr.message);
+          }
+        }
+
+        return { id: wo.id, workOrderNumber: wo.work_order_number, status: 'draft', plannedQuantity, materialCount: materials.length };
+      },
+    }),
   };
 }

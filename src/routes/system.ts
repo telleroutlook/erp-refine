@@ -231,4 +231,22 @@ const approvalRecordsConfig: CrudConfig = {
 };
 system.route('', buildCrudRoutes(approvalRecordsConfig));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Workflow Steps — individual steps within a workflow
+// ────────────────────────────────────────────────────────────────────────────
+
+const workflowStepsConfig: CrudConfig = {
+  table: 'workflow_steps',
+  path: '/workflow-steps',
+  resourceName: 'WorkflowStep',
+  listSelect: 'id, workflow_id, step_name, step_order, step_type, assignee_role, status, completed_by, completed_at, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, workflow_id, step_order',
+  defaultSort: 'step_order',
+  softDelete: false,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'workflow_id', parentTable: 'workflows' },
+};
+system.route('', buildCrudRoutes(workflowStepsConfig));
+
 export default system;

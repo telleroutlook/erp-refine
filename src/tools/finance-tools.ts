@@ -171,5 +171,86 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
         return data ?? [];
       },
     }),
+
+    create_voucher: tool({
+      description: 'Create an accounting voucher with debit/credit entries (requires D3 approval)',
+      inputSchema: z.object({
+        voucherType: z.string().describe('e.g. general, receipt, payment, transfer'),
+        voucherDate: z.string().describe('ISO date string'),
+        entries: z.array(z.object({
+          accountSubjectId: z.string().uuid(),
+          entryType: z.enum(['debit', 'credit']),
+          amount: z.number().positive(),
+          summary: z.string().optional(),
+        })).min(2),
+        notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe(
+          'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
+        ),
+      }),
+      execute: async ({ voucherType, voucherDate, entries, notes, confirmed }) => {
+        const totalDebit = entries.filter(e => e.entryType === 'debit').reduce((s, e) => s + e.amount, 0);
+        const totalCredit = entries.filter(e => e.entryType === 'credit').reduce((s, e) => s + e.amount, 0);
+
+        if (Math.abs(totalDebit - totalCredit) > 0.001) {
+          return {
+            error: true,
+            message: `Debit total (${totalDebit}) must equal credit total (${totalCredit}).`,
+          };
+        }
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run preview — set confirmed=true to execute',
+            voucherType,
+            voucherDate,
+            entryCount: entries.length,
+            totalDebit,
+            totalCredit,
+          };
+        }
+
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'voucher',
+        });
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+
+        const { data: voucher, error: vErr } = await db
+          .from('vouchers')
+          .insert({
+            organization_id: organizationId,
+            voucher_number: seqData,
+            voucher_type: voucherType,
+            voucher_date: voucherDate,
+            total_debit: totalDebit,
+            total_credit: totalCredit,
+            status: 'draft',
+            notes: notes ?? null,
+          })
+          .select('id, voucher_number')
+          .single();
+
+        if (vErr) throw new Error(vErr.message);
+
+        const entryRows = entries.map((e, idx) => ({
+          voucher_id: voucher.id,
+          sequence: idx + 1,
+          account_subject_id: e.accountSubjectId,
+          entry_type: e.entryType,
+          amount: e.amount,
+          summary: e.summary ?? null,
+        }));
+
+        const { error: entryErr } = await db.from('voucher_entries').insert(entryRows);
+        if (entryErr) {
+          await db.from('vouchers').delete().eq('id', voucher.id);
+          throw new Error(entryErr.message);
+        }
+
+        return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'draft', totalDebit, totalCredit };
+      },
+    }),
   };
 }

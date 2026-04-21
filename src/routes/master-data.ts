@@ -264,4 +264,58 @@ const carriersConfig: CrudConfig = {
 };
 masterData.route('', buildCrudRoutes(carriersConfig));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Organization Currencies — org-specific currency settings
+// ────────────────────────────────────────────────────────────────────────────
+
+const orgCurrenciesConfig: CrudConfig = {
+  table: 'organization_currencies',
+  path: '/organization-currencies',
+  resourceName: 'OrganizationCurrency',
+  listSelect: 'id, currency_code, is_default, organization_id, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, currency_code, is_default',
+  defaultSort: 'currency_code',
+  softDelete: false,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(orgCurrenciesConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Organization UoMs — org-specific unit of measure settings
+// ────────────────────────────────────────────────────────────────────────────
+
+const orgUomsConfig: CrudConfig = {
+  table: 'organization_uoms',
+  path: '/organization-uoms',
+  resourceName: 'OrganizationUoM',
+  listSelect: 'id, uom_id, is_default, organization_id, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, uom_id, is_default',
+  defaultSort: 'created_at',
+  softDelete: false,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(orgUomsConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Product Cost History — read-only historical cost tracking
+// ────────────────────────────────────────────────────────────────────────────
+
+const productCostHistoryConfig: CrudConfig = {
+  table: 'product_cost_history',
+  path: '/product-cost-history',
+  resourceName: 'ProductCostHistory',
+  listSelect: 'id, product_id, cost_method, unit_cost, total_value, total_quantity, effective_date, reference_type, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id',
+  defaultSort: 'effective_date',
+  softDelete: false,
+  orgScoped: true,
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+masterData.route('', buildCrudRoutes(productCostHistoryConfig));
+
 export default masterData;

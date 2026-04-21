@@ -83,6 +83,7 @@ export const TOOL_REGISTRY_META = [
   // procurement — ASN & reconciliation
   { name: 'list_advance_shipment_notices', domain: 'procurement', level: 0, cacheable: true },
   { name: 'list_reconciliation_statements', domain: 'procurement', level: 0, cacheable: true },
+  { name: 'create_purchase_requisition', domain: 'procurement', level: 2, cacheable: false },
   // sales
   { name: 'list_sales_orders', domain: 'sales', level: 0, cacheable: true },
   { name: 'get_sales_order', domain: 'sales', level: 0, cacheable: false },
@@ -100,6 +101,7 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_budgets', domain: 'finance', level: 0, cacheable: true },
   { name: 'list_payment_records', domain: 'finance', level: 0, cacheable: true },
   { name: 'list_approval_records', domain: 'finance', level: 0, cacheable: false },
+  { name: 'create_voucher', domain: 'finance', level: 3, cacheable: false },
   // master-data
   { name: 'list_products', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_currencies', domain: 'master-data', level: 0, cacheable: true },
@@ -119,6 +121,7 @@ export const TOOL_REGISTRY_META = [
   { name: 'get_quality_inspection', domain: 'quality', level: 0, cacheable: false },
   { name: 'list_quality_standards', domain: 'quality', level: 0, cacheable: true },
   { name: 'list_defect_codes', domain: 'quality', level: 0, cacheable: true },
+  { name: 'create_quality_inspection', domain: 'quality', level: 2, cacheable: false },
   // manufacturing
   { name: 'list_work_orders', domain: 'manufacturing', level: 0, cacheable: true },
   { name: 'get_work_order', domain: 'manufacturing', level: 0, cacheable: false },
@@ -126,6 +129,7 @@ export const TOOL_REGISTRY_META = [
   { name: 'get_bom', domain: 'manufacturing', level: 0, cacheable: false },
   { name: 'list_work_order_materials', domain: 'manufacturing', level: 0, cacheable: false },
   { name: 'list_work_order_productions', domain: 'manufacturing', level: 0, cacheable: false },
+  { name: 'create_work_order', domain: 'manufacturing', level: 2, cacheable: false },
   // contracts
   { name: 'list_contracts', domain: 'contracts', level: 0, cacheable: true },
   { name: 'get_contract', domain: 'contracts', level: 0, cacheable: false },

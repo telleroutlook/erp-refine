@@ -91,5 +91,80 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
         return data ?? [];
       },
     }),
+
+    create_quality_inspection: tool({
+      description: 'Create a new quality inspection with check items (requires D2 confirmation)',
+      inputSchema: z.object({
+        productId: z.string().uuid(),
+        referenceType: z.string().describe('e.g. purchase_receipt, work_order'),
+        referenceId: z.string().uuid(),
+        inspectorId: z.string().uuid().optional(),
+        inspectionDate: z.string().describe('ISO date string').optional(),
+        totalQuantity: z.number().positive(),
+        items: z.array(z.object({
+          checkItem: z.string(),
+          checkStandard: z.string().optional(),
+        })),
+        notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe(
+          'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
+        ),
+      }),
+      execute: async ({ productId, referenceType, referenceId, inspectorId, inspectionDate, totalQuantity, items, notes, confirmed }) => {
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run preview — set confirmed=true to execute',
+            productId,
+            referenceType,
+            referenceId,
+            totalQuantity,
+            checkItemCount: items.length,
+          };
+        }
+
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'quality_inspection',
+        });
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+
+        const { data: qi, error: qiErr } = await db
+          .from('quality_inspections')
+          .insert({
+            organization_id: organizationId,
+            inspection_number: seqData,
+            product_id: productId,
+            reference_type: referenceType,
+            reference_id: referenceId,
+            inspector_id: inspectorId ?? null,
+            inspection_date: inspectionDate ?? new Date().toISOString().slice(0, 10),
+            total_quantity: totalQuantity,
+            qualified_quantity: 0,
+            defective_quantity: 0,
+            status: 'draft',
+            notes: notes ?? null,
+          })
+          .select('id, inspection_number')
+          .single();
+
+        if (qiErr) throw new Error(qiErr.message);
+
+        if (items.length > 0) {
+          const checkItems = items.map(i => ({
+            quality_inspection_id: qi.id,
+            check_item: i.checkItem,
+            check_standard: i.checkStandard ?? null,
+          }));
+          const { error: itemErr } = await db.from('quality_inspection_items').insert(checkItems);
+          if (itemErr) {
+            await db.from('quality_inspections').delete().eq('id', qi.id);
+            throw new Error(itemErr.message);
+          }
+        }
+
+        return { id: qi.id, inspectionNumber: qi.inspection_number, status: 'draft', checkItemCount: items.length };
+      },
+    }),
   };
 }

@@ -323,5 +323,83 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         return data ?? [];
       },
     }),
+
+    create_purchase_requisition: tool({
+      description: 'Create a new purchase requisition with line items (requires D2 confirmation)',
+      inputSchema: z.object({
+        departmentId: z.string().uuid().optional(),
+        requesterId: z.string().uuid().optional(),
+        requestDate: z.string().describe('ISO date string').optional(),
+        requiredDate: z.string().describe('ISO date string').optional(),
+        items: z.array(z.object({
+          productId: z.string().uuid(),
+          quantity: z.number().positive(),
+          unitPrice: z.number().nonnegative().optional(),
+          suggestedSupplierId: z.string().uuid().optional(),
+          notes: z.string().optional(),
+        })),
+        notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe(
+          'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
+        ),
+      }),
+      execute: async ({ departmentId, requesterId, requestDate, requiredDate, items, notes, confirmed }) => {
+        const totalAmount = items.reduce((sum, i) => sum + i.quantity * (i.unitPrice ?? 0), 0);
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run preview — set confirmed=true to execute',
+            departmentId,
+            requestDate: requestDate ?? new Date().toISOString().slice(0, 10),
+            itemCount: items.length,
+            totalAmount,
+          };
+        }
+
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'purchase_requisition',
+        });
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+
+        const { data: pr, error: prErr } = await db
+          .from('purchase_requisitions')
+          .insert({
+            organization_id: organizationId,
+            requisition_number: seqData,
+            department_id: departmentId ?? null,
+            requester_id: requesterId ?? null,
+            request_date: requestDate ?? new Date().toISOString().slice(0, 10),
+            required_date: requiredDate ?? null,
+            total_amount: totalAmount,
+            status: 'draft',
+            notes: notes ?? null,
+          })
+          .select('id, requisition_number')
+          .single();
+
+        if (prErr) throw new Error(prErr.message);
+
+        const lineItems = items.map((i, idx) => ({
+          purchase_requisition_id: pr.id,
+          line_number: idx + 1,
+          product_id: i.productId,
+          quantity: i.quantity,
+          unit_price: i.unitPrice ?? null,
+          amount: i.unitPrice ? i.quantity * i.unitPrice : null,
+          suggested_supplier_id: i.suggestedSupplierId ?? null,
+          notes: i.notes ?? null,
+        }));
+
+        const { error: lineErr } = await db.from('purchase_requisition_lines').insert(lineItems);
+        if (lineErr) {
+          await db.from('purchase_requisitions').delete().eq('id', pr.id);
+          throw new Error(lineErr.message);
+        }
+
+        return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'draft', totalAmount, itemCount: items.length };
+      },
+    }),
   };
 }

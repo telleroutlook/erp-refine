@@ -28,11 +28,15 @@ import qualityRoutes from './routes/quality';
 import contractsRoutes from './routes/contracts';
 import assetsRoutes from './routes/assets';
 import systemRoutes from './routes/system';
+import adminAuditRoutes from './routes/admin-audit';
+import storageRoutes from './routes/storage';
 
 // Policy rules (register on startup)
 import './policy/rules/procurement-rules';
 import './policy/rules/sales-rules';
 import './policy/rules/finance-rules';
+import './policy/rules/manufacturing-rules';
+import './policy/rules/quality-rules';
 
 // Queue consumer
 import { handleQueueBatch } from './queues/event-consumer';
@@ -131,6 +135,7 @@ app.route('/api/auth', authRoutes);
 app.route('/api/chat', chatRoutes);
 app.route('/api/schema', schemaRoutes);
 app.route('/api/admin', adminRoutes);
+app.route('/api/admin', adminAuditRoutes);
 app.route('/api', procurementRoutes);
 app.route('/api', procurementReceivingRoutes);
 app.route('/api', salesRoutes);
@@ -145,6 +150,7 @@ app.route('/api', qualityRoutes);
 app.route('/api', contractsRoutes);
 app.route('/api', assetsRoutes);
 app.route('/api', systemRoutes);
+app.route('/api', storageRoutes);
 
 // --- Error handler ---
 app.onError(errorHandler);

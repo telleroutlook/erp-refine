@@ -71,6 +71,72 @@ const approvalRecordsRouter = buildCrudRoutes(approvalRecordsConfig);
 admin.route('', approvalRecordsRouter);
 
 // ---------------------------------------------------------------------------
+// Approval Rule Steps — steps within approval rules
+// ---------------------------------------------------------------------------
+const approvalRuleStepsConfig: CrudConfig = {
+  table: 'approval_rule_steps',
+  path: '/approval-rule-steps',
+  resourceName: 'ApprovalRuleStep',
+  listSelect: 'id, rule_id, step_order, approval_type, approver_role, min_approvers, timeout_hours, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, rule_id, step_order',
+  defaultSort: 'step_order',
+  softDelete: false,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'rule_id', parentTable: 'approval_rules' },
+};
+admin.route('', buildCrudRoutes(approvalRuleStepsConfig));
+
+// ---------------------------------------------------------------------------
+// Roles — RBAC role management
+// ---------------------------------------------------------------------------
+const rolesConfig: CrudConfig = {
+  table: 'roles',
+  path: '/roles',
+  resourceName: 'Role',
+  listSelect: 'id, name, description, is_system, created_at, updated_at',
+  detailSelect: '*, permissions:role_permissions(id, resource, action, conditions)',
+  createReturnSelect: 'id, name',
+  defaultSort: 'name',
+  softDelete: false,
+  orgScoped: true,
+};
+admin.route('', buildCrudRoutes(rolesConfig));
+
+// ---------------------------------------------------------------------------
+// Role Permissions — permissions per role
+// ---------------------------------------------------------------------------
+const rolePermissionsConfig: CrudConfig = {
+  table: 'role_permissions',
+  path: '/role-permissions',
+  resourceName: 'RolePermission',
+  listSelect: 'id, role_id, resource, action, conditions, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, role_id, resource, action',
+  defaultSort: 'resource',
+  softDelete: false,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'role_id', parentTable: 'roles' },
+};
+admin.route('', buildCrudRoutes(rolePermissionsConfig));
+
+// ---------------------------------------------------------------------------
+// User Roles — assign roles to users
+// ---------------------------------------------------------------------------
+const userRolesConfig: CrudConfig = {
+  table: 'user_roles',
+  path: '/user-roles',
+  resourceName: 'UserRole',
+  listSelect: 'id, user_id, role_id, assigned_by, assigned_at, role:roles(id,name)',
+  detailSelect: '*, role:roles(id,name,description)',
+  createReturnSelect: 'id, user_id, role_id',
+  defaultSort: 'assigned_at',
+  softDelete: false,
+  orgScoped: true,
+};
+admin.route('', buildCrudRoutes(userRolesConfig));
+
+// ---------------------------------------------------------------------------
 // Link Employees to Auth Users — needed for RLS to work after seed import
 // ---------------------------------------------------------------------------
 admin.post('/link-employees', async (c) => {

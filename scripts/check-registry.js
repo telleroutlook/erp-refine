@@ -9,7 +9,9 @@ const registryFile = readFileSync(join(process.cwd(), 'src/tools/tool-registry.t
 const procRules = readFileSync(join(process.cwd(), 'src/policy/rules/procurement-rules.ts'), 'utf-8');
 const salesRules = readFileSync(join(process.cwd(), 'src/policy/rules/sales-rules.ts'), 'utf-8');
 const financeRules = readFileSync(join(process.cwd(), 'src/policy/rules/finance-rules.ts'), 'utf-8');
-const allRules = procRules + salesRules + financeRules;
+const mfgRules = readFileSync(join(process.cwd(), 'src/policy/rules/manufacturing-rules.ts'), 'utf-8');
+const qualityRules = readFileSync(join(process.cwd(), 'src/policy/rules/quality-rules.ts'), 'utf-8');
+const allRules = procRules + salesRules + financeRules + mfgRules + qualityRules;
 
 // Extract tool names from registry meta
 const toolMetaRegex = /\{ name: '([^']+)', domain: '([^']+)', level: (\d)/g;

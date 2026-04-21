@@ -65,4 +65,22 @@ const exchangeRatesConfig: CrudConfig = {
 const exchangeRatesRouter = buildCrudRoutes(exchangeRatesConfig);
 infrastructure.route('', exchangeRatesRouter);
 
+// ---------------------------------------------------------------------------
+// Number Sequences — manage auto-numbering patterns per entity type
+// ---------------------------------------------------------------------------
+const numberSequencesConfig: CrudConfig = {
+  table: 'number_sequences',
+  path: '/number-sequences',
+  resourceName: 'NumberSequence',
+  listSelect: 'id, sequence_name, prefix, current_value, padding, increment_by, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, sequence_name, prefix',
+  defaultSort: 'sequence_name',
+  softDelete: false,
+  orgScoped: true,
+};
+
+const numberSequencesRouter = buildCrudRoutes(numberSequencesConfig);
+infrastructure.route('', numberSequencesRouter);
+
 export default infrastructure;
