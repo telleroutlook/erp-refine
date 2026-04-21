@@ -133,6 +133,95 @@ procurement.delete('/purchase-orders/:id', async (c) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// Purchase Order Workflow — submit / approve / reject
+// ────────────────────────────────────────────────────────────────────────────
+
+// POST /purchase-orders/:id/submit — draft → submitted
+procurement.post('/purchase-orders/:id/submit', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: po, error: fetchError } = await db
+    .from('purchase_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !po) throw ApiError.notFound('PurchaseOrder', id, requestId);
+  if (po.status !== 'draft') {
+    throw ApiError.invalidState('PurchaseOrder', po.status, 'submit', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('purchase_orders')
+    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: po.id, order_number: po.order_number, status: 'submitted' } });
+});
+
+// POST /purchase-orders/:id/approve — submitted → approved
+procurement.post('/purchase-orders/:id/approve', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: po, error: fetchError } = await db
+    .from('purchase_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !po) throw ApiError.notFound('PurchaseOrder', id, requestId);
+  if (po.status !== 'submitted') {
+    throw ApiError.invalidState('PurchaseOrder', po.status, 'approve', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('purchase_orders')
+    .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: po.id, order_number: po.order_number, status: 'approved' } });
+});
+
+// POST /purchase-orders/:id/reject — submitted → rejected
+procurement.post('/purchase-orders/:id/reject', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: po, error: fetchError } = await db
+    .from('purchase_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !po) throw ApiError.notFound('PurchaseOrder', id, requestId);
+  if (po.status !== 'submitted') {
+    throw ApiError.invalidState('PurchaseOrder', po.status, 'reject', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('purchase_orders')
+    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: po.id, order_number: po.order_number, status: 'rejected' } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
 // Purchase Order Items — standalone CRUD via factory
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -279,6 +368,95 @@ procurement.delete('/purchase-requisitions/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   await performSoftDelete(db, 'purchase_requisitions', c.req.param('id'), user.organizationId, 'PurchaseRequisition', requestId);
   return c.json({ data: { success: true } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Purchase Requisition Workflow — submit / approve / reject
+// ────────────────────────────────────────────────────────────────────────────
+
+// POST /purchase-requisitions/:id/submit — draft → submitted
+procurement.post('/purchase-requisitions/:id/submit', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: pr, error: fetchError } = await db
+    .from('purchase_requisitions')
+    .select('id, requisition_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !pr) throw ApiError.notFound('PurchaseRequisition', id, requestId);
+  if (pr.status !== 'draft') {
+    throw ApiError.invalidState('PurchaseRequisition', pr.status, 'submit', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('purchase_requisitions')
+    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: pr.id, requisition_number: pr.requisition_number, status: 'submitted' } });
+});
+
+// POST /purchase-requisitions/:id/approve — submitted → approved
+procurement.post('/purchase-requisitions/:id/approve', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: pr, error: fetchError } = await db
+    .from('purchase_requisitions')
+    .select('id, requisition_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !pr) throw ApiError.notFound('PurchaseRequisition', id, requestId);
+  if (pr.status !== 'submitted') {
+    throw ApiError.invalidState('PurchaseRequisition', pr.status, 'approve', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('purchase_requisitions')
+    .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: pr.id, requisition_number: pr.requisition_number, status: 'approved' } });
+});
+
+// POST /purchase-requisitions/:id/reject — submitted → rejected
+procurement.post('/purchase-requisitions/:id/reject', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: pr, error: fetchError } = await db
+    .from('purchase_requisitions')
+    .select('id, requisition_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !pr) throw ApiError.notFound('PurchaseRequisition', id, requestId);
+  if (pr.status !== 'submitted') {
+    throw ApiError.invalidState('PurchaseRequisition', pr.status, 'reject', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('purchase_requisitions')
+    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: pr.id, requisition_number: pr.requisition_number, status: 'rejected' } });
 });
 
 // ────────────────────────────────────────────────────────────────────────────

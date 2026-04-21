@@ -401,5 +401,133 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'draft', totalAmount, itemCount: items.length };
       },
     }),
+
+    submit_purchase_order: tool({
+      description: 'Submit a draft purchase order for approval (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: po, error } = await db
+          .from('purchase_orders')
+          .select('id, order_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !po) throw new Error('Purchase order not found');
+        if (po.status !== 'draft') throw new Error(`Cannot submit PO in status '${po.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: po.id, orderNumber: po.order_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_orders')
+          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: po.id, orderNumber: po.order_number, status: 'submitted' };
+      },
+    }),
+
+    approve_purchase_order: tool({
+      description: 'Approve a submitted purchase order (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: po, error } = await db
+          .from('purchase_orders')
+          .select('id, order_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !po) throw new Error('Purchase order not found');
+        if (po.status !== 'submitted') throw new Error(`Cannot approve PO in status '${po.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: po.id, orderNumber: po.order_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_orders')
+          .update({ status: 'approved', approved_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: po.id, orderNumber: po.order_number, status: 'approved' };
+      },
+    }),
+
+    submit_purchase_requisition: tool({
+      description: 'Submit a draft purchase requisition for approval (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: pr, error } = await db
+          .from('purchase_requisitions')
+          .select('id, requisition_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !pr) throw new Error('Purchase requisition not found');
+        if (pr.status !== 'draft') throw new Error(`Cannot submit PR in status '${pr.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: pr.id, requisitionNumber: pr.requisition_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_requisitions')
+          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'submitted' };
+      },
+    }),
+
+    approve_purchase_requisition: tool({
+      description: 'Approve a submitted purchase requisition (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: pr, error } = await db
+          .from('purchase_requisitions')
+          .select('id, requisition_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !pr) throw new Error('Purchase requisition not found');
+        if (pr.status !== 'submitted') throw new Error(`Cannot approve PR in status '${pr.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: pr.id, requisitionNumber: pr.requisition_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_requisitions')
+          .update({ status: 'approved', approved_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'approved' };
+      },
+    }),
   };
 }

@@ -252,5 +252,101 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
         return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'draft', totalDebit, totalCredit };
       },
     }),
+
+    void_voucher: tool({
+      description: 'Void a posted voucher (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        reason: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, reason, confirmed }) => {
+        const { data: voucher, error } = await db
+          .from('vouchers')
+          .select('id, voucher_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .single();
+        if (error || !voucher) throw new Error('Voucher not found');
+        if (voucher.status !== 'posted') throw new Error(`Cannot void voucher in status '${voucher.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to void', id: voucher.id, voucherNumber: voucher.voucher_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('vouchers')
+          .update({ status: 'voided', voided_at: new Date().toISOString(), void_reason: reason ?? null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'voided' };
+      },
+    }),
+
+    submit_payment_request: tool({
+      description: 'Submit a draft payment request for approval (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: pr, error } = await db
+          .from('payment_requests')
+          .select('id, request_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !pr) throw new Error('Payment request not found');
+        if (pr.status !== 'draft') throw new Error(`Cannot submit payment request in status '${pr.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: pr.id, requestNumber: pr.request_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('payment_requests')
+          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: pr.id, requestNumber: pr.request_number, status: 'submitted' };
+      },
+    }),
+
+    approve_payment_request: tool({
+      description: 'Approve a submitted payment request (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: pr, error } = await db
+          .from('payment_requests')
+          .select('id, request_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !pr) throw new Error('Payment request not found');
+        if (pr.status !== 'submitted') throw new Error(`Cannot approve payment request in status '${pr.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: pr.id, requestNumber: pr.request_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('payment_requests')
+          .update({ status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: pr.id, requestNumber: pr.request_number, status: 'approved' };
+      },
+    }),
   };
 }

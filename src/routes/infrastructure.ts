@@ -1,5 +1,5 @@
 // src/routes/infrastructure.ts
-// Infrastructure REST API — Departments, Employees, Exchange Rates
+// Infrastructure REST API — Organizations, Departments, Employees, Exchange Rates
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
@@ -9,6 +9,24 @@ import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 const infrastructure = new Hono<{ Bindings: Env }>();
 infrastructure.use('*', authMiddleware());
 infrastructure.use('*', writeMethodGuard());
+
+// ---------------------------------------------------------------------------
+// Organizations — tenant root entity, read for all, write for admin only
+// ---------------------------------------------------------------------------
+const organizationsConfig: CrudConfig = {
+  table: 'organizations',
+  path: '/organizations',
+  resourceName: 'Organization',
+  listSelect: 'id, name, code, email, phone, plan, status, tax_number, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, name, status',
+  defaultSort: 'name',
+  softDelete: false,
+  orgScoped: false,
+};
+
+const organizationsRouter = buildCrudRoutes(organizationsConfig);
+infrastructure.route('', organizationsRouter);
 
 // ---------------------------------------------------------------------------
 // Departments — tree structure with parent_id and level

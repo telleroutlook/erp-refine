@@ -113,6 +113,124 @@ contracts.delete('/contracts/:id', async (c) => {
   return c.json({ data: { success: true } });
 });
 
+// ─── Contract Workflow Actions ──────────────────────────────────────────────
+
+// POST /contracts/:id/activate — draft → active
+contracts.post('/contracts/:id/activate', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: contract, error: fetchError } = await db
+    .from('contracts')
+    .select('id, contract_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !contract) throw ApiError.notFound('Contract', id, requestId);
+  if (contract.status !== 'draft') {
+    throw ApiError.invalidState('Contract', contract.status, 'activate', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('contracts')
+    .update({ status: 'active', activated_at: new Date().toISOString(), activated_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: contract.id, contract_number: contract.contract_number, status: 'active' } });
+});
+
+// POST /contracts/:id/terminate — active → terminated
+contracts.post('/contracts/:id/terminate', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: contract, error: fetchError } = await db
+    .from('contracts')
+    .select('id, contract_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !contract) throw ApiError.notFound('Contract', id, requestId);
+  if (contract.status !== 'active') {
+    throw ApiError.invalidState('Contract', contract.status, 'terminate', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('contracts')
+    .update({
+      status: 'terminated',
+      terminated_at: new Date().toISOString(),
+      terminated_by: user.userId,
+      termination_reason: body.reason ?? null,
+    })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: contract.id, contract_number: contract.contract_number, status: 'terminated' } });
+});
+
+// POST /contracts/:id/renew — active → create new contract from existing
+contracts.post('/contracts/:id/renew', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: original, error: fetchError } = await db
+    .from('contracts')
+    .select('*, items:contract_items(product_id, quantity, unit_price, tax_rate, notes)')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !original) throw ApiError.notFound('Contract', id, requestId);
+  if (original.status !== 'active' && original.status !== 'expired') {
+    throw ApiError.invalidState('Contract', original.status, 'renew', requestId);
+  }
+
+  const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'contract',
+  });
+  if (seqError || !seqData) throw ApiError.database(`Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
+
+  const result = await atomicCreateWithItems(db, {
+    headerTable: 'contracts',
+    itemsTable: 'contract_items',
+    headerFk: 'contract_id',
+    headerReturnSelect: 'id, contract_number, status',
+    itemsReturnSelect: 'id, product_id, quantity, unit_price',
+  }, {
+    header: {
+      contract_number: seqData,
+      organization_id: user.organizationId,
+      party_type: original.party_type,
+      party_id: original.party_id,
+      contract_type: original.contract_type,
+      start_date: body.start_date ?? original.end_date,
+      end_date: body.end_date ?? null,
+      total_amount: original.total_amount,
+      currency: original.currency,
+      payment_terms: original.payment_terms,
+      notes: body.notes ?? `Renewed from ${original.contract_number}`,
+      status: 'draft',
+      created_by: user.userId,
+      renewed_from_id: original.id,
+    },
+    items: original.items ?? [],
+  });
+
+  return c.json({ data: result.header }, 201);
+});
+
 // ─── Contract Items ──────────────────────────────────────────────────────────
 
 contracts.route('', buildCrudRoutes({

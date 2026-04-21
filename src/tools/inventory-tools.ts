@@ -183,5 +183,67 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
         return data ?? [];
       },
     }),
+
+    transfer_stock: tool({
+      description: 'Transfer stock between warehouses (D2 — requires confirmation). Creates out+in stock transactions.',
+      inputSchema: z.object({
+        productId: z.string().uuid(),
+        fromWarehouseId: z.string().uuid(),
+        toWarehouseId: z.string().uuid(),
+        quantity: z.number().positive(),
+        notes: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ productId, fromWarehouseId, toWarehouseId, quantity, notes, confirmed }) => {
+        if (fromWarehouseId === toWarehouseId) throw new Error('Source and destination warehouses must be different');
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run — set confirmed=true to execute transfer',
+            productId,
+            fromWarehouseId,
+            toWarehouseId,
+            quantity,
+          };
+        }
+
+        const { data: stock, error: stockErr } = await db
+          .from('stock_records')
+          .select('id, available_quantity')
+          .eq('organization_id', organizationId)
+          .eq('product_id', productId)
+          .eq('warehouse_id', fromWarehouseId)
+          .single();
+
+        if (stockErr || !stock) throw new Error('No stock record found for source warehouse');
+        if ((stock.available_quantity ?? 0) < quantity) throw new Error(`Insufficient stock: available=${stock.available_quantity}, requested=${quantity}`);
+
+        const txnBase = {
+          organization_id: organizationId,
+          product_id: productId,
+          reference_type: 'stock_transfer',
+          notes: notes ?? null,
+        };
+
+        const { error: outErr } = await db.from('stock_transactions').insert({
+          ...txnBase,
+          warehouse_id: fromWarehouseId,
+          transaction_type: 'out',
+          quantity,
+        });
+        if (outErr) throw new Error(outErr.message);
+
+        const { error: inErr } = await db.from('stock_transactions').insert({
+          ...txnBase,
+          warehouse_id: toWarehouseId,
+          transaction_type: 'in',
+          quantity,
+        });
+        if (inErr) throw new Error(inErr.message);
+
+        return { success: true, productId, fromWarehouseId, toWarehouseId, quantity };
+      },
+    }),
   };
 }

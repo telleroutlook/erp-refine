@@ -53,5 +53,85 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
         return data;
       },
     }),
+
+    list_contract_items: tool({
+      description: 'List contract line items for a specific contract',
+      inputSchema: z.object({ contractId: z.string().uuid() }),
+      execute: async ({ contractId }) => {
+        const { data, error } = await db
+          .from('contract_items')
+          .select('id, quantity, unit_price, tax_rate, amount, notes, product:products(id,name,code)')
+          .eq('contract_id', contractId)
+          .is('deleted_at', null)
+          .order('id');
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    activate_contract: tool({
+      description: 'Activate a draft contract (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: contract, error } = await db
+          .from('contracts')
+          .select('id, contract_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !contract) throw new Error('Contract not found');
+        if (contract.status !== 'draft') throw new Error(`Cannot activate contract in status '${contract.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to activate', id: contract.id, contractNumber: contract.contract_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('contracts')
+          .update({ status: 'active', activated_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: contract.id, contractNumber: contract.contract_number, status: 'active' };
+      },
+    }),
+
+    terminate_contract: tool({
+      description: 'Terminate an active contract (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        reason: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, reason, confirmed }) => {
+        const { data: contract, error } = await db
+          .from('contracts')
+          .select('id, contract_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !contract) throw new Error('Contract not found');
+        if (contract.status !== 'active') throw new Error(`Cannot terminate contract in status '${contract.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to terminate', id: contract.id, contractNumber: contract.contract_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('contracts')
+          .update({ status: 'terminated', terminated_at: new Date().toISOString(), termination_reason: reason ?? null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: contract.id, contractNumber: contract.contract_number, status: 'terminated' };
+      },
+    }),
   };
 }

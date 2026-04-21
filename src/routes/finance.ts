@@ -271,6 +271,38 @@ finance.post('/vouchers/:id/post', async (c) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// POST /vouchers/:id/void — posted → voided (creates reversing entry)
+// ────────────────────────────────────────────────────────────────────────────
+
+finance.post('/vouchers/:id/void', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: voucher, error: fetchError } = await db
+    .from('vouchers')
+    .select('id, voucher_number, status, voucher_type, voucher_date, total_debit, total_credit, notes')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .single();
+
+  if (fetchError || !voucher) throw ApiError.notFound('Voucher', id, requestId);
+  if (voucher.status !== 'posted') {
+    throw ApiError.invalidState('Voucher', voucher.status, 'void', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('vouchers')
+    .update({ status: 'voided', voided_at: new Date().toISOString(), voided_by: user.userId, void_reason: body.reason ?? null })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+
+  return c.json({ data: { id: voucher.id, voucher_number: voucher.voucher_number, status: 'voided' } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
 // Budgets — atomic create (header + lines)
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -465,6 +497,95 @@ const paymentRequestsCrud = buildCrudRoutes({
   }),
 });
 finance.route('', paymentRequestsCrud);
+
+// ────────────────────────────────────────────────────────────────────────────
+// Payment Request Workflow — submit / approve / reject
+// ────────────────────────────────────────────────────────────────────────────
+
+// POST /payment-requests/:id/submit — draft → submitted
+finance.post('/payment-requests/:id/submit', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: pr, error: fetchError } = await db
+    .from('payment_requests')
+    .select('id, request_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !pr) throw ApiError.notFound('PaymentRequest', id, requestId);
+  if (pr.status !== 'draft') {
+    throw ApiError.invalidState('PaymentRequest', pr.status, 'submit', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('payment_requests')
+    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: pr.id, request_number: pr.request_number, status: 'submitted' } });
+});
+
+// POST /payment-requests/:id/approve — submitted → approved
+finance.post('/payment-requests/:id/approve', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: pr, error: fetchError } = await db
+    .from('payment_requests')
+    .select('id, request_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !pr) throw ApiError.notFound('PaymentRequest', id, requestId);
+  if (pr.status !== 'submitted') {
+    throw ApiError.invalidState('PaymentRequest', pr.status, 'approve', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('payment_requests')
+    .update({ status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString(), approved_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: pr.id, request_number: pr.request_number, status: 'approved' } });
+});
+
+// POST /payment-requests/:id/reject — submitted → rejected
+finance.post('/payment-requests/:id/reject', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: pr, error: fetchError } = await db
+    .from('payment_requests')
+    .select('id, request_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !pr) throw ApiError.notFound('PaymentRequest', id, requestId);
+  if (pr.status !== 'submitted') {
+    throw ApiError.invalidState('PaymentRequest', pr.status, 'reject', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('payment_requests')
+    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: pr.id, request_number: pr.request_number, status: 'rejected' } });
+});
 
 // ────────────────────────────────────────────────────────────────────────────
 // Budget Lines — standalone CRUD via factory

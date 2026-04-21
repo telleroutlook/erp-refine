@@ -249,4 +249,21 @@ const workflowStepsConfig: CrudConfig = {
 };
 system.route('', buildCrudRoutes(workflowStepsConfig));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Dynamic Form Data — AI-generated form data storage
+// ────────────────────────────────────────────────────────────────────────────
+
+const dynamicFormDataConfig: CrudConfig = {
+  table: 'dynamic_form_data',
+  path: '/dynamic-form-data',
+  resourceName: 'DynamicFormData',
+  listSelect: 'id, schema_registry_id, is_sandbox, created_by, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, schema_registry_id, is_sandbox',
+  defaultSort: 'created_at',
+  softDelete: true,
+  orgScoped: true,
+};
+system.route('', buildCrudRoutes(dynamicFormDataConfig));
+
 export default system;
