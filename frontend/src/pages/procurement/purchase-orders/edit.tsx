@@ -51,11 +51,6 @@ export const PurchaseOrderEdit: React.FC = () => {
               <InputNumber style={{ width: '100%' }} min={0} />
             </Form.Item>
           </Col>
-          <Col span={12}>
-            <Form.Item label="运输方式" name="shipping_method">
-              <Input />
-            </Form.Item>
-          </Col>
           <Col span={24}>
             <Form.Item label="备注" name="notes">
               <Input.TextArea rows={3} />

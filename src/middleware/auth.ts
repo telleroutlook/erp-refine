@@ -62,9 +62,6 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
       const supabaseUrl = c.env.SUPABASE_URL;
 
       if (header.kid && supabaseUrl) {
-        if (!supabaseUrl) {
-          return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
-        }
         const key = await getVerifyKey(supabaseUrl, header.kid);
         result = await jwtVerify(token, key, {
           algorithms: ['ES256'],

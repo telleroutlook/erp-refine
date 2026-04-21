@@ -111,51 +111,56 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         const fromDate = `${currentYear}-01-01`;
         const toDate = `${currentYear}-12-31`;
 
-        const [voucherRes, paymentReqRes, paymentRecRes] = await Promise.all([
-          db.from('vouchers')
-            .select('status, total_debit')
-            .eq('organization_id', organizationId)
-            .gte('voucher_date', fromDate)
-            .lte('voucher_date', toDate)
-            .limit(5000),
-          db.from('payment_requests')
-            .select('ok_to_pay, amount, currency')
-            .eq('organization_id', organizationId)
-            .is('deleted_at', null)
-            .gte('created_at', fromDate)
-            .lte('created_at', toDate)
-            .limit(5000),
+        const [draftCount, postedCount, approvedCount, voidedCount,
+               pendingPayCount, approvedPayCount, paymentRecRes] = await Promise.all([
+          db.from('vouchers').select('*', { count: 'exact', head: true })
+            .eq('organization_id', organizationId).eq('status', 'draft')
+            .gte('voucher_date', fromDate).lte('voucher_date', toDate),
+          db.from('vouchers').select('*', { count: 'exact', head: true })
+            .eq('organization_id', organizationId).eq('status', 'posted')
+            .gte('voucher_date', fromDate).lte('voucher_date', toDate),
+          db.from('vouchers').select('*', { count: 'exact', head: true })
+            .eq('organization_id', organizationId).eq('status', 'approved')
+            .gte('voucher_date', fromDate).lte('voucher_date', toDate),
+          db.from('vouchers').select('*', { count: 'exact', head: true })
+            .eq('organization_id', organizationId).eq('status', 'voided')
+            .gte('voucher_date', fromDate).lte('voucher_date', toDate),
+          db.from('payment_requests').select('*', { count: 'exact', head: true })
+            .eq('organization_id', organizationId).is('deleted_at', null)
+            .eq('ok_to_pay', false)
+            .gte('created_at', fromDate).lte('created_at', toDate),
+          db.from('payment_requests').select('*', { count: 'exact', head: true })
+            .eq('organization_id', organizationId).is('deleted_at', null)
+            .eq('ok_to_pay', true)
+            .gte('created_at', fromDate).lte('created_at', toDate),
           db.from('payment_records')
             .select('amount')
             .eq('organization_id', organizationId)
             .gte('payment_date', fromDate)
             .lte('payment_date', toDate)
-            .limit(5000),
+            .limit(500),
         ]);
 
-        if (voucherRes.error) throw new Error(voucherRes.error.message);
-        if (paymentReqRes.error) throw new Error(paymentReqRes.error.message);
-        if (paymentRecRes.error) throw new Error(paymentRecRes.error.message);
-
-        const vouchers = voucherRes.data ?? [];
-        const voucherByStatus = vouchers.reduce((acc: Record<string, { count: number; total: number }>, v: any) => {
-          if (!acc[v.status]) acc[v.status] = { count: 0, total: 0 };
-          acc[v.status]!.count++;
-          acc[v.status]!.total += Number(v.total_debit ?? 0);
-          return acc;
-        }, {});
-
-        const paymentRequests = paymentReqRes.data ?? [];
-        const pendingPayments = paymentRequests.filter((r: any) => !r.ok_to_pay).length;
-        const approvedPayments = paymentRequests.filter((r: any) => r.ok_to_pay).length;
-
-        const paidTotal = (paymentRecRes.data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
+        const paidRows = paymentRecRes.data ?? [];
+        const paidTotal = paidRows.reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
 
         return {
           year: currentYear,
-          vouchers: { byStatus: voucherByStatus, totalCount: vouchers.length },
-          paymentRequests: { total: paymentRequests.length, pending: pendingPayments, approved: approvedPayments },
-          paymentsPaid: { count: (paymentRecRes.data ?? []).length, totalAmount: paidTotal },
+          vouchers: {
+            byStatus: {
+              draft: { count: draftCount.count ?? 0 },
+              posted: { count: postedCount.count ?? 0 },
+              approved: { count: approvedCount.count ?? 0 },
+              voided: { count: voidedCount.count ?? 0 },
+            },
+            totalCount: (draftCount.count ?? 0) + (postedCount.count ?? 0) + (approvedCount.count ?? 0) + (voidedCount.count ?? 0),
+          },
+          paymentRequests: {
+            total: (pendingPayCount.count ?? 0) + (approvedPayCount.count ?? 0),
+            pending: pendingPayCount.count ?? 0,
+            approved: approvedPayCount.count ?? 0,
+          },
+          paymentsPaid: { count: paidRows.length, totalAmount: paidTotal },
         };
       },
     }),

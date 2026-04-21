@@ -3,6 +3,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createLogger } from './logger';
+import { ApiError } from './api-error';
 
 const logger = createLogger('info', { module: 'database' });
 
@@ -50,7 +51,7 @@ export async function executeWithAudit<T>(
   try {
     const { data, error } = await operation();
     if (error) throw error;
-    if (data === null) throw new Error('No data returned');
+    if (data === null) throw ApiError.notFound(audit.resource, audit.resourceId ?? 'unknown', audit.requestId);
     success = true;
     return data;
   } catch (err) {

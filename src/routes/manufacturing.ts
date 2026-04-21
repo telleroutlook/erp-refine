@@ -196,6 +196,11 @@ manufacturing.post('/work-orders', async (c) => {
 
   // Create work_order_materials from BOM items, scaled by planned_quantity
   if (bomItems.length > 0) {
+    const invalidScrap = bomItems.find((item: any) => (item.scrap_rate || 0) >= 1);
+    if (invalidScrap) {
+      await db.from('work_orders').delete().eq('id', wo.id);
+      throw ApiError.validation('Scrap rate must be less than 100%', [{ field: 'scrap_rate', message: 'must be less than 1.0', code: 'invalid_value' }], requestId);
+    }
     const materials = bomItems.map((item: any) => ({
       work_order_id: wo.id,
       product_id: item.product_id,
@@ -307,7 +312,11 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
     )
   );
   const matFailed = matResults.filter(r => r.error);
-  if (matFailed.length > 0) throw ApiError.database(matFailed[0]!.error!.message, requestId);
+  if (matFailed.length > 0) {
+    const reversals: typeof stockTxInputs = stockTxInputs.map(tx => ({ ...tx, qty: tx.qty, transactionType: tx.transactionType === 'out' ? 'in' as const : 'out' as const, notes: `Reversal: material update failed` }));
+    await batchCreateStockTransactions(db, reversals, requestId).catch(() => {});
+    throw ApiError.database(matFailed[0]!.error!.message, requestId);
+  }
 
   // 3. Update work order status to 'in_progress' if not already
   if (wo.status !== 'in_progress') {

@@ -39,7 +39,7 @@ export const CustomerCreate: React.FC = () => {
               <Select options={[
                 { label: '启用', value: 'active' },
                 { label: '停用', value: 'inactive' },
-                { label: '黑名单', value: 'blocked' },
+                { label: '暂停', value: 'suspended' },
               ]} />
             </Form.Item>
           </Col>

@@ -28,6 +28,7 @@ export function parseRefineQuery(c: Context, defaultSort = 'created_at'): Refine
 }
 
 const RESERVED_PARAMS = new Set(['_page', '_limit', '_sort', '_order']);
+const DENIED_FIELDS = new Set(['organization_id', 'deleted_at', 'created_by', 'updated_by']);
 const FIELD_RE = /^[a-z][a-z0-9_]*$/;
 
 /** Parse Refine-compatible filter query parameters into FilterParam[] */
@@ -38,18 +39,24 @@ export function parseRefineFilters(c: Context): FilterParam[] {
     if (RESERVED_PARAMS.has(key) || !value) continue;
 
     if (key.endsWith('_ne') && FIELD_RE.test(key.slice(0, -3))) {
-      filters.push({ field: key.slice(0, -3), operator: 'ne', value });
+      const field = key.slice(0, -3);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'ne', value });
     } else if (key.endsWith('_like') && FIELD_RE.test(key.slice(0, -5))) {
-      filters.push({ field: key.slice(0, -5), operator: 'contains', value });
+      const field = key.slice(0, -5);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'contains', value });
     } else if (key.endsWith('_in') && FIELD_RE.test(key.slice(0, -3))) {
-      filters.push({ field: key.slice(0, -3), operator: 'in', value: value.split(',') });
+      const field = key.slice(0, -3);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'in', value: value.split(',').slice(0, 100) });
     } else if (key.endsWith('_is') && FIELD_RE.test(key.slice(0, -3))) {
-      if (value === 'null') {
-        filters.push({ field: key.slice(0, -3), operator: 'null', value: null });
-      } else if (value === 'not.null') {
-        filters.push({ field: key.slice(0, -3), operator: 'nnull', value: null });
+      const field = key.slice(0, -3);
+      if (!DENIED_FIELDS.has(field)) {
+        if (value === 'null') {
+          filters.push({ field, operator: 'null', value: null });
+        } else if (value === 'not.null') {
+          filters.push({ field, operator: 'nnull', value: null });
+        }
       }
-    } else if (FIELD_RE.test(key)) {
+    } else if (FIELD_RE.test(key) && !DENIED_FIELDS.has(key)) {
       filters.push({ field: key, operator: 'eq', value });
     }
   }

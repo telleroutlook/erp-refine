@@ -206,6 +206,20 @@
     "sold": "已售",
     "confirmed": "已确认",
     "passed": "合格",
-    "failed": "不合格"
+    "failed": "不合格",
+    "pass": "合格",
+    "fail": "不合格",
+    "shipping": "发货中",
+    "verified": "已核验",
+    "disputed": "有争议",
+    "evaluated": "已评估",
+    "selected": "已选定",
+    "converted": "已转换",
+    "under_maintenance": "维修中",
+    "consumed": "已消耗",
+    "in_stock": "在库",
+    "returned": "已退回",
+    "inactive": "停用",
+    "suspended": "暂停"
   }
 }

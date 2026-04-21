@@ -206,6 +206,20 @@
     "sold": "Sold",
     "confirmed": "Confirmed",
     "passed": "Passed",
-    "failed": "Failed"
+    "failed": "Failed",
+    "pass": "Pass",
+    "fail": "Fail",
+    "shipping": "Shipping",
+    "verified": "Verified",
+    "disputed": "Disputed",
+    "evaluated": "Evaluated",
+    "selected": "Selected",
+    "converted": "Converted",
+    "under_maintenance": "Under Maintenance",
+    "consumed": "Consumed",
+    "in_stock": "In Stock",
+    "returned": "Returned",
+    "inactive": "Inactive",
+    "suspended": "Suspended"
   }
 }

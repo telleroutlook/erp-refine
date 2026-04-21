@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard, requireRole } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { getDbAndUser } from '../utils/query-helpers';
 
 const infrastructure = new Hono<{ Bindings: Env }>();
 infrastructure.use('*', authMiddleware());
@@ -22,6 +23,32 @@ infrastructure.delete('/number-sequences/:id', adminWriteGuard);
 // ---------------------------------------------------------------------------
 // Organizations — tenant root entity, read for all, write for admin only
 // ---------------------------------------------------------------------------
+// Organizations — restrict reads to own org only
+infrastructure.get('/organizations', async (c) => {
+  const { db, user } = getDbAndUser(c);
+  const { data, error } = await db
+    .from('organizations')
+    .select('id, name, code, email, phone, plan, status, tax_number, created_at')
+    .eq('id', user.organizationId);
+  if (error) throw error;
+  return c.json({ data, total: data?.length ?? 0 });
+});
+
+infrastructure.get('/organizations/:id', async (c) => {
+  const { db, user } = getDbAndUser(c);
+  const id = c.req.param('id');
+  if (id !== user.organizationId) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+  const { data, error } = await db
+    .from('organizations')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return c.json({ data });
+});
+
 const organizationsConfig: CrudConfig = {
   table: 'organizations',
   path: '/organizations',

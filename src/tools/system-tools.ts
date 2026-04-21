@@ -136,6 +136,13 @@ export function createSystemTools(db: SupabaseClient, organizationId: string) {
         workflowId: z.string().uuid(),
       }),
       execute: async ({ workflowId }) => {
+        const { data: wf } = await db
+          .from('workflows')
+          .select('id')
+          .eq('id', workflowId)
+          .eq('organization_id', organizationId)
+          .single();
+        if (!wf) throw new Error('Workflow not found or access denied');
         const { data, error } = await db
           .from('workflow_steps')
           .select('id, step_name, step_order, step_type, action, assignee_role, status, condition, completed_by, completed_at, created_at')

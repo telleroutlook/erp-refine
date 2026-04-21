@@ -152,6 +152,13 @@ admin.post('/link-employees', async (c) => {
       requestId,
     });
   }
+  if (mappings.length > 200) {
+    throw new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail: 'Maximum 200 mappings per request.',
+      requestId,
+    });
+  }
 
   const results = await Promise.all(
     mappings.map(async (m: { employee_email: string; auth_email: string }) => {

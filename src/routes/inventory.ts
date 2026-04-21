@@ -264,7 +264,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
   if (fetchError || !countDoc) throw ApiError.notFound('InventoryCount', id, requestId);
 
   // 2. Validate status before running side effects (must be 'in_progress' or 'counted')
-  if (countDoc.status !== 'in_progress' && countDoc.status !== 'counted') {
+  if (countDoc.status !== 'in_progress') {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
   }
 
@@ -290,9 +290,9 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
 
   await batchCreateStockTransactions(db, stockTxInputs, requestId);
 
-  // 4. Atomic status transition: in_progress/counted → completed
+  // 4. Atomic status transition: in_progress → completed
   const { data, error } = await atomicStatusTransition(db, 'inventory_counts', id, user.organizationId,
-    ['in_progress', 'counted'], { status: 'completed' }, 'id, count_number, status');
+    ['in_progress'], { status: 'completed' }, 'id, count_number, status');
   if (error) throw ApiError.database((error as any).message, requestId);
   if (!data) throw ApiError.invalidState('InventoryCount', 'unknown', 'complete', requestId);
   return c.json({ data });

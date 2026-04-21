@@ -562,7 +562,7 @@ procurement.post('/supplier-quotations', async (c) => {
         ...headerFields,
         quotation_number: seqData,
         organization_id: user.organizationId,
-        status: 'draft',
+        status: 'received',
       },
       items: items ?? [],
     },
