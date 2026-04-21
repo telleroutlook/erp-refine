@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
@@ -124,18 +124,7 @@ sales.put('/sales-orders/:id', async (c) => {
 // DELETE (soft-delete)
 sales.delete('/sales-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('sales_orders')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('SalesOrder', id, requestId);
+  await performSoftDelete(db, 'sales_orders', c.req.param('id'), user.organizationId, 'SalesOrder', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -280,18 +269,7 @@ sales.put('/sales-shipments/:id', async (c) => {
 // DELETE (soft-delete)
 sales.delete('/sales-shipments/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('sales_shipments')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('SalesShipment', id, requestId);
+  await performSoftDelete(db, 'sales_shipments', c.req.param('id'), user.organizationId, 'SalesShipment', requestId);
   return c.json({ data: { success: true } });
 });
 

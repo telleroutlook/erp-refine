@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
@@ -123,18 +123,7 @@ procurement.put('/purchase-orders/:id', async (c) => {
 // DELETE (soft-delete)
 procurement.delete('/purchase-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('purchase_orders')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('PurchaseOrder', id, requestId);
+  await performSoftDelete(db, 'purchase_orders', c.req.param('id'), user.organizationId, 'PurchaseOrder', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -279,18 +268,7 @@ procurement.put('/purchase-requisitions/:id', async (c) => {
 // DELETE (soft-delete)
 procurement.delete('/purchase-requisitions/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('purchase_requisitions')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('PurchaseRequisition', id, requestId);
+  await performSoftDelete(db, 'purchase_requisitions', c.req.param('id'), user.organizationId, 'PurchaseRequisition', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -414,18 +392,7 @@ procurement.put('/rfq-headers/:id', async (c) => {
 // DELETE (soft-delete)
 procurement.delete('/rfq-headers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('rfq_headers')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('RfqHeader', id, requestId);
+  await performSoftDelete(db, 'rfq_headers', c.req.param('id'), user.organizationId, 'RfqHeader', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -543,18 +510,7 @@ procurement.put('/supplier-quotations/:id', async (c) => {
 // DELETE (soft-delete)
 procurement.delete('/supplier-quotations/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('supplier_quotations')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('SupplierQuotation', id, requestId);
+  await performSoftDelete(db, 'supplier_quotations', c.req.param('id'), user.organizationId, 'SupplierQuotation', requestId);
   return c.json({ data: { success: true } });
 });
 

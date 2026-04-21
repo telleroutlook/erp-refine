@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes } from '../utils/crud-factory';
+import { buildCrudRoutes, performHardDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
@@ -103,18 +103,7 @@ manufacturing.put('/bom-headers/:id', async (c) => {
 
 manufacturing.delete('/bom-headers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('bom_headers')
-    .delete()
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('BomHeader', id, requestId);
+  await performHardDelete(db, 'bom_headers', c.req.param('id'), user.organizationId, 'BomHeader', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -249,18 +238,7 @@ manufacturing.put('/work-orders/:id', async (c) => {
 
 manufacturing.delete('/work-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('work_orders')
-    .delete()
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('WorkOrder', id, requestId);
+  await performHardDelete(db, 'work_orders', c.req.param('id'), user.organizationId, 'WorkOrder', requestId);
   return c.json({ data: { success: true } });
 });
 

@@ -7,6 +7,8 @@ import { authMiddleware } from '../middleware/auth';
 import { SchemaRegistry } from '../bff/schema-registry';
 import { schemaArchitectAgent } from '../agents/schema-architect-agent';
 import { createAuthenticatedClient } from '../utils/supabase';
+import { ApiError } from '../utils/api-error';
+import { ErrorCode } from '../types/errors';
 
 const schema = new Hono<{ Bindings: Env }>();
 schema.use('*', authMiddleware());
@@ -27,20 +29,28 @@ schema.get('/:id', async (c) => {
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const registry = new SchemaRegistry(db, user.organizationId);
   const data = await registry.get(c.req.param('id'));
-  if (!data) return c.json({ error: 'Schema not found' }, 404);
+  if (!data) {
+    throw ApiError.notFound('Schema', c.req.param('id'), c.get('requestId') as string);
+  }
   return c.json({ data });
 });
 
 /** POST /api/schema/generate — AI generates a schema draft */
 schema.post('/generate', async (c) => {
   const user = c.get('user');
-  if (user.role !== 'admin') return c.json({ error: 'Admin role required' }, 403);
+  if (user.role !== 'admin') {
+    throw new ApiError({ code: ErrorCode.FORBIDDEN, detail: 'Admin role required', requestId: c.get('requestId') as string });
+  }
 
   const body = await c.req.json<{ spec: unknown }>();
-  if (!body.spec) return c.json({ error: 'spec required' }, 400);
+  if (!body.spec) {
+    throw new ApiError({ code: ErrorCode.VALIDATION_ERROR, detail: 'spec is required', requestId: c.get('requestId') as string });
+  }
 
   const specStr = JSON.stringify(body.spec);
-  if (specStr.length > 50_000) return c.json({ error: 'spec too large (max 50KB)' }, 400);
+  if (specStr.length > 50_000) {
+    throw new ApiError({ code: ErrorCode.VALIDATION_ERROR, detail: 'spec too large (max 50KB)', requestId: c.get('requestId') as string });
+  }
 
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const registry = new SchemaRegistry(db, user.organizationId);

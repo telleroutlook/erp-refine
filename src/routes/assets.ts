@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes } from '../utils/crud-factory';
+import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -99,18 +99,7 @@ assets.put('/fixed-assets/:id', async (c) => {
 
 assets.delete('/fixed-assets/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('fixed_assets')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('FixedAsset', id, requestId);
+  await performSoftDelete(db, 'fixed_assets', c.req.param('id'), user.organizationId, 'FixedAsset', requestId);
   return c.json({ data: { success: true } });
 });
 

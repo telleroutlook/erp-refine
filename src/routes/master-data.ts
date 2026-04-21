@@ -5,7 +5,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -105,18 +105,7 @@ masterData.put('/products/:id', async (c) => {
 
 masterData.delete('/products/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('products')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('Product', id, requestId);
+  await performSoftDelete(db, 'products', c.req.param('id'), user.organizationId, 'Product', requestId);
   return c.json({ data: { success: true } });
 });
 

@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes } from '../utils/crud-factory';
+import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
@@ -109,18 +109,7 @@ quality.put('/quality-standards/:id', async (c) => {
 
 quality.delete('/quality-standards/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('quality_standards')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('QualityStandard', id, requestId);
+  await performSoftDelete(db, 'quality_standards', c.req.param('id'), user.organizationId, 'QualityStandard', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -214,18 +203,7 @@ quality.put('/quality-inspections/:id', async (c) => {
 
 quality.delete('/quality-inspections/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('quality_inspections')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('QualityInspection', id, requestId);
+  await performSoftDelete(db, 'quality_inspections', c.req.param('id'), user.organizationId, 'QualityInspection', requestId);
   return c.json({ data: { success: true } });
 });
 

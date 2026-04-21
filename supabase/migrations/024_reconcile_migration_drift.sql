@@ -280,3 +280,28 @@ DO $$ BEGIN
     ALTER TABLE voucher_entries RENAME COLUMN description TO summary;
   END IF;
 END $$;
+
+-- approval_records: ensure deleted_at, status, and 014-schema columns exist
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'approval_records' AND column_name = 'deleted_at'
+  ) THEN
+    ALTER TABLE approval_records ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'approval_records' AND column_name = 'updated_at'
+  ) THEN
+    ALTER TABLE approval_records ADD COLUMN updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'approval_records' AND column_name = 'status'
+  ) THEN
+    ALTER TABLE approval_records ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'
+      CHECK (status IN ('pending', 'approved', 'rejected', 'recalled'));
+  END IF;
+END $$;

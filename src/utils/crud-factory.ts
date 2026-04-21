@@ -397,24 +397,73 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
     await assertParentOwned(db, parentId, user.organizationId, requestId);
 
     if (softDelete) {
-      const { error } = await db
+      const { data, error } = await db
         .from(childTable)
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', id)
-        .eq(parentFk, parentId);
+        .eq(parentFk, parentId)
+        .select('id')
+        .maybeSingle();
       if (error) throw ApiError.database(error.message, requestId);
+      if (!data) throw ApiError.notFound(childResourceName, id, requestId);
     } else {
-      const { error } = await db
+      const { data, error } = await db
         .from(childTable)
         .delete()
         .eq('id', id)
-        .eq(parentFk, parentId);
+        .eq(parentFk, parentId)
+        .select('id')
+        .maybeSingle();
       if (error) throw ApiError.database(error.message, requestId);
+      if (!data) throw ApiError.notFound(childResourceName, id, requestId);
     }
     return c.json({ data: { success: true } });
   });
 
   return router;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Standalone delete helpers — use in hand-written routes that can't use the
+// full buildCrudRoutes factory because their GET/POST/PUT are custom.
+// ────────────────────────────────────────────────────────────────────────────
+
+export async function performSoftDelete(
+  db: SupabaseClient,
+  table: string,
+  id: string,
+  organizationId: string,
+  resourceName: string,
+  requestId: string
+): Promise<void> {
+  const { data, error } = await db
+    .from(table)
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('organization_id', organizationId)
+    .select('id')
+    .maybeSingle();
+  if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound(resourceName, id, requestId);
+}
+
+export async function performHardDelete(
+  db: SupabaseClient,
+  table: string,
+  id: string,
+  organizationId: string,
+  resourceName: string,
+  requestId: string
+): Promise<void> {
+  const { data, error } = await db
+    .from(table)
+    .delete()
+    .eq('id', id)
+    .eq('organization_id', organizationId)
+    .select('id')
+    .maybeSingle();
+  if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound(resourceName, id, requestId);
 }
 
 /** Generate a helpful hint from a Postgres error */

@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes } from '../utils/crud-factory';
+import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
@@ -133,18 +133,7 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
 // DELETE (soft-delete)
 salesFinance.delete('/sales-invoices/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('sales_invoices')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('SalesInvoice', id, requestId);
+  await performSoftDelete(db, 'sales_invoices', c.req.param('id'), user.organizationId, 'SalesInvoice', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -265,18 +254,7 @@ salesFinance.put('/sales-returns/:id', async (c) => {
 // DELETE (soft-delete)
 salesFinance.delete('/sales-returns/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('sales_returns')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('SalesReturn', id, requestId);
+  await performSoftDelete(db, 'sales_returns', c.req.param('id'), user.organizationId, 'SalesReturn', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -482,18 +460,7 @@ salesFinance.put('/customer-receipts/:id', async (c) => {
 // DELETE (soft-delete)
 salesFinance.delete('/customer-receipts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('customer_receipts')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('CustomerReceipt', id, requestId);
+  await performSoftDelete(db, 'customer_receipts', c.req.param('id'), user.organizationId, 'CustomerReceipt', requestId);
   return c.json({ data: { success: true } });
 });
 

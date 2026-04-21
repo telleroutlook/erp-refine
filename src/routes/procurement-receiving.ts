@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes } from '../utils/crud-factory';
+import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
@@ -132,18 +132,7 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
 // DELETE (soft-delete)
 procurementReceiving.delete('/purchase-receipts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('purchase_receipts')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('PurchaseReceipt', id, requestId);
+  await performSoftDelete(db, 'purchase_receipts', c.req.param('id'), user.organizationId, 'PurchaseReceipt', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -307,18 +296,7 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
 // DELETE (soft-delete)
 procurementReceiving.delete('/supplier-invoices/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('supplier_invoices')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('SupplierInvoice', id, requestId);
+  await performSoftDelete(db, 'supplier_invoices', c.req.param('id'), user.organizationId, 'SupplierInvoice', requestId);
   return c.json({ data: { success: true } });
 });
 

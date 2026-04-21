@@ -114,8 +114,8 @@ export const dataProvider: DataProvider = {
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error((err as any).message ?? 'Delete failed');
+      const err = await response.json().catch(() => ({ detail: 'Delete failed' }));
+      throw new Error(err.detail ?? err.error ?? 'Delete failed');
     }
     const json = await response.json();
     return { data: json.data };

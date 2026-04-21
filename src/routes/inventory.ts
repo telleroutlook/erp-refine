@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
@@ -230,18 +230,7 @@ inventory.put('/inventory-counts/:id', async (c) => {
 // DELETE (soft-delete)
 inventory.delete('/inventory-counts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('inventory_counts')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .select('id')
-    .maybeSingle();
-
-  if (error) throw ApiError.database(error.message, requestId);
-  if (!data) throw ApiError.notFound('InventoryCount', id, requestId);
+  await performSoftDelete(db, 'inventory_counts', c.req.param('id'), user.organizationId, 'InventoryCount', requestId);
   return c.json({ data: { success: true } });
 });
 
