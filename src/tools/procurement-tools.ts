@@ -277,5 +277,51 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         return data ?? [];
       },
     }),
+
+    list_advance_shipment_notices: tool({
+      description: 'List advance shipment notices (ASN) from suppliers',
+      inputSchema: z.object({
+        status: z.enum(['draft', 'in_transit', 'received', 'cancelled']).optional(),
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, supplierId, limit }) => {
+        let query = db
+          .from('advance_shipment_notices')
+          .select('id, asn_no, status, expected_date, supplier:suppliers(id,name,code), warehouse:warehouses(id,name)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+
+        const { data, error } = await query.order('expected_date', { ascending: true }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_reconciliation_statements: tool({
+      description: 'List supplier reconciliation statements for AP reconciliation',
+      inputSchema: z.object({
+        status: z.enum(['draft', 'confirmed', 'disputed', 'closed']).optional(),
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, supplierId, limit }) => {
+        let query = db
+          .from('reconciliation_statements')
+          .select('id, statement_no, status, period_start, period_end, total_amount, paid_amount, currency, supplier:suppliers(id,name,code)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+
+        const { data, error } = await query.order('period_end', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

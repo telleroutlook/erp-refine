@@ -471,4 +471,289 @@ procurementReceiving.route('', buildCrudRoutes({
   parentOwnership: { parentFk: 'supplier_invoice_id', parentTable: 'supplier_invoices' },
 }));
 
+// ────────────────────────────────────────────────────────────────────────────
+// Advance Shipment Notices (ASN)
+// ────────────────────────────────────────────────────────────────────────────
+
+// GET list
+procurementReceiving.get('/advance-shipment-notices', async (c) => {
+  const { db, user } = getDbAndUser(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
+
+  let query = db
+    .from('advance_shipment_notices')
+    .select(
+      'id, asn_no, status, expected_date, remark, supplier:suppliers(id,name), warehouse:warehouses(id,name), purchase_order:purchase_orders!po_id(id,order_number), created_at',
+      { count: 'exact' }
+    )
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
+    .order(sortField, { ascending: sortOrder === 'asc' })
+    .range((page - 1) * pageSize, page * pageSize - 1);
+
+  if (error) throw ApiError.database(error.message, c.get('requestId'));
+  return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
+});
+
+// GET detail
+procurementReceiving.get('/advance-shipment-notices/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data, error } = await db
+    .from('advance_shipment_notices')
+    .select('*, supplier:suppliers(id,name), warehouse:warehouses(id,name), purchase_order:purchase_orders!po_id(id,order_number), lines:asn_lines(id, line_no, qty, lot_no, item:products!item_id(id,name,code))')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) throw ApiError.notFound('AdvanceShipmentNotice', id, requestId);
+  return c.json({ data });
+});
+
+// POST create (atomic header + items)
+procurementReceiving.post('/advance-shipment-notices', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const body = await c.req.json();
+
+  const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'advance_shipment_notice',
+  });
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate ASN number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
+
+  const { items, ...headerFields } = body;
+  const result = await atomicCreateWithItems(
+    db,
+    {
+      headerTable: 'advance_shipment_notices',
+      itemsTable: 'asn_lines',
+      headerFk: 'asn_id',
+      headerReturnSelect: 'id, asn_no, status',
+      itemsReturnSelect: 'id, qty, line_no',
+    },
+    {
+      header: {
+        ...headerFields,
+        asn_no: seqData,
+        organization_id: user.organizationId,
+        status: 'draft',
+        created_by: user.userId,
+      },
+      items: (items ?? []).map((item: Record<string, unknown>, idx: number) => ({
+        ...item,
+        organization_id: user.organizationId,
+        line_no: item.line_no ?? idx + 1,
+      })),
+    },
+    { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_asn', resource: 'advance_shipment_notices' }
+  );
+
+  return c.json({ data: result.header }, 201);
+});
+
+// PUT update
+procurementReceiving.put('/advance-shipment-notices/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+
+  const PERMITTED = new Set(['status', 'expected_date', 'remark']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('advance_shipment_notices')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('AdvanceShipmentNotice', id, requestId);
+    return c.json({ data: existing });
+  }
+
+  const { data, error } = await db
+    .from('advance_shipment_notices')
+    .update(updateData)
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .select('id')
+    .single();
+
+  if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('AdvanceShipmentNotice', id, requestId);
+  return c.json({ data });
+});
+
+// DELETE (soft-delete)
+procurementReceiving.delete('/advance-shipment-notices/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  await performSoftDelete(db, 'advance_shipment_notices', c.req.param('id'), user.organizationId, 'AdvanceShipmentNotice', requestId);
+  return c.json({ data: { success: true } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// ASN Lines — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+procurementReceiving.route('', buildCrudRoutes({
+  table: 'asn_lines',
+  path: '/asn-lines',
+  resourceName: 'AsnLine',
+  listSelect: 'id, line_no, qty, lot_no, item:products!item_id(id,name,code)',
+  detailSelect: '*, item:products!item_id(id,name,code)',
+  createReturnSelect: 'id, qty, line_no',
+  defaultSort: 'line_no',
+  softDelete: true,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'asn_id', parentTable: 'advance_shipment_notices' },
+}));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Reconciliation Statements (Supplier Account Reconciliation)
+// ────────────────────────────────────────────────────────────────────────────
+
+// GET list
+procurementReceiving.get('/reconciliation-statements', async (c) => {
+  const { db, user } = getDbAndUser(c);
+  const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
+  const filters = parseRefineFilters(c);
+
+  let query = db
+    .from('reconciliation_statements')
+    .select(
+      'id, statement_no, status, period_start, period_end, total_amount, paid_amount, currency, notes, supplier:suppliers(id,name), created_at',
+      { count: 'exact' }
+    )
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null);
+  query = applyFilters(query, filters);
+  const { data, count, error } = await query
+    .order(sortField, { ascending: sortOrder === 'asc' })
+    .range((page - 1) * pageSize, page * pageSize - 1);
+
+  if (error) throw ApiError.database(error.message, c.get('requestId'));
+  return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
+});
+
+// GET detail
+procurementReceiving.get('/reconciliation-statements/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data, error } = await db
+    .from('reconciliation_statements')
+    .select('*, supplier:suppliers(id,name), lines:reconciliation_lines(id, description, quantity, unit_price, line_amount, notes, item:products!item_id(id,name,code))')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) throw ApiError.notFound('ReconciliationStatement', id, requestId);
+  return c.json({ data });
+});
+
+// POST create (atomic header + items)
+procurementReceiving.post('/reconciliation-statements', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const body = await c.req.json();
+
+  const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'reconciliation_statement',
+  });
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate statement number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
+
+  const { items, ...headerFields } = body;
+  const result = await atomicCreateWithItems(
+    db,
+    {
+      headerTable: 'reconciliation_statements',
+      itemsTable: 'reconciliation_lines',
+      headerFk: 'statement_id',
+      headerReturnSelect: 'id, statement_no, status',
+      itemsReturnSelect: 'id, line_amount',
+    },
+    {
+      header: {
+        ...headerFields,
+        statement_no: seqData,
+        organization_id: user.organizationId,
+        status: 'draft',
+      },
+      items: items ?? [],
+    },
+    { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_reconciliation_statement', resource: 'reconciliation_statements' }
+  );
+
+  return c.json({ data: result.header }, 201);
+});
+
+// PUT update
+procurementReceiving.put('/reconciliation-statements/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+
+  const PERMITTED = new Set(['status', 'notes', 'paid_amount']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    const { data: existing } = await db
+      .from('reconciliation_statements')
+      .select('id')
+      .eq('id', id)
+      .eq('organization_id', user.organizationId)
+      .single();
+    if (!existing) throw ApiError.notFound('ReconciliationStatement', id, requestId);
+    return c.json({ data: existing });
+  }
+
+  const { data, error } = await db
+    .from('reconciliation_statements')
+    .update(updateData)
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .select('id')
+    .single();
+
+  if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('ReconciliationStatement', id, requestId);
+  return c.json({ data });
+});
+
+// DELETE (soft-delete)
+procurementReceiving.delete('/reconciliation-statements/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  await performSoftDelete(db, 'reconciliation_statements', c.req.param('id'), user.organizationId, 'ReconciliationStatement', requestId);
+  return c.json({ data: { success: true } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Reconciliation Lines — standalone CRUD via factory
+// ────────────────────────────────────────────────────────────────────────────
+
+procurementReceiving.route('', buildCrudRoutes({
+  table: 'reconciliation_lines',
+  path: '/reconciliation-lines',
+  resourceName: 'ReconciliationLine',
+  listSelect: 'id, description, quantity, unit_price, line_amount, notes, item:products!item_id(id,name,code)',
+  detailSelect: '*, item:products!item_id(id,name,code)',
+  createReturnSelect: 'id, line_amount',
+  defaultSort: 'id',
+  softDelete: true,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'statement_id', parentTable: 'reconciliation_statements' },
+}));
+
 export default procurementReceiving;

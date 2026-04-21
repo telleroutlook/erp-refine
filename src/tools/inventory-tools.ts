@@ -157,5 +157,31 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
         return data ?? [];
       },
     }),
+
+    list_inventory_reservations: tool({
+      description: 'List inventory reservations (stock held for orders)',
+      inputSchema: z.object({
+        productId: z.string().uuid().optional(),
+        warehouseId: z.string().uuid().optional(),
+        referenceType: z.string().optional().describe('e.g. sales_orders'),
+        status: z.enum(['active', 'released', 'expired']).optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+      execute: async ({ productId, warehouseId, referenceType, status, limit }) => {
+        let query = db
+          .from('inventory_reservations')
+          .select('id, reserved_quantity, reference_type, reference_id, status, expires_at, reserved_by, product:products(id,name,code), warehouse:warehouses(id,name)')
+          .eq('organization_id', organizationId);
+
+        if (productId) query = query.eq('product_id', productId);
+        if (warehouseId) query = query.eq('warehouse_id', warehouseId);
+        if (referenceType) query = query.eq('reference_type', referenceType);
+        if (status) query = query.eq('status', status);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

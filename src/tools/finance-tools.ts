@@ -148,5 +148,28 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
         return data ?? [];
       },
     }),
+
+    list_approval_records: tool({
+      description: 'Look up approval history for business documents (PO, invoice, etc.)',
+      inputSchema: z.object({
+        documentType: z.string().optional().describe('e.g. purchase_orders, supplier_invoices'),
+        documentId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ documentType, documentId, limit }) => {
+        let query = db
+          .from('approval_records')
+          .select('id, document_type, document_id, rule_id, decision_level, status, decision_by, decision_at, comments, created_at')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (documentType) query = query.eq('document_type', documentType);
+        if (documentId) query = query.eq('document_id', documentId);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

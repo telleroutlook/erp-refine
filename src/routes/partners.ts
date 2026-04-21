@@ -150,4 +150,54 @@ partners.route('', buildNestedCrudRoutes({
   softDelete: true,
 }));
 
+// ---------------------------------------------------------------------------
+// Supplier Contacts — nested CRUD under /suppliers/:supplierId/contacts
+// ---------------------------------------------------------------------------
+partners.route('', buildNestedCrudRoutes({
+  parentTable: 'suppliers',
+  parentParam: 'supplierId',
+  parentFk: 'supplier_id',
+  childTable: 'supplier_contacts',
+  childPath: 'contacts',
+  childResourceName: 'SupplierContact',
+  childListSelect: 'id, name, title, email, phone, is_primary',
+  childReturnSelect: 'id, name, email',
+  defaultSort: 'is_primary',
+  softDelete: true,
+}));
+
+// ---------------------------------------------------------------------------
+// Supplier Certificates — nested CRUD under /suppliers/:supplierId/certificates
+// ---------------------------------------------------------------------------
+partners.route('', buildNestedCrudRoutes({
+  parentTable: 'suppliers',
+  parentParam: 'supplierId',
+  parentFk: 'supplier_id',
+  childTable: 'supplier_certificates',
+  childPath: 'certificates',
+  childResourceName: 'SupplierCertificate',
+  childListSelect: 'id, certificate_type, certificate_number, issued_by, issued_date, expiry_date, status',
+  childReturnSelect: 'id, certificate_type, certificate_number',
+  defaultSort: 'expiry_date',
+  softDelete: true,
+}));
+
+// ---------------------------------------------------------------------------
+// Profile Change Requests — supplier self-service change tracking
+// ---------------------------------------------------------------------------
+const profileChangeRequestsConfig: CrudConfig = {
+  table: 'profile_change_requests',
+  path: '/profile-change-requests',
+  resourceName: 'ProfileChangeRequest',
+  listSelect: 'id, supplier_id, request_type, change_request_id, status, created_by, created_at, updated_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, request_type, status',
+  defaultSort: 'created_at',
+  softDelete: false,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'supplier_id', parentTable: 'suppliers' },
+};
+
+partners.route('', buildCrudRoutes(profileChangeRequestsConfig));
+
 export default partners;

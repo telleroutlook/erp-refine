@@ -45,8 +45,8 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
             *,
             custodian:employees!custodian_id(id,name),
             cost_center:cost_centers(id,name,code),
-            depreciations:asset_depreciations(id,depreciation_date,depreciation_amount,accumulated_depreciation,book_value),
-            maintenance:asset_maintenance_records(id,maintenance_date,maintenance_type,cost,notes,status)
+            depreciations:asset_depreciations(id,period_year,period_month,depreciation_amount,accumulated_depreciation,book_value_after),
+            maintenance:asset_maintenance_records(id,performed_at,maintenance_type,cost,description)
           `)
           .eq('id', id)
           .eq('organization_id', organizationId)
@@ -54,6 +54,44 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
           .single();
         if (error) throw new Error(error.message);
         return data;
+      },
+    }),
+
+    list_asset_depreciations: tool({
+      description: 'List depreciation records for a fixed asset',
+      inputSchema: z.object({
+        assetId: z.string().uuid(),
+        limit: z.number().min(1).max(100).default(36),
+      }),
+      execute: async ({ assetId, limit }) => {
+        const { data, error } = await db
+          .from('asset_depreciations')
+          .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted')
+          .eq('asset_id', assetId)
+          .order('period_year', { ascending: false })
+          .order('period_month', { ascending: false })
+          .limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_asset_maintenance: tool({
+      description: 'List maintenance records for a fixed asset',
+      inputSchema: z.object({
+        assetId: z.string().uuid(),
+        limit: z.number().min(1).max(50).default(20),
+      }),
+      execute: async ({ assetId, limit }) => {
+        const { data, error } = await db
+          .from('asset_maintenance_records')
+          .select('id, maintenance_type, description, cost, performed_by, performed_at, next_due_at')
+          .eq('asset_id', assetId)
+          .is('deleted_at', null)
+          .order('performed_at', { ascending: false })
+          .limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
       },
     }),
   };

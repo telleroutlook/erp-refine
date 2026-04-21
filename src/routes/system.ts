@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
 import { applyFilters } from '../utils/database';
@@ -12,6 +12,7 @@ import { ApiError } from '../utils/api-error';
 
 const system = new Hono<{ Bindings: Env }>();
 system.use('*', authMiddleware());
+system.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Document Attachments — full CRUD
@@ -152,5 +153,61 @@ system.post('/notifications/read-all', async (c) => {
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Document Relations — cross-entity linking (e.g. PO → Receipt → Invoice)
+// ────────────────────────────────────────────────────────────────────────────
+
+const documentRelationsConfig: CrudConfig = {
+  table: 'document_relations',
+  path: '/document-relations',
+  resourceName: 'DocumentRelation',
+  listSelect: 'id, from_object_type, from_object_id, to_object_type, to_object_id, relation_type, label, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, relation_type',
+  defaultSort: 'created_at',
+  softDelete: false,
+  orgScoped: true,
+};
+system.route('', buildCrudRoutes(documentRelationsConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Workflows — read-only workflow state tracking
+// ────────────────────────────────────────────────────────────────────────────
+
+const workflowsConfig: CrudConfig = {
+  table: 'workflows',
+  path: '/workflows',
+  resourceName: 'Workflow',
+  listSelect: 'id, workflow_type, entity_type, entity_id, status, current_step, started_by, started_at, completed_at, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id',
+  defaultSort: 'created_at',
+  softDelete: false,
+  orgScoped: true,
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+system.route('', buildCrudRoutes(workflowsConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Message Feedback — create + list (no update/delete)
+// ────────────────────────────────────────────────────────────────────────────
+
+const messageFeedbackConfig: CrudConfig = {
+  table: 'message_feedback',
+  path: '/message-feedback',
+  resourceName: 'MessageFeedback',
+  listSelect: 'id, session_id, message_id, user_id, feedback, comment, created_at',
+  detailSelect: '*',
+  createReturnSelect: 'id, feedback',
+  defaultSort: 'created_at',
+  softDelete: false,
+  orgScoped: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+system.route('', buildCrudRoutes(messageFeedbackConfig));
 
 export default system;

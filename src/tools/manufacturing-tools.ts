@@ -89,5 +89,32 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         return data ?? [];
       },
     }),
+
+    list_work_order_materials: tool({
+      description: 'List material requirements for a work order',
+      inputSchema: z.object({ workOrderId: z.string().uuid() }),
+      execute: async ({ workOrderId }) => {
+        const { data, error } = await db
+          .from('work_order_materials')
+          .select('id, required_quantity, issued_quantity, status, notes, product:products(id,name,code)')
+          .eq('work_order_id', workOrderId);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_work_order_productions: tool({
+      description: 'List production records (output entries) for a work order',
+      inputSchema: z.object({ workOrderId: z.string().uuid() }),
+      execute: async ({ workOrderId }) => {
+        const { data, error } = await db
+          .from('work_order_productions')
+          .select('id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_by')
+          .eq('work_order_id', workOrderId)
+          .order('production_date', { ascending: false });
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

@@ -16,9 +16,10 @@ import { createAssetsTools } from './assets-tools';
 import { createPartnersTools } from './partners-tools';
 import { createLookupTools } from './lookup-tools';
 import { createSchemaTools } from './schema-tools';
+import { createSystemTools } from './system-tools';
 import { intentTools } from './intent-tools';
 
-export type DomainScope = 'procurement' | 'sales' | 'inventory' | 'finance' | 'quality' | 'manufacturing' | 'contracts' | 'assets' | 'partners' | 'master-data' | 'reporting' | 'schema' | 'all';
+export type DomainScope = 'procurement' | 'sales' | 'inventory' | 'finance' | 'quality' | 'manufacturing' | 'contracts' | 'assets' | 'partners' | 'master-data' | 'reporting' | 'schema' | 'system' | 'all';
 
 export interface ToolRegistryOptions {
   db: SupabaseClient;
@@ -46,6 +47,7 @@ export function buildToolSet(options: ToolRegistryOptions): ToolSet {
   if (include('assets')) Object.assign(tools, createAssetsTools(db, organizationId));
   if (include('partners')) Object.assign(tools, createPartnersTools(db, organizationId));
   if (include('schema')) Object.assign(tools, createSchemaTools(db, organizationId));
+  if (include('system')) Object.assign(tools, createSystemTools(db, organizationId));
   Object.assign(tools, createLookupTools(db, organizationId));
 
   return tools;
@@ -66,6 +68,7 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_serial_numbers', domain: 'inventory', level: 0, cacheable: false },
   { name: 'list_inventory_counts', domain: 'inventory', level: 0, cacheable: true },
   { name: 'get_low_stock_alerts', domain: 'inventory', level: 0, cacheable: true },
+  { name: 'list_inventory_reservations', domain: 'inventory', level: 0, cacheable: true },
   // procurement
   { name: 'list_purchase_orders', domain: 'procurement', level: 0, cacheable: true },
   { name: 'get_purchase_order', domain: 'procurement', level: 0, cacheable: false },
@@ -77,6 +80,9 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_supplier_quotations', domain: 'procurement', level: 0, cacheable: false },
   { name: 'list_purchase_receipts', domain: 'procurement', level: 0, cacheable: true },
   { name: 'list_supplier_invoices', domain: 'procurement', level: 0, cacheable: true },
+  // procurement — ASN & reconciliation
+  { name: 'list_advance_shipment_notices', domain: 'procurement', level: 0, cacheable: true },
+  { name: 'list_reconciliation_statements', domain: 'procurement', level: 0, cacheable: true },
   // sales
   { name: 'list_sales_orders', domain: 'sales', level: 0, cacheable: true },
   { name: 'get_sales_order', domain: 'sales', level: 0, cacheable: false },
@@ -86,7 +92,6 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_sales_returns', domain: 'sales', level: 0, cacheable: true },
   { name: 'list_customer_receipts', domain: 'sales', level: 0, cacheable: true },
   { name: 'list_sales_shipments', domain: 'sales', level: 0, cacheable: true },
-  // finance
   { name: 'list_vouchers', domain: 'finance', level: 0, cacheable: true },
   { name: 'get_budget_vs_actual', domain: 'finance', level: 0, cacheable: true },
   { name: 'list_payment_requests', domain: 'finance', level: 0, cacheable: true },
@@ -94,11 +99,15 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_cost_centers', domain: 'finance', level: 0, cacheable: true },
   { name: 'list_budgets', domain: 'finance', level: 0, cacheable: true },
   { name: 'list_payment_records', domain: 'finance', level: 0, cacheable: true },
+  { name: 'list_approval_records', domain: 'finance', level: 0, cacheable: false },
   // master-data
   { name: 'list_products', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_currencies', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_departments', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_employees', domain: 'master-data', level: 0, cacheable: true },
+  { name: 'list_exchange_rates', domain: 'master-data', level: 0, cacheable: true },
+  { name: 'list_carriers', domain: 'master-data', level: 0, cacheable: true },
+  { name: 'list_price_lists', domain: 'master-data', level: 0, cacheable: true },
   // reporting
   { name: 'get_procurement_summary', domain: 'reporting', level: 0, cacheable: true },
   { name: 'get_sales_summary', domain: 'reporting', level: 0, cacheable: true },
@@ -115,18 +124,27 @@ export const TOOL_REGISTRY_META = [
   { name: 'get_work_order', domain: 'manufacturing', level: 0, cacheable: false },
   { name: 'list_bom_headers', domain: 'manufacturing', level: 0, cacheable: true },
   { name: 'get_bom', domain: 'manufacturing', level: 0, cacheable: false },
+  { name: 'list_work_order_materials', domain: 'manufacturing', level: 0, cacheable: false },
+  { name: 'list_work_order_productions', domain: 'manufacturing', level: 0, cacheable: false },
   // contracts
   { name: 'list_contracts', domain: 'contracts', level: 0, cacheable: true },
   { name: 'get_contract', domain: 'contracts', level: 0, cacheable: false },
   // assets
   { name: 'list_fixed_assets', domain: 'assets', level: 0, cacheable: true },
   { name: 'get_fixed_asset', domain: 'assets', level: 0, cacheable: false },
+  { name: 'list_asset_depreciations', domain: 'assets', level: 0, cacheable: false },
+  { name: 'list_asset_maintenance', domain: 'assets', level: 0, cacheable: false },
   // partners
   { name: 'get_supplier', domain: 'partners', level: 0, cacheable: false },
   { name: 'get_customer', domain: 'partners', level: 0, cacheable: false },
+  { name: 'list_supplier_contacts', domain: 'partners', level: 0, cacheable: false },
+  { name: 'list_supplier_certificates', domain: 'partners', level: 0, cacheable: false },
   // lookup & schema
   { name: 'lookup_by_number', domain: 'lookup', level: 0, cacheable: false },
   { name: 'list_active_schemas', domain: 'schema', level: 0, cacheable: true },
   { name: 'get_schema', domain: 'schema', level: 0, cacheable: false },
   { name: 'preview_component_snapshot', domain: 'schema', level: 1, cacheable: false },
+  // system
+  { name: 'list_workflows', domain: 'system', level: 0, cacheable: false },
+  { name: 'list_document_relations', domain: 'system', level: 0, cacheable: false },
 ];
