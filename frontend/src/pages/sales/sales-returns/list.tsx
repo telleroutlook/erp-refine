@@ -6,7 +6,6 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const SalesReturnList: React.FC = () => {
   const { t } = useTranslation();
@@ -14,7 +13,6 @@ export const SalesReturnList: React.FC = () => {
 
   const { tableProps } = useTable({
     resource: 'sales-returns',
-    filters: SOFT_DELETE_FILTER,
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
@@ -30,7 +28,7 @@ export const SalesReturnList: React.FC = () => {
           title={t('common.amount')}
           width={140}
           align="right"
-          render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />}
+          render={(v, r: any) => <AmountDisplay value={v} />}
         />
         <Table.Column
           title={t('common.actions')}

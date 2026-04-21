@@ -3,14 +3,12 @@ import { useTable, List } from '@refinedev/antd';
 import { Table, Button, Space, Tag } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
-import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const CarrierList: React.FC = () => {
   const { show, edit, create } = useNavigation();
 
   const { tableProps } = useTable({
     resource: 'carriers',
-    filters: SOFT_DELETE_FILTER,
     sorters: { initial: [{ field: 'code', order: 'asc' }] },
   });
 

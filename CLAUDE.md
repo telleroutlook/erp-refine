@@ -41,30 +41,7 @@
 ## 列名速查（易混淆字段）
 
 **重要**: 以 `information_schema` 查询结果为唯一权威。迁移文件可能与实际 DB 不一致（见 `018_reconcile_schema.sql`）。
-
-| 表 | 正确列名 | 常见错误 |
-|---|---|---|
-| `purchase_orders` | `order_number` | ~~po_no~~ |
-| `sales_orders` | `order_number`, `contract_id` | ~~so_no~~ |
-| `sales_invoices` | `invoice_number` | ~~invoice_no~~ |
-| `sales_shipments` | `shipment_number`, `sales_order_id` | ~~delivery_number~~, ~~do_no~~ |
-| `sales_returns` | `return_number` | ~~return_no~~ |
-| `customer_receipts` | `receipt_number`, `receipt_date`, `amount`, `reference_type`, `reference_id` | ~~receipt_no~~, ~~payment_number~~, ~~sales_invoice_id~~ |
-| `supplier_invoices` | `invoice_number`, `supplier_id` | ~~invoice_no~~, ~~purchase_invoices~~ |
-| `payment_requests` | `ok_to_pay` (BOOLEAN), `currency`, `request_number`, `amount`, `due_date` | ~~ok_to_pay_flag~~, ~~currency_code~~, ~~total_amount~~ |
-| `products` | `name`, `code`, `uom`, `is_active`, `status` | ~~short_name~~, ~~sku_code~~ |
-| `stock_records` | `qty_on_hand`, `qty_reserved`, `product_id`, `warehouse_id` | ~~qty_total~~, ~~sku_id~~ |
-| `suppliers` | `contact_person`, `contact_phone`, `contact_email` | ~~contact~~, ~~phone~~, ~~email~~ |
-| `customers` | `contact`, `phone`, `email` | ~~contact_name~~, ~~contact_person~~ |
-| `warehouses` | `type` (TEXT) | ~~warehouse_type~~ |
-| 所有 items 表 | `quantity` | ~~qty~~ |
-| `work_orders` | `completed_quantity` | ~~completed_qty~~ |
-| `work_order_materials` | `required_quantity`, `issued_quantity`, `warehouse_id` | ~~required_qty~~, ~~issued_qty~~ |
-| `quality_inspections` | `total_quantity`, `qualified_quantity`, `defective_quantity` | ~~total_qty~~, ~~qualified_qty~~ |
-| `inventory_counts` | `created_by` | ~~initiated_by~~ |
-| `bom_headers` | `is_active` (BOOLEAN) | ~~status~~ |
-| `vouchers` | `notes` | ~~description~~ |
-| 全局 | `organization_id` | ~~tenant_id~~ |
+查询前用 `SELECT column_name FROM information_schema.columns WHERE table_name = '...'` 验证实际列名。
 
 ## 软删除规范
 

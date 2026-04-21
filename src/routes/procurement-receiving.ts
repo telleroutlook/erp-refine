@@ -45,7 +45,7 @@ procurementReceiving.get('/purchase-receipts/:id', async (c) => {
 
   const { data, error } = await db
     .from('purchase_receipts')
-    .select('*, items:purchase_receipt_items(*, product:products(id,name,code))')
+    .select('*, purchase_order:purchase_orders(id,order_number), supplier:suppliers(id,name), items:purchase_receipt_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -99,7 +99,7 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'received_date']);
+  const PERMITTED = new Set(['status', 'notes', 'receipt_date']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -217,7 +217,7 @@ procurementReceiving.get('/supplier-invoices/:id', async (c) => {
 
   const { data, error } = await db
     .from('supplier_invoices')
-    .select('*, items:supplier_invoice_items(*, product:products(id,name,code))')
+    .select('*, supplier:suppliers(id,name), items:supplier_invoice_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

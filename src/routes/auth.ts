@@ -23,7 +23,12 @@ auth.post('/login', async (c) => {
 
   return c.json({
     data: {
-      user: data.user,
+      user: {
+        id: data.user?.id,
+        email: data.user?.email,
+        role: (data.user?.app_metadata as Record<string, string>)?.role ?? 'viewer',
+        organizationId: (data.user?.app_metadata as Record<string, string>)?.organization_id,
+      },
       session: {
         accessToken: data.session?.access_token,
         refreshToken: data.session?.refresh_token,

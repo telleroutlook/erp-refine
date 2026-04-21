@@ -45,7 +45,7 @@ salesFinance.get('/sales-invoices/:id', async (c) => {
 
   const { data, error } = await db
     .from('sales_invoices')
-    .select('*, items:sales_invoice_items(*, product:products(id,name,code))')
+    .select('*, customer:customers(id,name), sales_order:sales_orders(id,order_number), items:sales_invoice_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

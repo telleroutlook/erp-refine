@@ -224,8 +224,9 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);
         if (orgScoped) q = q.eq('organization_id', user.organizationId);
-        const { error } = await q;
+        const { data, error } = await q.select('id').maybeSingle();
         if (error) throw ApiError.database(error.message, requestId);
+        if (!data) throw ApiError.notFound(resourceName, id, requestId);
       } else {
         let q = db.from(table).delete().eq('id', id);
         if (orgScoped) q = q.eq('organization_id', user.organizationId);
@@ -373,7 +374,9 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
     const id = c.req.param('id');
     await assertParentOwned(db, parentId, user.organizationId, requestId);
 
-    const body = await c.req.json();
+    const rawBody = await c.req.json();
+    const BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by']);
+    const body = Object.fromEntries(Object.entries(rawBody).filter(([k]) => !BLOCKED.has(k)));
     const { data, error } = await db
       .from(childTable)
       .update(body)

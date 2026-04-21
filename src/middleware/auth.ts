@@ -63,7 +63,10 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
 
       if (header.alg === 'HS256' && c.env.JWT_SECRET) {
         const secret = new TextEncoder().encode(c.env.JWT_SECRET);
-        result = await jwtVerify(token, secret, { algorithms: ['HS256'] });
+        result = await jwtVerify(token, secret, {
+          algorithms: ['HS256'],
+          issuer: new URL('/auth/v1', c.env.SUPABASE_URL).toString(),
+        });
       } else if (header.alg === 'ES256') {
         const supabaseUrl = c.env.SUPABASE_URL;
         if (!supabaseUrl) {

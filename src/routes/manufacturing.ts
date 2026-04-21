@@ -307,11 +307,13 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   await batchCreateStockTransactions(db, stockTxInputs, requestId);
 
   // Batch update work_order_materials — one request per row (Supabase lacks multi-row UPDATE)
-  await Promise.all(
+  const matResults = await Promise.all(
     materialUpdates.map(({ id, newIssuedQty }) =>
       db.from('work_order_materials').update({ issued_quantity: newIssuedQty }).eq('id', id)
     )
   );
+  const matFailed = matResults.filter(r => r.error);
+  if (matFailed.length > 0) throw ApiError.database(matFailed[0]!.error!.message, requestId);
 
   // 3. Update work order status to 'in_progress' if not already
   if (wo.status !== 'in_progress') {

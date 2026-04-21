@@ -19,8 +19,8 @@ export function parseRefineQuery(c: Context, defaultSort = 'created_at'): Refine
   const rawSort = c.req.query('_sort') ?? defaultSort;
   const sortField = /^[a-z][a-z0-9_]*$/.test(rawSort) ? rawSort : defaultSort;
   return {
-    page: parseInt(c.req.query('_page') ?? '1', 10),
-    pageSize: Math.min(parseInt(c.req.query('_limit') ?? '20', 10), 100),
+    page: parseInt(c.req.query('_page') ?? '1', 10) || 1,
+    pageSize: Math.min(parseInt(c.req.query('_limit') ?? '20', 10) || 20, 100),
     sortField,
     sortOrder: (c.req.query('_order') ?? 'desc') === 'asc' ? 'asc' as const : 'desc' as const,
   };

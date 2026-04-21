@@ -15,7 +15,6 @@ export const SalesReturnShow: React.FC = () => {
         <Descriptions.Item label="退货单号">{record?.return_number}</Descriptions.Item>
         <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="客户">{record?.customer?.name}</Descriptions.Item>
-        <Descriptions.Item label="货币">{record?.currency}</Descriptions.Item>
         <Descriptions.Item label="退货日期">
           <DateField value={record?.return_date} format="YYYY-MM-DD" />
         </Descriptions.Item>

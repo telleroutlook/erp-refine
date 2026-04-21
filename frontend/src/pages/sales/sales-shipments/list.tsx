@@ -5,7 +5,6 @@ import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
-import { SOFT_DELETE_FILTER } from '../../../utils/filters';
 
 export const SalesShipmentList: React.FC = () => {
   const { t } = useTranslation();
@@ -13,7 +12,6 @@ export const SalesShipmentList: React.FC = () => {
 
   const { tableProps } = useTable({
     resource: 'sales-shipments',
-    filters: SOFT_DELETE_FILTER,
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 

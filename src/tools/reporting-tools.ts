@@ -14,42 +14,26 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         toDate: z.string().optional(),
       }),
       execute: async ({ fromDate, toDate }) => {
-        let sql = `SELECT status, COUNT(*)::int AS count, COALESCE(SUM(total_amount), 0)::float AS total
-          FROM purchase_orders
-          WHERE organization_id = '${organizationId}' AND deleted_at IS NULL`;
-        if (fromDate) sql += ` AND order_date >= '${fromDate}'`;
-        if (toDate) sql += ` AND order_date <= '${toDate}'`;
-        sql += ` GROUP BY status`;
+        const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+        if (fromDate && !dateRe.test(fromDate)) throw new Error('Invalid fromDate format, expected YYYY-MM-DD');
+        if (toDate && !dateRe.test(toDate)) throw new Error('Invalid toDate format, expected YYYY-MM-DD');
 
-        const { data, error } = await db.rpc('exec_sql', { query: sql }).maybeSingle();
-
-        if (error) {
-          let query = db
-            .from('purchase_orders')
-            .select('status, total_amount')
-            .eq('organization_id', organizationId)
-            .is('deleted_at', null);
-          if (fromDate) query = query.gte('order_date', fromDate);
-          if (toDate) query = query.lte('order_date', toDate);
-          const { data: rows, error: e2 } = await query.limit(5000);
-          if (e2) throw new Error(e2.message);
-          const summary = (rows ?? []).reduce((acc: Record<string, { count: number; total: number }>, row: any) => {
-            if (!acc[row.status]) acc[row.status] = { count: 0, total: 0 };
-            acc[row.status]!.count++;
-            acc[row.status]!.total += Number(row.total_amount);
-            return acc;
-          }, {});
-          return { byStatus: summary, totalOrders: (rows ?? []).length, truncated: (rows ?? []).length >= 5000 };
-        }
-
-        const rows = Array.isArray(data) ? data : [];
-        const byStatus: Record<string, { count: number; total: number }> = {};
-        let totalOrders = 0;
-        for (const row of rows) {
-          byStatus[row.status] = { count: row.count, total: row.total };
-          totalOrders += row.count;
-        }
-        return { byStatus, totalOrders, truncated: false };
+        let query = db
+          .from('purchase_orders')
+          .select('status, total_amount')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+        if (fromDate) query = query.gte('order_date', fromDate);
+        if (toDate) query = query.lte('order_date', toDate);
+        const { data: rows, error } = await query.limit(5000);
+        if (error) throw new Error(error.message);
+        const summary = (rows ?? []).reduce((acc: Record<string, { count: number; total: number }>, row: any) => {
+          if (!acc[row.status]) acc[row.status] = { count: 0, total: 0 };
+          acc[row.status]!.count++;
+          acc[row.status]!.total += Number(row.total_amount);
+          return acc;
+        }, {});
+        return { byStatus: summary, totalOrders: (rows ?? []).length, truncated: (rows ?? []).length >= 5000 };
       },
     }),
 
@@ -61,6 +45,10 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         groupBy: z.enum(['customer', 'product', 'month']).default('month'),
       }),
       execute: async ({ fromDate, toDate, groupBy }) => {
+        const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+        if (fromDate && !dateRe.test(fromDate)) throw new Error('Invalid fromDate format, expected YYYY-MM-DD');
+        if (toDate && !dateRe.test(toDate)) throw new Error('Invalid toDate format, expected YYYY-MM-DD');
+
         let query = db
           .from('sales_orders')
           .select('status, total_amount, currency, order_date, customer:customers(id,name)')

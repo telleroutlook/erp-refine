@@ -53,6 +53,8 @@ export interface EntityImportConfig {
   references?: Record<string, string>;
   /** Fields that should be excluded from import (auto-generated) */
   excludeFields?: string[];
+  /** Allowlist of fields that can be imported. If set, only these fields are kept. */
+  allowedFields?: string[];
   /** Transform function applied to each record before insert */
   transform?: (record: Record<string, unknown>, ctx: ImportContext) => Record<string, unknown>;
 }
@@ -348,7 +350,7 @@ export async function importEntity(
     };
   }
 
-  const { table, returnSelect, requiredFields, uniqueKey, orgScoped = true, sequenceField, sequenceName, excludeFields, transform } = config;
+  const { table, returnSelect, requiredFields, uniqueKey, orgScoped = true, sequenceField, sequenceName, excludeFields, allowedFields, transform } = config;
   const { dryRun = false, upsert = false, onError = 'skip' } = options;
   const errors: ImportRowError[] = [];
   let imported = 0;
@@ -369,6 +371,17 @@ export async function importEntity(
       // --- Remove excluded fields ---
       if (excludeFields) {
         for (const f of excludeFields) delete record[f];
+      }
+
+      // --- Enforce field allowlist (strip system fields and unknown columns) ---
+      if (allowedFields) {
+        const allowed = new Set([...allowedFields, 'organization_id']);
+        for (const key of Object.keys(record)) {
+          if (!allowed.has(key)) delete record[key];
+        }
+      } else {
+        const SYSTEM_FIELDS = ['id', 'deleted_at', 'created_at', 'updated_at'];
+        for (const f of SYSTEM_FIELDS) delete record[f];
       }
 
       // --- Inject org scope ---
