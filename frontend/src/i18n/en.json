@@ -20,7 +20,7 @@
   "carriers": { "carriers": "Carriers" },
   "system": { "system": "System" },
   "notifications": { "notifications": "Notifications" },
-  "ai-chat": { "ai-chat": "AI Assistant" },
+
   "actions": {
     "list": "List",
     "show": "Show",
@@ -90,7 +90,6 @@
     "carriers": "Carriers",
     "system": "System",
     "notifications": "Notifications",
-    "aiChat": "AI Assistant",
     "schemaManager": "Dynamic Forms"
   },
   "status": {

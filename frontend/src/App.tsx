@@ -175,18 +175,12 @@ const NotificationShow = lazy(() =>
   import('./pages/system/notifications/show').then((m) => ({ default: m.NotificationShow }))
 );
 
-// AI
-const ChatPanel = lazy(() =>
-  import('./components/ai/ChatPanel').then((m) => ({ default: m.ChatPanel }))
-);
-
 // Icons
 import {
   ShoppingCartOutlined,
   ShopOutlined,
   InboxOutlined,
   AppstoreOutlined,
-  RobotOutlined,
   TeamOutlined,
   UserOutlined,
   CarOutlined,
@@ -348,12 +342,7 @@ const App: React.FC = () => {
                 show: '/system/notifications/:id',
                 meta: { parent: 'system', icon: <BellOutlined /> },
               },
-              // AI
-              {
-                name: 'ai-chat',
-                list: '/ai/chat',
-                meta: { icon: <RobotOutlined /> },
-              },
+
             ]}
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}
           >
@@ -432,15 +421,7 @@ const App: React.FC = () => {
                   <Route path="/system/notifications" element={<NotificationList />} />
                   <Route path="/system/notifications/:id" element={<NotificationShow />} />
 
-                  {/* AI */}
-                  <Route
-                    path="/ai/chat"
-                    element={
-                      <div style={{ padding: 24 }}>
-                        <ChatPanel />
-                      </div>
-                    }
-                  />
+
                 </Route>
 
                 {/* Catch-all */}

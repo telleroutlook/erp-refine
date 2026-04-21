@@ -20,7 +20,7 @@
   "carriers": { "carriers": "承运商" },
   "system": { "system": "系统管理" },
   "notifications": { "notifications": "通知中心" },
-  "ai-chat": { "ai-chat": "AI 助手" },
+
   "actions": {
     "list": "列表",
     "show": "查看",
@@ -90,7 +90,6 @@
     "carriers": "承运商",
     "system": "系统管理",
     "notifications": "通知中心",
-    "aiChat": "AI 助手",
     "schemaManager": "动态表单"
   },
   "status": {
