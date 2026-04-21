@@ -37,9 +37,9 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ year, departmentId }) => {
         let query = db
           .from('budgets')
-          .select('id, budget_name, fiscal_year, department:departments(id,name), budget_lines(account:account_subjects(name), planned_amount, actual_amount)')
+          .select('id, budget_name, budget_year, department:departments(id,name), budget_lines(account:account_subjects(name), planned_amount, actual_amount)')
           .eq('organization_id', organizationId)
-          .eq('fiscal_year', year)
+          .eq('budget_year', year)
           .is('deleted_at', null);
 
         if (departmentId) query = query.eq('department_id', departmentId);

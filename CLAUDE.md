@@ -2,12 +2,18 @@
 
 ## Schema 规则
 
-- SQL 列名以 **`information_schema`（实际数据库）** 为**唯一权威参考**
-- 迁移文件 `supabase/migrations/` 可能与实际 DB 不一致（见 `018_reconcile_schema.sql` 文档）
-- 修改列名或添加字段时，先用 `SELECT column_name FROM information_schema.columns WHERE table_name = '...'` 验证
-- 新增 SQL 查询后必须运行 `npm run test:sql` 验证
-- 每次修改 DB schema 时，在 `supabase/migrations/` 下创建新迁移文件
-- 运行 `npm run schema:validate` 检查字段映射一致性
+- **`src/types/database.ts`** 是列名的唯一权威参考（从 Supabase 生成）
+- `src/schema/columns.ts` 由 `scripts/generate-columns.ts` 从 `database.ts` 提取
+- `scripts/validate-schema.ts` 交叉验证所有 `.select()` 字符串、`dataIndex`、前端类型
+- **`npm run deploy` 自动运行 `schema:validate`** — 有任何列名不匹配就会阻止部署
+
+### Schema 变更流程
+
+1. 写迁移文件 `supabase/migrations/NNN_description.sql`
+2. 应用迁移：`npm run db:migrate`
+3. 重新生成类型：从 Supabase MCP 获取最新 `database.ts`，然后 `npm run schema:sync`
+4. 修复所有引用：validator 会显示每个不匹配的 `file:line`
+5. 部署：`npm run deploy`（自动运行 schema:validate）
 
 ### 迁移文件规范
 
@@ -38,10 +44,9 @@
 - D4: 受控自动执行（Phase 2+）
 - D5: 禁止 AI 执行
 
-## 列名速查（易混淆字段）
+## 列名速查
 
-**重要**: 以 `information_schema` 查询结果为唯一权威。迁移文件可能与实际 DB 不一致（见 `018_reconcile_schema.sql`）。
-查询前用 `SELECT column_name FROM information_schema.columns WHERE table_name = '...'` 验证实际列名。
+查看 `src/schema/columns.ts` 获取每张表的完整列名列表。运行 `npm run schema:validate` 验证所有引用。
 
 ## 软删除规范
 

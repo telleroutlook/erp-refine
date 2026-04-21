@@ -13,7 +13,7 @@ export function createSchemaTools(db: SupabaseClient, organizationId: string) {
       execute: async () => {
         const { data, error } = await db
           .from('schema_registry')
-          .select('id, name, slug, description, status, version, created_at')
+          .select('id, name, slug, description, status, created_at')
           .eq('organization_id', organizationId)
           .eq('status', 'active')
           .order('name');

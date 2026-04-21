@@ -37,10 +37,10 @@ const approvalRulesConfig: CrudConfig = {
   path: '/approval-rules',
   resourceName: 'ApprovalRule',
   listSelect:
-    'id, rule_name, entity_type, condition_field, condition_operator, condition_value, approver_role, step_order, is_active',
+    'id, rule_name, document_type, min_amount, max_amount, required_roles, sequence_order, is_active',
   detailSelect: '*',
-  createReturnSelect: 'id, rule_name, entity_type, step_order',
-  defaultSort: 'entity_type',
+  createReturnSelect: 'id, rule_name, document_type, sequence_order',
+  defaultSort: 'document_type',
   softDelete: true,
   orgScoped: true,
 };
