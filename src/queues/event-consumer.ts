@@ -94,10 +94,10 @@ async function processEvent(event: ERPEvent, db: ReturnType<typeof createService
   const { error } = await db.from('business_events').insert({
     organization_id: event.organizationId,
     event_type: event.type,
-    resource_type: event.resourceType,
-    resource_id: event.resourceId,
+    entity_type: event.resourceType,
+    entity_id: event.resourceId,
     payload: event.payload,
-    created_at: event.timestamp,
+    severity: 'info',
   });
   if (error) throw new Error(`Failed to persist event: ${error.message}`);
 

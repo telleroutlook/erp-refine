@@ -74,10 +74,10 @@ export async function executeWithAudit<T>(
     const auditPromise = db.from('business_events').insert({
       organization_id: audit.organizationId,
       event_type: audit.action,
-      resource_type: audit.resource,
-      resource_id: audit.resourceId,
-      actor_id: audit.userId,
-      payload: { duration, success, error_message: errorMsg ?? null },
+      entity_type: audit.resource,
+      entity_id: audit.resourceId,
+      payload: { actor_id: audit.userId, duration, success, error_message: errorMsg ?? null },
+      severity: 'info',
     }).then(({ error: e }) => {
       if (e) logger.warn('Failed to write business_event', e);
     });

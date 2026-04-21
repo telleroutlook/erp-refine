@@ -44,11 +44,6 @@ export const SupplierCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="地址" name="address">
-              <Input.TextArea rows={2} />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
             <Form.Item label="备注" name="notes">
               <Input.TextArea rows={2} />
             </Form.Item>

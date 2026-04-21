@@ -19,9 +19,6 @@ export const SupplierShow: React.FC = () => {
         <Descriptions.Item label="联系人">{record?.contact_person}</Descriptions.Item>
         <Descriptions.Item label="电话">{record?.contact_phone}</Descriptions.Item>
         <Descriptions.Item label="邮箱">{record?.contact_email}</Descriptions.Item>
-        {record?.address && (
-          <Descriptions.Item label="地址" span={2}>{record.address}</Descriptions.Item>
-        )}
         {record?.notes && (
           <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>
         )}

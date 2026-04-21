@@ -333,6 +333,7 @@ export type Database = {
         Row: {
           comments: string | null
           created_at: string
+          created_by: string | null
           decision_at: string | null
           decision_by: string | null
           decision_level: number | null
@@ -348,6 +349,7 @@ export type Database = {
         Insert: {
           comments?: string | null
           created_at?: string
+          created_by?: string | null
           decision_at?: string | null
           decision_by?: string | null
           decision_level?: number | null
@@ -363,6 +365,7 @@ export type Database = {
         Update: {
           comments?: string | null
           created_at?: string
+          created_by?: string | null
           decision_at?: string | null
           decision_by?: string | null
           decision_level?: number | null
@@ -376,6 +379,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "approval_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "approval_records_organization_id_fkey"
             columns: ["organization_id"]
@@ -651,6 +661,7 @@ export type Database = {
           id: string
           ip_address: string | null
           metadata: Json | null
+          organization_id: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -660,6 +671,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          organization_id?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -669,10 +681,18 @@ export type Database = {
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          organization_id?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "auth_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "auth_events_user_id_fkey"
             columns: ["user_id"]
@@ -2460,6 +2480,84 @@ export type Database = {
           },
         ]
       }
+      organization_currencies: {
+        Row: {
+          created_at: string
+          currency_code: string
+          id: string
+          is_default: boolean
+          organization_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency_code: string
+          id?: string
+          is_default?: boolean
+          organization_id: string
+        }
+        Update: {
+          created_at?: string
+          currency_code?: string
+          id?: string
+          is_default?: boolean
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_currencies_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["currency_code"]
+          },
+          {
+            foreignKeyName: "organization_currencies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_uoms: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          organization_id: string
+          uom_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          organization_id: string
+          uom_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          organization_id?: string
+          uom_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_uoms_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_uoms_uom_id_fkey"
+            columns: ["uom_id"]
+            isOneToOne: false
+            referencedRelation: "uoms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
@@ -3620,6 +3718,7 @@ export type Database = {
       purchase_requisitions: {
         Row: {
           created_at: string
+          created_by: string | null
           deleted_at: string | null
           department_id: string | null
           id: string
@@ -3635,6 +3734,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           deleted_at?: string | null
           department_id?: string | null
           id?: string
@@ -3650,6 +3750,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           deleted_at?: string | null
           department_id?: string | null
           id?: string
@@ -3664,6 +3765,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "purchase_requisitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "purchase_requisitions_department_id_fkey"
             columns: ["department_id"]
@@ -3728,6 +3836,7 @@ export type Database = {
       quality_inspections: {
         Row: {
           created_at: string
+          created_by: string | null
           defective_quantity: number
           deleted_at: string | null
           id: string
@@ -3747,6 +3856,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           defective_quantity?: number
           deleted_at?: string | null
           id?: string
@@ -3766,6 +3876,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           defective_quantity?: number
           deleted_at?: string | null
           id?: string
@@ -3784,6 +3895,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quality_inspections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quality_inspections_organization_id_fkey"
             columns: ["organization_id"]
@@ -4028,6 +4146,7 @@ export type Database = {
       rfq_headers: {
         Row: {
           created_at: string
+          created_by: string | null
           deleted_at: string | null
           due_date: string | null
           id: string
@@ -4042,6 +4161,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           deleted_at?: string | null
           due_date?: string | null
           id?: string
@@ -4056,6 +4176,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           deleted_at?: string | null
           due_date?: string | null
           id?: string
@@ -4069,6 +4190,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rfq_headers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rfq_headers_organization_id_fkey"
             columns: ["organization_id"]
@@ -5587,6 +5715,7 @@ export type Database = {
       supplier_invoices: {
         Row: {
           created_at: string
+          created_by: string | null
           currency: string
           deleted_at: string | null
           due_date: string | null
@@ -5605,6 +5734,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           currency?: string
           deleted_at?: string | null
           due_date?: string | null
@@ -5623,6 +5753,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           currency?: string
           deleted_at?: string | null
           due_date?: string | null
@@ -5640,6 +5771,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "supplier_invoices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "supplier_invoices_currency_fkey"
             columns: ["currency"]
@@ -5917,15 +6055,14 @@ export type Database = {
       }
       suppliers: {
         Row: {
-          address: string | null
           code: string
           contact_email: string | null
           contact_person: string | null
           contact_phone: string | null
-          country: string
           created_at: string
           created_by: string | null
           currency: string
+          default_site_id: string | null
           deleted_at: string | null
           id: string
           lead_time_days: number
@@ -5942,15 +6079,14 @@ export type Database = {
           website: string | null
         }
         Insert: {
-          address?: string | null
           code: string
           contact_email?: string | null
           contact_person?: string | null
           contact_phone?: string | null
-          country?: string
           created_at?: string
           created_by?: string | null
           currency?: string
+          default_site_id?: string | null
           deleted_at?: string | null
           id?: string
           lead_time_days?: number
@@ -5967,15 +6103,14 @@ export type Database = {
           website?: string | null
         }
         Update: {
-          address?: string | null
           code?: string
           contact_email?: string | null
           contact_person?: string | null
           contact_phone?: string | null
-          country?: string
           created_at?: string
           created_by?: string | null
           currency?: string
+          default_site_id?: string | null
           deleted_at?: string | null
           id?: string
           lead_time_days?: number
@@ -5998,6 +6133,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["currency_code"]
+          },
+          {
+            foreignKeyName: "suppliers_default_site_id_fkey"
+            columns: ["default_site_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_sites"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "suppliers_organization_id_fkey"
@@ -7227,3 +7369,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
