@@ -143,5 +143,139 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         return data ?? [];
       },
     }),
+
+    list_purchase_requisitions: tool({
+      description: 'List purchase requisitions with optional status or department filter',
+      inputSchema: z.object({
+        status: z.enum(['draft','submitted','approved','rejected','closed']).optional(),
+        departmentId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, departmentId, limit }) => {
+        let query = db
+          .from('purchase_requisitions')
+          .select('id, requisition_number, status, request_date, required_date, total_amount, department:departments(id,name), requester:employees!requester_id(id,name)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (departmentId) query = query.eq('department_id', departmentId);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    get_purchase_requisition: tool({
+      description: 'Get purchase requisition detail with all line items',
+      inputSchema: z.object({ id: z.string().uuid() }),
+      execute: async ({ id }) => {
+        const { data, error } = await db
+          .from('purchase_requisitions')
+          .select(`
+            *, department:departments(id,name), requester:employees!requester_id(id,name),
+            lines:purchase_requisition_lines(*, product:products(id,name,code,uom))
+          `)
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error) throw new Error(error.message);
+        return data;
+      },
+    }),
+
+    list_rfq_headers: tool({
+      description: 'List request-for-quotation (RFQ) headers',
+      inputSchema: z.object({
+        status: z.enum(['draft','sent','closed','cancelled']).optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, limit }) => {
+        let query = db
+          .from('rfq_headers')
+          .select('id, rfq_number, status, issued_at, due_date')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+
+        const { data, error } = await query.order('issued_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_supplier_quotations: tool({
+      description: 'List supplier quotations, optionally filtered by RFQ or supplier',
+      inputSchema: z.object({
+        rfqId: z.string().uuid().optional(),
+        supplierId: z.string().uuid().optional(),
+        status: z.enum(['draft','submitted','accepted','rejected']).optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ rfqId, supplierId, status, limit }) => {
+        let query = db
+          .from('supplier_quotations')
+          .select('id, quotation_number, status, validity_date, currency, supplier:suppliers(id,name,code), rfq:rfq_headers!rfq_id(id,rfq_number)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (rfqId) query = query.eq('rfq_id', rfqId);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+        if (status) query = query.eq('status', status);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_purchase_receipts: tool({
+      description: 'List purchase receipts (goods received notes)',
+      inputSchema: z.object({
+        status: z.enum(['draft','confirmed','cancelled']).optional(),
+        purchaseOrderId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, purchaseOrderId, limit }) => {
+        let query = db
+          .from('purchase_receipts')
+          .select('id, receipt_number, status, receipt_date, supplier:suppliers(id,name,code), purchase_order:purchase_orders(id,order_number)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (purchaseOrderId) query = query.eq('purchase_order_id', purchaseOrderId);
+
+        const { data, error } = await query.order('receipt_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_supplier_invoices: tool({
+      description: 'List supplier invoices (AP invoices)',
+      inputSchema: z.object({
+        status: z.enum(['draft','submitted','approved','paid','cancelled']).optional(),
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, supplierId, limit }) => {
+        let query = db
+          .from('supplier_invoices')
+          .select('id, invoice_number, status, invoice_date, due_date, total_amount, currency, supplier:suppliers(id,name,code)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+
+        const { data, error } = await query.order('invoice_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

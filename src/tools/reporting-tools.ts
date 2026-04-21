@@ -115,6 +115,110 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
       },
     }),
 
+    get_finance_summary: tool({
+      description: 'Get finance summary: voucher stats, payment totals, and budget utilization',
+      inputSchema: z.object({
+        year: z.number().int().min(2020).max(2030).optional(),
+      }),
+      execute: async ({ year }) => {
+        const currentYear = year ?? new Date().getFullYear();
+        const fromDate = `${currentYear}-01-01`;
+        const toDate = `${currentYear}-12-31`;
+
+        const [voucherRes, paymentReqRes, paymentRecRes] = await Promise.all([
+          db.from('vouchers')
+            .select('status, total_debit')
+            .eq('organization_id', organizationId)
+            .gte('voucher_date', fromDate)
+            .lte('voucher_date', toDate)
+            .limit(5000),
+          db.from('payment_requests')
+            .select('ok_to_pay_flag, amount, currency')
+            .eq('organization_id', organizationId)
+            .is('deleted_at', null)
+            .gte('created_at', fromDate)
+            .lte('created_at', toDate)
+            .limit(5000),
+          db.from('payment_records')
+            .select('amount')
+            .eq('organization_id', organizationId)
+            .gte('payment_date', fromDate)
+            .lte('payment_date', toDate)
+            .limit(5000),
+        ]);
+
+        if (voucherRes.error) throw new Error(voucherRes.error.message);
+        if (paymentReqRes.error) throw new Error(paymentReqRes.error.message);
+        if (paymentRecRes.error) throw new Error(paymentRecRes.error.message);
+
+        const vouchers = voucherRes.data ?? [];
+        const voucherByStatus = vouchers.reduce((acc: Record<string, { count: number; total: number }>, v: any) => {
+          if (!acc[v.status]) acc[v.status] = { count: 0, total: 0 };
+          acc[v.status]!.count++;
+          acc[v.status]!.total += Number(v.total_debit ?? 0);
+          return acc;
+        }, {});
+
+        const paymentRequests = paymentReqRes.data ?? [];
+        const pendingPayments = paymentRequests.filter((r: any) => !r.ok_to_pay_flag).length;
+        const approvedPayments = paymentRequests.filter((r: any) => r.ok_to_pay_flag).length;
+
+        const paidTotal = (paymentRecRes.data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
+
+        return {
+          year: currentYear,
+          vouchers: { byStatus: voucherByStatus, totalCount: vouchers.length },
+          paymentRequests: { total: paymentRequests.length, pending: pendingPayments, approved: approvedPayments },
+          paymentsPaid: { count: (paymentRecRes.data ?? []).length, totalAmount: paidTotal },
+        };
+      },
+    }),
+
+    get_manufacturing_summary: tool({
+      description: 'Get manufacturing summary: work order completion rates and production output',
+      inputSchema: z.object({
+        fromDate: z.string().optional().describe('ISO date YYYY-MM-DD'),
+        toDate: z.string().optional().describe('ISO date YYYY-MM-DD'),
+      }),
+      execute: async ({ fromDate, toDate }) => {
+        const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+        if (fromDate && !dateRe.test(fromDate)) throw new Error('Invalid fromDate format');
+        if (toDate && !dateRe.test(toDate)) throw new Error('Invalid toDate format');
+
+        let query = db
+          .from('work_orders')
+          .select('status, planned_quantity, completed_quantity')
+          .eq('organization_id', organizationId);
+
+        if (fromDate) query = query.gte('start_date', fromDate);
+        if (toDate) query = query.lte('start_date', toDate);
+
+        const { data, error } = await query.limit(5000);
+        if (error) throw new Error(error.message);
+
+        const rows = data ?? [];
+        const byStatus = rows.reduce((acc: Record<string, { count: number; planned: number; completed: number }>, r: any) => {
+          if (!acc[r.status]) acc[r.status] = { count: 0, planned: 0, completed: 0 };
+          acc[r.status]!.count++;
+          acc[r.status]!.planned += Number(r.planned_quantity ?? 0);
+          acc[r.status]!.completed += Number(r.completed_quantity ?? 0);
+          return acc;
+        }, {});
+
+        const totalPlanned = rows.reduce((s: number, r: any) => s + Number(r.planned_quantity ?? 0), 0);
+        const totalCompleted = rows.reduce((s: number, r: any) => s + Number(r.completed_quantity ?? 0), 0);
+        const completionRate = totalPlanned > 0 ? Math.round((totalCompleted / totalPlanned) * 100) : 0;
+
+        return {
+          totalOrders: rows.length,
+          totalPlannedQty: totalPlanned,
+          totalCompletedQty: totalCompleted,
+          completionRate: `${completionRate}%`,
+          byStatus,
+        };
+      },
+    }),
+
     get_inventory_valuation: tool({
       description: 'Get inventory valuation summary',
       inputSchema: z.object({ warehouseId: z.string().uuid().optional() }),

@@ -64,6 +64,96 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
       },
     }),
 
+    list_sales_invoices: tool({
+      description: 'List sales invoices (AR invoices)',
+      inputSchema: z.object({
+        status: z.enum(['draft','sent','paid','overdue','cancelled']).optional(),
+        customerId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, customerId, limit }) => {
+        let query = db
+          .from('sales_invoices')
+          .select('id, invoice_number, status, invoice_date, due_date, total_amount, currency, customer:customers(id,name,code)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (customerId) query = query.eq('customer_id', customerId);
+
+        const { data, error } = await query.order('invoice_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_sales_returns: tool({
+      description: 'List sales returns (RMA)',
+      inputSchema: z.object({
+        status: z.enum(['draft','approved','received','cancelled']).optional(),
+        customerId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, customerId, limit }) => {
+        let query = db
+          .from('sales_returns')
+          .select('id, return_number, status, return_date, total_amount, customer:customers(id,name,code)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (customerId) query = query.eq('customer_id', customerId);
+
+        const { data, error } = await query.order('return_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_customer_receipts: tool({
+      description: 'List customer receipts (AR payments received)',
+      inputSchema: z.object({
+        customerId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ customerId, limit }) => {
+        let query = db
+          .from('customer_receipts')
+          .select('id, receipt_number, receipt_date, amount, payment_method, customer:customers(id,name,code)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (customerId) query = query.eq('customer_id', customerId);
+
+        const { data, error } = await query.order('receipt_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_sales_shipments: tool({
+      description: 'List sales shipments (delivery orders)',
+      inputSchema: z.object({
+        status: z.enum(['draft','confirmed','shipped','cancelled']).optional(),
+        salesOrderId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, salesOrderId, limit }) => {
+        let query = db
+          .from('sales_shipments')
+          .select('id, shipment_number, status, shipment_date, customer:customers(id,name,code), sales_order:sales_orders(id,order_number)')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (salesOrderId) query = query.eq('sales_order_id', salesOrderId);
+
+        const { data, error } = await query.order('shipment_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
     create_sales_order: tool({
       description: 'Create a new sales order (requires D2 confirmation)',
       inputSchema: z.object({

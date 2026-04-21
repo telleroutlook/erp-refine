@@ -46,6 +46,88 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
       },
     }),
 
+    list_account_subjects: tool({
+      description: 'List chart of accounts (account subjects)',
+      inputSchema: z.object({
+        parentId: z.string().uuid().optional().describe('Filter by parent subject for subtree'),
+        search: z.string().optional(),
+        limit: z.number().min(1).max(200).default(100),
+      }),
+      execute: async ({ parentId, search, limit }) => {
+        let query = db
+          .from('account_subjects')
+          .select('id, code, name, category, balance_direction, parent_id, is_leaf, status')
+          .eq('organization_id', organizationId);
+
+        if (parentId) query = query.eq('parent_id', parentId);
+        if (search) {
+          const s = search.replace(/[%_]/g, '');
+          query = query.or(`code.ilike.%${s}%,name.ilike.%${s}%`);
+        }
+
+        const { data, error } = await query.order('code').limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_cost_centers: tool({
+      description: 'List cost centers',
+      inputSchema: z.object({}),
+      execute: async () => {
+        const { data, error } = await db
+          .from('cost_centers')
+          .select('id, code, name, parent_id')
+          .eq('organization_id', organizationId)
+          .order('code');
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_budgets: tool({
+      description: 'List budgets with optional year filter',
+      inputSchema: z.object({
+        year: z.number().int().min(2020).max(2030).optional(),
+        status: z.enum(['draft','approved','active','closed']).optional(),
+        limit: z.number().min(1).max(50).default(20),
+      }),
+      execute: async ({ year, status, limit }) => {
+        let query = db
+          .from('budgets')
+          .select('id, budget_name, budget_year, budget_type, status, total_amount, currency')
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (year) query = query.eq('budget_year', year);
+        if (status) query = query.eq('status', status);
+
+        const { data, error } = await query.order('budget_year', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_payment_records: tool({
+      description: 'List payment records (executed payments)',
+      inputSchema: z.object({
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ supplierId, limit }) => {
+        let query = db
+          .from('payment_records')
+          .select('id, payment_number, payment_date, amount, payment_method, payment_type, status, partner_id, partner_type')
+          .eq('organization_id', organizationId);
+
+        if (supplierId) query = query.eq('partner_id', supplierId);
+
+        const { data, error } = await query.order('payment_date', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
     list_payment_requests: tool({
       description: 'List payment requests awaiting approval',
       inputSchema: z.object({
