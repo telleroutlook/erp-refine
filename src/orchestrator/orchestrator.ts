@@ -96,7 +96,7 @@ export class Orchestrator {
               action: spec.action,
               domain: spec.domain,
               parameters: spec.parameters ?? {},
-              confirmed: true,
+              confirmed: false,
               strategy,
               historyContext,
             },

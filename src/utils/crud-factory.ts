@@ -145,7 +145,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
           requestId,
           action: `create_${table}`,
           resource: table,
-        });
+        }, c.executionCtx.waitUntil.bind(c.executionCtx) as (p: PromiseLike<unknown>) => void);
       } else {
         const result = await doInsert();
         if (result.error) {
@@ -192,7 +192,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
           action: `update_${table}`,
           resource: table,
           resourceId: id,
-        });
+        }, c.executionCtx.waitUntil.bind(c.executionCtx) as (p: PromiseLike<unknown>) => void);
         return c.json({ data });
       }
 

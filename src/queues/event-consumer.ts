@@ -22,6 +22,7 @@ export interface ERPEvent {
 export interface SummarizeSessionJob {
   type: 'summarize_session';
   sessionId: string;
+  userId: string;
   messageCount: number;
   recentMessages: Message[];
 }
@@ -60,8 +61,8 @@ export async function handleQueueBatch(batch: MessageBatch<QueueMessage>, env: E
 }
 
 async function handleSummarizeSession(job: SummarizeSessionJob, env: Env): Promise<void> {
-  const { sessionId, recentMessages } = job;
-  logger.info('summarize.start', { sessionId, messageCount: recentMessages.length });
+  const { sessionId, userId, recentMessages } = job;
+  logger.info('summarize.start', { sessionId, userId, messageCount: recentMessages.length });
 
   const glm = createOpenAI({ apiKey: env.AI_API_KEY, baseURL: env.AI_BASE_URL });
 
@@ -77,10 +78,10 @@ async function handleSummarizeSession(job: SummarizeSessionJob, env: Env): Promi
     temperature: 0,
   });
 
-  // Write summary back to the Durable Object
-  const doId = env.CHAT_DO.idFromName(sessionId);
+  const doKey = `${userId}:${sessionId}`;
+  const doId = env.CHAT_DO.idFromName(doKey);
   const stub = env.CHAT_DO.get(doId);
-  await stub.fetch(new Request(`http://do/${sessionId}/summary`, {
+  await stub.fetch(new Request(`http://do/${doKey}/summary`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ summary }),

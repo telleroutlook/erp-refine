@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -13,6 +13,7 @@ import { ErrorCode } from '../types/errors';
 
 const procurementReceiving = new Hono<{ Bindings: Env }>();
 procurementReceiving.use('*', authMiddleware());
+procurementReceiving.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Purchase Receipts (Goods Receipt)
@@ -427,16 +428,13 @@ procurementReceiving.post('/three-way-match', async (c) => {
       purchase_order_id,
       purchase_receipt_id,
       supplier_invoice_id,
-      po_amount: poAmount,
-      receipt_amount: receiptAmount,
-      invoice_amount: invoiceAmount,
       quantity_variance: Math.abs(poAmount - receiptAmount),
       price_variance: Math.abs(poAmount - invoiceAmount),
       amount_variance: variance,
       match_status: matchStatus,
       matched_at: new Date().toISOString(),
     })
-    .select('id, match_status, po_amount, receipt_amount, invoice_amount, quantity_variance, price_variance, amount_variance')
+    .select('id, match_status, quantity_variance, price_variance, amount_variance')
     .single();
 
   if (insertErr) throw ApiError.database(insertErr.message, requestId);

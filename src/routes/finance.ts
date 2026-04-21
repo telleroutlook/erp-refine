@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -12,6 +12,7 @@ import { ApiError } from '../utils/api-error';
 
 const finance = new Hono<{ Bindings: Env }>();
 finance.use('*', authMiddleware());
+finance.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Account Subjects — tree structure, full CRUD via factory
@@ -60,6 +61,7 @@ finance.get('/vouchers', async (c) => {
     .from('vouchers')
     .select('id, voucher_number, voucher_date, voucher_type, notes, total_debit, total_credit, status', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -266,7 +268,7 @@ finance.get('/budgets', async (c) => {
   const { data, count, error } = await db
     .from('budgets')
     .select(
-      'id, budget_code, name, fiscal_year, total_amount, currency, status',
+      'id, budget_name, name, budget_year, total_amount, currency, status',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -337,7 +339,7 @@ finance.put('/budgets/:id', async (c) => {
   const body = await c.req.json();
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['name', 'fiscal_year', 'total_amount', 'currency', 'status',
+  const permitted = ['name', 'budget_year', 'total_amount', 'currency', 'status',
     'department_id', 'cost_center_id', 'approved_by', 'approved_at'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
@@ -429,7 +431,7 @@ const paymentRequestsCrud = buildCrudRoutes({
   table: 'payment_requests',
   path: '/payment-requests',
   resourceName: 'PaymentRequest',
-  listSelect: 'id, request_number, amount, currency, ok_to_pay, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
+  listSelect: 'id, request_number, amount, currency, ok_to_pay_flag, status, payment_method, supplier:suppliers(id,name), supplier_invoice:supplier_invoices(id,invoice_number), created_at',
   detailSelect: '*, supplier:suppliers(id,name,code), supplier_invoice:supplier_invoices(id,invoice_number)',
   createReturnSelect: 'id, request_number, status',
   defaultSort: 'created_at',
@@ -439,7 +441,7 @@ const paymentRequestsCrud = buildCrudRoutes({
   disableCreate: true,
   updateSchema: z.object({
     status: z.string().optional(),
-    ok_to_pay: z.boolean().optional(),
+    ok_to_pay_flag: z.boolean().optional(),
     notes: z.string().optional(),
     payment_method: z.string().optional(),
     amount: z.number().optional(),

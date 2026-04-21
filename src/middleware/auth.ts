@@ -73,7 +73,10 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
           return c.json({ error: 'Server misconfiguration: SUPABASE_URL not set' }, 500);
         }
         const key = await getVerifyKey(supabaseUrl, header.kid ?? '');
-        result = await jwtVerify(token, key, { algorithms: ['ES256'] });
+        result = await jwtVerify(token, key, {
+          algorithms: ['ES256'],
+          issuer: new URL('/auth/v1', c.env.SUPABASE_URL).toString(),
+        });
       } else {
         return c.json({ error: `Unsupported JWT algorithm: ${header.alg}` }, 401);
       }
@@ -95,6 +98,29 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
     }
 
     c.set('user', user);
+    await next();
+  };
+}
+
+export function requireRole(...roles: string[]): MiddlewareHandler<{ Bindings: Env }> {
+  return async (c: Context<{ Bindings: Env }>, next: Next) => {
+    const user = c.get('user') as UserContext;
+    if (!roles.includes(user.role)) {
+      return c.json({ error: 'Insufficient permissions' }, 403);
+    }
+    await next();
+  };
+}
+
+export function writeMethodGuard(): MiddlewareHandler<{ Bindings: Env }> {
+  return async (c: Context<{ Bindings: Env }>, next: Next) => {
+    const method = c.req.method;
+    if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+      const user = c.get('user') as UserContext;
+      if (user.role === 'viewer') {
+        return c.json({ error: 'Viewers cannot perform write operations' }, 403);
+      }
+    }
     await next();
   };
 }

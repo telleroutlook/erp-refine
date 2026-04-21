@@ -4,11 +4,12 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, buildNestedCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 
 const partners = new Hono<{ Bindings: Env }>();
 partners.use('*', authMiddleware());
+partners.use('*', writeMethodGuard());
 
 // ---------------------------------------------------------------------------
 // Customers — main CRUD via factory

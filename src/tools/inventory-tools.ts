@@ -18,7 +18,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
       execute: async ({ productId, warehouseId, lowStockOnly, limit }) => {
         let query = db
           .from('stock_records')
-          .select('id, quantity, reserved_quantity, available_quantity, product:products(id,name,code), warehouse:warehouses(id,name,code)')
+          .select('id, quantity, reserved_quantity, qty_available, product:products(id,name,code), warehouse:warehouses(id,name,code)')
           .eq('organization_id', organizationId);
 
         if (productId) query = query.eq('product_id', productId);
@@ -27,7 +27,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
         const { data, error } = await query.order('quantity', { ascending: true }).limit(limit);
         if (error) throw new Error(error.message);
 
-        const result = (data ?? []).map((r: any) => ({ ...r, qty_available: r.available_quantity }));
+        const result = (data ?? []).map((r: any) => ({ ...r }));
         return lowStockOnly ? result.filter((r: any) => r.available_quantity <= 0) : result;
       },
     }),

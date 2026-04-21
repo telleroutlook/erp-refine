@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -11,6 +11,7 @@ import { ApiError } from '../utils/api-error';
 
 const procurement = new Hono<{ Bindings: Env }>();
 procurement.use('*', authMiddleware());
+procurement.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Purchase Orders — custom CRUD with atomic create (header + items)
@@ -142,10 +143,10 @@ const poItemsConfig: CrudConfig = {
   table: 'purchase_order_items',
   path: '/purchase-order-items',
   resourceName: 'PurchaseOrderItem',
-  listSelect: 'id, line_no, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
+  listSelect: 'id, line_number, quantity, received_quantity, invoiced_quantity, unit_price, tax_rate, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, quantity, unit_price',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, line_number, quantity, unit_price',
+  defaultSort: 'line_number',
   softDelete: false,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_order_id', parentTable: 'purchase_orders' },
@@ -164,7 +165,7 @@ procurement.get('/purchase-requisitions', async (c) => {
   const { data, count, error } = await db
     .from('purchase_requisitions')
     .select(
-      'id, requisition_number, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name), request_date',
+      'id, requisition_number, required_date, total_amount, status, department:departments(id,name), requester:employees(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)
@@ -213,7 +214,7 @@ procurement.post('/purchase-requisitions', async (c) => {
       itemsTable: 'purchase_requisition_lines',
       headerFk: 'purchase_requisition_id',
       headerReturnSelect: 'id, requisition_number, status',
-      itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      itemsReturnSelect: 'id, product_id, quantity, estimated_unit_price',
     },
     {
       header: {
@@ -553,10 +554,10 @@ const prLinesConfig: CrudConfig = {
   table: 'purchase_requisition_lines',
   path: '/purchase-requisition-lines',
   resourceName: 'PurchaseRequisitionLine',
-  listSelect: 'id, line_no, quantity, unit_price, notes, product:products(id,name,code)',
+  listSelect: 'id, line_number, quantity, estimated_unit_price, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
-  createReturnSelect: 'id, line_no, quantity',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, line_number, quantity',
+  defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'purchase_requisition_id', parentTable: 'purchase_requisitions' },

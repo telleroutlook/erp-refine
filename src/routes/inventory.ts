@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -12,6 +12,7 @@ import { ApiError } from '../utils/api-error';
 
 const inventory = new Hono<{ Bindings: Env }>();
 inventory.use('*', authMiddleware());
+inventory.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Stock Records — list (with computed qty_available) + detail

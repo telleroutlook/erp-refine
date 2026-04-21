@@ -70,7 +70,7 @@ export async function atomicCreateWithItems(
         [headerFk]: headerId,
       };
       if (config.autoLineNo) {
-        row.line_no = item.line_no ?? idx + 1;
+        row.line_number = item.line_number ?? idx + 1;
       }
       return row;
     });

@@ -59,15 +59,20 @@ export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
   // 2. Find matching rule
   const rule = REGISTERED_RULES.find((r) => matchesRule(r, ctx));
 
-  // 3. No rule found — deny unregistered actions (default-deny)
+  // 3. No rule found — allow reads, deny writes (per CLAUDE.md specification)
   if (!rule) {
-    return {
-      decision: 'deny',
-      level: DecisionLevel.D5,
-      reason: `No policy rule registered for action '${action}'`,
-      requiresConfirmation: false,
-      requiresApproval: false,
-    };
+    const WRITE_KEYWORDS = ['create', 'update', 'delete', 'workflow', 'batch', 'approve', 'close', 'submit'];
+    const isWrite = WRITE_KEYWORDS.some((kw) => action.includes(kw));
+    if (isWrite) {
+      return {
+        decision: 'deny',
+        level: DecisionLevel.D5,
+        reason: `Unregistered write action '${action}'`,
+        requiresConfirmation: false,
+        requiresApproval: false,
+      };
+    }
+    return allow(DecisionLevel.D0, `Unregistered read action '${action}' — default allow`);
   }
 
   // 4. Role check

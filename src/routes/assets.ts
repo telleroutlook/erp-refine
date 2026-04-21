@@ -3,13 +3,14 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 
 const assets = new Hono<{ Bindings: Env }>();
 assets.use('*', authMiddleware());
+assets.use('*', writeMethodGuard());
 
 // ─── Fixed Assets (full CRUD) ───────────────────────────────────────────────
 

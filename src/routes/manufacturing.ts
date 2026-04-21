@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -12,6 +12,7 @@ import { ApiError } from '../utils/api-error';
 
 const manufacturing = new Hono<{ Bindings: Env }>();
 manufacturing.use('*', authMiddleware());
+manufacturing.use('*', writeMethodGuard());
 
 // ─── BOM Headers ────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ manufacturing.get('/bom-headers', async (c) => {
     .from('bom_headers')
     .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -39,6 +41,7 @@ manufacturing.get('/bom-headers/:id', async (c) => {
     .select('*, product:products(id,name,code), items:bom_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('BOM', id, requestId);
@@ -122,6 +125,7 @@ manufacturing.get('/work-orders', async (c) => {
     .from('work_orders')
     .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -138,6 +142,7 @@ manufacturing.get('/work-orders/:id', async (c) => {
     .select('*, product:products(id,name,code), bom:bom_headers(id,bom_number), materials:work_order_materials(*, product:products(id,name,code)), productions:work_order_productions(*)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Work Order', id, requestId);
@@ -427,18 +432,12 @@ manufacturing.post('/work-order-productions', async (c) => {
 
   if (error) throw ApiError.database(error.message, requestId);
 
-  // Update parent work order's completed_qty via aggregate
+  // Atomically increment completed_quantity to avoid TOCTOU race
   if (data.work_order_id) {
-    const { data: sumRow } = await db
-      .from('work_order_productions')
-      .select('total:qualified_quantity.sum()')
-      .eq('work_order_id', data.work_order_id)
-      .single();
-    await db
-      .from('work_orders')
-      .update({ completed_quantity: (sumRow as any)?.total ?? 0 })
-      .eq('id', data.work_order_id)
-      .eq('organization_id', user.organizationId);
+    await db.rpc('increment_completed_qty', {
+      p_work_order_id: data.work_order_id,
+      p_delta: data.qualified_quantity ?? 0,
+    });
   }
 
   return c.json({ data }, 201);

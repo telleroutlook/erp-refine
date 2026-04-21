@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -12,6 +12,7 @@ import { ApiError } from '../utils/api-error';
 
 const sales = new Hono<{ Bindings: Env }>();
 sales.use('*', authMiddleware());
+sales.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Sales Orders — custom CRUD with atomic create (header + items)
@@ -165,7 +166,7 @@ sales.get('/sales-shipments', async (c) => {
   const { data, count, error } = await db
     .from('sales_shipments')
     .select(
-      'id, shipment_number, shipment_date, tracking_number, carrier, status, sales_order:sales_orders(id,order_number), customer:customers(id,name), warehouse:warehouses(id,name)',
+      'id, shipment_number, shipment_date, tracking_number, carrier, status, sales_order:sales_orders(id,order_number,customer:customers(id,name)), warehouse:warehouses(id,name)',
       { count: 'exact' }
     )
     .eq('organization_id', user.organizationId)

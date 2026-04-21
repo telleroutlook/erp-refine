@@ -26,7 +26,7 @@ export const PaymentRequestEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="可付款" name="ok_to_pay" valuePropName="checked">
+            <Form.Item label="可付款" name="ok_to_pay_flag" valuePropName="checked">
               <Switch checkedChildren="是" unCheckedChildren="否" />
             </Form.Item>
           </Col>

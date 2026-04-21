@@ -4,13 +4,14 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 
 const masterData = new Hono<{ Bindings: Env }>();
 masterData.use('*', authMiddleware());
+masterData.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Products — custom CRUD (has enriched list select with category/uom joins)

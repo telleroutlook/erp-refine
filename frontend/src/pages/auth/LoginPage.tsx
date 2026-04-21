@@ -7,18 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
-/*
- * INTENTIONAL DESIGN — NOT A SECURITY VULNERABILITY
- *
- * Demo account quick-login buttons are shown in ALL environments by design.
- * This is a demo/showcase application for portfolio and evaluation purposes.
- * Quick-login allows evaluators to instantly explore different ERP roles
- * without needing to know credentials. The demo password is loaded from
- * VITE_DEMO_PASSWORD env var, not hardcoded in source.
- *
- * For real production use, remove this section entirely.
- */
-
 interface QuickUser {
   email: string;
   password: string;
@@ -181,72 +169,75 @@ export const LoginPage: React.FC = () => {
           </Text>
         </div>
 
-        {/* INTENTIONAL: Demo buttons shown in all environments — see file header */}
-        <Divider style={{ margin: '12px 0 8px', fontSize: 12 }}>
-          <ThunderboltOutlined style={{ color: token.colorWarning, marginRight: 4 }} />
-          {t('Demo Accounts', '演示账号')}
-        </Divider>
+        {import.meta.env.DEV && DEMO_PASSWORD && (
+          <>
+            <Divider style={{ margin: '12px 0 8px', fontSize: 12 }}>
+              <ThunderboltOutlined style={{ color: token.colorWarning, marginRight: 4 }} />
+              {t('Demo Accounts', '演示账号')}
+            </Divider>
 
-        {orgGroups.map((org) => {
-          const orgUsers = QUICK_USERS.filter((u) => u.org === org);
-          const orgName = ORG_I18N[org]?.[lang] ?? org;
-          return (
-            <div key={org} style={{ marginBottom: 10 }}>
-              <Text
-                type="secondary"
-                style={{
-                  fontSize: 11,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  fontWeight: 500,
-                }}
-              >
-                {orgName}
-              </Text>
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 6,
-                  marginTop: 6,
-                }}
-              >
-                {orgUsers.map((user) => {
-                  const roleLabel = ROLE_I18N[user.role]?.[lang] ?? user.role;
-                  const emailPrefix = user.email.split('@')[0];
-                  return (
-                    <Button
-                      key={user.email}
-                      size="small"
-                      loading={loadingUser === user.email}
-                      disabled={!!loadingUser && loadingUser !== user.email}
-                      onClick={() => handleQuickLogin(user)}
-                      style={{
-                        height: 'auto',
-                        padding: '5px 10px',
-                        borderRadius: 8,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        border: `1px solid ${token.colorBorderSecondary}`,
-                        flexBasis: isMobile ? 'calc(50% - 3px)' : undefined,
-                        justifyContent: 'flex-start',
-                      }}
-                    >
-                      <Tag
-                        color={user.roleColor}
-                        style={{ margin: 0, fontSize: 11, lineHeight: '18px', borderRadius: 4 }}
-                      >
-                        {roleLabel}
-                      </Tag>
-                      <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{emailPrefix}</Text>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            {orgGroups.map((org) => {
+              const orgUsers = QUICK_USERS.filter((u) => u.org === org);
+              const orgName = ORG_I18N[org]?.[lang] ?? org;
+              return (
+                <div key={org} style={{ marginBottom: 10 }}>
+                  <Text
+                    type="secondary"
+                    style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {orgName}
+                  </Text>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 6,
+                      marginTop: 6,
+                    }}
+                  >
+                    {orgUsers.map((user) => {
+                      const roleLabel = ROLE_I18N[user.role]?.[lang] ?? user.role;
+                      const emailPrefix = user.email.split('@')[0];
+                      return (
+                        <Button
+                          key={user.email}
+                          size="small"
+                          loading={loadingUser === user.email}
+                          disabled={!!loadingUser && loadingUser !== user.email}
+                          onClick={() => handleQuickLogin(user)}
+                          style={{
+                            height: 'auto',
+                            padding: '5px 10px',
+                            borderRadius: 8,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            border: `1px solid ${token.colorBorderSecondary}`,
+                            flexBasis: isMobile ? 'calc(50% - 3px)' : undefined,
+                            justifyContent: 'flex-start',
+                          }}
+                        >
+                          <Tag
+                            color={user.roleColor}
+                            style={{ margin: 0, fontSize: 11, lineHeight: '18px', borderRadius: 4 }}
+                          >
+                            {roleLabel}
+                          </Tag>
+                          <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{emailPrefix}</Text>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
 
         {/* Manual login form */}
         <Divider style={{ margin: '8px 0', fontSize: 12 }}>

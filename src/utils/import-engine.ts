@@ -77,6 +77,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['currency_code', 'currency_name', 'symbol'],
     uniqueKey: ['currency_code'],
     orgScoped: false,
+    allowedFields: ['currency_code', 'currency_name', 'symbol', 'decimal_places'],
   },
   uoms: {
     table: 'uoms',
@@ -84,6 +85,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['uom_code', 'uom_name', 'category'],
     uniqueKey: ['uom_code'],
     orgScoped: false,
+    allowedFields: ['uom_code', 'uom_name', 'category', 'conversion_factor', 'base_uom_code'],
   },
 
   // --- Organization structure ---
@@ -93,6 +95,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
     references: { parent_id: 'departments' },
+    allowedFields: ['code', 'name', 'parent_id', 'manager_id', 'is_active'],
   },
   employees: {
     table: 'employees',
@@ -100,6 +103,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['name', 'email', 'position', 'employee_number'],
     uniqueKey: ['email', 'organization_id'],
     references: { department_id: 'departments' },
+    allowedFields: ['name', 'email', 'position', 'employee_number', 'department_id', 'hire_date', 'phone', 'is_active'],
   },
 
   // --- Master data ---
@@ -109,6 +113,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
     references: { parent_id: 'product_categories' },
+    allowedFields: ['code', 'name', 'parent_id', 'description'],
   },
   products: {
     table: 'products',
@@ -116,13 +121,14 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
     references: { category_id: 'product_categories' },
-    excludeFields: ['list_price', 'status', 'min_stock', 'is_active', 'safety_stock'],
+    allowedFields: ['code', 'name', 'description', 'category_id', 'uom_id', 'product_type', 'barcode', 'weight', 'volume'],
   },
   customers: {
     table: 'customers',
     returnSelect: 'id, code, name',
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
+    allowedFields: ['code', 'name', 'customer_type', 'tax_number', 'contact', 'phone', 'email', 'street', 'city', 'province', 'postal_code', 'country', 'credit_limit', 'payment_terms', 'classification', 'status'],
   },
   'customer-addresses': {
     table: 'customer_addresses',
@@ -135,6 +141,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     returnSelect: 'id, code, name',
     requiredFields: ['code', 'name', 'supplier_type'],
     uniqueKey: ['code', 'organization_id'],
+    allowedFields: ['code', 'name', 'supplier_type', 'tax_id', 'contact_name', 'contact_phone', 'contact_email', 'address', 'payment_terms', 'status'],
   },
   'supplier-sites': {
     table: 'supplier_sites',
@@ -380,8 +387,7 @@ export async function importEntity(
           if (!allowed.has(key)) delete record[key];
         }
       } else {
-        const SYSTEM_FIELDS = ['id', 'deleted_at', 'created_at', 'updated_at'];
-        for (const f of SYSTEM_FIELDS) delete record[f];
+        throw { field: '*', message: 'Entity config missing allowedFields — import rejected for safety.', hint: 'Add allowedFields to this entity config.' };
       }
 
       // --- Inject org scope ---

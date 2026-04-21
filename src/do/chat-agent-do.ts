@@ -52,8 +52,10 @@ export class ERPChatAgent {
         && !await this.state.storage.get<boolean>('summarizing');
 
       if (shouldSummarize) {
-        const sessionId = url.pathname.split('/')[1] ?? 'unknown';
-        this.state.waitUntil(this.triggerSummarization(sessionId, messages));
+        const pathParts = url.pathname.split('/');
+        const doKey = pathParts[1] ?? 'unknown';
+        const [userId = 'unknown', sessionId = 'unknown'] = doKey.includes(':') ? doKey.split(':') : ['unknown', doKey];
+        this.state.waitUntil(this.triggerSummarization(userId, sessionId, messages));
       }
 
       return Response.json({ success: true, count: messages.length });
@@ -77,11 +79,12 @@ export class ERPChatAgent {
     return new Response('Not found', { status: 404 });
   }
 
-  private async triggerSummarization(sessionId: string, messages: Message[]): Promise<void> {
+  private async triggerSummarization(userId: string, sessionId: string, messages: Message[]): Promise<void> {
     try {
       await this.state.storage.put('summarizing', true);
       await this.env.EVENT_BUS.send({
         type: 'summarize_session',
+        userId,
         sessionId,
         messageCount: messages.length,
         // Pass last 30 messages for summarization (avoid huge payloads)

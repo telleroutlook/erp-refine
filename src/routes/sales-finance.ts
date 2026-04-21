@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
@@ -13,6 +13,7 @@ import { ErrorCode } from '../types/errors';
 
 const salesFinance = new Hono<{ Bindings: Env }>();
 salesFinance.use('*', authMiddleware());
+salesFinance.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
 // Sales Invoices (full CRUD with items)
@@ -403,36 +404,33 @@ salesFinance.post('/customer-receipts', async (c) => {
 
   // Check if the linked invoice is fully paid
   if (receipt.reference_type === 'sales_invoice' && receipt.reference_id) {
-    // Sum all receipts for this invoice
-    const { data: receiptsSum, error: sumError } = await db
-      .from('customer_receipts')
-      .select('amount')
-      .eq('reference_type', 'sales_invoice')
-      .eq('reference_id', receipt.reference_id)
-      .eq('organization_id', user.organizationId)
-      .is('deleted_at', null);
-
-    if (!sumError && receiptsSum) {
-      const totalPaid = receiptsSum.reduce(
-        (sum: number, r: { amount: number }) => sum + Number(r.amount ?? 0),
-        0
-      );
-
-      // Get invoice total
-      const { data: invoice } = await db
+    // Run sum and invoice fetch in parallel
+    const [sumResult, invoiceResult] = await Promise.all([
+      db
+        .from('customer_receipts')
+        .select('total:amount.sum()')
+        .eq('reference_type', 'sales_invoice')
+        .eq('reference_id', receipt.reference_id)
+        .eq('organization_id', user.organizationId)
+        .is('deleted_at', null)
+        .single(),
+      db
         .from('sales_invoices')
         .select('id, total_amount')
         .eq('id', receipt.reference_id)
         .eq('organization_id', user.organizationId)
-        .single();
+        .single(),
+    ]);
 
-      if (invoice && totalPaid >= (invoice.total_amount ?? 0)) {
-        await db
-          .from('sales_invoices')
-          .update({ status: 'paid' })
-          .eq('id', receipt.reference_id)
-          .eq('organization_id', user.organizationId);
-      }
+    const totalPaid = Number((sumResult.data as any)?.total ?? 0);
+    const invoice = invoiceResult.data;
+
+    if (invoice && totalPaid >= (invoice.total_amount ?? 0)) {
+      await db
+        .from('sales_invoices')
+        .update({ status: 'paid' })
+        .eq('id', receipt.reference_id)
+        .eq('organization_id', user.organizationId);
     }
   }
 
