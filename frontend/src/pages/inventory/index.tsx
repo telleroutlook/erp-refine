@@ -17,10 +17,10 @@ export const StockRecordList: React.FC = () => {
         <Table.Column dataIndex={['warehouse', 'name']} title="仓库" />
         <Table.Column dataIndex={['product', 'code']} title="产品编号" width={120} />
         <Table.Column dataIndex={['product', 'name']} title="产品名称" />
-        <Table.Column dataIndex="qty_on_hand" title="在手数量" width={100} align="right" />
-        <Table.Column dataIndex="qty_reserved" title="预留数量" width={100} align="right" />
+        <Table.Column dataIndex="quantity" title="在手数量" width={100} align="right" />
+        <Table.Column dataIndex="reserved_quantity" title="预留数量" width={100} align="right" />
         <Table.Column
-          dataIndex="qty_available"
+          dataIndex="available_quantity"
           title="可用数量"
           width={100}
           align="right"

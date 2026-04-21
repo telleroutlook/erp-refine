@@ -16,7 +16,7 @@ inventory.use('*', authMiddleware());
 inventory.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
-// Stock Records — list (with computed qty_available) + detail
+// Stock Records — list (with computed available_quantity) + detail
 // ────────────────────────────────────────────────────────────────────────────
 
 inventory.get('/stock-records', async (c) => {
@@ -26,7 +26,7 @@ inventory.get('/stock-records', async (c) => {
 
   let query = db
     .from('stock_records')
-    .select('id, qty_on_hand, qty_reserved, qty_available, product:products(id,name,code), warehouse:warehouses(id,name,code)', { count: 'exact' })
+    .select('id, quantity, reserved_quantity, available_quantity, product:products(id,name,code), warehouse:warehouses(id,name,code)', { count: 'exact' })
     .eq('organization_id', user.organizationId);
   query = applyFilters(query, filters);
 

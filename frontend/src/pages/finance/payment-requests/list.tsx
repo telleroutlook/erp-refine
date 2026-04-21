@@ -30,7 +30,7 @@ export const PaymentRequestList: React.FC = () => {
           render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />}
         />
         <Table.Column
-          dataIndex="ok_to_pay_flag"
+          dataIndex="ok_to_pay"
           title="可付款"
           width={90}
           render={(v) => <Tag color={v ? 'green' : 'orange'}>{v ? '是' : '否'}</Tag>}

@@ -71,27 +71,6 @@ const approvalRecordsRouter = buildCrudRoutes(approvalRecordsConfig);
 admin.route('', approvalRecordsRouter);
 
 // ---------------------------------------------------------------------------
-// Approvals — workflow step action log (distinct from approval_records)
-// ---------------------------------------------------------------------------
-const approvalsConfig: CrudConfig = {
-  table: 'approvals',
-  path: '/approvals',
-  resourceName: 'Approval',
-  listSelect:
-    'id, object_type, object_id, approver_id, action, step_no, acted_at, comment',
-  detailSelect: '*',
-  createReturnSelect: 'id, action, step_no',
-  defaultSort: 'acted_at',
-  softDelete: false,
-  orgScoped: true,
-  disableUpdate: true,
-  disableDelete: true,
-};
-
-const approvalsRouter = buildCrudRoutes(approvalsConfig);
-admin.route('', approvalsRouter);
-
-// ---------------------------------------------------------------------------
 // Link Employees to Auth Users — needed for RLS to work after seed import
 // ---------------------------------------------------------------------------
 admin.post('/link-employees', async (c) => {

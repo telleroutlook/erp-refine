@@ -17,7 +17,7 @@ export function createPartnersTools(db: SupabaseClient, organizationId: string) 
             *,
             sites:supplier_sites(id,site_name,site_code,address,city,country,is_default),
             bank_accounts:supplier_bank_accounts(id,bank_name,account_number,account_name,currency,is_default),
-            contacts:supplier_contacts(id,contact_name,title,email,phone,is_primary)
+            contacts:supplier_contacts(id,contact_name,title,email,phone,is_default)
           `)
           .eq('id', id)
           .eq('organization_id', organizationId)
@@ -57,13 +57,13 @@ export function createPartnersTools(db: SupabaseClient, organizationId: string) 
       execute: async ({ supplierId, primaryOnly }) => {
         let query = db
           .from('supplier_contacts')
-          .select('id, name, title, email, phone, is_primary')
+          .select('id, name, title, email, phone, is_default')
           .eq('supplier_id', supplierId)
           .is('deleted_at', null);
 
-        if (primaryOnly) query = query.eq('is_primary', true);
+        if (primaryOnly) query = query.eq('is_default', true);
 
-        const { data, error } = await query.order('is_primary', { ascending: false });
+        const { data, error } = await query.order('is_default', { ascending: false });
         if (error) throw new Error(error.message);
         return data ?? [];
       },

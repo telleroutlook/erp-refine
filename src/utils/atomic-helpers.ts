@@ -16,8 +16,8 @@ export interface AtomicCreateConfig {
   headerReturnSelect: string;
   /** Columns to return from items after insert */
   itemsReturnSelect: string;
-  /** Whether to auto-assign line_no to items (only for tables that have this column) */
-  autoLineNo?: boolean;
+  /** Whether to auto-assign line_number to items (only for tables that have this column) */
+  autoLineNumber?: boolean;
 }
 
 export interface AtomicCreateInput {
@@ -74,8 +74,8 @@ export async function atomicCreateWithItems(
         ...item,
         [headerFk]: headerId,
       };
-      if (config.autoLineNo) {
-        row.line_no = item.line_no ?? idx + 1;
+      if (config.autoLineNumber) {
+        row.line_number = item.line_number ?? idx + 1;
       }
       return row;
     });

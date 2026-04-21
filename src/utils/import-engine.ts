@@ -128,7 +128,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     returnSelect: 'id, code, name',
     requiredFields: ['code', 'name'],
     uniqueKey: ['code', 'organization_id'],
-    allowedFields: ['code', 'name', 'customer_type', 'tax_number', 'contact', 'phone', 'email', 'street', 'city', 'province', 'postal_code', 'country', 'credit_limit', 'payment_terms', 'classification', 'status'],
+    allowedFields: ['code', 'name', 'type', 'tax_number', 'contact', 'phone', 'email', 'credit_limit', 'payment_terms', 'classification', 'status'],
   },
   'customer-addresses': {
     table: 'customer_addresses',
@@ -201,7 +201,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     requiredFields: ['warehouse_id', 'product_id', 'quantity'],
     uniqueKey: ['organization_id', 'warehouse_id', 'product_id'],
     references: { warehouse_id: 'warehouses', product_id: 'products' },
-    excludeFields: ['qty_on_hand', 'qty_reserved', 'qty_available', 'available_quantity'],
+    excludeFields: ['available_quantity'],
   },
 
   // --- Exchange rates ---

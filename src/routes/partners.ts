@@ -19,9 +19,9 @@ const customersConfig: CrudConfig = {
   path: '/customers',
   resourceName: 'Customer',
   listSelect:
-    'id, name, code, customer_type, classification, contact, email, phone, status, credit_limit, payment_terms',
+    'id, name, code, type, classification, contact, email, phone, status, credit_limit, payment_terms',
   detailSelect:
-    '*, addresses:customer_addresses(id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default), bank_accounts:customer_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
+    '*, addresses:customer_addresses!customer_addresses_customer_id_fkey(id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default), bank_accounts:customer_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'name',
   softDelete: true,
@@ -29,16 +29,11 @@ const customersConfig: CrudConfig = {
   updateSchema: z.object({
     name: z.string().optional(),
     code: z.string().optional(),
-    customer_type: z.string().optional(),
+    type: z.string().optional(),
     tax_number: z.string().optional().nullable(),
     contact: z.string().optional().nullable(),
     phone: z.string().optional().nullable(),
     email: z.string().optional().nullable(),
-    street: z.string().optional().nullable(),
-    city: z.string().optional().nullable(),
-    province: z.string().optional().nullable(),
-    postal_code: z.string().optional().nullable(),
-    country: z.string().optional().nullable(),
     credit_limit: z.number().optional().nullable(),
     payment_terms: z.number().optional().nullable(),
     classification: z.string().optional().nullable(),
@@ -160,9 +155,9 @@ partners.route('', buildNestedCrudRoutes({
   childTable: 'supplier_contacts',
   childPath: 'contacts',
   childResourceName: 'SupplierContact',
-  childListSelect: 'id, name, title, email, phone, is_primary',
+  childListSelect: 'id, name, title, email, phone, is_default',
   childReturnSelect: 'id, name, email',
-  defaultSort: 'is_primary',
+  defaultSort: 'is_default',
   softDelete: true,
 }));
 

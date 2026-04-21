@@ -15,7 +15,7 @@ export interface PurchaseOrder {
 
 export interface PurchaseOrderItem {
   id: string;
-  line_no: number;
+  line_number: number;
   product?: { id: string; name: string; code: string };
   quantity: number;
   unit_price: number;
@@ -35,9 +35,9 @@ export interface SalesOrder {
 
 export interface StockRecord {
   id: string;
-  qty_on_hand: number;
-  qty_reserved: number;
-  qty_available?: number;
+  quantity: number;
+  reserved_quantity: number;
+  available_quantity?: number;
   product?: { id: string; name: string; code: string };
   warehouse?: { id: string; name: string; code: string };
 }

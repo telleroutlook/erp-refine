@@ -505,7 +505,7 @@ procurementReceiving.get('/advance-shipment-notices/:id', async (c) => {
 
   const { data, error } = await db
     .from('advance_shipment_notices')
-    .select('*, supplier:suppliers(id,name), warehouse:warehouses(id,name), purchase_order:purchase_orders!po_id(id,order_number), lines:asn_lines(id, line_no, qty, lot_no, item:products!item_id(id,name,code))')
+    .select('*, supplier:suppliers(id,name), warehouse:warehouses(id,name), purchase_order:purchase_orders!po_id(id,order_number), lines:asn_lines(id, line_number, quantity, lot_no, item:products!item_id(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -534,7 +534,7 @@ procurementReceiving.post('/advance-shipment-notices', async (c) => {
       itemsTable: 'asn_lines',
       headerFk: 'asn_id',
       headerReturnSelect: 'id, asn_no, status',
-      itemsReturnSelect: 'id, qty, line_no',
+      itemsReturnSelect: 'id, quantity, line_number',
     },
     {
       header: {
@@ -547,7 +547,7 @@ procurementReceiving.post('/advance-shipment-notices', async (c) => {
       items: (items ?? []).map((item: Record<string, unknown>, idx: number) => ({
         ...item,
         organization_id: user.organizationId,
-        line_no: item.line_no ?? idx + 1,
+        line_number: item.line_number ?? idx + 1,
       })),
     },
     { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_asn', resource: 'advance_shipment_notices' }
@@ -607,10 +607,10 @@ procurementReceiving.route('', buildCrudRoutes({
   table: 'asn_lines',
   path: '/asn-lines',
   resourceName: 'AsnLine',
-  listSelect: 'id, line_no, qty, lot_no, item:products!item_id(id,name,code)',
+  listSelect: 'id, line_number, quantity, lot_no, item:products!item_id(id,name,code)',
   detailSelect: '*, item:products!item_id(id,name,code)',
-  createReturnSelect: 'id, qty, line_no',
-  defaultSort: 'line_no',
+  createReturnSelect: 'id, quantity, line_number',
+  defaultSort: 'line_number',
   softDelete: true,
   orgScoped: false,
   parentOwnership: { parentFk: 'asn_id', parentTable: 'advance_shipment_notices' },

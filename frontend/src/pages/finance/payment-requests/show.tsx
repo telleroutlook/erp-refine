@@ -20,7 +20,7 @@ export const PaymentRequestShow: React.FC = () => {
           <AmountDisplay value={record?.amount} currency={record?.currency} />
         </Descriptions.Item>
         <Descriptions.Item label="可付款">
-          <Tag color={record?.ok_to_pay_flag ? 'green' : 'orange'}>{record?.ok_to_pay_flag ? '是' : '否'}</Tag>
+          <Tag color={record?.ok_to_pay ? 'green' : 'orange'}>{record?.ok_to_pay ? '是' : '否'}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label="创建日期">
           <DateField value={record?.created_at} format="YYYY-MM-DD" />
