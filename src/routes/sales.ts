@@ -134,6 +134,124 @@ sales.delete('/sales-orders/:id', async (c) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// Sales Order Workflow — submit / approve / reject / cancel
+// ────────────────────────────────────────────────────────────────────────────
+
+// POST /sales-orders/:id/submit — draft → submitted
+sales.post('/sales-orders/:id/submit', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: so, error: fetchError } = await db
+    .from('sales_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
+  if (so.status !== 'draft') {
+    throw ApiError.invalidState('SalesOrder', so.status, 'submit', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('sales_orders')
+    .update({ status: 'submitted', submitted_at: new Date().toISOString(), submitted_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'submitted' } });
+});
+
+// POST /sales-orders/:id/approve — submitted → approved
+sales.post('/sales-orders/:id/approve', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: so, error: fetchError } = await db
+    .from('sales_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
+  if (so.status !== 'submitted') {
+    throw ApiError.invalidState('SalesOrder', so.status, 'approve', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('sales_orders')
+    .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.userId })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'approved' } });
+});
+
+// POST /sales-orders/:id/reject — submitted → rejected
+sales.post('/sales-orders/:id/reject', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: so, error: fetchError } = await db
+    .from('sales_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
+  if (so.status !== 'submitted') {
+    throw ApiError.invalidState('SalesOrder', so.status, 'reject', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('sales_orders')
+    .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejected_by: user.userId, rejection_reason: body.reason ?? null })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'rejected' } });
+});
+
+// POST /sales-orders/:id/cancel — approved → cancelled
+sales.post('/sales-orders/:id/cancel', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  const { data: so, error: fetchError } = await db
+    .from('sales_orders')
+    .select('id, order_number, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !so) throw ApiError.notFound('SalesOrder', id, requestId);
+  if (!['approved', 'submitted', 'draft'].includes(so.status)) {
+    throw ApiError.invalidState('SalesOrder', so.status, 'cancel', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('sales_orders')
+    .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), cancelled_by: user.userId, cancellation_reason: body.reason ?? null })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+  return c.json({ data: { id: so.id, order_number: so.order_number, status: 'cancelled' } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
 // Sales Order Items — standalone CRUD via factory
 // ────────────────────────────────────────────────────────────────────────────
 

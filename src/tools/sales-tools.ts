@@ -10,7 +10,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
     list_sales_orders: tool({
       description: 'List sales orders with optional filters',
       inputSchema: z.object({
-        status: z.enum(['draft','submitted','approved','partially_shipped','shipped','invoiced','closed','cancelled']).optional(),
+        status: z.enum(['draft','submitted','confirmed','approved','rejected','shipping','shipped','completed','cancelled']).optional(),
         customerId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -225,6 +225,169 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
         }
 
         return { id: so.id, orderNumber: so.order_number, status: 'draft', totalAmount };
+      },
+    }),
+
+    submit_sales_order: tool({
+      description: 'Submit a draft sales order for approval (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: so, error } = await db
+          .from('sales_orders')
+          .select('id, order_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !so) throw new Error('Sales order not found');
+        if (so.status !== 'draft') throw new Error(`Cannot submit SO in status '${so.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: so.id, orderNumber: so.order_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('sales_orders')
+          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: so.id, orderNumber: so.order_number, status: 'submitted' };
+      },
+    }),
+
+    approve_sales_order: tool({
+      description: 'Approve a submitted sales order (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: so, error } = await db
+          .from('sales_orders')
+          .select('id, order_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !so) throw new Error('Sales order not found');
+        if (so.status !== 'submitted') throw new Error(`Cannot approve SO in status '${so.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: so.id, orderNumber: so.order_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('sales_orders')
+          .update({ status: 'approved', approved_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: so.id, orderNumber: so.order_number, status: 'approved' };
+      },
+    }),
+
+    cancel_sales_order: tool({
+      description: 'Cancel a sales order (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        reason: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, reason, confirmed }) => {
+        const { data: so, error } = await db
+          .from('sales_orders')
+          .select('id, order_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !so) throw new Error('Sales order not found');
+        if (!['draft', 'submitted', 'approved'].includes(so.status)) {
+          throw new Error(`Cannot cancel SO in status '${so.status}'`);
+        }
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to cancel', id: so.id, orderNumber: so.order_number, currentStatus: so.status };
+        }
+
+        const { error: updateErr } = await db
+          .from('sales_orders')
+          .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), cancellation_reason: reason ?? null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: so.id, orderNumber: so.order_number, status: 'cancelled' };
+      },
+    }),
+
+    confirm_sales_shipment: tool({
+      description: 'Confirm a sales shipment for stock deduction (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: shipment, error } = await db
+          .from('sales_shipments')
+          .select('id, shipment_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !shipment) throw new Error('Sales shipment not found');
+        if (shipment.status !== 'draft') throw new Error(`Cannot confirm shipment in status '${shipment.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to confirm shipment (will deduct stock)', id: shipment.id, shipmentNumber: shipment.shipment_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('sales_shipments')
+          .update({ status: 'confirmed', confirmed_at: new Date().toISOString(), confirmed_by: null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: shipment.id, shipmentNumber: shipment.shipment_number, status: 'confirmed' };
+      },
+    }),
+
+    receive_sales_return: tool({
+      description: 'Receive a sales return into inventory (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: ret, error } = await db
+          .from('sales_returns')
+          .select('id, return_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !ret) throw new Error('Sales return not found');
+        if (ret.status !== 'approved') throw new Error(`Cannot receive return in status '${ret.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to receive return (will add stock)', id: ret.id, returnNumber: ret.return_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('sales_returns')
+          .update({ status: 'received', received_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: ret.id, returnNumber: ret.return_number, status: 'received' };
       },
     }),
   };

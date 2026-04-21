@@ -89,6 +89,9 @@ export const TOOL_REGISTRY_META = [
   { name: 'approve_purchase_order', domain: 'procurement', level: 3, cacheable: false },
   { name: 'submit_purchase_requisition', domain: 'procurement', level: 2, cacheable: false },
   { name: 'approve_purchase_requisition', domain: 'procurement', level: 3, cacheable: false },
+  { name: 'reject_purchase_order', domain: 'procurement', level: 3, cacheable: false },
+  { name: 'reject_purchase_requisition', domain: 'procurement', level: 3, cacheable: false },
+  { name: 'confirm_purchase_receipt', domain: 'procurement', level: 2, cacheable: false },
   // sales
   { name: 'list_sales_orders', domain: 'sales', level: 0, cacheable: true },
   { name: 'get_sales_order', domain: 'sales', level: 0, cacheable: false },
@@ -98,6 +101,11 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_sales_returns', domain: 'sales', level: 0, cacheable: true },
   { name: 'list_customer_receipts', domain: 'sales', level: 0, cacheable: true },
   { name: 'list_sales_shipments', domain: 'sales', level: 0, cacheable: true },
+  { name: 'submit_sales_order', domain: 'sales', level: 2, cacheable: false },
+  { name: 'approve_sales_order', domain: 'sales', level: 3, cacheable: false },
+  { name: 'cancel_sales_order', domain: 'sales', level: 3, cacheable: false },
+  { name: 'confirm_sales_shipment', domain: 'sales', level: 2, cacheable: false },
+  { name: 'receive_sales_return', domain: 'sales', level: 2, cacheable: false },
   { name: 'list_vouchers', domain: 'finance', level: 0, cacheable: true },
   { name: 'get_budget_vs_actual', domain: 'finance', level: 0, cacheable: true },
   { name: 'list_payment_requests', domain: 'finance', level: 0, cacheable: true },
@@ -110,6 +118,8 @@ export const TOOL_REGISTRY_META = [
   { name: 'void_voucher', domain: 'finance', level: 3, cacheable: false },
   { name: 'submit_payment_request', domain: 'finance', level: 2, cacheable: false },
   { name: 'approve_payment_request', domain: 'finance', level: 3, cacheable: false },
+  { name: 'post_voucher', domain: 'finance', level: 3, cacheable: false },
+  { name: 'reject_payment_request', domain: 'finance', level: 3, cacheable: false },
   // master-data
   { name: 'list_products', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_currencies', domain: 'master-data', level: 0, cacheable: true },
@@ -139,6 +149,7 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_quality_standards', domain: 'quality', level: 0, cacheable: true },
   { name: 'list_defect_codes', domain: 'quality', level: 0, cacheable: true },
   { name: 'create_quality_inspection', domain: 'quality', level: 2, cacheable: false },
+  { name: 'complete_quality_inspection', domain: 'quality', level: 3, cacheable: false },
   // manufacturing
   { name: 'list_work_orders', domain: 'manufacturing', level: 0, cacheable: true },
   { name: 'get_work_order', domain: 'manufacturing', level: 0, cacheable: false },
@@ -147,12 +158,15 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_work_order_materials', domain: 'manufacturing', level: 0, cacheable: false },
   { name: 'list_work_order_productions', domain: 'manufacturing', level: 0, cacheable: false },
   { name: 'create_work_order', domain: 'manufacturing', level: 2, cacheable: false },
+  { name: 'issue_work_order_materials', domain: 'manufacturing', level: 2, cacheable: false },
+  { name: 'complete_work_order', domain: 'manufacturing', level: 3, cacheable: false },
   // contracts
   { name: 'list_contracts', domain: 'contracts', level: 0, cacheable: true },
   { name: 'get_contract', domain: 'contracts', level: 0, cacheable: false },
   { name: 'list_contract_items', domain: 'contracts', level: 0, cacheable: false },
   { name: 'activate_contract', domain: 'contracts', level: 2, cacheable: false },
   { name: 'terminate_contract', domain: 'contracts', level: 3, cacheable: false },
+  { name: 'renew_contract', domain: 'contracts', level: 2, cacheable: false },
   // assets
   { name: 'list_fixed_assets', domain: 'assets', level: 0, cacheable: true },
   { name: 'get_fixed_asset', domain: 'assets', level: 0, cacheable: false },
@@ -171,4 +185,6 @@ export const TOOL_REGISTRY_META = [
   // system
   { name: 'list_workflows', domain: 'system', level: 0, cacheable: false },
   { name: 'list_document_relations', domain: 'system', level: 0, cacheable: false },
+  { name: 'list_notifications', domain: 'system', level: 0, cacheable: false },
+  { name: 'list_document_attachments', domain: 'system', level: 0, cacheable: false },
 ];

@@ -56,5 +56,44 @@ export function createSystemTools(db: SupabaseClient, organizationId: string) {
         return data ?? [];
       },
     }),
+
+    list_notifications: tool({
+      description: 'List notifications for the current user or organization',
+      inputSchema: z.object({
+        unreadOnly: z.boolean().default(false),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ unreadOnly, limit }) => {
+        let query = db
+          .from('notifications')
+          .select('id, title, message, type, is_read, entity_type, entity_id, created_at')
+          .eq('organization_id', organizationId);
+
+        if (unreadOnly) query = query.eq('is_read', false);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_document_attachments: tool({
+      description: 'List file attachments for a specific document',
+      inputSchema: z.object({
+        documentType: z.string().describe('e.g. purchase_orders, sales_orders, contracts'),
+        documentId: z.string().uuid(),
+      }),
+      execute: async ({ documentType, documentId }) => {
+        const { data, error } = await db
+          .from('document_attachments')
+          .select('id, file_name, file_type, file_size, storage_path, uploaded_by, created_at')
+          .eq('organization_id', organizationId)
+          .eq('document_type', documentType)
+          .eq('document_id', documentId)
+          .order('created_at', { ascending: false });
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

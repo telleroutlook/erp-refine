@@ -348,5 +348,73 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
         return { id: pr.id, requestNumber: pr.request_number, status: 'approved' };
       },
     }),
+
+    post_voucher: tool({
+      description: 'Post a draft voucher to the ledger (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: voucher, error } = await db
+          .from('vouchers')
+          .select('id, voucher_number, status, total_debit, total_credit')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .single();
+        if (error || !voucher) throw new Error('Voucher not found');
+        if (voucher.status !== 'draft') throw new Error(`Cannot post voucher in status '${voucher.status}'`);
+
+        if (Math.abs(voucher.total_debit - voucher.total_credit) > 0.001) {
+          throw new Error(`Voucher is unbalanced: debit=${voucher.total_debit}, credit=${voucher.total_credit}`);
+        }
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to post', id: voucher.id, voucherNumber: voucher.voucher_number, totalDebit: voucher.total_debit };
+        }
+
+        const { error: updateErr } = await db
+          .from('vouchers')
+          .update({ status: 'posted', posted_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'posted' };
+      },
+    }),
+
+    reject_payment_request: tool({
+      description: 'Reject a submitted payment request (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        reason: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, reason, confirmed }) => {
+        const { data: pr, error } = await db
+          .from('payment_requests')
+          .select('id, request_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !pr) throw new Error('Payment request not found');
+        if (pr.status !== 'submitted') throw new Error(`Cannot reject payment request in status '${pr.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: pr.id, requestNumber: pr.request_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('payment_requests')
+          .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: pr.id, requestNumber: pr.request_number, status: 'rejected' };
+      },
+    }),
   };
 }

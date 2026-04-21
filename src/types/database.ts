@@ -1127,6 +1127,8 @@ export type Database = {
       }
       contracts: {
         Row: {
+          activated_at: string | null
+          activated_by: string | null
           contract_number: string
           contract_type: string
           created_at: string
@@ -1142,14 +1144,20 @@ export type Database = {
           party_id: string
           party_type: string
           payment_terms: string | null
+          renewed_from_id: string | null
           start_date: string | null
           status: string
           tax_rate: number | null
+          terminated_at: string | null
+          terminated_by: string | null
+          termination_reason: string | null
           terms: string | null
           total_amount: number
           updated_at: string
         }
         Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
           contract_number: string
           contract_type?: string
           created_at?: string
@@ -1165,14 +1173,20 @@ export type Database = {
           party_id: string
           party_type: string
           payment_terms?: string | null
+          renewed_from_id?: string | null
           start_date?: string | null
           status?: string
           tax_rate?: number | null
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
           terms?: string | null
           total_amount?: number
           updated_at?: string
         }
         Update: {
+          activated_at?: string | null
+          activated_by?: string | null
           contract_number?: string
           contract_type?: string
           created_at?: string
@@ -1188,9 +1202,13 @@ export type Database = {
           party_id?: string
           party_type?: string
           payment_terms?: string | null
+          renewed_from_id?: string | null
           start_date?: string | null
           status?: string
           tax_rate?: number | null
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
           terms?: string | null
           total_amount?: number
           updated_at?: string
@@ -1208,6 +1226,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_renewed_from_id_fkey"
+            columns: ["renewed_from_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
         ]
@@ -1793,6 +1818,64 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dynamic_form_data: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          deleted_at: string | null
+          id: string
+          is_sandbox: boolean
+          organization_id: string
+          schema_registry_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          deleted_at?: string | null
+          id?: string
+          is_sandbox?: boolean
+          organization_id: string
+          schema_registry_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          deleted_at?: string | null
+          id?: string
+          is_sandbox?: boolean
+          organization_id?: string
+          schema_registry_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dynamic_form_data_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dynamic_form_data_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dynamic_form_data_schema_registry_id_fkey"
+            columns: ["schema_registry_id"]
+            isOneToOne: false
+            referencedRelation: "schema_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -2691,6 +2774,7 @@ export type Database = {
       payment_requests: {
         Row: {
           amount: number
+          approved_at: string | null
           approved_by: string | null
           bank_account_id: string | null
           created_at: string
@@ -2703,15 +2787,21 @@ export type Database = {
           ok_to_pay: boolean
           organization_id: string
           payment_method: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           request_number: string
           statement_id: string | null
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           supplier_id: string
           supplier_invoice_id: string | null
           updated_at: string
         }
         Insert: {
           amount: number
+          approved_at?: string | null
           approved_by?: string | null
           bank_account_id?: string | null
           created_at?: string
@@ -2724,15 +2814,21 @@ export type Database = {
           ok_to_pay?: boolean
           organization_id: string
           payment_method?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           request_number: string
           statement_id?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           supplier_id: string
           supplier_invoice_id?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          approved_at?: string | null
           approved_by?: string | null
           bank_account_id?: string | null
           created_at?: string
@@ -2745,9 +2841,14 @@ export type Database = {
           ok_to_pay?: boolean
           organization_id?: string
           payment_method?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           request_number?: string
           statement_id?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           supplier_id?: string
           supplier_invoice_id?: string | null
           updated_at?: string
@@ -3368,7 +3469,12 @@ export type Database = {
           order_number: string
           organization_id: string
           payment_terms: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           supplier_id: string
           tax_amount: number
           total_amount: number
@@ -3390,7 +3496,12 @@ export type Database = {
           order_number: string
           organization_id: string
           payment_terms?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           supplier_id: string
           tax_amount?: number
           total_amount?: number
@@ -3412,7 +3523,12 @@ export type Database = {
           order_number?: string
           organization_id?: string
           payment_terms?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           supplier_id?: string
           tax_amount?: number
           total_amount?: number
@@ -3717,6 +3833,8 @@ export type Database = {
       }
       purchase_requisitions: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -3724,15 +3842,22 @@ export type Database = {
           id: string
           notes: string | null
           organization_id: string
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           request_date: string
           requester_id: string | null
           required_date: string | null
           requisition_number: string
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           total_amount: number
           updated_at: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -3740,15 +3865,22 @@ export type Database = {
           id?: string
           notes?: string | null
           organization_id: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           request_date?: string
           requester_id?: string | null
           required_date?: string | null
           requisition_number: string
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           total_amount?: number
           updated_at?: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -3756,11 +3888,16 @@ export type Database = {
           id?: string
           notes?: string | null
           organization_id?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           request_date?: string
           requester_id?: string | null
           required_date?: string | null
           requisition_number?: string
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           total_amount?: number
           updated_at?: string
         }
@@ -3835,6 +3972,8 @@ export type Database = {
       }
       quality_inspections: {
         Row: {
+          completed_at: string | null
+          completed_by: string | null
           created_at: string
           created_by: string | null
           defective_quantity: number
@@ -3855,6 +3994,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           defective_quantity?: number
@@ -3875,6 +4016,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           defective_quantity?: number
@@ -4563,7 +4706,11 @@ export type Database = {
       }
       sales_orders: {
         Row: {
+          approved_at: string | null
           approved_by: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -4577,14 +4724,23 @@ export type Database = {
           organization_id: string
           payment_status: string
           payment_terms: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           tax_amount: number
           total_amount: number
           updated_at: string
           warehouse_id: string | null
         }
         Insert: {
+          approved_at?: string | null
           approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -4598,14 +4754,23 @@ export type Database = {
           organization_id: string
           payment_status?: string
           payment_terms?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           tax_amount?: number
           total_amount?: number
           updated_at?: string
           warehouse_id?: string | null
         }
         Update: {
+          approved_at?: string | null
           approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -4619,7 +4784,12 @@ export type Database = {
           organization_id?: string
           payment_status?: string
           payment_terms?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           tax_amount?: number
           total_amount?: number
           updated_at?: string
@@ -4728,6 +4898,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           reason: string | null
+          received_at: string | null
           return_date: string
           return_number: string
           sales_order_id: string | null
@@ -4745,6 +4916,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           reason?: string | null
+          received_at?: string | null
           return_date?: string
           return_number: string
           sales_order_id?: string | null
@@ -4762,6 +4934,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           reason?: string | null
+          received_at?: string | null
           return_date?: string
           return_number?: string
           sales_order_id?: string | null
@@ -5941,6 +6114,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "supplier_quotations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "supplier_quotations_rfq_id_fkey"
             columns: ["rfq_id"]
             isOneToOne: false
@@ -6545,6 +6725,9 @@ export type Database = {
           total_credit: number
           total_debit: number
           updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
           voucher_date: string
           voucher_number: string
           voucher_type: string
@@ -6563,6 +6746,9 @@ export type Database = {
           total_credit?: number
           total_debit?: number
           updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
           voucher_date?: string
           voucher_number: string
           voucher_type?: string
@@ -6581,6 +6767,9 @@ export type Database = {
           total_credit?: number
           total_debit?: number
           updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
           voucher_date?: string
           voucher_number?: string
           voucher_type?: string
@@ -7197,6 +7386,14 @@ export type Database = {
         Args: { p_organization_id: string; p_sequence_name: string }
         Returns: string
       }
+      get_next_sequence_batch: {
+        Args: {
+          p_count: number
+          p_organization_id: string
+          p_sequence_name: string
+        }
+        Returns: string[]
+      }
       get_reservation_summary_by_item: {
         Args: { p_org_id: string }
         Returns: {
@@ -7236,6 +7433,57 @@ export type Database = {
           p_org_id: string
         }
         Returns: string
+      }
+      rpc_inventory_valuation: {
+        Args: { p_org_id: string; p_warehouse_id?: string }
+        Returns: {
+          total_qty: number
+          total_skus: number
+        }[]
+      }
+      rpc_manufacturing_summary: {
+        Args: { p_from_date?: string; p_org_id: string; p_to_date?: string }
+        Returns: {
+          completed_qty: number
+          order_count: number
+          planned_qty: number
+          status: string
+        }[]
+      }
+      rpc_procurement_summary: {
+        Args: { p_from_date?: string; p_org_id: string; p_to_date?: string }
+        Returns: {
+          order_count: number
+          status: string
+          total_amount: number
+        }[]
+      }
+      rpc_sales_summary_by_customer: {
+        Args: { p_from_date?: string; p_org_id: string; p_to_date?: string }
+        Returns: {
+          customer_id: string
+          customer_name: string
+          order_count: number
+          total_amount: number
+        }[]
+      }
+      rpc_sales_summary_by_month: {
+        Args: { p_from_date?: string; p_org_id: string; p_to_date?: string }
+        Returns: {
+          month: string
+          order_count: number
+          total_amount: number
+        }[]
+      }
+      rpc_sales_summary_by_product: {
+        Args: { p_from_date?: string; p_org_id: string; p_to_date?: string }
+        Returns: {
+          product_code: string
+          product_id: string
+          product_name: string
+          total_amount: number
+          total_qty: number
+        }[]
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
@@ -7372,4 +7620,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

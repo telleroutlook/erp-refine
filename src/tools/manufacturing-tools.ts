@@ -200,5 +200,106 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         return { id: wo.id, workOrderNumber: wo.work_order_number, status: 'draft', plannedQuantity, materialCount: materials.length };
       },
     }),
+
+    issue_work_order_materials: tool({
+      description: 'Issue materials for a work order from warehouse (D2 — requires confirmation)',
+      inputSchema: z.object({
+        workOrderId: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ workOrderId, confirmed }) => {
+        const { data: wo, error } = await db
+          .from('work_orders')
+          .select('id, work_order_number, status')
+          .eq('id', workOrderId)
+          .eq('organization_id', organizationId)
+          .single();
+        if (error || !wo) throw new Error('Work order not found');
+        if (!['released', 'in_progress'].includes(wo.status)) {
+          throw new Error(`Cannot issue materials for WO in status '${wo.status}'`);
+        }
+
+        const { data: materials } = await db
+          .from('work_order_materials')
+          .select('id, product_id, required_quantity, issued_quantity, status')
+          .eq('work_order_id', workOrderId)
+          .eq('status', 'pending');
+
+        const pendingMaterials = materials ?? [];
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run — set confirmed=true to issue materials (will deduct stock)',
+            workOrderId: wo.id,
+            workOrderNumber: wo.work_order_number,
+            pendingMaterialCount: pendingMaterials.length,
+          };
+        }
+
+        for (const mat of pendingMaterials) {
+          const issueQty = mat.required_quantity - mat.issued_quantity;
+          if (issueQty <= 0) continue;
+
+          await db
+            .from('work_order_materials')
+            .update({ issued_quantity: mat.required_quantity, status: 'issued' })
+            .eq('id', mat.id);
+        }
+
+        if (wo.status === 'released') {
+          await db.from('work_orders').update({ status: 'in_progress' }).eq('id', wo.id);
+        }
+
+        return { workOrderId: wo.id, workOrderNumber: wo.work_order_number, issuedCount: pendingMaterials.length };
+      },
+    }),
+
+    complete_work_order: tool({
+      description: 'Complete a work order (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        completedQuantity: z.number().nonnegative().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, completedQuantity, confirmed }) => {
+        const { data: wo, error } = await db
+          .from('work_orders')
+          .select('id, work_order_number, status, planned_quantity, completed_quantity')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .single();
+        if (error || !wo) throw new Error('Work order not found');
+        if (!['released', 'in_progress'].includes(wo.status)) {
+          throw new Error(`Cannot complete WO in status '${wo.status}'`);
+        }
+
+        const finalQty = completedQuantity ?? wo.completed_quantity ?? wo.planned_quantity;
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run — set confirmed=true to complete',
+            id: wo.id,
+            workOrderNumber: wo.work_order_number,
+            plannedQuantity: wo.planned_quantity,
+            completedQuantity: finalQty,
+          };
+        }
+
+        const { error: updateErr } = await db
+          .from('work_orders')
+          .update({
+            status: 'completed',
+            completed_quantity: finalQty,
+            actual_completion_date: new Date().toISOString(),
+          })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: wo.id, workOrderNumber: wo.work_order_number, status: 'completed', completedQuantity: finalQty };
+      },
+    }),
   };
 }

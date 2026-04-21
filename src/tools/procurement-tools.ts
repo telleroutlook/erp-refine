@@ -529,5 +529,103 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'approved' };
       },
     }),
+
+    reject_purchase_order: tool({
+      description: 'Reject a submitted purchase order (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        reason: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, reason, confirmed }) => {
+        const { data: po, error } = await db
+          .from('purchase_orders')
+          .select('id, order_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !po) throw new Error('Purchase order not found');
+        if (po.status !== 'submitted') throw new Error(`Cannot reject PO in status '${po.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: po.id, orderNumber: po.order_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_orders')
+          .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: po.id, orderNumber: po.order_number, status: 'rejected' };
+      },
+    }),
+
+    reject_purchase_requisition: tool({
+      description: 'Reject a submitted purchase requisition (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        reason: z.string().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, reason, confirmed }) => {
+        const { data: pr, error } = await db
+          .from('purchase_requisitions')
+          .select('id, requisition_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !pr) throw new Error('Purchase requisition not found');
+        if (pr.status !== 'submitted') throw new Error(`Cannot reject PR in status '${pr.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: pr.id, requisitionNumber: pr.requisition_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_requisitions')
+          .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'rejected' };
+      },
+    }),
+
+    confirm_purchase_receipt: tool({
+      description: 'Confirm a purchase receipt for stock-in (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, confirmed }) => {
+        const { data: receipt, error } = await db
+          .from('purchase_receipts')
+          .select('id, receipt_number, status')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !receipt) throw new Error('Purchase receipt not found');
+        if (receipt.status !== 'draft') throw new Error(`Cannot confirm receipt in status '${receipt.status}'`);
+
+        if (!confirmed) {
+          return { preview: true, message: 'Dry-run — set confirmed=true to confirm receipt (will add stock)', id: receipt.id, receiptNumber: receipt.receipt_number };
+        }
+
+        const { error: updateErr } = await db
+          .from('purchase_receipts')
+          .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: receipt.id, receiptNumber: receipt.receipt_number, status: 'confirmed' };
+      },
+    }),
   };
 }

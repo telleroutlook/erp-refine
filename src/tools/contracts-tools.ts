@@ -133,5 +133,83 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
         return { id: contract.id, contractNumber: contract.contract_number, status: 'terminated' };
       },
     }),
+
+    renew_contract: tool({
+      description: 'Renew an active or expired contract by creating a new version (D2 — requires confirmation)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        newEndDate: z.string().describe('ISO date string for the renewed contract end date'),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, newEndDate, confirmed }) => {
+        const { data: contract, error } = await db
+          .from('contracts')
+          .select('id, contract_number, status, contract_type, party_type, party_id, start_date, end_date, total_amount, currency, description')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !contract) throw new Error('Contract not found');
+        if (!['active', 'expired'].includes(contract.status)) {
+          throw new Error(`Cannot renew contract in status '${contract.status}'`);
+        }
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run — set confirmed=true to renew (creates new contract from existing)',
+            id: contract.id,
+            contractNumber: contract.contract_number,
+            currentEndDate: contract.end_date,
+            newEndDate,
+          };
+        }
+
+        const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+          p_organization_id: organizationId,
+          p_sequence_name: 'contract',
+        });
+        if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
+
+        const newStartDate = contract.end_date ?? new Date().toISOString().slice(0, 10);
+
+        const { data: newContract, error: createErr } = await db
+          .from('contracts')
+          .insert({
+            organization_id: organizationId,
+            contract_number: seqData,
+            contract_type: contract.contract_type,
+            party_type: contract.party_type,
+            party_id: contract.party_id,
+            start_date: newStartDate,
+            end_date: newEndDate,
+            total_amount: contract.total_amount,
+            currency: contract.currency,
+            description: contract.description,
+            status: 'draft',
+            renewed_from_id: contract.id,
+          })
+          .select('id, contract_number')
+          .single();
+
+        if (createErr) throw new Error(createErr.message);
+
+        const { data: items } = await db
+          .from('contract_items')
+          .select('product_id, quantity, unit_price, tax_rate, amount, notes')
+          .eq('contract_id', id)
+          .is('deleted_at', null);
+
+        if (items && items.length > 0) {
+          const newItems = items.map(item => ({
+            ...item,
+            contract_id: newContract.id,
+          }));
+          await db.from('contract_items').insert(newItems);
+        }
+
+        return { id: newContract.id, contractNumber: newContract.contract_number, status: 'draft', renewedFrom: contract.contract_number };
+      },
+    }),
   };
 }

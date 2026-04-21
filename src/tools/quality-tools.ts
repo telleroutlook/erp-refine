@@ -166,5 +166,57 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
         return { id: qi.id, inspectionNumber: qi.inspection_number, status: 'draft', checkItemCount: items.length };
       },
     }),
+
+    complete_quality_inspection: tool({
+      description: 'Complete a quality inspection with results (D3 — requires approval)',
+      inputSchema: z.object({
+        id: z.string().uuid(),
+        result: z.enum(['pass', 'fail', 'conditional']).optional(),
+        qualifiedQuantity: z.number().nonnegative().optional(),
+        defectiveQuantity: z.number().nonnegative().optional(),
+        confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+      }),
+      execute: async ({ id, result, qualifiedQuantity, defectiveQuantity, confirmed }) => {
+        const { data: qi, error } = await db
+          .from('quality_inspections')
+          .select('id, inspection_number, status, total_quantity')
+          .eq('id', id)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (error || !qi) throw new Error('Quality inspection not found');
+        if (!['draft', 'in_progress'].includes(qi.status)) {
+          throw new Error(`Cannot complete inspection in status '${qi.status}'`);
+        }
+
+        if (!confirmed) {
+          return {
+            preview: true,
+            message: 'Dry-run — set confirmed=true to complete',
+            id: qi.id,
+            inspectionNumber: qi.inspection_number,
+            totalQuantity: qi.total_quantity,
+            result: result ?? 'pending',
+          };
+        }
+
+        const updatePayload: Record<string, unknown> = {
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        };
+        if (result) updatePayload.result = result;
+        if (qualifiedQuantity !== undefined) updatePayload.qualified_quantity = qualifiedQuantity;
+        if (defectiveQuantity !== undefined) updatePayload.defective_quantity = defectiveQuantity;
+
+        const { error: updateErr } = await db
+          .from('quality_inspections')
+          .update(updatePayload)
+          .eq('id', id)
+          .eq('organization_id', organizationId);
+        if (updateErr) throw new Error(updateErr.message);
+
+        return { id: qi.id, inspectionNumber: qi.inspection_number, status: 'completed', result: result ?? null };
+      },
+    }),
   };
 }
