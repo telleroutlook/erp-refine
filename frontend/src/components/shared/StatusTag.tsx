@@ -22,6 +22,22 @@ const STATUS_COLORS: Record<string, string> = {
   confirmed: 'blue',
   failed: 'red',
   passed: 'green',
+  released: 'blue',
+  ordered: 'geekblue',
+  issued: 'blue',
+  accepted: 'green',
+  rejected: 'red',
+  expired: 'default',
+  conditional: 'gold',
+  idle: 'orange',
+  scrapped: 'default',
+  disposed: 'default',
+  terminated: 'volcano',
+  quarantine: 'warning',
+  available: 'success',
+  sold: 'purple',
+  partially_paid: 'gold',
+  paid: 'green',
 };
 
 interface StatusTagProps {
