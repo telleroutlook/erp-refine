@@ -58,6 +58,8 @@ export const erpTheme: ThemeConfig = {
       itemSelectedColor: '#1677FF',
       itemHoverBg: '#f0f5ff',
       itemBorderRadius: 6,
+      itemHeight: 40,
+      iconMarginInlineEnd: 10,
       subMenuItemBg: 'transparent',
     },
     Table: {

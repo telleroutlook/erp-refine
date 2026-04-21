@@ -76,6 +76,7 @@
     "cancel": "取消",
     "confirm": "确认",
     "refresh": "刷新",
+    "logout": "退出登录",
     "notAccessTitle": "您无权访问此资源"
   },
   "common": {

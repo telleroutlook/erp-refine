@@ -46,6 +46,39 @@
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* ── Accordion sider menu ────────────────────────────── */
+
+.erp-accordion-menu .ant-menu-sub.ant-menu-inline {
+  transition: height 0.3s var(--ease-spring),
+              opacity 0.25s var(--ease-spring) !important;
+}
+
+.erp-accordion-menu .ant-menu-submenu-title {
+  transition: color 0.2s, background-color 0.2s var(--ease-spring) !important;
+}
+
+.erp-accordion-menu .ant-menu-submenu-open > .ant-menu-submenu-title {
+  color: #1677FF !important;
+  font-weight: 500;
+}
+
+.erp-sider-menu-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.erp-sider-menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.erp-sider-menu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+}
+
+.erp-sider-menu-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
 /* ── Animation keyframes ──────────────────────────────── */
 
 @keyframes blink {

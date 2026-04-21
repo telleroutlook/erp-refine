@@ -76,6 +76,7 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "refresh": "Refresh",
+    "logout": "Logout",
     "notAccessTitle": "You are not authorized to access this resource"
   },
   "common": {
