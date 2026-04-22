@@ -1,76 +1,51 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col, Table, Divider } from 'antd';
+import { useList } from '@refinedev/core';
+import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { INVOICE_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
 
 export const SupplierInvoiceEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'supplier-invoices' });
   const record = queryResult?.data?.data as any;
+  const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
+  const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
+
+  const itemColumns: ColumnConfig[] = [
+    { dataIndex: 'product_id', title: '产品', editable: true, inputType: 'select', selectOptions: productOptions, render: (_: any, r: any) => r?.product?.name },
+    { dataIndex: 'quantity', title: '数量', width: 80, align: 'right', editable: true, inputType: 'number' },
+    { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', editable: true, inputType: 'number', render: (v: any) => <AmountDisplay value={v} currency={record?.currency} /> },
+    { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: any) => <AmountDisplay value={v} currency={record?.currency} /> },
+  ];
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑供应商发票">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="发票号" name="invoice_number">
-              <Input disabled />
-            </Form.Item>
+            <Form.Item label="发票号" name="invoice_number"><Input disabled /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={INVOICE_STATUS_OPTIONS} />
-            </Form.Item>
+            <Form.Item label="状态" name="status"><Select options={INVOICE_STATUS_OPTIONS} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item
-              label="发票日期"
-              name="invoice_date"
-              {...dateFormItemProps}
-            >
-              <DatePicker style={FULL_WIDTH} disabled />
-            </Form.Item>
+            <Form.Item label="发票日期" name="invoice_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} disabled /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item
-              label="到期日"
-              name="due_date"
-              {...dateFormItemProps}
-            >
-              <DatePicker style={FULL_WIDTH} />
-            </Form.Item>
+            <Form.Item label="到期日" name="due_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="货币" name="currency">
-              <Select options={CURRENCY_OPTIONS} />
-            </Form.Item>
+            <Form.Item label="货币" name="currency"><Select options={CURRENCY_OPTIONS} /></Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
-              <Input.TextArea rows={3} />
-            </Form.Item>
+            <Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item>
           </Col>
         </Row>
       </Form>
 
-      {record?.items?.length > 0 && (
-        <>
-          <Divider>发票行</Divider>
-          <Table
-            dataSource={record.items}
-            rowKey="id"
-            size="small"
-            pagination={false}
-            columns={[
-              { dataIndex: ['product', 'name'], title: '产品' },
-              { dataIndex: 'quantity', title: '数量', width: 80, align: 'right' },
-              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
-              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
-            ]}
-          />
-        </>
-      )}
+      <EditableItemTable resource="supplier-invoice-items" parentResource="supplier-invoices" parentId={record?.id} parentFk="supplier_invoice_id" items={record?.items ?? []} columns={itemColumns} title="发票行" />
     </Edit>
   );
 };

@@ -244,6 +244,19 @@ inventory.delete('/inventory-counts/:id', async (c) => {
   return c.json({ data: { success: true } });
 });
 
+// ─── Inventory Count Lines (standalone CRUD) ────────────────────────────────
+
+inventory.route('', buildCrudRoutes({
+  table: 'inventory_count_lines',
+  path: '/inventory-count-lines',
+  resourceName: 'InventoryCountLine',
+  listSelect: '*, product:products(id,name,code)',
+  detailSelect: '*, product:products(id,name,code)',
+  createReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity, notes',
+  orgScoped: false,
+  parentOwnership: { parentFk: 'inventory_count_id', parentTable: 'inventory_counts' },
+}));
+
 // ────────────────────────────────────────────────────────────────────────────
 // POST /inventory-counts/:id/complete — finalize count with variance adjustments
 // ────────────────────────────────────────────────────────────────────────────

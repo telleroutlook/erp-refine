@@ -441,6 +441,55 @@ manufacturing.post('/work-order-productions', async (c) => {
   return c.json({ data }, 201);
 });
 
+manufacturing.put('/work-order-productions/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+
+  const { data: prod, error: prodErr } = await db
+    .from('work_order_productions')
+    .select('id, work_order:work_orders!inner(id, organization_id)')
+    .eq('id', id)
+    .eq('work_orders.organization_id', user.organizationId)
+    .single();
+  if (prodErr || !prod) throw ApiError.notFound('WorkOrderProduction', id, requestId);
+
+  const PERMITTED = new Set(['production_date', 'quantity', 'qualified_quantity', 'defective_quantity', 'notes']);
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PERMITTED.has(k)) updateData[k] = v;
+  }
+
+  const { data, error } = await db
+    .from('work_order_productions')
+    .update(updateData)
+    .eq('id', id)
+    .select('id')
+    .single();
+  if (error) throw ApiError.database(error.message, requestId);
+  return c.json({ data });
+});
+
+manufacturing.delete('/work-order-productions/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: prod, error: prodErr } = await db
+    .from('work_order_productions')
+    .select('id, work_order:work_orders!inner(id, organization_id)')
+    .eq('id', id)
+    .eq('work_orders.organization_id', user.organizationId)
+    .single();
+  if (prodErr || !prod) throw ApiError.notFound('WorkOrderProduction', id, requestId);
+
+  const { error } = await db
+    .from('work_order_productions')
+    .delete()
+    .eq('id', id);
+  if (error) throw ApiError.database(error.message, requestId);
+  return c.json({ data: { success: true } });
+});
+
 // ─── BOM Items ───────────────────────────────────────────────────────────────
 
 manufacturing.route('', buildCrudRoutes({
