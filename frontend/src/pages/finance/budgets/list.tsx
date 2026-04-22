@@ -6,17 +6,25 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { BUDGET_STATUS_OPTIONS } from '../../../constants/options';
 
 export const BudgetList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'budgets',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'budget_name', label: '预算名称', placeholder: '搜索预算名称' },
+    { type: 'status', field: 'status', label: t('common.status'), options: BUDGET_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'created_at', label: '创建日期' },
+  ];
 
   return (
     <List
@@ -27,6 +35,7 @@ export const BudgetList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="budget_name" title="预算名称" />
         <Table.Column dataIndex="budget_type" title="预算类型" />

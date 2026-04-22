@@ -5,17 +5,24 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { DEPARTMENT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const DepartmentList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'departments',
     sorters: {
       initial: [{ field: 'code', order: 'asc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'name', label: t('filters.name') },
+    { type: 'status', field: 'status', label: t('filters.status'), options: DEPARTMENT_STATUS_OPTIONS },
+  ];
 
   return (
     <List
@@ -26,6 +33,7 @@ export const DepartmentList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="code" title="编号" width={120} />
         <Table.Column dataIndex="name" title="名称" />

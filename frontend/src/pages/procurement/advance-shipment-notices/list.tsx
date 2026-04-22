@@ -5,15 +5,24 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { ASN_STATUS_OPTIONS } from '../../../constants/options';
 
 export const AdvanceShipmentNoticeList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'advance-shipment-notices',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'asn_no', label: t('filters.search'), placeholder: 'ASN-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: ASN_STATUS_OPTIONS },
+    { type: 'entity', field: 'supplier_id', label: t('filters.supplier'), resource: 'suppliers' },
+    { type: 'dateRange', field: 'expected_date', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -24,6 +33,7 @@ export const AdvanceShipmentNoticeList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="asn_no" title="ASN编号" width={160} />
         <Table.Column dataIndex={['supplier', 'name']} title="供应商" />

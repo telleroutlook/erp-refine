@@ -5,14 +5,24 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { WORK_ORDER_STATUS_OPTIONS } from '../../../constants/options';
 
 export const WorkOrderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'work-orders',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'work_order_number', label: t('filters.search'), placeholder: 'WO-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: WORK_ORDER_STATUS_OPTIONS },
+    { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
+    { type: 'dateRange', field: 'start_date', label: t('filters.dateRange') },
+    { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct') },
+  ];
 
   return (
     <List
@@ -23,6 +33,7 @@ export const WorkOrderList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="work_order_number" title="工单号" width={160} />
         <Table.Column dataIndex={['product', 'name']} title="产品" />

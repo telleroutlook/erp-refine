@@ -5,17 +5,24 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { QUOTATION_STATUS_OPTIONS } from '../../../constants/options';
 
 export const SupplierQuotationList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'supplier-quotations',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'quotation_number', label: t('filters.search'), placeholder: 'QUO-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: QUOTATION_STATUS_OPTIONS },
+  ];
 
   return (
     <List
@@ -26,6 +33,7 @@ export const SupplierQuotationList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="quotation_number" title="报价单号" width={160} />
         <Table.Column

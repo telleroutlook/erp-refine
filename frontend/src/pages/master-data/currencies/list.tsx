@@ -4,20 +4,27 @@ import { Table, Button, Tag } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const CurrencyList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'currencies',
     sorters: {
       initial: [{ field: 'currency_code', order: 'asc' }],
     },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'currency_code', label: t('filters.code') },
+    { type: 'search', field: 'currency_name', label: t('filters.name') },
+  ];
+
   return (
     <List title="币种">
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="currency_code" title="币种代码" width={100} />
         <Table.Column dataIndex="currency_name" title="币种名称" />

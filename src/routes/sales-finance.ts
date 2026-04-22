@@ -5,8 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
+import { applyFilters, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -25,16 +25,17 @@ salesFinance.get('/sales-invoices', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
   const filters = parseRefineFilters(c);
+  const itemFilters = parseItemFilters(c);
+  const itemJoin = { itemsTable: 'sales_invoice_items' };
 
+  const baseSelect = 'id, invoice_number, invoice_date, due_date, total_amount, tax_amount, currency, status, customer:customers(id,name), sales_order:sales_orders(id,order_number)';
   let query = db
     .from('sales_invoices')
-    .select(
-      'id, invoice_number, invoice_date, due_date, total_amount, tax_amount, currency, status, customer:customers(id,name), sales_order:sales_orders(id,order_number)',
-      { count: 'exact' }
-    )
+    .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null);
   query = applyFilters(query, filters);
+  query = applyItemFilters(query, itemJoin, itemFilters);
   const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);
@@ -151,16 +152,17 @@ salesFinance.get('/sales-returns', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
   const filters = parseRefineFilters(c);
+  const itemFilters = parseItemFilters(c);
+  const itemJoin = { itemsTable: 'sales_return_items' };
 
+  const baseSelect = 'id, return_number, return_date, total_amount, status, reason, customer:customers(id,name), sales_order:sales_orders(id,order_number)';
   let query = db
     .from('sales_returns')
-    .select(
-      'id, return_number, return_date, total_amount, status, reason, customer:customers(id,name), sales_order:sales_orders(id,order_number)',
-      { count: 'exact' }
-    )
+    .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null);
   query = applyFilters(query, filters);
+  query = applyItemFilters(query, itemJoin, itemFilters);
   const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
     .range((page - 1) * pageSize, page * pageSize - 1);

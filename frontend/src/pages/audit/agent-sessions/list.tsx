@@ -5,18 +5,26 @@ import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { AGENT_SESSION_STATUS_OPTIONS } from '../../../constants/options';
 
 export const AgentSessionList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'agent-sessions',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'status', field: 'status', label: t('common.status'), options: AGENT_SESSION_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
+
   return (
     <List title={t('menu.agentSessions')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="agent_id" title="Agent" width={160} />
         <Table.Column dataIndex="session_type" title="类型" width={120} />

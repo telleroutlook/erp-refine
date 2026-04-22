@@ -6,17 +6,25 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { REQUISITION_STATUS_OPTIONS } from '../../../constants/options';
 
 export const PurchaseRequisitionList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'purchase-requisitions',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'requisition_number', label: t('filters.search'), placeholder: 'REQ-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: REQUISITION_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -27,6 +35,7 @@ export const PurchaseRequisitionList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="requisition_number" title="申请单号" width={160} />
         <Table.Column

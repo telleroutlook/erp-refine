@@ -5,6 +5,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createLogger } from './logger';
 import { ApiError } from './api-error';
 
+import type { ItemFilter } from './query-helpers';
+
 const logger = createLogger('info', { module: 'database' });
 
 /**
@@ -122,6 +124,37 @@ export function applyFilters<T>(
       case 'nnull': query = (query as any).not(f.field, 'is', null); break;
       case 'in': query = (query as any).in(f.field, f.value as unknown[]); break;
     }
+  }
+  return query;
+}
+
+export interface ItemJoinConfig {
+  itemsTable: string;
+  alias?: string;
+}
+
+/**
+ * Build a select string that adds an `!inner` join for item-level filtering.
+ * When itemFilters is empty, returns baseSelect unchanged.
+ */
+export function buildSelectWithItemFilter(
+  baseSelect: string,
+  config: ItemJoinConfig,
+  itemFilters: ItemFilter[],
+): string {
+  if (itemFilters.length === 0) return baseSelect;
+  const alias = config.alias ?? 'filter_items';
+  return `${baseSelect}, ${alias}:${config.itemsTable}!inner(id)`;
+}
+
+/** Apply item-level filters by eq on the joined items table */
+export function applyItemFilters<T>(
+  query: T,
+  config: ItemJoinConfig,
+  itemFilters: ItemFilter[],
+): T {
+  for (const f of itemFilters) {
+    query = (query as any).eq(`${config.itemsTable}.${f.field}`, f.value);
   }
   return query;
 }

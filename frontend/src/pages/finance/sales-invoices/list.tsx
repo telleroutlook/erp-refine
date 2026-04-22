@@ -6,18 +6,29 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { INVOICE_STATUS_OPTIONS } from '../../../constants/options';
 
 export const SalesInvoiceList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'sales-invoices',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'invoice_number', label: '发票号', placeholder: '搜索发票号' },
+    { type: 'status', field: 'status', label: t('common.status'), options: INVOICE_STATUS_OPTIONS },
+    { type: 'entity', field: 'customer_id', label: '客户', resource: 'customers' },
+    { type: 'dateRange', field: 'invoice_date', label: '发票日期' },
+    { type: 'itemProduct', field: '_item_product_id', label: '产品', placeholder: '按产品筛选' },
+  ];
+
   return (
     <List title={t('menu.salesInvoices')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="invoice_number" title="发票号" width={160} />
         <Table.Column dataIndex={['customer', 'name']} title="客户" />

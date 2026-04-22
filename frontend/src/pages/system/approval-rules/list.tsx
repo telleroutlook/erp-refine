@@ -5,17 +5,22 @@ import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const ApprovalRuleList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'approval-rules',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'rule_name', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
+  ];
 
   return (
     <List
@@ -26,6 +31,7 @@ export const ApprovalRuleList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="rule_name" title="规则名称" />
         <Table.Column dataIndex="document_type" title="单据类型" width={140} />

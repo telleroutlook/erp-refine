@@ -4,18 +4,24 @@ import { Table, Button } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const TokenUsageList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'token-usage',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
+
   return (
     <List title={t('menu.tokenUsage')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="session_id" title="会话ID" width={280} ellipsis />
         <Table.Column dataIndex="model" title="模型" width={140} />

@@ -5,17 +5,25 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { RFQ_STATUS_OPTIONS } from '../../../constants/options';
 
 export const RfqHeaderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'rfq-headers',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'rfq_number', label: t('filters.search'), placeholder: 'RFQ-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: RFQ_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -26,6 +34,7 @@ export const RfqHeaderList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="rfq_number" title="询价单号" width={160} />
         <Table.Column

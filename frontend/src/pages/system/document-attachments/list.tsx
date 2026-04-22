@@ -4,6 +4,7 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 const formatFileSize = (bytes: number | null | undefined): string => {
   if (bytes == null) return '-';
@@ -16,12 +17,17 @@ export const DocumentAttachmentList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'document-attachments',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'file_name', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -32,6 +38,7 @@ export const DocumentAttachmentList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="file_name" title="文件名" />
         <Table.Column dataIndex="entity_type" title="关联类型" width={120} />

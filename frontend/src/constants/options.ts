@@ -233,6 +233,13 @@ export const RECONCILIATION_STATUS_OPTIONS = [
   { value: 'closed', label: '已关闭' },
 ];
 
+export const TRANSACTION_TYPE_OPTIONS = [
+  { value: 'in', label: '入库' },
+  { value: 'out', label: '出库' },
+  { value: 'transfer', label: '调拨' },
+  { value: 'adjust', label: '调整' },
+];
+
 export const IMPORT_STATUS_OPTIONS = [
   { value: 'pending', label: '待处理' },
   { value: 'in_progress', label: '进行中' },
@@ -244,6 +251,21 @@ export const AGENT_SESSION_STATUS_OPTIONS = [
   { value: 'active', label: '活跃' },
   { value: 'completed', label: '已完成' },
   { value: 'failed', label: '失败' },
+];
+
+export const WORKFLOW_STATUS_OPTIONS = [
+  { value: 'pending', label: '待处理' },
+  { value: 'in_progress', label: '进行中' },
+  { value: 'completed', label: '已完成' },
+  { value: 'cancelled', label: '已取消' },
+  { value: 'failed', label: '失败' },
+];
+
+export const APPROVAL_RECORD_STATUS_OPTIONS = [
+  { value: 'pending', label: '待审批' },
+  { value: 'approved', label: '已通过' },
+  { value: 'rejected', label: '已拒绝' },
+  { value: 'recalled', label: '已撤回' },
 ];
 
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {

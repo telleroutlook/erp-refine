@@ -5,8 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performHardDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters, atomicStatusTransition } from '../utils/database';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
+import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -21,12 +21,16 @@ manufacturing.get('/bom-headers', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
   const filters = parseRefineFilters(c);
+  const itemFilters = parseItemFilters(c);
+  const itemJoin = { itemsTable: 'bom_items' };
 
+  const baseSelect = 'id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at';
   let query = db
     .from('bom_headers')
-    .select('id, bom_number, version, is_active, effective_date, product:products(id,name,code), created_at', { count: 'exact' })
+    .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
     .eq('organization_id', user.organizationId);
   query = applyFilters(query, filters);
+  query = applyItemFilters(query, itemJoin, itemFilters);
 
   const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })
@@ -116,12 +120,16 @@ manufacturing.get('/work-orders', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
   const filters = parseRefineFilters(c);
+  const itemFilters = parseItemFilters(c);
+  const itemJoin = { itemsTable: 'work_order_materials' };
 
+  const baseSelect = 'id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at';
   let query = db
     .from('work_orders')
-    .select('id, work_order_number, planned_quantity, completed_quantity, status, start_date, planned_completion_date, product:products(id,name,code), bom:bom_headers(id,bom_number), created_at', { count: 'exact' })
+    .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
     .eq('organization_id', user.organizationId);
   query = applyFilters(query, filters);
+  query = applyItemFilters(query, itemJoin, itemFilters);
 
   const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })

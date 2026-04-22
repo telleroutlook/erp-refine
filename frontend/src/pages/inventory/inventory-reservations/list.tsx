@@ -5,15 +5,23 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { RESERVATION_STATUS_OPTIONS } from '../../../constants/options';
 
 export const InventoryReservationList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'inventory-reservations',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'status', field: 'status', label: t('filters.status'), options: RESERVATION_STATUS_OPTIONS },
+    { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
+    { type: 'entity', field: 'warehouse_id', label: t('filters.warehouse'), resource: 'warehouses' },
+  ];
 
   return (
     <List
@@ -24,6 +32,7 @@ export const InventoryReservationList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="reference_type" title="引用类型" width={120} />
         <Table.Column dataIndex="reference_id" title="引用ID" width={160} render={(v) => v?.slice(0, 8) ?? '-'} />

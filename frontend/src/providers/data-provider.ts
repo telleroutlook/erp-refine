@@ -55,6 +55,20 @@ export const dataProvider: DataProvider = {
             params.append(`${field}_is`, 'null');
           } else if (operator === 'nnull') {
             params.append(`${field}_is`, 'not.null');
+          } else if (operator === 'gte') {
+            params.append(`${field}_gte`, String(value));
+          } else if (operator === 'lte') {
+            params.append(`${field}_lte`, String(value));
+          } else if (operator === 'gt') {
+            params.append(`${field}_gt`, String(value));
+          } else if (operator === 'lt') {
+            params.append(`${field}_lt`, String(value));
+          }
+
+          // Item-level filters: fields starting with _item_ are passed through as-is
+          if (field.startsWith('_item_')) {
+            params.delete(`${field}`); // remove any standard mapping
+            params.append(field, String(value));
           }
         }
       }

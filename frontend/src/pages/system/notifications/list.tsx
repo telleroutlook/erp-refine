@@ -4,18 +4,25 @@ import { Table, Tag, Button, Space } from 'antd';
 import { EyeOutlined, CheckOutlined } from '@ant-design/icons';
 import { useNavigation, useCustomMutation, useInvalidate } from '@refinedev/core';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import { NOTIFICATION_TYPE_COLORS, NOTIFICATION_TYPE_LABELS } from '../../../constants/options';
 import { API_URL } from '../../../constants/api';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const NotificationList: React.FC = () => {
+  const { t } = useTranslation();
   const { show } = useNavigation();
   const { mutate: markRead } = useCustomMutation();
   const invalidate = useInvalidate();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'notifications',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
 
   const handleMarkRead = (id: string) => {
     markRead({
@@ -44,6 +51,7 @@ export const NotificationList: React.FC = () => {
         <Button onClick={handleMarkAllRead}>全部标为已读</Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column
           dataIndex="notification_type"

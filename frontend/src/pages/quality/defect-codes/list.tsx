@@ -5,17 +5,22 @@ import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const DefectCodeList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'defect-codes',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'code', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
+  ];
 
   return (
     <List
@@ -26,6 +31,7 @@ export const DefectCodeList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="code" title="代码" width={120} />
         <Table.Column dataIndex="name" title="名称" />

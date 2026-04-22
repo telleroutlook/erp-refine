@@ -4,15 +4,20 @@ import { Table, Button, Space, Tag } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const RoleList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'roles',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'name', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
+  ];
 
   return (
     <List
@@ -23,6 +28,7 @@ export const RoleList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="name" title="角色名称" width={160} />
         <Table.Column dataIndex="description" title="描述" />

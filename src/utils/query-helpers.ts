@@ -56,8 +56,39 @@ export function parseRefineFilters(c: Context): FilterParam[] {
           filters.push({ field, operator: 'nnull', value: null });
         }
       }
+    } else if (key.endsWith('_gte') && FIELD_RE.test(key.slice(0, -4))) {
+      const field = key.slice(0, -4);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'gte', value });
+    } else if (key.endsWith('_lte') && FIELD_RE.test(key.slice(0, -4))) {
+      const field = key.slice(0, -4);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'lte', value });
+    } else if (key.endsWith('_gt') && FIELD_RE.test(key.slice(0, -3))) {
+      const field = key.slice(0, -3);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'gt', value });
+    } else if (key.endsWith('_lt') && FIELD_RE.test(key.slice(0, -3))) {
+      const field = key.slice(0, -3);
+      if (!DENIED_FIELDS.has(field)) filters.push({ field, operator: 'lt', value });
     } else if (FIELD_RE.test(key) && !DENIED_FIELDS.has(key)) {
       filters.push({ field: key, operator: 'eq', value });
+    }
+  }
+  return filters;
+}
+
+export interface ItemFilter {
+  field: string;
+  value: string;
+}
+
+/** Parse item-level filters from query params prefixed with `_item_` (e.g. `_item_product_id=xxx`) */
+export function parseItemFilters(c: Context): ItemFilter[] {
+  const filters: ItemFilter[] = [];
+  const url = new URL(c.req.url);
+  for (const [key, value] of url.searchParams.entries()) {
+    if (!key.startsWith('_item_') || !value) continue;
+    const field = key.slice(6); // strip '_item_'
+    if (FIELD_RE.test(field) && !DENIED_FIELDS.has(field)) {
+      filters.push({ field, value });
     }
   }
   return filters;

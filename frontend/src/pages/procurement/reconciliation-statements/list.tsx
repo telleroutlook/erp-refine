@@ -6,15 +6,23 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { RECONCILIATION_STATUS_OPTIONS } from '../../../constants/options';
 
 export const ReconciliationStatementList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'reconciliation-statements',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'statement_no', label: t('filters.search'), placeholder: 'RS-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: RECONCILIATION_STATUS_OPTIONS },
+    { type: 'entity', field: 'supplier_id', label: t('filters.supplier'), resource: 'suppliers' },
+  ];
 
   return (
     <List
@@ -25,6 +33,7 @@ export const ReconciliationStatementList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="statement_no" title="对账单号" width={160} />
         <Table.Column dataIndex={['supplier', 'name']} title="供应商" />

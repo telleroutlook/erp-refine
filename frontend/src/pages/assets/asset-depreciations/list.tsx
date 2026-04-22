@@ -5,20 +5,26 @@ import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const AssetDepreciationList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'asset-depreciations',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'entity', field: 'asset_id', label: t('filters.asset'), resource: 'fixed-assets', optionLabel: 'asset_name' },
+  ];
+
   return (
     <List title="折旧记录">
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column
           dataIndex={['asset', 'asset_name']}

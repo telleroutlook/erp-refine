@@ -5,14 +5,21 @@ import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const BomHeaderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'bom-headers',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'bom_number', label: t('filters.search'), placeholder: 'BOM-...' },
+    { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
+    { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct') },
+  ];
 
   return (
     <List
@@ -23,6 +30,7 @@ export const BomHeaderList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="bom_number" title="BOM编号" width={160} />
         <Table.Column dataIndex={['product', 'name']} title="产品" />

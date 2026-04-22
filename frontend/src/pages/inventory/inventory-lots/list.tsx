@@ -5,15 +5,23 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { LOT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const InventoryLotList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'inventory-lots',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'lot_number', label: t('filters.search'), placeholder: 'LOT-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: LOT_STATUS_OPTIONS },
+    { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
+  ];
 
   return (
     <List
@@ -24,6 +32,7 @@ export const InventoryLotList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="lot_number" title="批次号" width={160} />
         <Table.Column dataIndex={['product', 'name']} title="产品" />

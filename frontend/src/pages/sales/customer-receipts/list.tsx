@@ -6,15 +6,24 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { CUSTOMER_RECEIPT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const CustomerReceiptList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'customer-receipts',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'receipt_number', label: t('filters.receiptNumber'), placeholder: 'CR-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: CUSTOMER_RECEIPT_STATUS_OPTIONS },
+    { type: 'entity', field: 'customer_id', label: t('filters.customer'), resource: 'customers' },
+    { type: 'dateRange', field: 'receipt_date', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -25,6 +34,7 @@ export const CustomerReceiptList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="receipt_number" title="收款单号" width={160} />
         <Table.Column dataIndex={['customer', 'name']} title="客户" />

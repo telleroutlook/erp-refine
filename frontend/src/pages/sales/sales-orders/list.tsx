@@ -6,18 +6,29 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { SO_STATUS_OPTIONS } from '../../../constants/options';
 
 export const SalesOrderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'sales-orders',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'order_number', label: t('filters.orderNumber'), placeholder: 'SO-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: SO_STATUS_OPTIONS },
+    { type: 'entity', field: 'customer_id', label: t('filters.customer'), resource: 'customers' },
+    { type: 'dateRange', field: 'order_date', label: t('filters.dateRange') },
+    { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
+  ];
+
   return (
     <List title={t('menu.salesOrders')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="order_number" title="订单号" width={160} />
         <Table.Column dataIndex={['customer', 'name']} title="客户" />

@@ -4,18 +4,28 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { TRANSACTION_TYPE_OPTIONS } from '../../../constants/options';
 
 export const StockTransactionList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'stock-transactions',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'select', field: 'transaction_type', label: t('filters.transactionType'), options: TRANSACTION_TYPE_OPTIONS },
+    { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
+    { type: 'entity', field: 'warehouse_id', label: t('filters.warehouse'), resource: 'warehouses' },
+    { type: 'dateRange', field: 'transaction_date', label: t('filters.dateRange') },
+  ];
+
   return (
     <List title="库存流水">
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="transaction_date" title="日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column dataIndex={['product', 'name']} title="产品" />

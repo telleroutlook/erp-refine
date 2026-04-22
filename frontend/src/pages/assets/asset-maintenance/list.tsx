@@ -5,17 +5,23 @@ import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const AssetMaintenanceList: React.FC = () => {
   const { t } = useTranslation();
   const { show, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'asset-maintenance',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'entity', field: 'asset_id', label: t('filters.asset'), resource: 'fixed-assets', optionLabel: 'asset_name' },
+    { type: 'dateRange', field: 'performed_at', label: t('filters.maintenanceDate') },
+  ];
 
   return (
     <List
@@ -26,6 +32,7 @@ export const AssetMaintenanceList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column
           dataIndex={['asset', 'asset_name']}

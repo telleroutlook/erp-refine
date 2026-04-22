@@ -6,17 +6,28 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
 
 export const PurchaseOrderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'purchase-orders',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'order_number', label: t('filters.orderNumber'), placeholder: 'PO-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: PO_STATUS_OPTIONS },
+    { type: 'entity', field: 'supplier_id', label: t('filters.supplier'), resource: 'suppliers' },
+    { type: 'dateRange', field: 'order_date', label: t('filters.dateRange') },
+    { type: 'select', field: 'currency', label: t('filters.currency'), options: CURRENCY_OPTIONS },
+    { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
+  ];
 
   return (
     <List
@@ -27,6 +38,7 @@ export const PurchaseOrderList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="order_number" title="订单号" width={160} />
         <Table.Column

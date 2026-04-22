@@ -6,17 +6,25 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { ASSET_STATUS_OPTIONS } from '../../../constants/options';
 
 export const FixedAssetList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'fixed-assets',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'asset_number', label: t('filters.assetNumber'), placeholder: 'FA-...' },
+    { type: 'search', field: 'asset_name', label: t('filters.name') },
+    { type: 'status', field: 'status', label: t('filters.status'), options: ASSET_STATUS_OPTIONS },
+  ];
 
   return (
     <List
@@ -27,6 +35,7 @@ export const FixedAssetList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="asset_number" title="资产编号" width={140} />
         <Table.Column dataIndex="asset_name" title="资产名称" />

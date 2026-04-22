@@ -4,20 +4,27 @@ import { Table, Button } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const UomList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'uoms',
     sorters: {
       initial: [{ field: 'uom_code', order: 'asc' }],
     },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'uom_name', label: t('filters.name') },
+    { type: 'search', field: 'uom_code', label: t('filters.code') },
+  ];
+
   return (
     <List title="计量单位">
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="uom_code" title="编码" width={100} />
         <Table.Column dataIndex="uom_name" title="名称" />

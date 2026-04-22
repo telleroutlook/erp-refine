@@ -5,20 +5,29 @@ import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { APPROVAL_RECORD_STATUS_OPTIONS } from '../../../constants/options';
 
 export const ApprovalRecordList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'approval-records',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'document_type', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
+    { type: 'status', field: 'status', label: t('common.status'), options: APPROVAL_RECORD_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
+
   return (
     <List title="审批记录">
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="document_type" title="单据类型" width={140} />
         <Table.Column dataIndex="document_id" title="单据ID" width={200} ellipsis />

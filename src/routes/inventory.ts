@@ -5,8 +5,8 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
-import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters, atomicStatusTransition } from '../utils/database';
+import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
+import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -133,16 +133,17 @@ inventory.get('/inventory-counts', async (c) => {
   const { db, user } = getDbAndUser(c);
   const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c);
   const filters = parseRefineFilters(c);
+  const itemFilters = parseItemFilters(c);
+  const itemJoin = { itemsTable: 'inventory_count_lines' };
 
+  const baseSelect = 'id, count_number, count_date, status, warehouse:warehouses(id,name)';
   let query = db
     .from('inventory_counts')
-    .select(
-      'id, count_number, count_date, status, warehouse:warehouses(id,name)',
-      { count: 'exact' }
-    )
+    .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null);
   query = applyFilters(query, filters);
+  query = applyItemFilters(query, itemJoin, itemFilters);
 
   const { data, count, error } = await query
     .order(sortField, { ascending: sortOrder === 'asc' })

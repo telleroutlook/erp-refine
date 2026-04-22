@@ -5,18 +5,28 @@ import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { SHIPMENT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const SalesShipmentList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'sales-shipments',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'shipment_number', label: t('filters.shipmentNumber'), placeholder: 'SHP-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: SHIPMENT_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'shipment_date', label: t('filters.dateRange') },
+    { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
+  ];
+
   return (
     <List title={t('menu.salesShipments')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="shipment_number" title="发货单号" width={160} />
         <Table.Column dataIndex={['sales_order', 'order_number']} title="销售订单号" width={160} />

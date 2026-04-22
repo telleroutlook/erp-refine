@@ -6,17 +6,26 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS } from '../../../constants/options';
 
 export const VoucherList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'vouchers',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'voucher_number', label: '凭证号', placeholder: '搜索凭证号' },
+    { type: 'status', field: 'status', label: t('common.status'), options: VOUCHER_STATUS_OPTIONS },
+    { type: 'select', field: 'voucher_type', label: '凭证类型', options: VOUCHER_TYPE_OPTIONS },
+    { type: 'dateRange', field: 'voucher_date', label: '凭证日期' },
+  ];
 
   return (
     <List
@@ -27,6 +36,7 @@ export const VoucherList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="voucher_number" title="凭证号" width={160} />
         <Table.Column

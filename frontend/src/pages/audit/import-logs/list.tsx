@@ -5,18 +5,26 @@ import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { IMPORT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const ImportLogList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'import-logs',
     sorters: { initial: [{ field: 'started_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'status', field: 'status', label: t('common.status'), options: IMPORT_STATUS_OPTIONS },
+    { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
+  ];
+
   return (
     <List title={t('menu.importLogs')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="resource_type" title="资源类型" width={140} />
         <Table.Column dataIndex="file_name" title="文件名" />

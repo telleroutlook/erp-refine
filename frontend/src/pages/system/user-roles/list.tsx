@@ -4,15 +4,20 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const UserRoleList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'user-roles',
     sorters: { initial: [{ field: 'assigned_at', order: 'desc' }] },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'dateRange', field: 'assigned_at', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -23,6 +28,7 @@ export const UserRoleList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="user_id" title="用户ID" width={280} />
         <Table.Column dataIndex={['role', 'name']} title="角色" />

@@ -6,17 +6,27 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS } from '../../../constants/options';
 
 export const ContractList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'contracts',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'contract_number', label: t('filters.contractNumber'), placeholder: 'CON-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: CONTRACT_STATUS_OPTIONS },
+    { type: 'select', field: 'contract_type', label: t('filters.contractType'), options: CONTRACT_TYPE_OPTIONS },
+    { type: 'dateRange', field: 'start_date', label: t('filters.dateRange') },
+    { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
+  ];
 
   return (
     <List
@@ -27,6 +37,7 @@ export const ContractList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="contract_number" title="合同号" width={160} />
         <Table.Column dataIndex="contract_type" title="合同类型" />

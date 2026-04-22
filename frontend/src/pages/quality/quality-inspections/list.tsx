@@ -5,17 +5,26 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { INSPECTION_STATUS_OPTIONS, INSPECTION_RESULT_OPTIONS } from '../../../constants/options';
 
 export const QualityInspectionList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'quality-inspections',
     sorters: {
       initial: [{ field: 'created_at', order: 'desc' }],
     },
   });
+
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'inspection_number', label: t('filters.search'), placeholder: 'QI-...' },
+    { type: 'status', field: 'status', label: t('filters.status'), options: INSPECTION_STATUS_OPTIONS },
+    { type: 'select', field: 'result', label: t('filters.result'), options: INSPECTION_RESULT_OPTIONS },
+    { type: 'dateRange', field: 'inspection_date', label: t('filters.dateRange') },
+  ];
 
   return (
     <List
@@ -26,6 +35,7 @@ export const QualityInspectionList: React.FC = () => {
         </Button>
       }
     >
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="inspection_number" title="检验单号" width={160} />
         <Table.Column

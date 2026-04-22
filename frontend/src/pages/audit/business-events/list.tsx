@@ -4,6 +4,7 @@ import { Table, Button, Tag } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 const SEVERITY_COLORS: Record<string, string> = { info: 'blue', warning: 'orange', error: 'red', critical: 'magenta' };
 
@@ -11,13 +12,19 @@ export const BusinessEventList: React.FC = () => {
   const { t } = useTranslation();
   const { show } = useNavigation();
 
-  const { tableProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: 'business-events',
     sorters: { initial: [{ field: 'occurred_at', order: 'desc' }] },
   });
 
+  const filterConfig: FilterFieldConfig[] = [
+    { type: 'search', field: 'event_type', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
+    { type: 'dateRange', field: 'occurred_at', label: t('filters.dateRange') },
+  ];
+
   return (
     <List title={t('menu.businessEvents')}>
+      <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="event_type" title="事件类型" width={160} />
         <Table.Column dataIndex="entity_type" title="实体类型" width={140} />
