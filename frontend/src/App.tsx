@@ -47,6 +47,14 @@ const ProfileChangeRequestList = lazy(() => import('./pages/procurement/profile-
 const ProfileChangeRequestShow = lazy(() => import('./pages/procurement/profile-change-requests/show').then((m) => ({ default: m.ProfileChangeRequestShow })));
 const ProfileChangeRequestCreate = lazy(() => import('./pages/procurement/profile-change-requests/create').then((m) => ({ default: m.ProfileChangeRequestCreate })));
 const ProfileChangeRequestEdit = lazy(() => import('./pages/procurement/profile-change-requests/edit').then((m) => ({ default: m.ProfileChangeRequestEdit })));
+const AdvanceShipmentNoticeList = lazy(() => import('./pages/procurement/advance-shipment-notices/list').then((m) => ({ default: m.AdvanceShipmentNoticeList })));
+const AdvanceShipmentNoticeShow = lazy(() => import('./pages/procurement/advance-shipment-notices/show').then((m) => ({ default: m.AdvanceShipmentNoticeShow })));
+const AdvanceShipmentNoticeCreate = lazy(() => import('./pages/procurement/advance-shipment-notices/create').then((m) => ({ default: m.AdvanceShipmentNoticeCreate })));
+const AdvanceShipmentNoticeEdit = lazy(() => import('./pages/procurement/advance-shipment-notices/edit').then((m) => ({ default: m.AdvanceShipmentNoticeEdit })));
+const ReconciliationStatementList = lazy(() => import('./pages/procurement/reconciliation-statements/list').then((m) => ({ default: m.ReconciliationStatementList })));
+const ReconciliationStatementShow = lazy(() => import('./pages/procurement/reconciliation-statements/show').then((m) => ({ default: m.ReconciliationStatementShow })));
+const ReconciliationStatementCreate = lazy(() => import('./pages/procurement/reconciliation-statements/create').then((m) => ({ default: m.ReconciliationStatementCreate })));
+const ReconciliationStatementEdit = lazy(() => import('./pages/procurement/reconciliation-statements/edit').then((m) => ({ default: m.ReconciliationStatementEdit })));
 
 // ── Sales ──
 const SalesOrderList = lazy(() => import('./pages/sales/sales-orders/list').then((m) => ({ default: m.SalesOrderList })));
@@ -224,6 +232,33 @@ const ApprovalRuleCreate = lazy(() => import('./pages/system/approval-rules/crea
 const ApprovalRuleEdit = lazy(() => import('./pages/system/approval-rules/edit').then((m) => ({ default: m.ApprovalRuleEdit })));
 const ApprovalRecordList = lazy(() => import('./pages/system/approval-records/list').then((m) => ({ default: m.ApprovalRecordList })));
 const ApprovalRecordShow = lazy(() => import('./pages/system/approval-records/show').then((m) => ({ default: m.ApprovalRecordShow })));
+const RoleList = lazy(() => import('./pages/system/roles/list').then((m) => ({ default: m.RoleList })));
+const RoleShow = lazy(() => import('./pages/system/roles/show').then((m) => ({ default: m.RoleShow })));
+const RoleCreate = lazy(() => import('./pages/system/roles/create').then((m) => ({ default: m.RoleCreate })));
+const RoleEdit = lazy(() => import('./pages/system/roles/edit').then((m) => ({ default: m.RoleEdit })));
+const UserRoleList = lazy(() => import('./pages/system/user-roles/list').then((m) => ({ default: m.UserRoleList })));
+const UserRoleShow = lazy(() => import('./pages/system/user-roles/show').then((m) => ({ default: m.UserRoleShow })));
+const UserRoleCreate = lazy(() => import('./pages/system/user-roles/create').then((m) => ({ default: m.UserRoleCreate })));
+const UserRoleEdit = lazy(() => import('./pages/system/user-roles/edit').then((m) => ({ default: m.UserRoleEdit })));
+const NumberSequenceList = lazy(() => import('./pages/system/number-sequences/list').then((m) => ({ default: m.NumberSequenceList })));
+const NumberSequenceShow = lazy(() => import('./pages/system/number-sequences/show').then((m) => ({ default: m.NumberSequenceShow })));
+const NumberSequenceEdit = lazy(() => import('./pages/system/number-sequences/edit').then((m) => ({ default: m.NumberSequenceEdit })));
+
+// ── Audit ──
+const TokenUsageList = lazy(() => import('./pages/audit/token-usage/list').then((m) => ({ default: m.TokenUsageList })));
+const TokenUsageShow = lazy(() => import('./pages/audit/token-usage/show').then((m) => ({ default: m.TokenUsageShow })));
+const ToolCallMetricList = lazy(() => import('./pages/audit/tool-call-metrics/list').then((m) => ({ default: m.ToolCallMetricList })));
+const ToolCallMetricShow = lazy(() => import('./pages/audit/tool-call-metrics/show').then((m) => ({ default: m.ToolCallMetricShow })));
+const AgentSessionList = lazy(() => import('./pages/audit/agent-sessions/list').then((m) => ({ default: m.AgentSessionList })));
+const AgentSessionShow = lazy(() => import('./pages/audit/agent-sessions/show').then((m) => ({ default: m.AgentSessionShow })));
+const AgentDecisionList = lazy(() => import('./pages/audit/agent-decisions/list').then((m) => ({ default: m.AgentDecisionList })));
+const AgentDecisionShow = lazy(() => import('./pages/audit/agent-decisions/show').then((m) => ({ default: m.AgentDecisionShow })));
+const BusinessEventList = lazy(() => import('./pages/audit/business-events/list').then((m) => ({ default: m.BusinessEventList })));
+const BusinessEventShow = lazy(() => import('./pages/audit/business-events/show').then((m) => ({ default: m.BusinessEventShow })));
+const AuthEventList = lazy(() => import('./pages/audit/auth-events/list').then((m) => ({ default: m.AuthEventList })));
+const AuthEventShow = lazy(() => import('./pages/audit/auth-events/show').then((m) => ({ default: m.AuthEventShow })));
+const ImportLogList = lazy(() => import('./pages/audit/import-logs/list').then((m) => ({ default: m.ImportLogList })));
+const ImportLogShow = lazy(() => import('./pages/audit/import-logs/show').then((m) => ({ default: m.ImportLogShow })));
 
 // Icons
 import {
@@ -242,6 +277,8 @@ import {
   SolutionOutlined, IdcardOutlined,
   TagsOutlined, EnvironmentOutlined, DatabaseOutlined, DollarCircleOutlined, ColumnWidthOutlined,
   LockOutlined, SafetyOutlined, LinkOutlined, PaperClipOutlined, NodeIndexOutlined, PartitionOutlined, FormOutlined,
+  TruckOutlined, ReconciliationOutlined, CrownOutlined, KeyOutlined, OrderedListOutlined,
+  DashboardOutlined, ThunderboltOutlined, RobotOutlined, AlertOutlined, LoginOutlined, ImportOutlined,
 } from '@ant-design/icons';
 
 const PAGE_SPINNER = (
@@ -329,6 +366,22 @@ const App: React.FC = () => {
                 edit: '/procurement/profile-change-requests/:id/edit',
                 create: '/procurement/profile-change-requests/create',
                 meta: { parent: 'procurement', icon: <FormOutlined /> },
+              },
+              {
+                name: 'advance-shipment-notices',
+                list: '/procurement/advance-shipment-notices',
+                show: '/procurement/advance-shipment-notices/:id',
+                edit: '/procurement/advance-shipment-notices/:id/edit',
+                create: '/procurement/advance-shipment-notices/create',
+                meta: { parent: 'procurement', icon: <TruckOutlined /> },
+              },
+              {
+                name: 'reconciliation-statements',
+                list: '/procurement/reconciliation-statements',
+                show: '/procurement/reconciliation-statements/:id',
+                edit: '/procurement/reconciliation-statements/:id/edit',
+                create: '/procurement/reconciliation-statements/create',
+                meta: { parent: 'procurement', icon: <ReconciliationOutlined /> },
               },
               // ── Sales ──
               { name: 'sales' },
@@ -691,6 +744,73 @@ const App: React.FC = () => {
                 show: '/system/approval-records/:id',
                 meta: { parent: 'system', icon: <NodeIndexOutlined /> },
               },
+              {
+                name: 'roles',
+                list: '/system/roles',
+                show: '/system/roles/:id',
+                edit: '/system/roles/:id/edit',
+                create: '/system/roles/create',
+                meta: { parent: 'system', icon: <CrownOutlined /> },
+              },
+              {
+                name: 'user-roles',
+                list: '/system/user-roles',
+                show: '/system/user-roles/:id',
+                edit: '/system/user-roles/:id/edit',
+                create: '/system/user-roles/create',
+                meta: { parent: 'system', icon: <KeyOutlined /> },
+              },
+              {
+                name: 'number-sequences',
+                list: '/system/number-sequences',
+                show: '/system/number-sequences/:id',
+                edit: '/system/number-sequences/:id/edit',
+                meta: { parent: 'system', icon: <OrderedListOutlined /> },
+              },
+              // ── Audit ──
+              { name: 'audit' },
+              {
+                name: 'token-usage',
+                list: '/audit/token-usage',
+                show: '/audit/token-usage/:id',
+                meta: { parent: 'audit', icon: <DashboardOutlined /> },
+              },
+              {
+                name: 'tool-call-metrics',
+                list: '/audit/tool-call-metrics',
+                show: '/audit/tool-call-metrics/:id',
+                meta: { parent: 'audit', icon: <ThunderboltOutlined /> },
+              },
+              {
+                name: 'agent-sessions',
+                list: '/audit/agent-sessions',
+                show: '/audit/agent-sessions/:id',
+                meta: { parent: 'audit', icon: <RobotOutlined /> },
+              },
+              {
+                name: 'agent-decisions',
+                list: '/audit/agent-decisions',
+                show: '/audit/agent-decisions/:id',
+                meta: { parent: 'audit', icon: <RobotOutlined /> },
+              },
+              {
+                name: 'business-events',
+                list: '/audit/business-events',
+                show: '/audit/business-events/:id',
+                meta: { parent: 'audit', icon: <AlertOutlined /> },
+              },
+              {
+                name: 'auth-events',
+                list: '/audit/auth-events',
+                show: '/audit/auth-events/:id',
+                meta: { parent: 'audit', icon: <LoginOutlined /> },
+              },
+              {
+                name: 'import-logs',
+                list: '/audit/import-logs',
+                show: '/audit/import-logs/:id',
+                meta: { parent: 'audit', icon: <ImportOutlined /> },
+              },
             ]}
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}
           >
@@ -738,6 +858,14 @@ const App: React.FC = () => {
                   <Route path="/procurement/profile-change-requests/create" element={<ProfileChangeRequestCreate />} />
                   <Route path="/procurement/profile-change-requests/:id" element={<ProfileChangeRequestShow />} />
                   <Route path="/procurement/profile-change-requests/:id/edit" element={<ProfileChangeRequestEdit />} />
+                  <Route path="/procurement/advance-shipment-notices" element={<AdvanceShipmentNoticeList />} />
+                  <Route path="/procurement/advance-shipment-notices/create" element={<AdvanceShipmentNoticeCreate />} />
+                  <Route path="/procurement/advance-shipment-notices/:id" element={<AdvanceShipmentNoticeShow />} />
+                  <Route path="/procurement/advance-shipment-notices/:id/edit" element={<AdvanceShipmentNoticeEdit />} />
+                  <Route path="/procurement/reconciliation-statements" element={<ReconciliationStatementList />} />
+                  <Route path="/procurement/reconciliation-statements/create" element={<ReconciliationStatementCreate />} />
+                  <Route path="/procurement/reconciliation-statements/:id" element={<ReconciliationStatementShow />} />
+                  <Route path="/procurement/reconciliation-statements/:id/edit" element={<ReconciliationStatementEdit />} />
 
                   {/* Sales */}
                   <Route path="/sales/sales-orders" element={<SalesOrderList />} />
@@ -915,6 +1043,33 @@ const App: React.FC = () => {
                   <Route path="/system/approval-rules/:id/edit" element={<ApprovalRuleEdit />} />
                   <Route path="/system/approval-records" element={<ApprovalRecordList />} />
                   <Route path="/system/approval-records/:id" element={<ApprovalRecordShow />} />
+                  <Route path="/system/roles" element={<RoleList />} />
+                  <Route path="/system/roles/create" element={<RoleCreate />} />
+                  <Route path="/system/roles/:id" element={<RoleShow />} />
+                  <Route path="/system/roles/:id/edit" element={<RoleEdit />} />
+                  <Route path="/system/user-roles" element={<UserRoleList />} />
+                  <Route path="/system/user-roles/create" element={<UserRoleCreate />} />
+                  <Route path="/system/user-roles/:id" element={<UserRoleShow />} />
+                  <Route path="/system/user-roles/:id/edit" element={<UserRoleEdit />} />
+                  <Route path="/system/number-sequences" element={<NumberSequenceList />} />
+                  <Route path="/system/number-sequences/:id" element={<NumberSequenceShow />} />
+                  <Route path="/system/number-sequences/:id/edit" element={<NumberSequenceEdit />} />
+
+                  {/* Audit */}
+                  <Route path="/audit/token-usage" element={<TokenUsageList />} />
+                  <Route path="/audit/token-usage/:id" element={<TokenUsageShow />} />
+                  <Route path="/audit/tool-call-metrics" element={<ToolCallMetricList />} />
+                  <Route path="/audit/tool-call-metrics/:id" element={<ToolCallMetricShow />} />
+                  <Route path="/audit/agent-sessions" element={<AgentSessionList />} />
+                  <Route path="/audit/agent-sessions/:id" element={<AgentSessionShow />} />
+                  <Route path="/audit/agent-decisions" element={<AgentDecisionList />} />
+                  <Route path="/audit/agent-decisions/:id" element={<AgentDecisionShow />} />
+                  <Route path="/audit/business-events" element={<BusinessEventList />} />
+                  <Route path="/audit/business-events/:id" element={<BusinessEventShow />} />
+                  <Route path="/audit/auth-events" element={<AuthEventList />} />
+                  <Route path="/audit/auth-events/:id" element={<AuthEventShow />} />
+                  <Route path="/audit/import-logs" element={<ImportLogList />} />
+                  <Route path="/audit/import-logs/:id" element={<ImportLogShow />} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<ErrorComponent />} />

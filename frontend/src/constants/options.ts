@@ -219,6 +219,33 @@ export const PRODUCT_STATUS_OPTIONS = [
   { value: 'discontinued', label: '淘汰' },
 ];
 
+export const ASN_STATUS_OPTIONS = [
+  { value: 'draft', label: '草稿' },
+  { value: 'in_transit', label: '在途' },
+  { value: 'received', label: '已收货' },
+  { value: 'cancelled', label: '已取消' },
+];
+
+export const RECONCILIATION_STATUS_OPTIONS = [
+  { value: 'draft', label: '草稿' },
+  { value: 'confirmed', label: '已确认' },
+  { value: 'disputed', label: '有争议' },
+  { value: 'closed', label: '已关闭' },
+];
+
+export const IMPORT_STATUS_OPTIONS = [
+  { value: 'pending', label: '待处理' },
+  { value: 'in_progress', label: '进行中' },
+  { value: 'completed', label: '已完成' },
+  { value: 'failed', label: '失败' },
+];
+
+export const AGENT_SESSION_STATUS_OPTIONS = [
+  { value: 'active', label: '活跃' },
+  { value: 'completed', label: '已完成' },
+  { value: 'failed', label: '失败' },
+];
+
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   info: 'blue',
   warning: 'orange',

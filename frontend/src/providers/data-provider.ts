@@ -4,6 +4,18 @@
 import { type DataProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
 
+const ADMIN_RESOURCES = new Set([
+  'roles', 'user-roles', 'role-permissions', 'approval-rules', 'approval-rule-steps',
+  'token-usage', 'tool-call-metrics', 'agent-sessions', 'agent-decisions',
+  'business-events', 'auth-events', 'import-logs',
+  'semantic-metadata', 'component-whitelist', 'schema-versions',
+]);
+
+function resolveUrl(resource: string): string {
+  if (ADMIN_RESOURCES.has(resource)) return `${API_URL}/admin/${resource}`;
+  return `${API_URL}/${resource}`;
+}
+
 function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('access_token');
   return {
@@ -48,7 +60,7 @@ export const dataProvider: DataProvider = {
       }
     }
 
-    const response = await fetch(`${API_URL}/${resource}?${params}`, {
+    const response = await fetch(`${resolveUrl(resource)}?${params}`, {
       headers: getHeaders(),
     });
 
@@ -62,7 +74,7 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: async ({ resource, id }) => {
-    const response = await fetch(`${API_URL}/${resource}/${id}`, {
+    const response = await fetch(`${resolveUrl(resource)}/${id}`, {
       headers: getHeaders(),
     });
 
@@ -75,7 +87,7 @@ export const dataProvider: DataProvider = {
   },
 
   create: async ({ resource, variables }) => {
-    const response = await fetch(`${API_URL}/${resource}`, {
+    const response = await fetch(`${resolveUrl(resource)}`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(variables),
@@ -91,7 +103,7 @@ export const dataProvider: DataProvider = {
   },
 
   update: async ({ resource, id, variables }) => {
-    const response = await fetch(`${API_URL}/${resource}/${id}`, {
+    const response = await fetch(`${resolveUrl(resource)}/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(variables),
@@ -107,7 +119,7 @@ export const dataProvider: DataProvider = {
   },
 
   deleteOne: async ({ resource, id }) => {
-    const response = await fetch(`${API_URL}/${resource}/${id}`, {
+    const response = await fetch(`${resolveUrl(resource)}/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
