@@ -42,8 +42,8 @@ export async function runPhase3(ctx: TestContext, org: string): Promise<void> {
       { product_id: prodIds[(i + 1) % prodIds.length], quantity: 5 + i * 3, unit_price: 50 + i * 5, line_number: 2 },
     ];
     const pr = await api.safePost<any>('/api/purchase-requisitions', {
-      request_date: `2026-04-${String(15 + i).padStart(2, '0')}`,
-      required_date: `2026-05-${String(15 + i).padStart(2, '0')}`,
+      request_date: `2026-0${2 + (i % 3)}-${String(10 + i * 3).padStart(2, '0')}`,
+      required_date: `2026-0${3 + (i % 3)}-${String(10 + i * 3).padStart(2, '0')}`,
       requester_id: requesterId,
       department_id: deptId,
       notes: `API seed test PR #${i + 1}`,
@@ -134,8 +134,8 @@ export async function runPhase3(ctx: TestContext, org: string): Promise<void> {
     ];
     const po = await api.safePost<any>('/api/purchase-orders', {
       supplier_id: supIds[i % supIds.length],
-      order_date: `2026-04-${String(18 + i).padStart(2, '0')}`,
-      expected_date: `2026-05-${String(5 + i).padStart(2, '0')}`,
+      order_date: `2026-0${2 + i}-${String(10 + i * 5).padStart(2, '0')}`,
+      expected_date: `2026-0${3 + i}-${String(5 + i).padStart(2, '0')}`,
       notes: `API seed test PO #${i + 1}`,
       items,
     }, meta('po-create', i));
@@ -176,8 +176,8 @@ export async function runPhase3(ctx: TestContext, org: string): Promise<void> {
       ];
       const so = await api.safePost<any>('/api/sales-orders', {
         customer_id: custIds[i % custIds.length],
-        order_date: `2026-04-${String(18 + i).padStart(2, '0')}`,
-        delivery_date: `2026-05-${String(5 + i).padStart(2, '0')}`,
+        order_date: `2026-0${2 + i}-${String(10 + i * 5).padStart(2, '0')}`,
+        delivery_date: `2026-0${3 + i}-${String(5 + i).padStart(2, '0')}`,
         notes: `API seed test SO #${i + 1}`,
         items,
       }, meta('so-create', i));

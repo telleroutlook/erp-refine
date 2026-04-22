@@ -32,7 +32,7 @@ export async function runPhase6(ctx: TestContext, org: string): Promise<void> {
     const result = await api.safePost<any>('/api/payment-records', {
       ...pr,
       payment_number: `PAY-API-${Date.now()}-${i}`,
-      payment_date: `2026-04-${String(18 + i).padStart(2, '0')}`,
+      payment_date: `2026-0${2 + i}-${String(15 + i).padStart(2, '0')}`, // Feb, Mar, Apr, May for multi-month
     }, meta('payment-record', i));
     if (result?.data?.id) {
       console.log(`    POST Payment Record → ${result.data.id} (${pr.payment_type})`);
@@ -76,8 +76,9 @@ export async function runPhase6(ctx: TestContext, org: string): Promise<void> {
     const voucherIds: string[] = [];
     for (let i = 0; i < 2; i++) {
       const amount = 10000 + i * 5000;
+      const month = String(3 + i).padStart(2, '0'); // March and April for multi-month data
       const v = await api.safePost<any>('/api/vouchers', {
-        voucher_date: `2026-04-${String(20 + i).padStart(2, '0')}`,
+        voucher_date: `2026-${month}-${String(20 + i).padStart(2, '0')}`,
         voucher_type: i === 0 ? 'payment' : 'receipt',
         notes: `API seed voucher #${i + 1}`,
         entries: [

@@ -544,7 +544,7 @@ procurementReceiving.post('/advance-shipment-notices', async (c) => {
         ...headerFields,
         asn_no: seqData,
         organization_id: user.organizationId,
-        status: 'draft',
+        status: 'open',
         created_by: user.userId,
       },
       items: (items ?? []).map((item: Record<string, unknown>, idx: number) => ({
