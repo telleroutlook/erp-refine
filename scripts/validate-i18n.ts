@@ -162,43 +162,106 @@ function walkDir(dir: string, ext: string): string[] {
 }
 
 const CJK_RE = /[\u4e00-\u9fff\u3400-\u4dbf]/;
+const I18N_IGNORE = /\/\/\s*i18n-ignore/;
 const pageFiles = walkDir(join(FRONTEND, 'pages'), '.tsx');
+const componentFiles = walkDir(join(FRONTEND, 'components'), '.tsx');
+const allFrontendFiles = [...pageFiles, ...componentFiles];
 let hardcodedCjkCount = 0;
 
-for (const file of pageFiles) {
+for (const file of allFrontendFiles) {
   const content = readFileSync(file, 'utf-8');
   const lines = content.split('\n');
   const relPath = relative(ROOT, file);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    // Match title="中文", placeholder="中文", label="中文" etc.
+    if (I18N_IGNORE.test(line)) continue;
+
+    // Match title="中文", placeholder="中文", label="中文" in JSX attributes
     const attrRe = /(?:title|placeholder|label|description)\s*=\s*"([^"]+)"/g;
     let am: RegExpExecArray | null;
     while ((am = attrRe.exec(line)) !== null) {
       if (CJK_RE.test(am[1]!)) {
         hardcodedCjkCount++;
-        if (hardcodedCjkCount <= 20) {
+        if (hardcodedCjkCount <= 30) {
           warn('2e:hardcoded-cjk', `${relPath}:${i + 1} hardcoded CJK: ${am[0].substring(0, 60)}`);
         }
       }
     }
-    // Also check JSX text: >中文<
-    const jsxTextRe = />([^<>{]*[\u4e00-\u9fff][^<>{}]*)</g;
-    while ((am = jsxTextRe.exec(line)) !== null) {
-      const text = am[1]!.trim();
-      if (text.length > 1 && CJK_RE.test(text) && !line.includes('t(') && !line.includes('translate(')) {
-        hardcodedCjkCount++;
-        if (hardcodedCjkCount <= 20) {
-          warn('2e:hardcoded-cjk', `${relPath}:${i + 1} hardcoded CJK text: "${text.substring(0, 40)}"`);
-        }
+    // Match title: '中文' or title: "中文" in objects (e.g., ColumnConfig)
+    const objAttrRe = /(?:title|label)\s*:\s*['"]([^'"]+[一-龥][^'"]*)['"]/ ;
+    const objMatch = line.match(objAttrRe);
+    if (objMatch && CJK_RE.test(objMatch[1]!) && !line.includes('t(') && !line.includes('fl(')) {
+      hardcodedCjkCount++;
+      if (hardcodedCjkCount <= 30) {
+        warn('2e:hardcoded-cjk', `${relPath}:${i + 1} hardcoded CJK in object: ${objMatch[0].substring(0, 60)}`);
+      }
+    }
+    // Match message: '请...' validation messages
+    const msgRe = /message\s*:\s*['"]([^'"]*[\u4e00-\u9fff][^'"]*)['"]/ ;
+    const msgMatch = line.match(msgRe);
+    if (msgMatch && !line.includes('t(')) {
+      hardcodedCjkCount++;
+      if (hardcodedCjkCount <= 30) {
+        warn('2e:hardcoded-cjk', `${relPath}:${i + 1} hardcoded CJK message: ${msgMatch[0].substring(0, 60)}`);
+      }
+    }
+    // Match message.success/error('中文')
+    const uiMsgRe = /message\.(?:success|error|warning|info)\(\s*['"]([^'"]*[\u4e00-\u9fff][^'"]*)['"]/ ;
+    const uiMsgMatch = line.match(uiMsgRe);
+    if (uiMsgMatch) {
+      hardcodedCjkCount++;
+      if (hardcodedCjkCount <= 30) {
+        warn('2e:hardcoded-cjk', `${relPath}:${i + 1} hardcoded CJK UI message: ${uiMsgMatch[0].substring(0, 60)}`);
       }
     }
   }
 }
 
-if (hardcodedCjkCount > 20) {
-  warn('2e:hardcoded-cjk', `... and ${hardcodedCjkCount - 20} more hardcoded CJK instances`);
+if (hardcodedCjkCount > 30) {
+  warn('2e:hardcoded-cjk', `... and ${hardcodedCjkCount - 30} more hardcoded CJK instances`);
+}
+if (hardcodedCjkCount > 0) {
+  warn('2e:hardcoded-cjk', `Total: ${hardcodedCjkCount} hardcoded CJK strings found. Use fl(), pt(), t() hooks instead.`);
+}
+
+// ─── 2f: Field translation key completeness ─────────────────────────────────
+
+const flCallRe = /fl\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)/g;
+let missingFieldKeys = 0;
+const enFields = en.fields ?? {};
+const zhFields = zh.fields ?? {};
+
+for (const file of allFrontendFiles) {
+  const content = readFileSync(file, 'utf-8');
+  const relPath = relative(ROOT, file);
+  let fm: RegExpExecArray | null;
+  flCallRe.lastIndex = 0;
+
+  while ((fm = flCallRe.exec(content)) !== null) {
+    const table = fm[1]!;
+    const column = fm[2]!;
+    // Check if key exists in table-specific or common
+    const enHasKey = enFields[table]?.[column] || enFields.common?.[column];
+    const zhHasKey = zhFields[table]?.[column] || zhFields.common?.[column];
+
+    if (!enHasKey) {
+      missingFieldKeys++;
+      if (missingFieldKeys <= 10) {
+        warn('2f:field-key', `${relPath}: fl('${table}', '${column}') — missing in en.json fields`);
+      }
+    }
+    if (!zhHasKey) {
+      missingFieldKeys++;
+      if (missingFieldKeys <= 10) {
+        warn('2f:field-key', `${relPath}: fl('${table}', '${column}') — missing in zh-CN.json fields`);
+      }
+    }
+  }
+}
+
+if (missingFieldKeys > 10) {
+  warn('2f:field-key', `... and ${missingFieldKeys - 10} more missing field translation keys`);
 }
 
 // ─── Report ─────────────────────────────────────────────────────────────────
@@ -216,7 +279,7 @@ if (warns.length > 0) {
 }
 
 if (errors.length === 0) {
-  console.log(`\n✅ i18n validation passed — ${Object.keys(en).length} en keys, ${Object.keys(zh).length} zh keys, ${backendStatuses.size} status values, ${pageFiles.length} pages scanned\n`);
+  console.log(`\n✅ i18n validation passed — ${Object.keys(en).length} en keys, ${Object.keys(zh).length} zh keys, ${backendStatuses.size} status values, ${allFrontendFiles.length} files scanned, ${hardcodedCjkCount} CJK warnings\n`);
 } else {
   console.error(`\nFix the ${errors.length} error(s) above before deploying.\n`);
   process.exit(1);

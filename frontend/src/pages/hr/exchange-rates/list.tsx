@@ -4,10 +4,12 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const ExchangeRateList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -24,7 +26,7 @@ export const ExchangeRateList: React.FC = () => {
 
   return (
     <List
-      title="汇率"
+      title={t('menu.exchangeRates')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('exchange-rates')}>
           {t('buttons.create')}
@@ -33,19 +35,19 @@ export const ExchangeRateList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="from_currency" title="源币种" />
-        <Table.Column dataIndex="to_currency" title="目标币种" />
-        <Table.Column dataIndex="rate" title="汇率" />
-        <Table.Column dataIndex="rate_type" title="类型" />
+        <Table.Column dataIndex="from_currency" title={t('menu.exchangeRates')} />
+        <Table.Column dataIndex="to_currency" title={t('menu.exchangeRates')} />
+        <Table.Column dataIndex="rate" title={t('menu.exchangeRates')} />
+        <Table.Column dataIndex="rate_type" title={t('menu.exchangeRates')} />
         <Table.Column
           dataIndex="effective_date"
-          title="生效日期"
+          title={t('menu.exchangeRates')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="expiry_date"
-          title="到期日期"
+          title={t('menu.exchangeRates')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />

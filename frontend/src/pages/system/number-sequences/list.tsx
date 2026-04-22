@@ -4,10 +4,12 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const NumberSequenceList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -23,11 +25,11 @@ export const NumberSequenceList: React.FC = () => {
     <List title={t('menu.numberSequences')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="sequence_name" title="序列名称" width={200} />
-        <Table.Column dataIndex="prefix" title="前缀" width={120} />
-        <Table.Column dataIndex="current_value" title="当前值" width={120} align="right" />
-        <Table.Column dataIndex="padding" title="补零位数" width={100} align="right" />
-        <Table.Column dataIndex="increment_by" title="步长" width={80} align="right" />
+        <Table.Column dataIndex="sequence_name" title={t('menu.numberSequences')} width={200} />
+        <Table.Column dataIndex="prefix" title={t('menu.numberSequences')} width={120} />
+        <Table.Column dataIndex="current_value" title={t('menu.numberSequences')} width={120} align="right" />
+        <Table.Column dataIndex="padding" title={t('menu.numberSequences')} width={100} align="right" />
+        <Table.Column dataIndex="increment_by" title={t('menu.numberSequences')} width={80} align="right" />
         <Table.Column
           title={t('common.actions')}
           width={100}

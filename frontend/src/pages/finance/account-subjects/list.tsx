@@ -6,9 +6,11 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const AccountSubjectList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -19,13 +21,13 @@ export const AccountSubjectList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'name', label: '科目名称', placeholder: '搜索科目名称' },
-    { type: 'search', field: 'code', label: '科目编码', placeholder: '搜索科目编码' },
+    { type: 'search', field: 'name', label: fl('account_subjects', 'name'), placeholder: t('filters.searchPlaceholder') },
+    { type: 'search', field: 'code', label: fl('account_subjects', 'code'), placeholder: t('filters.searchPlaceholder') },
   ];
 
   return (
     <List
-      title="会计科目"
+      title={t('menu.accountSubjects')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('account-subjects')}>
           {t('buttons.create')}
@@ -34,18 +36,18 @@ export const AccountSubjectList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title="科目编码" width={120} />
-        <Table.Column dataIndex="name" title="科目名称" />
-        <Table.Column dataIndex="category" title="类别" />
+        <Table.Column dataIndex="code" title={fl('account_subjects', 'code')} width={120} />
+        <Table.Column dataIndex="name" title={fl('account_subjects', 'name')} />
+        <Table.Column dataIndex="category" title={fl('account_subjects', 'category')} />
         <Table.Column
           dataIndex="balance_direction"
-          title="余额方向"
-          render={(v) => (v === 'debit' ? '借' : '贷')}
+          title={fl('account_subjects', 'balance_direction')}
+          render={(v) => (v === 'debit' ? t('enums.balanceDirection.debit') : t('enums.balanceDirection.credit'))}
         />
         <Table.Column
           dataIndex="is_leaf"
-          title="末级科目"
-          render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? '是' : '否'}</Tag>}
+          title={fl('account_subjects', 'is_leaf')}
+          render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
         />
         <Table.Column
           dataIndex="status"

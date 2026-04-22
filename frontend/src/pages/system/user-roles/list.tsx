@@ -4,10 +4,12 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const UserRoleList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -30,10 +32,10 @@ export const UserRoleList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="user_id" title="用户ID" width={280} />
-        <Table.Column dataIndex={['role', 'name']} title="角色" />
-        <Table.Column dataIndex="assigned_by" title="分配人" width={280} />
-        <Table.Column dataIndex="assigned_at" title="分配时间" width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="user_id" title={t('menu.userRoles')} width={280} />
+        <Table.Column dataIndex={['role', 'name']} title={t('menu.userRoles')} />
+        <Table.Column dataIndex="assigned_by" title={t('menu.userRoles')} width={280} />
+        <Table.Column dataIndex="assigned_at" title={t('menu.userRoles')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

@@ -6,10 +6,12 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const WarehouseList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'warehouses',
@@ -31,9 +33,9 @@ export const WarehouseList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title="仓库编号" width={140} />
-        <Table.Column dataIndex="name" title="仓库名称" />
-        <Table.Column dataIndex="location" title="位置" />
+        <Table.Column dataIndex="code" title={fl('warehouses', 'code')} width={140} />
+        <Table.Column dataIndex="name" title={fl('warehouses', 'name')} />
+        <Table.Column dataIndex="location" title={fl('warehouses', 'location')} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

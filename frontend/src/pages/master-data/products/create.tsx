@@ -3,28 +3,31 @@ import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { PRODUCT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const ProductCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'products' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
 
   return (
-    <Create saveButtonProps={saveButtonProps} title="新建产品">
+    <Create saveButtonProps={saveButtonProps} title={pt('products', 'create')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="产品编号" name="code" rules={[{ required: true, message: '请输入产品编号' }]}>
-              <Input placeholder="如：PROD-001" />
+            <Form.Item label={fl('products', 'code')} name="code" rules={[{ required: true, message: t('validation.required', { field: fl('products', 'code') }) }]}>
+              <Input placeholder={t('placeholders.example', { example: 'PROD-001' })} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="产品名称" name="name" rules={[{ required: true, message: '请输入产品名称' }]}>
+            <Form.Item label={fl('products', 'name')} name="name" rules={[{ required: true, message: t('validation.required', { field: fl('products', 'name') }) }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="单位" name="uom">
-              <Input placeholder="如：个、箱、公斤" />
+            <Form.Item label={fl('products', 'unit')} name="uom">
+              <Input  />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -33,7 +36,7 @@ export const ProductCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="描述" name="description">
+            <Form.Item label={fl('products', 'description')} name="description">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

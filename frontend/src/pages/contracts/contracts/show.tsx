@@ -3,38 +3,40 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 
 export const ContractShow: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { queryResult } = useShow({ resource: 'contracts' });
   const record = queryResult.data?.data as any;
 
   return (
-    <Show title={`合同 ${record?.contract_number ?? ''}`} isLoading={queryResult.isLoading}>
+    <Show title={`${t('menu.contracts')} ${record?.contract_number ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
-        <Descriptions.Item label="合同号">{record?.contract_number}</Descriptions.Item>
-        <Descriptions.Item label="合同类型">{record?.contract_type}</Descriptions.Item>
+        <Descriptions.Item label={fl('contracts', 'contract_number')}>{record?.contract_number}</Descriptions.Item>
+        <Descriptions.Item label={fl('contracts', 'contract_type')}>{record?.contract_type}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />
         </Descriptions.Item>
-        <Descriptions.Item label="对方类型">{record?.party_type}</Descriptions.Item>
-        <Descriptions.Item label="对方ID">{record?.party_id}</Descriptions.Item>
-        <Descriptions.Item label="开始日期">
+        <Descriptions.Item label={fl('contracts', 'party_type')}>{record?.party_type}</Descriptions.Item>
+        <Descriptions.Item label={fl('contracts', 'party_id')}>{record?.party_id}</Descriptions.Item>
+        <Descriptions.Item label={fl('contracts', 'start_date')}>
           <DateField value={record?.start_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
-        <Descriptions.Item label="结束日期">
+        <Descriptions.Item label={fl('contracts', 'end_date')}>
           {record?.end_date ? <DateField value={record.end_date} format="YYYY-MM-DD" /> : '-'}
         </Descriptions.Item>
         <Descriptions.Item label={t('common.currency')}>{record?.currency}</Descriptions.Item>
-        <Descriptions.Item label="合同金额">
+        <Descriptions.Item label={fl('contracts', 'total_amount')}>
           <AmountDisplay value={record?.total_amount} currency={record?.currency} />
         </Descriptions.Item>
-        <Descriptions.Item label="税率">{record?.tax_rate}</Descriptions.Item>
-        <Descriptions.Item label="付款条件（天）">{record?.payment_terms}</Descriptions.Item>
+        <Descriptions.Item label={fl('contracts', 'tax_rate')}>{record?.tax_rate}</Descriptions.Item>
+        <Descriptions.Item label={fl('contracts', 'payment_terms')}>{record?.payment_terms}</Descriptions.Item>
         {record?.description && (
-          <Descriptions.Item label="描述" span={2}>{record.description}</Descriptions.Item>
+          <Descriptions.Item label={fl('contracts', 'description')} span={2}>{record.description}</Descriptions.Item>
         )}
         {record?.notes && (
           <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>
@@ -43,20 +45,20 @@ export const ContractShow: React.FC = () => {
 
       {record?.items && record.items.length > 0 && (
         <>
-          <Divider>合同行</Divider>
+          <Divider>{t('sections.contractLines')}</Divider>
           <Table
             dataSource={record.items}
             rowKey="id"
             size="small"
             pagination={false}
             columns={[
-              { dataIndex: ['product', 'name'], title: '产品' },
-              { dataIndex: 'quantity', title: '数量', width: 80, align: 'right' as const },
-              { dataIndex: 'unit_price', title: '单价', width: 120, align: 'right' as const, render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
-              { dataIndex: 'tax_rate', title: '税率', width: 80 },
-              { dataIndex: 'amount', title: '金额', width: 120, align: 'right' as const, render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
-              { dataIndex: 'status', title: '状态', width: 100, render: (v: string) => <StatusTag status={v} /> },
-              { dataIndex: 'notes', title: '备注' },
+              { dataIndex: ['product', 'name'], title: fl('contracts', 'product_id') },
+              { dataIndex: 'quantity', title: fl('contracts', 'quantity'), width: 80, align: 'right' as const },
+              { dataIndex: 'unit_price', title: fl('contracts', 'unit_price'), width: 120, align: 'right' as const, render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
+              { dataIndex: 'tax_rate', title: fl('contracts', 'tax_rate'), width: 80 },
+              { dataIndex: 'amount', title: fl('contracts', 'amount'), width: 120, align: 'right' as const, render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
+              { dataIndex: 'status', title: fl('contracts', 'status'), width: 100, render: (v: string) => <StatusTag status={v} /> },
+              { dataIndex: 'notes', title: fl('contracts', 'notes') },
             ]}
           />
         </>

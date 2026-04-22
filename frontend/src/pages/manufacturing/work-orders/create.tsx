@@ -4,31 +4,34 @@ import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const WorkOrderCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'work-orders' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
   const statusOpts = translateOptions(WORK_ORDER_STATUS_OPTIONS.slice(0, 2), t);
   const { selectProps: productSelectProps } = useSelect({ resource: 'products', optionLabel: 'name', optionValue: 'id' });
   const { selectProps: bomSelectProps } = useSelect({ resource: 'bom-headers', optionLabel: 'bom_number', optionValue: 'id' });
   const { selectProps: warehouseSelectProps } = useSelect({ resource: 'warehouses', optionLabel: 'name', optionValue: 'id' });
 
   return (
-    <Create saveButtonProps={saveButtonProps} title="新建生产工单">
+    <Create saveButtonProps={saveButtonProps} title={pt('work_orders', 'create')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="产品" name="product_id" rules={[{ required: true, message: '请选择产品' }]}>
-              <Select {...productSelectProps} showSearch placeholder="选择产品" />
+            <Form.Item label={fl('work_orders', 'product_id')} name="product_id" rules={[{ required: true }]}>
+              <Select {...productSelectProps} showSearch />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="物料清单" name="bom_header_id">
-              <Select {...bomSelectProps} showSearch placeholder="选择BOM" allowClear />
+            <Form.Item label={fl('work_orders', 'bom_header_id')} name="bom_header_id">
+              <Select {...bomSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="计划数量" name="planned_quantity" rules={[{ required: true, message: '请输入计划数量' }]}>
+            <Form.Item label={fl('work_orders', 'planned_quantity')} name="planned_quantity" rules={[{ required: true }]}>
               <InputNumber style={FULL_WIDTH} min={1} />
             </Form.Item>
           </Col>
@@ -38,18 +41,18 @@ export const WorkOrderCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="开始日期" name="start_date" getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
+            <Form.Item label={fl('work_orders', 'start_date')} name="start_date" getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="计划完成日期" name="planned_completion_date" getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
+            <Form.Item label={fl('work_orders', 'planned_completion_date')} name="planned_completion_date" getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="仓库" name="warehouse_id">
-              <Select {...warehouseSelectProps} showSearch placeholder="选择仓库" allowClear />
+            <Form.Item label={fl('work_orders', 'warehouse_id')} name="warehouse_id">
+              <Select {...warehouseSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
           <Col span={24}>

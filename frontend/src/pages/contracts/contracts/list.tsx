@@ -4,6 +4,7 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
@@ -11,6 +12,7 @@ import { CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS, translateOptions } from
 
 export const ContractList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -30,7 +32,7 @@ export const ContractList: React.FC = () => {
 
   return (
     <List
-      title="合同"
+      title={t('menu.contracts')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('contracts')}>
           {t('buttons.create')}
@@ -39,24 +41,24 @@ export const ContractList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="contract_number" title="合同号" width={160} />
-        <Table.Column dataIndex="contract_type" title="合同类型" />
-        <Table.Column dataIndex="party_type" title="对方类型" />
+        <Table.Column dataIndex="contract_number" title={t('menu.contracts')} width={160} />
+        <Table.Column dataIndex="contract_type" title={t('menu.contracts')} />
+        <Table.Column dataIndex="party_type" title={t('menu.contracts')} />
         <Table.Column
           dataIndex="start_date"
-          title="开始日期"
+          title={t('menu.contracts')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="end_date"
-          title="结束日期"
+          title={t('menu.contracts')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
           dataIndex="total_amount"
-          title="合同金额"
+          title={t('menu.contracts')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}

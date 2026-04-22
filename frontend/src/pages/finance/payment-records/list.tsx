@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { PAYMENT_RECORD_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const PaymentRecordList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -21,24 +23,24 @@ export const PaymentRecordList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'payment_number', label: '付款编号', placeholder: '搜索付款编号' },
+    { type: 'search', field: 'payment_number', label: fl('payment_records', 'payment_number'), placeholder: t('filters.searchPlaceholder') },
     { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(PAYMENT_RECORD_STATUS_OPTIONS, t) },
-    { type: 'dateRange', field: 'payment_date', label: '付款日期' },
+    { type: 'dateRange', field: 'payment_date', label: fl('payment_records', 'payment_date') },
   ];
 
   return (
-    <List title="付款记录">
+    <List title={t('menu.paymentRecords')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="payment_number" title="付款编号" width={160} />
+        <Table.Column dataIndex="payment_number" title={fl('payment_records', 'payment_number')} width={160} />
         <Table.Column
           dataIndex="payment_date"
-          title="付款日期"
+          title={fl('payment_records', 'payment_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
-        <Table.Column dataIndex="payment_type" title="付款类型" />
-        <Table.Column dataIndex="payment_method" title="付款方式" />
+        <Table.Column dataIndex="payment_type" title={fl('payment_records', 'payment_type')} />
+        <Table.Column dataIndex="payment_method" title={fl('payment_records', 'payment_method')} />
         <Table.Column
           dataIndex="amount"
           title={t('common.amount')}

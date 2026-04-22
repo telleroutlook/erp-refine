@@ -2,27 +2,30 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Switch, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const RoleEdit: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
   const { formProps, saveButtonProps } = useForm({ resource: 'roles' });
 
   return (
-    <Edit saveButtonProps={saveButtonProps} title="编辑角色">
+    <Edit saveButtonProps={saveButtonProps} title={pt('roles', 'edit')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="角色名称" name="name" rules={[{ required: true, message: '请输入角色名称' }]}>
+            <Form.Item label={fl('roles', 'name')} name="name" rules={[{ required: true, message: t('validation.required', { field: fl('roles', 'name') }) }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="系统角色" name="is_system" valuePropName="checked">
+            <Form.Item label={fl('roles', 'is_system')} name="is_system" valuePropName="checked">
               <Switch />
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="描述" name="description">
+            <Form.Item label={fl('roles', 'description')} name="description">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

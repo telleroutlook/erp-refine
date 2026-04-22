@@ -5,10 +5,12 @@ import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const CarrierList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -21,43 +23,43 @@ export const CarrierList: React.FC = () => {
   ];
 
   const carrierTypeLabels: Record<string, string> = {
-    express: '快递',
-    freight: '货运',
+    express: t('enums.carrierType.express'),
+    freight: t('enums.carrierType.freight'),
     ltl: 'LTL',
     ftl: 'FTL',
-    ocean: '海运',
-    air: '空运',
+    ocean: t('enums.carrierType.ocean'),
+    air: t('enums.carrierType.air'),
   };
 
   return (
     <List
-      title="承运商管理"
+      title={t('menu.carriers')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('carriers')}>
-          新建承运商
+          {t('buttons.create')}
         </Button>
       }
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title="编号" width={120} />
-        <Table.Column dataIndex="name" title="名称" />
+        <Table.Column dataIndex="code" title={t('menu.carriers')} width={120} />
+        <Table.Column dataIndex="name" title={t('menu.carriers')} />
         <Table.Column
           dataIndex="carrier_type"
-          title="类型"
+          title={t('menu.carriers')}
           width={100}
           render={(v) => carrierTypeLabels[v] ?? v}
         />
-        <Table.Column dataIndex="contact" title="联系人" width={120} />
-        <Table.Column dataIndex="phone" title="电话" width={140} />
+        <Table.Column dataIndex="contact" title={t('menu.carriers')} width={120} />
+        <Table.Column dataIndex="phone" title={t('menu.carriers')} width={140} />
         <Table.Column
           dataIndex="is_active"
-          title="状态"
+          title={t('menu.carriers')}
           width={80}
           render={(v) => <ActiveStatusTag value={v} />}
         />
         <Table.Column
-          title="操作"
+          title={t('menu.carriers')}
           width={100}
           render={(_, record: any) => (
             <Space>

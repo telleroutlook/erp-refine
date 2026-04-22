@@ -6,9 +6,11 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const CostCenterList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -19,13 +21,13 @@ export const CostCenterList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'name', label: '名称', placeholder: '搜索名称' },
-    { type: 'search', field: 'code', label: '编码', placeholder: '搜索编码' },
+    { type: 'search', field: 'name', label: fl('cost_centers', 'name'), placeholder: t('filters.searchPlaceholder') },
+    { type: 'search', field: 'code', label: fl('cost_centers', 'code'), placeholder: t('filters.searchPlaceholder') },
   ];
 
   return (
     <List
-      title="成本中心"
+      title={t('menu.costCenters')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('cost-centers')}>
           {t('buttons.create')}
@@ -34,8 +36,8 @@ export const CostCenterList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title="编码" width={120} />
-        <Table.Column dataIndex="name" title="名称" />
+        <Table.Column dataIndex="code" title={fl('cost_centers', 'code')} width={120} />
+        <Table.Column dataIndex="name" title={fl('cost_centers', 'name')} />
         <Table.Column
           dataIndex="is_active"
           title={t('common.status')}

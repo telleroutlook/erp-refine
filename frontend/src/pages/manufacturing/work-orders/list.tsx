@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const WorkOrderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
   const { tableProps, setFilters } = useTable({
     resource: 'work-orders',
     sorters: { initial: [{ field: 'created_at', order: 'desc' }] },
@@ -26,7 +28,7 @@ export const WorkOrderList: React.FC = () => {
 
   return (
     <List
-      title="生产工单"
+      title={t('menu.workOrders')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('work-orders')}>
           {t('buttons.create')}
@@ -35,12 +37,12 @@ export const WorkOrderList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="work_order_number" title="工单号" width={160} />
-        <Table.Column dataIndex={['product', 'name']} title="产品" />
-        <Table.Column dataIndex="planned_quantity" title="计划数量" width={100} align="right" />
-        <Table.Column dataIndex="completed_quantity" title="完成数量" width={100} align="right" />
-        <Table.Column dataIndex="start_date" title="开始日期" width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
-        <Table.Column dataIndex="planned_completion_date" title="计划完成" width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
+        <Table.Column dataIndex="work_order_number" title={fl('work_orders', 'work_order_number')} width={160} />
+        <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
+        <Table.Column dataIndex="planned_quantity" title={fl('work_orders', 'planned_quantity')} width={100} align="right" />
+        <Table.Column dataIndex="completed_quantity" title={fl('work_orders', 'completed_quantity')} width={100} align="right" />
+        <Table.Column dataIndex="start_date" title={fl('work_orders', 'start_date')} width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
+        <Table.Column dataIndex="planned_completion_date" title={fl('work_orders', 'planned_completion_date')} width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
         <Table.Column dataIndex="status" title={t('common.status')} width={100} render={(status) => <StatusTag status={status} />} />
         <Table.Column title={t('common.actions')} width={120} render={(_, record: any) => (
           <Space>

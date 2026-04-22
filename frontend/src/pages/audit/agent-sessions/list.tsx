@@ -4,12 +4,14 @@ import { Table, Button } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { AGENT_SESSION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const AgentSessionList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -27,11 +29,11 @@ export const AgentSessionList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="agent_id" title="Agent" width={160} />
-        <Table.Column dataIndex="session_type" title="类型" width={120} />
+        <Table.Column dataIndex="session_type" title={t('menu.agentSessions')} width={120} />
         <Table.Column dataIndex="status" title={t('common.status')} width={100} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="message_count" title="消息数" width={80} align="right" />
-        <Table.Column dataIndex="started_at" title="开始时间" width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
-        <Table.Column dataIndex="ended_at" title="结束时间" width={160} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '—'} />
+        <Table.Column dataIndex="message_count" title={t('menu.agentSessions')} width={80} align="right" />
+        <Table.Column dataIndex="started_at" title={t('menu.agentSessions')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="ended_at" title={t('menu.agentSessions')} width={160} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '—'} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('agent-sessions', r.id)} />} />
       </Table>
     </List>

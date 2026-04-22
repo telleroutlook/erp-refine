@@ -6,9 +6,11 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const CustomerList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -31,11 +33,11 @@ export const CustomerList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title="客户编号" width={140} />
-        <Table.Column dataIndex="name" title="客户名称" />
-        <Table.Column dataIndex="contact" title="联系人" width={120} />
-        <Table.Column dataIndex="phone" title="电话" width={140} />
-        <Table.Column dataIndex="email" title="邮箱" width={180} />
+        <Table.Column dataIndex="code" title={fl('customers', 'code')} width={140} />
+        <Table.Column dataIndex="name" title={fl('customers', 'name')} />
+        <Table.Column dataIndex="contact" title={fl('customers', 'contact')} width={120} />
+        <Table.Column dataIndex="phone" title={fl('customers', 'phone')} width={140} />
+        <Table.Column dataIndex="email" title={fl('customers', 'email')} width={180} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

@@ -6,10 +6,12 @@ import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const QualityStandardList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'quality-standards',
@@ -24,7 +26,7 @@ export const QualityStandardList: React.FC = () => {
 
   return (
     <List
-      title="质量标准"
+      title={t('menu.qualityStandards')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('quality-standards')}>
           {t('buttons.create')}
@@ -33,11 +35,11 @@ export const QualityStandardList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="standard_code" title="标准代码" width={160} />
-        <Table.Column dataIndex="standard_name" title="标准名称" />
+        <Table.Column dataIndex="standard_code" title={fl('quality_standards', 'standard_code')} width={160} />
+        <Table.Column dataIndex="standard_name" title={fl('quality_standards', 'standard_name')} />
         <Table.Column
           dataIndex="is_active"
-          title="状态"
+          title={t('common.status')}
           width={100}
           render={(v) => <ActiveStatusTag value={v} />}
         />

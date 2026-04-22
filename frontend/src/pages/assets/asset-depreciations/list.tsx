@@ -6,9 +6,11 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const AssetDepreciationList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -23,42 +25,42 @@ export const AssetDepreciationList: React.FC = () => {
   ];
 
   return (
-    <List title="折旧记录">
+    <List title={t('menu.assetDepreciations')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column
           dataIndex={['asset', 'asset_name']}
-          title="资产"
+          title={fl('asset_depreciations', 'asset_id')}
           render={(v, record: any) => v ?? record.asset_id}
         />
-        <Table.Column dataIndex="period_year" title="年度" width={80} />
-        <Table.Column dataIndex="period_month" title="月份" width={80} />
+        <Table.Column dataIndex="period_year" title={fl('asset_depreciations', 'period_year')} width={80} />
+        <Table.Column dataIndex="period_month" title={fl('asset_depreciations', 'period_month')} width={80} />
         <Table.Column
           dataIndex="depreciation_amount"
-          title="折旧金额"
+          title={fl('asset_depreciations', 'depreciation_amount')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}
         />
         <Table.Column
           dataIndex="accumulated_depreciation"
-          title="累计折旧"
+          title={fl('fixed_assets', 'accumulated_depreciation')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}
         />
         <Table.Column
           dataIndex="book_value_after"
-          title="折旧后净值"
+          title={fl('asset_depreciations', 'book_value_after')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}
         />
         <Table.Column
           dataIndex="posted"
-          title="已过账"
+          title={fl('asset_depreciations', 'posted')}
           width={80}
-          render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? '是' : '否'}</Tag>}
+          render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
         />
         <Table.Column
           title={t('common.actions')}

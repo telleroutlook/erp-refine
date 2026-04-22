@@ -4,10 +4,12 @@ import { Table, Button } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const UomList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -23,13 +25,13 @@ export const UomList: React.FC = () => {
   ];
 
   return (
-    <List title="计量单位">
+    <List title={t('menu.uoms')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="uom_code" title="编码" width={100} />
-        <Table.Column dataIndex="uom_name" title="名称" />
-        <Table.Column dataIndex="uom_type" title="类型" />
-        <Table.Column dataIndex="conversion_factor" title="换算系数" width={100} />
+        <Table.Column dataIndex="uom_code" title={t('menu.uoms')} width={100} />
+        <Table.Column dataIndex="uom_name" title={t('menu.uoms')} />
+        <Table.Column dataIndex="uom_type" title={t('menu.uoms')} />
+        <Table.Column dataIndex="conversion_factor" title={t('menu.uoms')} width={100} />
         <Table.Column
           title={t('common.actions')}
           width={80}

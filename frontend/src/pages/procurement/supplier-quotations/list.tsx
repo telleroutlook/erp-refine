@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { QUOTATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const SupplierQuotationList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -26,7 +28,7 @@ export const SupplierQuotationList: React.FC = () => {
 
   return (
     <List
-      title="供应商报价"
+      title={t('menu.supplierQuotations')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('supplier-quotations')}>
           {t('buttons.create')}
@@ -35,15 +37,15 @@ export const SupplierQuotationList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="quotation_number" title="报价单号" width={160} />
+        <Table.Column dataIndex="quotation_number" title={fl('supplier_quotations', 'quotation_number')} width={160} />
         <Table.Column
           dataIndex={['supplier', 'name']}
-          title="供应商"
+          title={fl('supplier_quotations', 'supplier_id')}
         />
         <Table.Column dataIndex="currency" title={t('common.currency')} width={80} />
         <Table.Column
           dataIndex="validity_date"
-          title="有效期"
+          title={fl('supplier_quotations', 'validity_date')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useCreate, useUpdate, useDelete, useInvalidate } from '@refinedev/core';
 import { Table, Divider, Button, Input, InputNumber, Select, Popconfirm, Space, DatePicker, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
 export interface ColumnConfig {
@@ -54,6 +55,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   productsMap,
   priceField,
 }) => {
+  const { t } = useTranslation();
   const [edits, setEdits] = useState<Record<string, Record<string, any>>>({});
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
@@ -80,7 +82,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     if (!isDirty) return;
     const orig = window.history.pushState;
     window.history.pushState = function (...args) {
-      if (isDirtyRef.current && !window.confirm('有未保存的修改，确定要离开吗？')) return;
+      if (isDirtyRef.current && !window.confirm(t('messages.unsavedChanges'))) return;
       return orig.apply(this, args);
     };
     return () => { window.history.pushState = orig; };
@@ -200,9 +202,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       setNewRows([]);
       setDeletedIds(new Set());
       refresh();
-      message.success('保存成功');
+      message.success(t('messages.saveSuccess'));
     } catch {
-      message.error('保存失败，请重试');
+      message.error(t('messages.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -264,7 +266,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       },
     })),
     {
-      title: '操作',
+      title: t('common.actions'),
       width: 60,
       fixed: 'right' as const,
       render: (_: any, record: any) => {
@@ -272,7 +274,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
           return <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => removeNewRow(record.id)} />;
         }
         return (
-          <Popconfirm title="确定删除?" onConfirm={() => markDeleted(record.id)} okText="确定" cancelText="取消">
+          <Popconfirm title={t('messages.deleteConfirm')} onConfirm={() => markDeleted(record.id)} okText={t('common.confirm')} cancelText={t('common.cancel')}>
             <Button type="link" size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         );
@@ -291,14 +293,14 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
           {title}
           {isDirty && (
             <Button type="primary" size="small" icon={<SaveOutlined />} onClick={saveAll} loading={saving}>
-              保存明细
+              {t('buttons.save')}
             </Button>
           )}
         </Space>
       </Divider>
       <Table dataSource={dataSource} rowKey="id" size="small" pagination={false} columns={tableColumns} scroll={{ x: 'max-content' }}
         footer={() => (
-          <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={addRow} block>添加行</Button>
+          <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={addRow} block>{t('common.create')}</Button>
         )}
       />
     </>

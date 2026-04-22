@@ -3,55 +3,60 @@ import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const AssetMaintenanceCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'asset-maintenance' });
   const { data: assetsData } = useList({ resource: 'fixed-assets', pagination: { pageSize: 500 } });
   const assetOptions = (assetsData?.data ?? []).map((a: any) => ({ label: `${a.asset_number} - ${a.asset_name}`, value: a.id }));
+  const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
 
   return (
-    <Create saveButtonProps={saveButtonProps} title="新建资产维保">
+    <Create saveButtonProps={saveButtonProps} title={pt('asset_maintenance', 'create')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="资产" name="asset_id" rules={[{ required: true, message: '请选择资产' }]}>
-              <Select options={assetOptions} showSearch optionFilterProp="label" placeholder="选择资产" />
+            <Form.Item label={fl('asset_maintenance_records', 'asset_id')} name="asset_id" rules={[{ required: true, message: t('validation.requiredSelect', { field: fl('asset_maintenance_records', 'asset_id') }) }]}>
+              <Select options={assetOptions} showSearch optionFilterProp="label" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="维保类型" name="maintenance_type">
+            <Form.Item label={fl('asset_maintenance_records', 'maintenance_type')} name="maintenance_type">
               <Select
                 options={[
-                  { value: 'preventive', label: '预防性维护' },
-                  { value: 'corrective', label: '纠正性维护' },
-                  { value: 'inspection', label: '检查' },
+                  { value: 'preventive', label: t('enums.maintenanceType.preventive') },
+                  { value: 'corrective', label: t('enums.maintenanceType.corrective') },
+                  { value: 'inspection', label: t('enums.maintenanceType.inspection') },
                 ]}
               />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label="执行日期"
+              label={fl('asset_maintenance_records', 'performed_at')}
               name="performed_at"
-              rules={[{ required: true, message: '请选择执行日期' }]}
+              rules={[{ required: true, message: t('validation.requiredSelect', { field: fl('asset_maintenance_records', 'performed_at') }) }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="执行人" name="performed_by">
+            <Form.Item label={fl('asset_maintenance_records', 'performed_by')} name="performed_by">
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="费用" name="cost">
+            <Form.Item label={fl('asset_maintenance_records', 'cost')} name="cost">
               <InputNumber style={FULL_WIDTH} min={0} precision={2} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label="下次到期"
+              label={fl('asset_maintenance_records', 'next_due_at')}
               name="next_due_at"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
@@ -59,7 +64,7 @@ export const AssetMaintenanceCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="描述" name="description">
+            <Form.Item label={fl('asset_maintenance_records', 'description')} name="description">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

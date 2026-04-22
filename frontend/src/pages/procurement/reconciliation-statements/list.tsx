@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { RECONCILIATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const ReconciliationStatementList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -35,13 +37,13 @@ export const ReconciliationStatementList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="statement_no" title="对账单号" width={160} />
-        <Table.Column dataIndex={['supplier', 'name']} title="供应商" />
+        <Table.Column dataIndex="statement_no" title={fl('reconciliation_statements', 'statement_no')} width={160} />
+        <Table.Column dataIndex={['supplier', 'name']} title={fl('reconciliation_statements', 'supplier_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="total_amount" title="总金额" width={140} align="right" render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />} />
-        <Table.Column dataIndex="paid_amount" title="已付金额" width={140} align="right" render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />} />
-        <Table.Column dataIndex="period_start" title="期间开始" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
-        <Table.Column dataIndex="period_end" title="期间结束" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="total_amount" title={fl('reconciliation_statements', 'total_amount')} width={140} align="right" render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />} />
+        <Table.Column dataIndex="paid_amount" title={fl('reconciliation_statements', 'paid_amount')} width={140} align="right" render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />} />
+        <Table.Column dataIndex="period_start" title={fl('reconciliation_statements', 'period_start')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="period_end" title={fl('reconciliation_statements', 'period_end')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

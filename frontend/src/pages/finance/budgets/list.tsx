@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { BUDGET_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const BudgetList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -21,14 +23,14 @@ export const BudgetList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'budget_name', label: '预算名称', placeholder: '搜索预算名称' },
+    { type: 'search', field: 'budget_name', label: fl('budgets', 'budget_name'), placeholder: t('filters.searchPlaceholder') },
     { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(BUDGET_STATUS_OPTIONS, t) },
-    { type: 'dateRange', field: 'created_at', label: '创建日期' },
+    { type: 'dateRange', field: 'created_at', label: fl('budgets', 'created_at') },
   ];
 
   return (
     <List
-      title="预算管理"
+      title={t('menu.budgets')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('budgets')}>
           {t('buttons.create')}
@@ -37,10 +39,10 @@ export const BudgetList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="budget_name" title="预算名称" />
-        <Table.Column dataIndex="budget_type" title="预算类型" />
-        <Table.Column dataIndex="budget_year" title="年度" width={100} />
-        <Table.Column dataIndex="currency" title="货币" width={80} />
+        <Table.Column dataIndex="budget_name" title={fl('budgets', 'budget_name')} />
+        <Table.Column dataIndex="budget_type" title={fl('budgets', 'budget_type')} />
+        <Table.Column dataIndex="budget_year" title={fl('budgets', 'budget_year')} width={100} />
+        <Table.Column dataIndex="currency" title={fl('budgets', 'currency')} width={80} />
         <Table.Column
           dataIndex="total_amount"
           title={t('common.amount')}

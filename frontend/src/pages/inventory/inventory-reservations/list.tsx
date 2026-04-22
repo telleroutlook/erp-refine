@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { RESERVATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const InventoryReservationList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'inventory-reservations',
@@ -25,7 +27,7 @@ export const InventoryReservationList: React.FC = () => {
 
   return (
     <List
-      title="库存预留"
+      title={t('menu.inventoryReservations')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('inventory-reservations')}>
           {t('buttons.create')}
@@ -34,12 +36,12 @@ export const InventoryReservationList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="reference_type" title="引用类型" width={120} />
-        <Table.Column dataIndex="reference_id" title="引用ID" width={160} render={(v) => v?.slice(0, 8) ?? '-'} />
-        <Table.Column dataIndex={['product', 'name']} title="产品" />
-        <Table.Column dataIndex={['warehouse', 'name']} title="仓库" />
-        <Table.Column dataIndex="reserved_quantity" title="预留数量" width={100} align="right" />
-        <Table.Column dataIndex="expires_at" title="到期时间" width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
+        <Table.Column dataIndex="reference_type" title={fl('inventory_reservations', 'reference_type')} width={120} />
+        <Table.Column dataIndex="reference_id" title={fl('inventory_reservations', 'reference_id')} width={160} render={(v) => v?.slice(0, 8) ?? '-'} />
+        <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
+        <Table.Column dataIndex={['warehouse', 'name']} title={fl('warehouses', 'name')} />
+        <Table.Column dataIndex="reserved_quantity" title={fl('inventory_reservations', 'reserved_quantity')} width={100} align="right" />
+        <Table.Column dataIndex="expires_at" title={fl('inventory_reservations', 'expires_at')} width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column
           title={t('common.actions')}

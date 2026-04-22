@@ -4,12 +4,14 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { EMPLOYEE_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const EmployeeList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -27,7 +29,7 @@ export const EmployeeList: React.FC = () => {
 
   return (
     <List
-      title="员工"
+      title={t('menu.employees')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('employees')}>
           {t('buttons.create')}
@@ -36,12 +38,12 @@ export const EmployeeList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="employee_number" title="工号" width={120} />
-        <Table.Column dataIndex="name" title="姓名" />
-        <Table.Column dataIndex={['department', 'name']} title="部门" />
-        <Table.Column dataIndex="position" title="职位" />
-        <Table.Column dataIndex="email" title="邮箱" />
-        <Table.Column dataIndex="phone" title="电话" />
+        <Table.Column dataIndex="employee_number" title={t('menu.employees')} width={120} />
+        <Table.Column dataIndex="name" title={t('menu.employees')} />
+        <Table.Column dataIndex={['department', 'name']} title={t('menu.employees')} />
+        <Table.Column dataIndex="position" title={t('menu.employees')} />
+        <Table.Column dataIndex="email" title={t('menu.employees')} />
+        <Table.Column dataIndex="phone" title={t('menu.employees')} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

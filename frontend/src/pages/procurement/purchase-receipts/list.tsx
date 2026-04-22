@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { RECEIPT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const PurchaseReceiptList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -29,11 +31,11 @@ export const PurchaseReceiptList: React.FC = () => {
     <List title={t('menu.purchaseReceipts')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="receipt_number" title="收货单号" width={160} />
-        <Table.Column dataIndex={['purchase_order', 'order_number']} title="采购订单号" width={160} />
-        <Table.Column dataIndex={['supplier', 'name']} title="供应商" />
+        <Table.Column dataIndex="receipt_number" title={fl('purchase_receipts', 'receipt_number')} width={160} />
+        <Table.Column dataIndex={['purchase_order', 'order_number']} title={fl('purchase_receipts', 'purchase_order_id')} width={160} />
+        <Table.Column dataIndex={['supplier', 'name']} title={fl('purchase_receipts', 'supplier_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="receipt_date" title="收货日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="receipt_date" title={fl('purchase_receipts', 'receipt_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

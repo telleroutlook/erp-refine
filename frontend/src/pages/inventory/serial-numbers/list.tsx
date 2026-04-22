@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { SERIAL_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const SerialNumberList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'serial-numbers',
@@ -25,7 +27,7 @@ export const SerialNumberList: React.FC = () => {
 
   return (
     <List
-      title="序列号"
+      title={t('menu.serialNumbers')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('serial-numbers')}>
           {t('buttons.create')}
@@ -34,9 +36,9 @@ export const SerialNumberList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="serial_number" title="序列号" width={180} />
-        <Table.Column dataIndex={['product', 'name']} title="产品" />
-        <Table.Column dataIndex={['warehouse', 'name']} title="仓库" />
+        <Table.Column dataIndex="serial_number" title={fl('serial_numbers', 'serial_number')} width={180} />
+        <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
+        <Table.Column dataIndex={['warehouse', 'name']} title={fl('warehouses', 'name')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column
           title={t('common.actions')}

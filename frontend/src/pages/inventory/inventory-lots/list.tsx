@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { LOT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const InventoryLotList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'inventory-lots',
@@ -25,7 +27,7 @@ export const InventoryLotList: React.FC = () => {
 
   return (
     <List
-      title="批次管理"
+      title={t('menu.inventoryLots')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('inventory-lots')}>
           {t('buttons.create')}
@@ -34,12 +36,12 @@ export const InventoryLotList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="lot_number" title="批次号" width={160} />
-        <Table.Column dataIndex={['product', 'name']} title="产品" />
-        <Table.Column dataIndex={['warehouse', 'name']} title="仓库" />
-        <Table.Column dataIndex="quantity" title="数量" width={100} align="right" />
-        <Table.Column dataIndex="manufacture_date" title="生产日期" width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
-        <Table.Column dataIndex="expiry_date" title="到期日期" width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
+        <Table.Column dataIndex="lot_number" title={fl('inventory_lots', 'lot_number')} width={160} />
+        <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
+        <Table.Column dataIndex={['warehouse', 'name']} title={fl('warehouses', 'name')} />
+        <Table.Column dataIndex="quantity" title={fl('inventory_lots', 'quantity')} width={100} align="right" />
+        <Table.Column dataIndex="manufacture_date" title={fl('inventory_lots', 'manufacture_date')} width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
+        <Table.Column dataIndex="expiry_date" title={fl('inventory_lots', 'expiry_date')} width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column
           title={t('common.actions')}

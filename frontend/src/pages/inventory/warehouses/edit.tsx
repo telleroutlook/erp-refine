@@ -2,45 +2,48 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const WarehouseEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'warehouses' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
 
   return (
-    <Edit saveButtonProps={saveButtonProps} title="编辑仓库">
+    <Edit saveButtonProps={saveButtonProps} title={pt('warehouses', 'edit')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="仓库编号" name="code" rules={[{ required: true }]}>
+            <Form.Item label={fl('warehouses', 'code')} name="code" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="仓库名称" name="name" rules={[{ required: true }]}>
+            <Form.Item label={fl('warehouses', 'name')} name="name" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="位置" name="location">
+            <Form.Item label={fl('warehouses', 'location')} name="location">
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="类型" name="type">
+            <Form.Item label={fl('warehouses', 'type')} name="type">
               <Select options={[
-                { label: '原材料仓', value: 'raw_material' },
-                { label: '成品仓', value: 'finished_goods' },
-                { label: '半成品仓', value: 'wip' },
-                { label: '退货仓', value: 'returns' },
+                { label: t('enums.warehouseType.raw_material'), value: 'raw_material' },
+                { label: t('enums.warehouseType.finished_goods'), value: 'finished_goods' },
+                { label: t('enums.warehouseType.wip'), value: 'wip' },
+                { label: t('enums.warehouseType.returns'), value: 'returns' },
               ]} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={t('common.status')} name="status">
               <Select options={[
-                { label: '启用', value: 'active' },
-                { label: '停用', value: 'inactive' },
+                { label: t('status.active'), value: 'active' },
+                { label: t('status.inactive'), value: 'inactive' },
               ]} />
             </Form.Item>
           </Col>

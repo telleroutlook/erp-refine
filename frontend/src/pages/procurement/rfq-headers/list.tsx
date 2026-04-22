@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { RFQ_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const RfqHeaderList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -27,7 +29,7 @@ export const RfqHeaderList: React.FC = () => {
 
   return (
     <List
-      title="询价单"
+      title={t('menu.rfqHeaders')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('rfq-headers')}>
           {t('buttons.create')}
@@ -36,16 +38,16 @@ export const RfqHeaderList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="rfq_number" title="询价单号" width={160} />
+        <Table.Column dataIndex="rfq_number" title={fl('rfq_headers', 'rfq_number')} width={160} />
         <Table.Column
           dataIndex="due_date"
-          title="截止日期"
+          title={fl('rfq_headers', 'due_date')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
           dataIndex="issued_at"
-          title="发出时间"
+          title={fl('rfq_headers', 'issued_at')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />

@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { RETURN_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const SalesReturnList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -29,10 +31,10 @@ export const SalesReturnList: React.FC = () => {
     <List title={t('menu.salesReturns')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="return_number" title="退货单号" width={160} />
-        <Table.Column dataIndex={['customer', 'name']} title="客户" />
+        <Table.Column dataIndex="return_number" title={fl('sales_returns', 'return_number')} width={160} />
+        <Table.Column dataIndex={['customer', 'name']} title={fl('sales_returns', 'customer_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="return_date" title="退货日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="return_date" title={fl('sales_returns', 'return_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           dataIndex="total_amount"
           title={t('common.amount')}

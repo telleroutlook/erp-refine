@@ -7,42 +7,45 @@ import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS, translateOptions } from '
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
-
-const ENTRY_TYPE_OPTIONS = [
-  { label: '借', value: 'debit' },
-  { label: '贷', value: 'credit' },
-];
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const VoucherEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'vouchers' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
   const record = queryResult?.data?.data as any;
   const { data: accountsData } = useList({ resource: 'account-subjects', pagination: { pageSize: 500 } });
   const accountOptions = (accountsData?.data ?? []).map((a: any) => ({ label: `${a.code} - ${a.name}`, value: a.id }));
 
+  const ENTRY_TYPE_OPTIONS = [
+    { label: t('enums.balanceDirection.debit'), value: 'debit' },
+    { label: t('enums.balanceDirection.credit'), value: 'credit' },
+  ];
+
   const entryColumns: ColumnConfig[] = [
-    { dataIndex: 'sequence', title: '序号', width: 60 },
-    { dataIndex: 'account_subject_id', title: '会计科目', editable: true, inputType: 'select', selectOptions: accountOptions, render: (_: any, r: any) => r?.account ? `${r.account.code} ${r.account.name}` : r?.account_subject_id },
-    { dataIndex: 'entry_type', title: '借/贷', width: 80, editable: true, inputType: 'select', selectOptions: ENTRY_TYPE_OPTIONS, render: (v: any) => v === 'debit' ? '借' : '贷' },
-    { dataIndex: 'amount', title: '金额', width: 140, align: 'right', editable: true, inputType: 'number', render: (v: any) => <AmountDisplay value={v} /> },
-    { dataIndex: 'summary', title: '摘要', editable: true },
+    { dataIndex: 'sequence', title: fl('voucher_entries', 'sequence'), width: 60 },
+    { dataIndex: 'account_subject_id', title: fl('voucher_entries', 'account_subject_id'), editable: true, inputType: 'select', selectOptions: accountOptions, render: (_: any, r: any) => r?.account ? `${r.account.code} ${r.account.name}` : r?.account_subject_id },
+    { dataIndex: 'entry_type', title: fl('voucher_entries', 'entry_type'), width: 80, editable: true, inputType: 'select', selectOptions: ENTRY_TYPE_OPTIONS, render: (v: any) => v === 'debit' ? t('enums.balanceDirection.debit') : t('enums.balanceDirection.credit') },
+    { dataIndex: 'amount', title: fl('voucher_entries', 'amount'), width: 140, align: 'right', editable: true, inputType: 'number', render: (v: any) => <AmountDisplay value={v} /> },
+    { dataIndex: 'summary', title: fl('voucher_entries', 'summary'), editable: true },
   ];
 
   return (
-    <Edit saveButtonProps={saveButtonProps} title="编辑会计凭证">
+    <Edit saveButtonProps={saveButtonProps} title={pt('vouchers', 'edit')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="凭证号" name="voucher_number"><Input disabled /></Form.Item>
+            <Form.Item label={fl('vouchers', 'voucher_number')} name="voucher_number"><Input disabled /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={t('common.status')} name="status"><Select options={translateOptions(VOUCHER_STATUS_OPTIONS, t)} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="凭证日期" name="voucher_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item>
+            <Form.Item label={fl('vouchers', 'voucher_date')} name="voucher_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="凭证类型" name="voucher_type"><Select options={translateOptions(VOUCHER_TYPE_OPTIONS, t, 'enums.voucherType')} /></Form.Item>
+            <Form.Item label={fl('vouchers', 'voucher_type')} name="voucher_type"><Select options={translateOptions(VOUCHER_TYPE_OPTIONS, t, 'enums.voucherType')} /></Form.Item>
           </Col>
           <Col span={24}>
             <Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item>
@@ -50,7 +53,7 @@ export const VoucherEdit: React.FC = () => {
         </Row>
       </Form>
 
-      <EditableItemTable resource="voucher-entries" parentResource="vouchers" parentId={record?.id} parentFk="voucher_id" items={record?.entries ?? []} columns={entryColumns} title="凭证分录" />
+      <EditableItemTable resource="voucher-entries" parentResource="vouchers" parentId={record?.id} parentFk="voucher_id" items={record?.entries ?? []} columns={entryColumns} title={t('sections.voucherEntries')} />
     </Edit>
   );
 };

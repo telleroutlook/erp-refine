@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { INVOICE_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const SalesInvoiceList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -19,22 +21,22 @@ export const SalesInvoiceList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'invoice_number', label: '发票号', placeholder: '搜索发票号' },
+    { type: 'search', field: 'invoice_number', label: fl('sales_invoices', 'invoice_number'), placeholder: t('filters.searchPlaceholder') },
     { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(INVOICE_STATUS_OPTIONS, t) },
-    { type: 'entity', field: 'customer_id', label: '客户', resource: 'customers' },
-    { type: 'dateRange', field: 'invoice_date', label: '发票日期' },
-    { type: 'itemProduct', field: '_item_product_id', label: '产品', placeholder: '按产品筛选' },
+    { type: 'entity', field: 'customer_id', label: fl('sales_invoices', 'customer_id'), resource: 'customers' },
+    { type: 'dateRange', field: 'invoice_date', label: fl('sales_invoices', 'invoice_date') },
+    { type: 'itemProduct', field: '_item_product_id', label: fl('sales_invoices', 'product_id'), placeholder: t('filters.itemProductPlaceholder') },
   ];
 
   return (
     <List title={t('menu.salesInvoices')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="invoice_number" title="发票号" width={160} />
-        <Table.Column dataIndex={['customer', 'name']} title="客户" />
+        <Table.Column dataIndex="invoice_number" title={fl('sales_invoices', 'invoice_number')} width={160} />
+        <Table.Column dataIndex={['customer', 'name']} title={fl('sales_invoices', 'customer_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="invoice_date" title="发票日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
-        <Table.Column dataIndex="due_date" title="到期日" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="invoice_date" title={fl('sales_invoices', 'invoice_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="due_date" title={fl('sales_invoices', 'due_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           dataIndex="total_amount"
           title={t('common.amount')}

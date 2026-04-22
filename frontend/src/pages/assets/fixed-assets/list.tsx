@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { ASSET_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const FixedAssetList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -28,7 +30,7 @@ export const FixedAssetList: React.FC = () => {
 
   return (
     <List
-      title="固定资产"
+      title={t('menu.assets')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('fixed-assets')}>
           {t('buttons.create')}
@@ -37,25 +39,25 @@ export const FixedAssetList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="asset_number" title="资产编号" width={140} />
-        <Table.Column dataIndex="asset_name" title="资产名称" />
-        <Table.Column dataIndex="category" title="分类" />
+        <Table.Column dataIndex="asset_number" title={fl('fixed_assets', 'asset_number')} width={140} />
+        <Table.Column dataIndex="asset_name" title={fl('fixed_assets', 'asset_name')} />
+        <Table.Column dataIndex="category" title={fl('fixed_assets', 'category')} />
         <Table.Column
           dataIndex="acquisition_date"
-          title="购入日期"
+          title={fl('fixed_assets', 'acquisition_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="acquisition_cost"
-          title="购入成本"
+          title={fl('fixed_assets', 'acquisition_cost')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}
         />
         <Table.Column
           dataIndex="current_book_value"
-          title="账面净值"
+          title={fl('fixed_assets', 'current_book_value')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}

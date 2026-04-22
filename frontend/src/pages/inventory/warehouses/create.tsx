@@ -2,46 +2,49 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const WarehouseCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'warehouses' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
 
   return (
-    <Create saveButtonProps={saveButtonProps} title="新建仓库">
+    <Create saveButtonProps={saveButtonProps} title={pt('warehouses', 'create')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="仓库编号" name="code" rules={[{ required: true, message: '请输入仓库编号' }]}>
-              <Input placeholder="如：WH-001" />
+            <Form.Item label={fl('warehouses', 'code')} name="code" rules={[{ required: true }]}>
+              <Input placeholder="WH-001" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="仓库名称" name="name" rules={[{ required: true, message: '请输入仓库名称' }]}>
+            <Form.Item label={fl('warehouses', 'name')} name="name" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="位置" name="location">
+            <Form.Item label={fl('warehouses', 'location')} name="location">
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="仓库类型" name="type" initialValue="standard">
+            <Form.Item label={fl('warehouses', 'type')} name="type" initialValue="standard">
               <Select options={[
-                { label: '标准', value: 'standard' },
-                { label: '冷库', value: 'cold_storage' },
-                { label: '危险品', value: 'hazardous' },
-                { label: '保税', value: 'bonded' },
-                { label: '虚拟', value: 'virtual' },
+                { label: t('enums.warehouseType.standard'), value: 'standard' },
+                { label: t('enums.warehouseType.cold_storage'), value: 'cold_storage' },
+                { label: t('enums.warehouseType.hazardous'), value: 'hazardous' },
+                { label: t('enums.warehouseType.bonded'), value: 'bonded' },
+                { label: t('enums.warehouseType.virtual'), value: 'virtual' },
               ]} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={t('common.status')} name="status" initialValue="active">
               <Select options={[
-                { label: '启用', value: 'active' },
-                { label: '停用', value: 'inactive' },
+                { label: t('status.active'), value: 'active' },
+                { label: t('status.inactive'), value: 'inactive' },
               ]} />
             </Form.Item>
           </Col>

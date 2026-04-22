@@ -4,23 +4,26 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const InventoryLotShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'inventory-lots' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
   const record = queryResult.data?.data as any;
 
   return (
-    <Show title={`批次 ${record?.lot_number ?? ''}`} isLoading={queryResult.isLoading}>
+    <Show title={pt('inventory_lots', 'show', { name: record?.lot_number ?? '' })} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
-        <Descriptions.Item label="批次号">{record?.lot_number}</Descriptions.Item>
-        <Descriptions.Item label="产品">{record?.product?.name}</Descriptions.Item>
-        <Descriptions.Item label="仓库">{record?.warehouse?.name}</Descriptions.Item>
-        <Descriptions.Item label="数量">{record?.quantity}</Descriptions.Item>
-        <Descriptions.Item label="生产日期">
+        <Descriptions.Item label={fl('inventory_lots', 'lot_number')}>{record?.lot_number}</Descriptions.Item>
+        <Descriptions.Item label={fl('products', 'name')}>{record?.product?.name}</Descriptions.Item>
+        <Descriptions.Item label={fl('warehouses', 'name')}>{record?.warehouse?.name}</Descriptions.Item>
+        <Descriptions.Item label={fl('inventory_lots', 'quantity')}>{record?.quantity}</Descriptions.Item>
+        <Descriptions.Item label={fl('inventory_lots', 'manufacture_date')}>
           {record?.manufacture_date ? <DateField value={record.manufacture_date} format="YYYY-MM-DD" /> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label="到期日期">
+        <Descriptions.Item label={fl('inventory_lots', 'expiry_date')}>
           {record?.expiry_date ? <DateField value={record.expiry_date} format="YYYY-MM-DD" /> : '-'}
         </Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

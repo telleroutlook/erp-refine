@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const VoucherList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -21,15 +23,15 @@ export const VoucherList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'voucher_number', label: '凭证号', placeholder: '搜索凭证号' },
+    { type: 'search', field: 'voucher_number', label: fl('vouchers', 'voucher_number'), placeholder: t('filters.searchPlaceholder') },
     { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(VOUCHER_STATUS_OPTIONS, t) },
-    { type: 'select', field: 'voucher_type', label: '凭证类型', options: translateOptions(VOUCHER_TYPE_OPTIONS, t, 'enums.voucherType') },
-    { type: 'dateRange', field: 'voucher_date', label: '凭证日期' },
+    { type: 'select', field: 'voucher_type', label: fl('vouchers', 'voucher_type'), options: translateOptions(VOUCHER_TYPE_OPTIONS, t, 'enums.voucherType') },
+    { type: 'dateRange', field: 'voucher_date', label: fl('vouchers', 'voucher_date') },
   ];
 
   return (
     <List
-      title="会计凭证"
+      title={t('menu.vouchers')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('vouchers')}>
           {t('buttons.create')}
@@ -38,24 +40,24 @@ export const VoucherList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="voucher_number" title="凭证号" width={160} />
+        <Table.Column dataIndex="voucher_number" title={fl('vouchers', 'voucher_number')} width={160} />
         <Table.Column
           dataIndex="voucher_date"
-          title="凭证日期"
+          title={fl('vouchers', 'voucher_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
-        <Table.Column dataIndex="voucher_type" title="凭证类型" />
+        <Table.Column dataIndex="voucher_type" title={fl('vouchers', 'voucher_type')} />
         <Table.Column
           dataIndex="total_debit"
-          title="借方合计"
+          title={fl('vouchers', 'total_debit')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} currency="CNY" />}
         />
         <Table.Column
           dataIndex="total_credit"
-          title="贷方合计"
+          title={fl('vouchers', 'total_credit')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} currency="CNY" />}

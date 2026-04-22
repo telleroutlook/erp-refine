@@ -4,38 +4,41 @@ import { Form, Input, Select, InputNumber, Row, Col } from 'antd';
 import { CURRENCY_OPTIONS } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const BudgetCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'budgets' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
 
   return (
-    <Create saveButtonProps={saveButtonProps} title="新建预算">
+    <Create saveButtonProps={saveButtonProps} title={pt('budgets', 'create')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="预算名称" name="budget_name" rules={[{ required: true, message: '请输入预算名称' }]}>
+            <Form.Item label={fl('budgets', 'budget_name')} name="budget_name" rules={[{ required: true, message: t('validation.required', { field: fl('budgets', 'budget_name') }) }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="预算类型" name="budget_type">
+            <Form.Item label={fl('budgets', 'budget_type')} name="budget_type">
               <Select
                 options={[
-                  { value: 'annual', label: '年度' },
-                  { value: 'quarterly', label: '季度' },
-                  { value: 'monthly', label: '月度' },
+                  { value: 'annual', label: t('enums.budgetType.annual') },
+                  { value: 'quarterly', label: t('enums.budgetType.quarterly') },
+                  { value: 'monthly', label: t('enums.budgetType.monthly') },
                 ]}
               />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="年度" name="budget_year">
+            <Form.Item label={fl('budgets', 'budget_year')} name="budget_year">
               <InputNumber style={FULL_WIDTH} min={2020} max={2030} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="货币" name="currency" initialValue="CNY">
+            <Form.Item label={fl('budgets', 'currency')} name="currency" initialValue="CNY">
               <Select options={CURRENCY_OPTIONS} />
             </Form.Item>
           </Col>

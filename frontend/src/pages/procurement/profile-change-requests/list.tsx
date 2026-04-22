@@ -6,9 +6,11 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const ProfileChangeRequestList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -25,7 +27,7 @@ export const ProfileChangeRequestList: React.FC = () => {
 
   return (
     <List
-      title="变更申请"
+      title={t('menu.profileChangeRequests')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('profile-change-requests')}>
           {t('buttons.create')}
@@ -34,19 +36,19 @@ export const ProfileChangeRequestList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="change_request_id" title="变更申请编号" width={180} />
-        <Table.Column dataIndex="request_type" title="申请类型" width={140} />
-        <Table.Column dataIndex="supplier_id" title="供应商ID" width={200} ellipsis />
+        <Table.Column dataIndex="change_request_id" title={fl('profile_change_requests', 'change_request_id')} width={180} />
+        <Table.Column dataIndex="request_type" title={fl('profile_change_requests', 'request_type')} width={140} />
+        <Table.Column dataIndex="supplier_id" title={fl('profile_change_requests', 'supplier_id')} width={200} ellipsis />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}
           width={120}
           render={(v) => <StatusTag status={v} />}
         />
-        <Table.Column dataIndex="created_by" title="创建人" width={200} ellipsis />
+        <Table.Column dataIndex="created_by" title={fl('profile_change_requests', 'created_by')} width={200} ellipsis />
         <Table.Column
           dataIndex="created_at"
-          title="创建时间"
+          title={fl('profile_change_requests', 'created_at')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />

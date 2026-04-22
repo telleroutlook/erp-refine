@@ -6,9 +6,11 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { useFieldLabel } from '../../../hooks';
 
 export const AssetMaintenanceList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -25,7 +27,7 @@ export const AssetMaintenanceList: React.FC = () => {
 
   return (
     <List
-      title="资产维保"
+      title={t('menu.assetMaintenance')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('asset-maintenance')}>
           {t('buttons.create')}
@@ -36,25 +38,25 @@ export const AssetMaintenanceList: React.FC = () => {
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column
           dataIndex={['asset', 'asset_name']}
-          title="资产"
+          title={fl('asset_maintenance_records', 'asset_id')}
         />
-        <Table.Column dataIndex="maintenance_type" title="维保类型" />
+        <Table.Column dataIndex="maintenance_type" title={fl('asset_maintenance_records', 'maintenance_type')} />
         <Table.Column
           dataIndex="performed_at"
-          title="执行日期"
+          title={fl('asset_maintenance_records', 'performed_at')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="cost"
-          title="费用"
+          title={fl('asset_maintenance_records', 'cost')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}
         />
         <Table.Column
           dataIndex="next_due_at"
-          title="下次到期"
+          title={fl('asset_maintenance_records', 'next_due_at')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />

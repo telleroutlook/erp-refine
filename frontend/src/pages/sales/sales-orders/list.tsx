@@ -8,10 +8,12 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { SO_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const SalesOrderList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'sales-orders',
@@ -30,8 +32,8 @@ export const SalesOrderList: React.FC = () => {
     <List title={t('menu.salesOrders')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="order_number" title="订单号" width={160} />
-        <Table.Column dataIndex={['customer', 'name']} title="客户" />
+        <Table.Column dataIndex="order_number" title={fl('sales_orders', 'order_number')} width={160} />
+        <Table.Column dataIndex={['customer', 'name']} title={fl('sales_orders', 'customer_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column dataIndex="order_date" title={t('common.date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column dataIndex="total_amount" title={t('common.amount')} width={140} align="right" render={(v, r: any) => <AmountDisplay value={v} currency={r.currency} />} />

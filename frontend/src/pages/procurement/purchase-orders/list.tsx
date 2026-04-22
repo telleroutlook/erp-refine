@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const PurchaseOrderList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -40,10 +42,10 @@ export const PurchaseOrderList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="order_number" title="订单号" width={160} />
+        <Table.Column dataIndex="order_number" title={fl('purchase_orders', 'order_number')} width={160} />
         <Table.Column
           dataIndex={['supplier', 'name']}
-          title="供应商"
+          title={fl('purchase_orders', 'supplier_id')}
         />
         <Table.Column
           dataIndex="status"

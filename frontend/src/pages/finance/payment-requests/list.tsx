@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { PAYMENT_REQUEST_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const PaymentRequestList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -19,9 +21,9 @@ export const PaymentRequestList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'search', field: 'request_number', label: '申请单号', placeholder: '搜索申请单号' },
+    { type: 'search', field: 'request_number', label: fl('payment_requests', 'request_number'), placeholder: t('filters.searchPlaceholder') },
     { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(PAYMENT_REQUEST_STATUS_OPTIONS, t) },
-    { type: 'entity', field: 'supplier_id', label: '供应商', resource: 'suppliers' },
+    { type: 'entity', field: 'supplier_id', label: fl('payment_requests', 'supplier_id'), resource: 'suppliers' },
     { type: 'dateRange', field: 'created_at', label: t('common.date') },
   ];
 
@@ -29,8 +31,8 @@ export const PaymentRequestList: React.FC = () => {
     <List title={t('menu.paymentRequests')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="request_number" title="申请单号" width={160} />
-        <Table.Column dataIndex={['supplier', 'name']} title="供应商" />
+        <Table.Column dataIndex="request_number" title={fl('payment_requests', 'request_number')} width={160} />
+        <Table.Column dataIndex={['supplier', 'name']} title={fl('payment_requests', 'supplier_id')} />
         <Table.Column dataIndex="currency" title={t('common.currency')} width={80} />
         <Table.Column
           dataIndex="amount"
@@ -41,9 +43,9 @@ export const PaymentRequestList: React.FC = () => {
         />
         <Table.Column
           dataIndex="ok_to_pay"
-          title="可付款"
+          title={fl('payment_requests', 'ok_to_pay')}
           width={90}
-          render={(v) => <Tag color={v ? 'green' : 'orange'}>{v ? '是' : '否'}</Tag>}
+          render={(v) => <Tag color={v ? 'green' : 'orange'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
         />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column dataIndex="created_at" title={t('common.date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />

@@ -4,20 +4,23 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const SalesShipmentShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'sales-shipments' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
   const record = queryResult.data?.data as any;
 
   return (
-    <Show title={`销售发货 ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading}>
+    <Show title={`${pt('sales_shipments', 'show')} ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
-        <Descriptions.Item label="发货单号">{record?.shipment_number}</Descriptions.Item>
+        <Descriptions.Item label={fl('sales_shipments', 'shipment_number')}>{record?.shipment_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
-        <Descriptions.Item label="销售订单号">{record?.sales_order?.order_number}</Descriptions.Item>
-        <Descriptions.Item label="客户">{record?.sales_order?.customer?.name}</Descriptions.Item>
-        <Descriptions.Item label="发货日期">
+        <Descriptions.Item label={fl('sales_shipments', 'sales_order_id')}>{record?.sales_order?.order_number}</Descriptions.Item>
+        <Descriptions.Item label={fl('sales_orders', 'customer_id')}>{record?.sales_order?.customer?.name}</Descriptions.Item>
+        <Descriptions.Item label={fl('sales_shipments', 'shipment_date')}>
           <DateField value={record?.shipment_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
         {record?.notes && <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>}
@@ -25,12 +28,12 @@ export const SalesShipmentShow: React.FC = () => {
 
       {record?.items?.length > 0 && (
         <>
-          <Divider>发货行</Divider>
+          <Divider>{t('sections.shipmentLines')}</Divider>
           <Table dataSource={record.items} rowKey="id" size="small" pagination={false}
             columns={[
-              { dataIndex: ['product', 'name'], title: '产品' },
-              { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
-              { dataIndex: 'quantity', title: '发货数量', width: 100, align: 'right' },
+              { dataIndex: ['product', 'name'], title: fl('sales_shipment_items', 'product_id') },
+              { dataIndex: ['product', 'code'], title: fl('products', 'code'), width: 120 },
+              { dataIndex: 'quantity', title: fl('sales_shipment_items', 'quantity'), width: 100, align: 'right' },
             ]}
           />
         </>

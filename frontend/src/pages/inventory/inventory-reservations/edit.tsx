@@ -4,22 +4,25 @@ import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { RESERVATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const InventoryReservationEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'inventory-reservations' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
 
   return (
-    <Edit saveButtonProps={saveButtonProps} title="编辑库存预留">
+    <Edit saveButtonProps={saveButtonProps} title={pt('inventory_reservations', 'edit')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="引用类型" name="reference_type">
+            <Form.Item label={fl('inventory_reservations', 'reference_type')} name="reference_type">
               <Input disabled />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="引用ID" name="reference_id">
+            <Form.Item label={fl('inventory_reservations', 'reference_id')} name="reference_id">
               <Input disabled />
             </Form.Item>
           </Col>
@@ -29,13 +32,13 @@ export const InventoryReservationEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="预留数量" name="reserved_quantity">
+            <Form.Item label={fl('inventory_reservations', 'reserved_quantity')} name="reserved_quantity">
               <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label="到期时间"
+              label={fl('inventory_reservations', 'expires_at')}
               name="expires_at"
               {...dateFormItemProps}
             >

@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { ASN_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const AdvanceShipmentNoticeList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -35,12 +37,12 @@ export const AdvanceShipmentNoticeList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="asn_no" title="ASN编号" width={160} />
-        <Table.Column dataIndex={['supplier', 'name']} title="供应商" />
-        <Table.Column dataIndex={['warehouse', 'name']} title="仓库" />
+        <Table.Column dataIndex="asn_no" title={fl('advance_shipment_notices', 'asn_no')} width={160} />
+        <Table.Column dataIndex={['supplier', 'name']} title={fl('advance_shipment_notices', 'supplier_id')} />
+        <Table.Column dataIndex={['warehouse', 'name']} title={fl('advance_shipment_notices', 'warehouse_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="expected_date" title="预计到货日" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
-        <Table.Column dataIndex="created_at" title="创建时间" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="expected_date" title={fl('advance_shipment_notices', 'expected_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="created_at" title={fl('advance_shipment_notices', 'created_at')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

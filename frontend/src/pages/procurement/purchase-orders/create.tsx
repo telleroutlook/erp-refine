@@ -4,10 +4,13 @@ import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const PurchaseOrderCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'purchase-orders' });
   const { t } = useTranslation();
+  const fl = useFieldLabel();
+  const pt = usePageTitle();
   const statusOpts = translateOptions(PO_STATUS_OPTIONS.slice(0, 3), t);
   const { selectProps: supplierSelectProps } = useSelect({
     resource: 'suppliers',
@@ -16,11 +19,11 @@ export const PurchaseOrderCreate: React.FC = () => {
   });
 
   return (
-    <Create saveButtonProps={saveButtonProps} title="新建采购订单">
+    <Create saveButtonProps={saveButtonProps} title={pt('purchase_orders', 'create')}>
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="供应商" name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
+            <Form.Item label={fl('purchase_orders', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
               <Select {...supplierSelectProps} showSearch placeholder="选择供应商" />
             </Form.Item>
           </Col>
@@ -31,7 +34,7 @@ export const PurchaseOrderCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label="订单日期"
+              label={fl('purchase_orders', 'order_date')}
               name="order_date"
               rules={[{ required: true, message: '请选择订单日期' }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
@@ -41,7 +44,7 @@ export const PurchaseOrderCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label="预计到货日期"
+              label={fl('purchase_orders', 'expected_date')}
               name="expected_date"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
@@ -49,12 +52,12 @@ export const PurchaseOrderCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="货币" name="currency" initialValue="CNY">
+            <Form.Item label={fl('purchase_orders', 'currency')} name="currency" initialValue="CNY">
               <Select options={CURRENCY_OPTIONS} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="付款条件（天）" name="payment_terms">
+            <Form.Item label={fl('purchase_orders', 'payment_terms')} name="payment_terms">
               <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>

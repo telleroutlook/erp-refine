@@ -4,10 +4,12 @@ import { Table, Button, Space, Tag } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const RoleList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -30,10 +32,10 @@ export const RoleList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="name" title="角色名称" width={160} />
-        <Table.Column dataIndex="description" title="描述" />
-        <Table.Column dataIndex="is_system" title="系统角色" width={100} render={(v) => v ? <Tag color="blue">是</Tag> : <Tag>否</Tag>} />
-        <Table.Column dataIndex="created_at" title="创建时间" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="name" title={t('menu.roles')} width={160} />
+        <Table.Column dataIndex="description" title={t('menu.roles')} />
+        <Table.Column dataIndex="is_system" title={t('menu.roles')} width={100} render={(v) => v ? <Tag color="blue">{t('enums.yesNo.yes')}</Tag> : <Tag>{t('enums.yesNo.no')}</Tag>} />
+        <Table.Column dataIndex="created_at" title={t('menu.roles')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

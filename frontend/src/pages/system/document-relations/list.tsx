@@ -4,10 +4,12 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 export const DocumentRelationList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -23,7 +25,7 @@ export const DocumentRelationList: React.FC = () => {
 
   return (
     <List
-      title="单据关联"
+      title={t('menu.documentRelations')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('document-relations')}>
           {t('buttons.create')}
@@ -32,15 +34,15 @@ export const DocumentRelationList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="from_object_type" title="来源类型" width={120} />
-        <Table.Column dataIndex="from_object_id" title="来源ID" width={200} ellipsis />
-        <Table.Column dataIndex="relation_type" title="关联类型" width={120} />
-        <Table.Column dataIndex="to_object_type" title="目标类型" width={120} />
-        <Table.Column dataIndex="to_object_id" title="目标ID" width={200} ellipsis />
-        <Table.Column dataIndex="label" title="标签" />
+        <Table.Column dataIndex="from_object_type" title={t('menu.documentRelations')} width={120} />
+        <Table.Column dataIndex="from_object_id" title={t('menu.documentRelations')} width={200} ellipsis />
+        <Table.Column dataIndex="relation_type" title={t('menu.documentRelations')} width={120} />
+        <Table.Column dataIndex="to_object_type" title={t('menu.documentRelations')} width={120} />
+        <Table.Column dataIndex="to_object_id" title={t('menu.documentRelations')} width={200} ellipsis />
+        <Table.Column dataIndex="label" title={t('menu.documentRelations')} />
         <Table.Column
           dataIndex="created_at"
-          title="创建时间"
+          title={t('menu.documentRelations')}
           width={160}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '-'}
         />

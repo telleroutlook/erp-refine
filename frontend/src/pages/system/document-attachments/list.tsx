@@ -4,6 +4,7 @@ import { Table, Button, Space } from 'antd';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 const formatFileSize = (bytes: number | null | undefined): string => {
@@ -15,6 +16,7 @@ const formatFileSize = (bytes: number | null | undefined): string => {
 
 export const DocumentAttachmentList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -31,7 +33,7 @@ export const DocumentAttachmentList: React.FC = () => {
 
   return (
     <List
-      title="文档附件"
+      title={t('menu.documentAttachments')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('document-attachments')}>
           {t('buttons.create')}
@@ -40,20 +42,20 @@ export const DocumentAttachmentList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="file_name" title="文件名" />
-        <Table.Column dataIndex="entity_type" title="关联类型" width={120} />
-        <Table.Column dataIndex="entity_id" title="关联ID" width={200} ellipsis />
-        <Table.Column dataIndex="mime_type" title="MIME类型" width={140} />
+        <Table.Column dataIndex="file_name" title={t('menu.documentAttachments')} />
+        <Table.Column dataIndex="entity_type" title={t('menu.documentAttachments')} width={120} />
+        <Table.Column dataIndex="entity_id" title={t('menu.documentAttachments')} width={200} ellipsis />
+        <Table.Column dataIndex="mime_type" title={t('menu.documentAttachments')} width={140} />
         <Table.Column
           dataIndex="file_size"
-          title="文件大小"
+          title={t('menu.documentAttachments')}
           width={120}
           render={(v) => formatFileSize(v)}
         />
-        <Table.Column dataIndex="uploaded_by" title="上传人" width={200} ellipsis />
+        <Table.Column dataIndex="uploaded_by" title={t('menu.documentAttachments')} width={200} ellipsis />
         <Table.Column
           dataIndex="created_at"
-          title="创建时间"
+          title={t('menu.documentAttachments')}
           width={160}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '-'}
         />

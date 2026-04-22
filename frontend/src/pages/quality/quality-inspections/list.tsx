@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { INSPECTION_STATUS_OPTIONS, INSPECTION_RESULT_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const QualityInspectionList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'quality-inspections',
@@ -28,7 +30,7 @@ export const QualityInspectionList: React.FC = () => {
 
   return (
     <List
-      title="质量检验"
+      title={t('menu.qualityInspections')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('quality-inspections')}>
           {t('buttons.create')}
@@ -37,23 +39,23 @@ export const QualityInspectionList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="inspection_number" title="检验单号" width={160} />
+        <Table.Column dataIndex="inspection_number" title={fl('quality_inspections', 'inspection_number')} width={160} />
         <Table.Column
           dataIndex="inspection_date"
-          title="检验日期"
+          title={fl('quality_inspections', 'inspection_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
-        <Table.Column dataIndex={['product', 'name']} title="产品" />
+        <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
         <Table.Column
           dataIndex="result"
-          title="检验结果"
+          title={fl('quality_inspections', 'result')}
           width={120}
           render={(v) => v ? <StatusTag status={v} /> : '-'}
         />
-        <Table.Column dataIndex="total_quantity" title="总数量" width={100} align="right" />
-        <Table.Column dataIndex="qualified_quantity" title="合格数" width={100} align="right" />
-        <Table.Column dataIndex="defective_quantity" title="不合格数" width={100} align="right" />
+        <Table.Column dataIndex="total_quantity" title={fl('quality_inspections', 'total_quantity')} width={100} align="right" />
+        <Table.Column dataIndex="qualified_quantity" title={fl('quality_inspections', 'qualified_quantity')} width={100} align="right" />
+        <Table.Column dataIndex="defective_quantity" title={fl('quality_inspections', 'defective_quantity')} width={100} align="right" />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

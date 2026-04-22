@@ -7,10 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { COUNT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const InventoryCountList: React.FC = () => {
   const { t } = useTranslation();
   const { show, edit, create } = useNavigation();
+  const fl = useFieldLabel();
 
   const { tableProps, setFilters } = useTable({
     resource: 'inventory-counts',
@@ -27,7 +29,7 @@ export const InventoryCountList: React.FC = () => {
 
   return (
     <List
-      title="库存盘点"
+      title={t('menu.inventoryCounts')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('inventory-counts')}>
           {t('buttons.create')}
@@ -36,9 +38,9 @@ export const InventoryCountList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="count_number" title="盘点单号" width={160} />
-        <Table.Column dataIndex={['warehouse', 'name']} title="仓库" />
-        <Table.Column dataIndex="count_date" title="盘点日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="count_number" title={fl('inventory_counts', 'count_number')} width={160} />
+        <Table.Column dataIndex={['warehouse', 'name']} title={fl('warehouses', 'name')} />
+        <Table.Column dataIndex="count_date" title={fl('inventory_counts', 'count_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column
           title={t('common.actions')}

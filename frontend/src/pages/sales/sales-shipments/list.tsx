@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { SHIPMENT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const SalesShipmentList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -28,11 +30,11 @@ export const SalesShipmentList: React.FC = () => {
     <List title={t('menu.salesShipments')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="shipment_number" title="发货单号" width={160} />
-        <Table.Column dataIndex={['sales_order', 'order_number']} title="销售订单号" width={160} />
-        <Table.Column dataIndex={['sales_order', 'customer', 'name']} title="客户" />
+        <Table.Column dataIndex="shipment_number" title={fl('sales_shipments', 'shipment_number')} width={160} />
+        <Table.Column dataIndex={['sales_order', 'order_number']} title={fl('sales_shipments', 'sales_order_id')} width={160} />
+        <Table.Column dataIndex={['sales_order', 'customer', 'name']} title={fl('sales_orders', 'customer_id')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="shipment_date" title="发货日期" width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="shipment_date" title={fl('sales_shipments', 'shipment_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

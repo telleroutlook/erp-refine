@@ -8,9 +8,11 @@ import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 import { REQUISITION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useFieldLabel } from '../../../hooks';
 
 export const PurchaseRequisitionList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show, edit, create } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -28,7 +30,7 @@ export const PurchaseRequisitionList: React.FC = () => {
 
   return (
     <List
-      title="采购申请"
+      title={t('menu.purchaseRequisitions')}
       headerButtons={
         <Button type="primary" icon={<PlusOutlined />} onClick={() => create('purchase-requisitions')}>
           {t('buttons.create')}
@@ -37,20 +39,20 @@ export const PurchaseRequisitionList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="requisition_number" title="申请单号" width={160} />
+        <Table.Column dataIndex="requisition_number" title={fl('purchase_requisitions', 'requisition_number')} width={160} />
         <Table.Column
           dataIndex={['department', 'name']}
-          title="部门"
+          title={fl('purchase_requisitions', 'department_id')}
         />
         <Table.Column
           dataIndex="request_date"
-          title="申请日期"
+          title={fl('purchase_requisitions', 'request_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="required_date"
-          title="需求日期"
+          title={fl('purchase_requisitions', 'required_date')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />

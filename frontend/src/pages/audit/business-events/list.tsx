@@ -4,12 +4,14 @@ import { Table, Button, Tag } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
+import { useFieldLabel } from '../../../hooks';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
 const SEVERITY_COLORS: Record<string, string> = { info: 'blue', warning: 'orange', error: 'red', critical: 'magenta' };
 
 export const BusinessEventList: React.FC = () => {
   const { t } = useTranslation();
+  const fl = useFieldLabel();
   const { show } = useNavigation();
 
   const { tableProps, setFilters } = useTable({
@@ -26,13 +28,13 @@ export const BusinessEventList: React.FC = () => {
     <List title={t('menu.businessEvents')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="event_type" title="事件类型" width={160} />
-        <Table.Column dataIndex="entity_type" title="实体类型" width={140} />
-        <Table.Column dataIndex="entity_id" title="实体ID" width={280} ellipsis />
-        <Table.Column dataIndex="severity" title="级别" width={80} render={(v) => <Tag color={SEVERITY_COLORS[v] ?? 'default'}>{v}</Tag>} />
-        <Table.Column dataIndex="source_system" title="来源" width={120} />
-        <Table.Column dataIndex="processed" title="已处理" width={80} render={(v) => v ? <Tag color="success">是</Tag> : <Tag>否</Tag>} />
-        <Table.Column dataIndex="occurred_at" title="发生时间" width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="event_type" title={t('menu.businessEvents')} width={160} />
+        <Table.Column dataIndex="entity_type" title={t('menu.businessEvents')} width={140} />
+        <Table.Column dataIndex="entity_id" title={t('menu.businessEvents')} width={280} ellipsis />
+        <Table.Column dataIndex="severity" title={t('menu.businessEvents')} width={80} render={(v) => <Tag color={SEVERITY_COLORS[v] ?? 'default'}>{v}</Tag>} />
+        <Table.Column dataIndex="source_system" title={t('menu.businessEvents')} width={120} />
+        <Table.Column dataIndex="processed" title={t('menu.businessEvents')} width={80} render={(v) => v ? <Tag color="success">{t('enums.yesNo.yes')}</Tag> : <Tag>{t('enums.yesNo.no')}</Tag>} />
+        <Table.Column dataIndex="occurred_at" title={t('menu.businessEvents')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('business-events', r.id)} />} />
       </Table>
     </List>
