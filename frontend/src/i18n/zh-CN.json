@@ -474,6 +474,8 @@
     "menu": "菜单",
     "content": "内容",
     "aiAssistant": "AI 助手",
+    "openAi": "打开 AI 助手",
+    "closeAi": "关闭 AI 助手",
     "loading": "加载中..."
   }
 }

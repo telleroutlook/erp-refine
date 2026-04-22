@@ -474,6 +474,8 @@
     "menu": "Menu",
     "content": "Content",
     "aiAssistant": "AI Assistant",
+    "openAi": "Open AI Assistant",
+    "closeAi": "Close AI Assistant",
     "loading": "Loading..."
   }
 }

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
 import { Layout, Button, Tooltip, Spin, Drawer, Grid, theme } from 'antd';
-import { RobotOutlined, RightOutlined, CloseOutlined } from '@ant-design/icons';
-import { ThemedLayoutContextProvider } from '@refinedev/antd';
+import { RobotOutlined, RightOutlined } from '@ant-design/icons';
+import { ThemedLayoutContextProvider, useThemedLayoutContext } from '@refinedev/antd';
+import { useTranslate } from '@refinedev/core';
 import { Sider } from './Sider';
 import { Header } from './Header';
 import { MobileTabBar } from './MobileTabBar';
@@ -16,8 +17,67 @@ const HANDLE_W = 5;
 const STORAGE_KEY = 'erp_ai_sidebar_width';
 const COLLAPSED_KEY = 'erp_ai_sidebar_collapsed';
 
+const MobileLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('content');
+  const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
+  const { setMobileSiderOpen } = useThemedLayoutContext();
+
+  const handleMobileSwitch = useCallback((panel: MobilePanel) => {
+    setMobilePanel(panel);
+    if (panel === 'nav') {
+      setMobileSiderOpen(true);
+      setAiDrawerOpen(false);
+    } else if (panel === 'ai') {
+      setAiDrawerOpen(true);
+      setMobileSiderOpen(false);
+    } else {
+      setAiDrawerOpen(false);
+      setMobileSiderOpen(false);
+    }
+  }, [setMobileSiderOpen]);
+
+  const closeAi = useCallback(() => {
+    setAiDrawerOpen(false);
+    setMobilePanel('content');
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
+      <Layout style={{ flex: 1, minHeight: 0 }} hasSider>
+        <Sider />
+        <Layout>
+          <Header />
+          <Layout.Content className="erp-main-content" style={{ overflow: 'auto' }}>
+            <div className="erp-content-area" style={{ minHeight: 200, padding: 12 }}>
+              {children}
+            </div>
+          </Layout.Content>
+        </Layout>
+      </Layout>
+
+      <Drawer
+        open={aiDrawerOpen}
+        onClose={closeAi}
+        placement="bottom"
+        height="100dvh"
+        closable={false}
+        styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column' } }}
+      >
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Spin size="small" /></div>}>
+            <AiSidebar onClose={closeAi} />
+          </Suspense>
+        </div>
+      </Drawer>
+
+      <MobileTabBar activePanel={mobilePanel} onSwitch={handleMobileSwitch} />
+    </div>
+  );
+};
+
 export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const { token } = theme.useToken();
+  const translate = useTranslate();
   const breakpoint = Grid.useBreakpoint();
   const isMobile = typeof breakpoint.lg === 'undefined' ? false : !breakpoint.lg;
 
@@ -29,8 +89,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     return stored ? parseInt(stored, 10) : SIDEBAR_DEFAULT;
   });
   const [isDragging, setIsDragging] = useState(false);
-  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('content');
-  const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
 
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
@@ -42,7 +100,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     currentWidth.current = sidebarWidth;
   }, [sidebarWidth]);
 
-  // Mouse drag for desktop
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     dragStartX.current = e.clientX;
@@ -50,7 +107,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     setIsDragging(true);
   }, []);
 
-  // Touch drag for tablet
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     dragStartX.current = e.touches[0].clientX;
     dragStartWidth.current = currentWidth.current;
@@ -102,80 +158,18 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     });
   }, []);
 
-  const handleMobileSwitch = useCallback((panel: MobilePanel) => {
-    setMobilePanel(panel);
-    if (panel === 'ai') {
-      setAiDrawerOpen(true);
-    } else {
-      setAiDrawerOpen(false);
-    }
-  }, []);
-
   const transition = isDragging ? 'none' : 'width 0.25s var(--ease-spring)';
 
-  // ── Mobile layout ──
   if (isMobile) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
-        <ThemedLayoutContextProvider>
-          <Layout style={{ flex: 1, minHeight: 0 }} hasSider>
-            <Sider />
-            <Layout>
-              <Header />
-              <Layout.Content className="erp-main-content" style={{ overflow: 'auto' }}>
-                <div className="erp-content-area" style={{ minHeight: 200, padding: 12 }}>
-                  {children}
-                </div>
-              </Layout.Content>
-            </Layout>
-          </Layout>
-        </ThemedLayoutContextProvider>
-
-        {/* AI Drawer — bottom sheet */}
-        <Drawer
-          open={aiDrawerOpen}
-          onClose={() => { setAiDrawerOpen(false); setMobilePanel('content'); }}
-          placement="bottom"
-          height="85dvh"
-          closable={false}
-          styles={{
-            body: { padding: 0, display: 'flex', flexDirection: 'column' },
-            wrapper: { borderRadius: '16px 16px 0 0' },
-          }}
-          style={{ borderRadius: '16px 16px 0 0' }}
-        >
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px 8px',
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            flexShrink: 0,
-          }}>
-            <span style={{ fontWeight: 600, fontSize: 15, color: token.colorText }}>AI Assistant</span>
-            <Button
-              type="text"
-              size="small"
-              icon={<CloseOutlined />}
-              onClick={() => { setAiDrawerOpen(false); setMobilePanel('content'); }}
-            />
-          </div>
-          <div style={{ flex: 1, minHeight: 0 }}>
-            <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Spin size="small" /></div>}>
-              <AiSidebar />
-            </Suspense>
-          </div>
-        </Drawer>
-
-        <MobileTabBar activePanel={mobilePanel} onSwitch={handleMobileSwitch} />
-      </div>
+      <ThemedLayoutContextProvider>
+        <MobileLayout>{children}</MobileLayout>
+      </ThemedLayoutContextProvider>
     );
   }
 
-  // ── Desktop layout ──
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-      {/* Main content area */}
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', transition }}>
         <ThemedLayoutContextProvider>
           <Layout style={{ minHeight: '100vh' }} hasSider>
@@ -192,7 +186,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
         </ThemedLayoutContextProvider>
       </div>
 
-      {/* Resize handle */}
       {!collapsed && (
         <div
           onMouseDown={onMouseDown}
@@ -223,7 +216,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
         </div>
       )}
 
-      {/* Toggle button */}
       <div ref={toggleRef} style={{
         position: 'absolute',
         right: collapsed ? 4 : sidebarWidth + HANDLE_W + 4,
@@ -232,7 +224,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
         zIndex: 20,
         transition,
       }}>
-        <Tooltip title={collapsed ? '打开 AI 助手' : '关闭 AI 助手'} placement="left">
+        <Tooltip title={translate(collapsed ? 'layout.openAi' : 'layout.closeAi')} placement="left">
           <Button
             type="primary"
             shape="circle"
@@ -252,7 +244,6 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
         </Tooltip>
       </div>
 
-      {/* AI Sidebar */}
       {!collapsed && (
         <div ref={sidebarRef} style={{
           width: sidebarWidth,

@@ -4,6 +4,7 @@ import {
   SendOutlined,
   RobotOutlined,
   ClearOutlined,
+  CloseOutlined,
   LoadingOutlined,
   CheckCircleOutlined,
   ThunderboltOutlined,
@@ -31,7 +32,11 @@ function toolLabel(name: string, t: (key: string, opts?: Record<string, unknown>
   return t(`tools.${name}`, { defaultValue: name.replace(/_/g, ' ') });
 }
 
-export const AiSidebar: React.FC = () => {
+interface AiSidebarProps {
+  onClose?: () => void;
+}
+
+export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   const { token } = theme.useToken();
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -180,6 +185,14 @@ export const AiSidebar: React.FC = () => {
         background: 'var(--ai-gradient)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {onClose && (
+            <Button
+              type="text"
+              size="small"
+              icon={<CloseOutlined style={{ color: '#ffffff' }} />}
+              onClick={onClose}
+            />
+          )}
           <RobotOutlined style={{ color: '#fff', fontSize: 16 }} />
           <Text strong style={{ color: '#fff', fontSize: 14 }}>{t('ai.assistant')}</Text>
         </div>
