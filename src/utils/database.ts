@@ -7,6 +7,15 @@ import { ApiError } from './api-error';
 
 const logger = createLogger('info', { module: 'database' });
 
+/**
+ * Resolve employee.id from auth user UUID.
+ * Tables like purchase_requisitions.created_by FK → employees.id (not auth.users.id).
+ */
+export async function resolveEmployeeId(db: SupabaseClient, authUserId: string, organizationId: string): Promise<string | null> {
+  const { data } = await db.from('employees').select('id').eq('user_id', authUserId).eq('organization_id', organizationId).maybeSingle();
+  return data?.id ?? null;
+}
+
 export interface QueryResult<T> {
   data: T[];
   total: number;

@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters, atomicStatusTransition } from '../utils/database';
+import { applyFilters, atomicStatusTransition, resolveEmployeeId } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -168,6 +168,7 @@ quality.post('/quality-inspections', async (c) => {
   });
   if (seqError || !num) throw ApiError.database(`Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
+  const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const result = await atomicCreateWithItems(db, {
     headerTable: 'quality_inspections',
     itemsTable: 'quality_inspection_items',
@@ -179,7 +180,7 @@ quality.post('/quality-inspections', async (c) => {
       ...headerFields,
       inspection_number: num,
       organization_id: user.organizationId,
-      created_by: user.userId,
+      created_by: empId,
     },
     items: items ?? [],
   });

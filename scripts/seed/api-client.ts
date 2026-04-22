@@ -11,11 +11,20 @@ export class SeedApiClient {
   private token: string;
   private errors: SeedError[] = [];
   private verbose: boolean;
+  onRequest?: (method: string, path: string, status: number) => void;
 
   constructor(apiUrl: string, token: string, verbose = false) {
     this.apiUrl = apiUrl.replace(/\/$/, '');
     this.token = token;
     this.verbose = verbose;
+  }
+
+  setToken(token: string): void {
+    this.token = token;
+  }
+
+  getApiUrl(): string {
+    return this.apiUrl;
   }
 
   getErrors(): SeedError[] {
@@ -58,6 +67,13 @@ export class SeedApiClient {
     });
   }
 
+  async delete<T = any>(path: string): Promise<T> {
+    this.log(`DELETE ${path}`);
+    return this.fetchWithRetry(`${this.apiUrl}${path}`, {
+      method: 'DELETE',
+    });
+  }
+
   private async fetchWithRetry(url: string, init: RequestInit): Promise<any> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -67,7 +83,12 @@ export class SeedApiClient {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         const resp = await fetch(url, { ...init, headers });
-        const json = await resp.json() as any;
+        const text = await resp.text();
+        let json: any;
+        try { json = JSON.parse(text); } catch { json = { raw: text }; }
+
+        const urlPath = new URL(url).pathname;
+        this.onRequest?.(init.method ?? 'GET', urlPath, resp.status);
 
         if (resp.ok || resp.status === 201 || resp.status === 207) {
           return json;
@@ -120,6 +141,41 @@ export class SeedApiClient {
   ): Promise<T | null> {
     try {
       return await this.put<T>(path, body);
+    } catch (err) {
+      const msg = err instanceof ApiCallError ? err.detail : (err as Error).message;
+      this.errors.push({ ...meta, message: msg });
+      if (this.verbose) {
+        console.log(`  ERROR [${meta.phase}] ${meta.entity}#${meta.index}: ${msg}`);
+      }
+      return null;
+    }
+  }
+
+  async safeGet<T = any>(
+    path: string,
+    params?: Record<string, string | number>,
+    meta?: { phase: string; entity: string; index: number }
+  ): Promise<T | null> {
+    try {
+      return await this.get<T>(path, params);
+    } catch (err) {
+      const msg = err instanceof ApiCallError ? err.detail : (err as Error).message;
+      if (meta) {
+        this.errors.push({ ...meta, message: msg });
+        if (this.verbose) {
+          console.log(`  ERROR [${meta.phase}] ${meta.entity}#${meta.index}: ${msg}`);
+        }
+      }
+      return null;
+    }
+  }
+
+  async safeDelete<T = any>(
+    path: string,
+    meta: { phase: string; entity: string; index: number }
+  ): Promise<T | null> {
+    try {
+      return await this.delete<T>(path);
     } catch (err) {
       const msg = err instanceof ApiCallError ? err.detail : (err as Error).message;
       this.errors.push({ ...meta, message: msg });

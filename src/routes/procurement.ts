@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters, atomicStatusTransition } from '../utils/database';
+import { applyFilters, atomicStatusTransition, resolveEmployeeId } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -247,6 +247,9 @@ procurement.post('/purchase-requisitions', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate requisition number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
+  // Resolve employee ID from auth user for created_by FK
+  const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
+
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
@@ -263,7 +266,7 @@ procurement.post('/purchase-requisitions', async (c) => {
         requisition_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
-        created_by: user.userId,
+        created_by: empId,
       },
       items: items ?? [],
     },
@@ -416,6 +419,7 @@ procurement.post('/rfq-headers', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate RFQ number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
+  const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
@@ -432,7 +436,7 @@ procurement.post('/rfq-headers', async (c) => {
         rfq_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
-        created_by: user.userId,
+        created_by: empId,
       },
       items: items ?? [],
     },

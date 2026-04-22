@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
-import { applyFilters } from '../utils/database';
+import { applyFilters, resolveEmployeeId } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -240,6 +240,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
+  const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const { items, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
@@ -256,7 +257,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
         invoice_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
-        created_by: user.userId,
+        created_by: empId,
       },
       items: items ?? [],
     },
