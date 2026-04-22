@@ -13,7 +13,7 @@ export const BudgetShow: React.FC = () => {
 
   return (
     <Show title={`预算 ${record?.budget_name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="预算名称">{record?.budget_name}</Descriptions.Item>
         <Descriptions.Item label="预算类型">{record?.budget_type}</Descriptions.Item>
         <Descriptions.Item label="年度">{record?.budget_year}</Descriptions.Item>

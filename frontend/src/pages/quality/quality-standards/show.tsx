@@ -3,6 +3,7 @@ import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions, Table, Divider, Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 
 export const QualityStandardShow: React.FC = () => {
   const { t } = useTranslation();
@@ -11,14 +12,12 @@ export const QualityStandardShow: React.FC = () => {
 
   return (
     <Show title={`质量标准 ${record?.standard_code ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="标准代码">{record?.standard_code}</Descriptions.Item>
         <Descriptions.Item label="标准名称">{record?.standard_name}</Descriptions.Item>
         <Descriptions.Item label="描述" span={2}>{record?.description}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <Tag color={record?.is_active ? 'green' : 'default'}>
-            {record?.is_active ? '启用' : '停用'}
-          </Tag>
+          <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
       </Descriptions>
 

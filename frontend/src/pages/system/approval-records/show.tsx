@@ -12,7 +12,7 @@ export const ApprovalRecordShow: React.FC = () => {
 
   return (
     <Show title={`审批记录 ${record?.id?.slice(0, 8) ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="单据类型">{record?.document_type}</Descriptions.Item>
         <Descriptions.Item label="单据ID">{record?.document_id}</Descriptions.Item>
         <Descriptions.Item label="审批层级">{record?.decision_level}</Descriptions.Item>

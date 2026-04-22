@@ -16,7 +16,7 @@ export const DocumentAttachmentShow: React.FC = () => {
 
   return (
     <Show title={`文档附件 ${record?.file_name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="文件名">{record?.file_name}</Descriptions.Item>
         <Descriptions.Item label="MIME类型">{record?.mime_type || '-'}</Descriptions.Item>
         <Descriptions.Item label="文件大小">{formatFileSize(record?.file_size)}</Descriptions.Item>

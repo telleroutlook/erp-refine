@@ -13,7 +13,7 @@ export const PriceListShow: React.FC = () => {
 
   return (
     <Show title={`价格表 ${record?.name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="货币">{record?.currency}</Descriptions.Item>

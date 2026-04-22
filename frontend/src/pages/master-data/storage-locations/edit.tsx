@@ -12,27 +12,27 @@ export const StorageLocationEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑库位">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="编号" name="code">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="名称" name="name">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库" name="warehouse_id">
               <Select options={warehouseOptions} showSearch optionFilterProp="label" placeholder="选择仓库" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="区域" name="zone">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="启用" name="is_active" valuePropName="checked">
               <Switch />
             </Form.Item>

@@ -184,7 +184,7 @@ export const AiSidebar: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: token.colorBgContainer }}>
       {/* Header */}
       <div style={{
-        padding: '10px 14px',
+        padding: '10px 12px',
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
         display: 'flex',
         alignItems: 'center',
@@ -200,7 +200,7 @@ export const AiSidebar: React.FC = () => {
           <Button
             type="text"
             size="small"
-            icon={<ClearOutlined style={{ color: 'rgba(255,255,255,0.8)' }} />}
+            icon={<ClearOutlined style={{ color: '#ffffff' }} />}
             onClick={clear}
           />
         </Tooltip>
@@ -218,8 +218,8 @@ export const AiSidebar: React.FC = () => {
         {messages.length === 0 && !streaming && (
           <div style={{ textAlign: 'center', paddingTop: 48 }}>
             <RobotOutlined style={{ fontSize: 32, color: token.colorTextQuaternary, marginBottom: 12 }} />
-            <div style={{ color: token.colorTextTertiary, fontSize: 13 }}>您好！请告诉我您需要什么帮助。</div>
-            <div style={{ color: token.colorTextQuaternary, fontSize: 12, marginTop: 4 }}>
+            <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>您好！请告诉我您需要什么帮助。</div>
+            <div style={{ color: token.colorTextSecondary, fontSize: 12, marginTop: 4 }}>
               例如：销售分析、查看采购订单、库存情况...
             </div>
           </div>

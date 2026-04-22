@@ -13,17 +13,17 @@ export const SerialNumberEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑序列号">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="序列号" name="serial_number">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={SERIAL_STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库" name="warehouse_id">
               <Select options={warehouseOptions} showSearch optionFilterProp="label" allowClear />
             </Form.Item>

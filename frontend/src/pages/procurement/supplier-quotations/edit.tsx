@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
-import dayjs from 'dayjs';
+import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { QUOTATION_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
 
 export const SupplierQuotationEdit: React.FC = () => {
@@ -11,29 +11,28 @@ export const SupplierQuotationEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑供应商报价">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="报价单号" name="quotation_number">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={QUOTATION_STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="货币" name="currency">
               <Select options={CURRENCY_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="有效期"
               name="validity_date"
-              getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col span={24}>

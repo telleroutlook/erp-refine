@@ -12,7 +12,7 @@ export const DepartmentShow: React.FC = () => {
 
   return (
     <Show title={`部门 ${record?.name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="上级部门">{record?.parent_id}</Descriptions.Item>

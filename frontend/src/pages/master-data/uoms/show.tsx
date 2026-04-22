@@ -11,7 +11,7 @@ export const UomShow: React.FC = () => {
 
   return (
     <Show title={`计量单位 ${record?.uom_name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="编码">{record?.uom_code}</Descriptions.Item>
         <Descriptions.Item label="名称">{record?.uom_name}</Descriptions.Item>
         <Descriptions.Item label="类型">{record?.uom_type}</Descriptions.Item>

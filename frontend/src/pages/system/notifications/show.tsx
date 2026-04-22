@@ -3,13 +3,7 @@ import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions, Tag } from 'antd';
 import dayjs from 'dayjs';
-
-const typeColors: Record<string, string> = {
-  info: 'blue', warning: 'orange', action_required: 'red', approval: 'purple', system: 'default',
-};
-const typeLabels: Record<string, string> = {
-  info: '通知', warning: '警告', action_required: '待处理', approval: '待审批', system: '系统',
-};
+import { NOTIFICATION_TYPE_COLORS, NOTIFICATION_TYPE_LABELS } from '../../../constants/options';
 
 export const NotificationShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'notifications' });
@@ -17,10 +11,10 @@ export const NotificationShow: React.FC = () => {
 
   return (
     <Show title="通知详情" isLoading={queryResult.isLoading}>
-      <Descriptions bordered column={2} size="small">
+      <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }} size="small">
         <Descriptions.Item label="类型">
-          <Tag color={typeColors[record?.notification_type] ?? 'default'}>
-            {typeLabels[record?.notification_type] ?? record?.notification_type}
+          <Tag color={NOTIFICATION_TYPE_COLORS[record?.notification_type] ?? 'default'}>
+            {NOTIFICATION_TYPE_LABELS[record?.notification_type] ?? record?.notification_type}
           </Tag>
         </Descriptions.Item>
         <Descriptions.Item label="状态">

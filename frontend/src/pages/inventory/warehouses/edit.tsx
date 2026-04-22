@@ -9,22 +9,22 @@ export const WarehouseEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑仓库">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库编号" name="code" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库名称" name="name" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="位置" name="location">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="类型" name="type">
               <Select options={[
                 { label: '原材料仓', value: 'raw_material' },
@@ -34,7 +34,7 @@ export const WarehouseEdit: React.FC = () => {
               ]} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={[
                 { label: '启用', value: 'active' },

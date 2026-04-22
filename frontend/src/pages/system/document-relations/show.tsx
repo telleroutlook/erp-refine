@@ -9,7 +9,7 @@ export const DocumentRelationShow: React.FC = () => {
 
   return (
     <Show title={`单据关联 ${record?.id?.slice(0, 8) ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="来源类型">{record?.from_object_type || '-'}</Descriptions.Item>
         <Descriptions.Item label="来源ID">{record?.from_object_id || '-'}</Descriptions.Item>
         <Descriptions.Item label="关联类型">{record?.relation_type || '-'}</Descriptions.Item>

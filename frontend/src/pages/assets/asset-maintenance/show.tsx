@@ -12,7 +12,7 @@ export const AssetMaintenanceShow: React.FC = () => {
 
   return (
     <Show title="资产维保详情" isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="资产">{record?.asset?.asset_name}</Descriptions.Item>
         <Descriptions.Item label="维保类型">{record?.maintenance_type}</Descriptions.Item>
         <Descriptions.Item label="执行日期">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
+import { FULL_WIDTH } from '../../../constants/styles';
 
 export const AssetMaintenanceCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'asset-maintenance' });
@@ -12,12 +13,12 @@ export const AssetMaintenanceCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建资产维保">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="资产" name="asset_id" rules={[{ required: true, message: '请选择资产' }]}>
               <Select options={assetOptions} showSearch optionFilterProp="label" placeholder="选择资产" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="维保类型" name="maintenance_type">
               <Select
                 options={[
@@ -28,33 +29,33 @@ export const AssetMaintenanceCreate: React.FC = () => {
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="执行日期"
               name="performed_at"
               rules={[{ required: true, message: '请选择执行日期' }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="执行人" name="performed_by">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="费用" name="cost">
-              <InputNumber style={{ width: '100%' }} min={0} precision={2} />
+              <InputNumber style={FULL_WIDTH} min={0} precision={2} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="下次到期"
               name="next_due_at"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col span={24}>

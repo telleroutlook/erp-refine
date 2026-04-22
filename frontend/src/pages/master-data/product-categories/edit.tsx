@@ -12,22 +12,22 @@ export const ProductCategoryEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑产品分类">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="编号" name="code">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="名称" name="name">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="上级分类" name="parent_id">
               <Select options={catOptions} showSearch optionFilterProp="label" allowClear placeholder="选择上级分类" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="启用" name="is_active" valuePropName="checked">
               <Switch />
             </Form.Item>

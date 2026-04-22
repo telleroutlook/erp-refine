@@ -2,8 +2,7 @@
 // Refine DataProvider backed by our BFF REST API
 
 import { type DataProvider } from '@refinedev/core';
-
-const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+import { API_URL } from '../constants/api';
 
 function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('access_token');

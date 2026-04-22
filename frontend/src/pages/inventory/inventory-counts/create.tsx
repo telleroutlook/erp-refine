@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
+import { FULL_WIDTH } from '../../../constants/styles';
 
 export const InventoryCountCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'inventory-counts' });
@@ -12,19 +13,19 @@ export const InventoryCountCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建库存盘点">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库" name="warehouse_id" rules={[{ required: true, message: '请选择仓库' }]}>
               <Select options={warehouseOptions} showSearch optionFilterProp="label" placeholder="选择仓库" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="盘点日期"
               name="count_date"
               rules={[{ required: true, message: '请选择盘点日期' }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col span={24}>

@@ -13,7 +13,7 @@ export const ContractShow: React.FC = () => {
 
   return (
     <Show title={`合同 ${record?.contract_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="合同号">{record?.contract_number}</Descriptions.Item>
         <Descriptions.Item label="合同类型">{record?.contract_type}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

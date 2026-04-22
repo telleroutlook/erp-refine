@@ -1,7 +1,8 @@
 import React from 'react';
 import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
-import { Descriptions, Tag } from 'antd';
+import { Descriptions } from 'antd';
+import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 
 export const CarrierShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'carriers' });
@@ -13,12 +14,12 @@ export const CarrierShow: React.FC = () => {
 
   return (
     <Show title="承运商详情">
-      <Descriptions bordered column={2} size="small">
+      <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }} size="small">
         <Descriptions.Item label="编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="类型">{carrierTypeLabels[record?.carrier_type] ?? record?.carrier_type}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <Tag color={record?.is_active ? 'green' : 'red'}>{record?.is_active ? '启用' : '停用'}</Tag>
+          <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
         <Descriptions.Item label="联系人">{record?.contact}</Descriptions.Item>
         <Descriptions.Item label="电话">{record?.phone}</Descriptions.Item>

@@ -10,22 +10,22 @@ export const PaymentRequestEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑付款申请">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="申请单号" name="request_number">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={PAYMENT_REQUEST_STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="货币" name="currency">
               <Select options={CURRENCY_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="可付款" name="ok_to_pay" valuePropName="checked">
               <Switch checkedChildren="是" unCheckedChildren="否" />
             </Form.Item>

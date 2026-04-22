@@ -17,9 +17,9 @@ export const erpTheme: ThemeConfig = {
     colorTextTertiary: '#9ca3af',
     colorTextQuaternary: '#d1d5db',
 
-    colorBorder: '#e5e7eb',
-    colorBorderSecondary: '#f0f0f0',
-    colorSplit: '#f0f0f0',
+    colorBorder: '#d1d5db',
+    colorBorderSecondary: '#e5e7eb',
+    colorSplit: '#e5e7eb',
 
     borderRadius: 6,
     borderRadiusLG: 8,
@@ -55,8 +55,9 @@ export const erpTheme: ThemeConfig = {
     },
     Menu: {
       itemSelectedBg: '#e6f4ff',
-      itemSelectedColor: '#1677FF',
+      itemSelectedColor: '#0050b3',
       itemHoverBg: '#f0f5ff',
+      fontWeightStrong: 600,
       itemBorderRadius: 6,
       itemHeight: 40,
       iconMarginInlineEnd: 10,
@@ -90,7 +91,7 @@ export const erpTheme: ThemeConfig = {
       labelBg: '#f9fafb',
     },
     Divider: {
-      colorSplit: '#e5e7eb',
+      colorSplit: '#d1d5db',
     },
     Tag: {
       borderRadiusSM: 4,

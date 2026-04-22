@@ -9,32 +9,32 @@ export const SupplierEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑供应商">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="供应商编号" name="code" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="供应商名称" name="name" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="联系人" name="contact_person">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="电话" name="contact_phone">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="邮箱" name="contact_email" rules={[{ type: 'email' }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={[
                 { label: '启用', value: 'active' },

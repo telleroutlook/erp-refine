@@ -12,17 +12,17 @@ export const AccountSubjectEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑会计科目">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="科目编码" name="code">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="科目名称" name="name">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="类别" name="category">
               <Select
                 options={[
@@ -35,7 +35,7 @@ export const AccountSubjectEdit: React.FC = () => {
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="余额方向" name="balance_direction">
               <Select
                 options={[
@@ -45,17 +45,17 @@ export const AccountSubjectEdit: React.FC = () => {
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="上级科目" name="parent_id">
               <Select options={parentOptions} showSearch optionFilterProp="label" placeholder="选择上级科目" allowClear />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="末级科目" name="is_leaf" valuePropName="checked">
               <Switch />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select
                 options={[

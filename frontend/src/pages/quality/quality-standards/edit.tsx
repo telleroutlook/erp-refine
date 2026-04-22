@@ -9,12 +9,12 @@ export const QualityStandardEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑质量标准">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="标准代码" name="standard_code">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="标准名称" name="standard_name" rules={[{ required: true, message: '请输入标准名称' }]}>
               <Input />
             </Form.Item>
@@ -24,7 +24,7 @@ export const QualityStandardEdit: React.FC = () => {
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="启用" name="is_active" valuePropName="checked">
               <Switch />
             </Form.Item>

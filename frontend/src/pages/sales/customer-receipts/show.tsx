@@ -11,7 +11,7 @@ export const CustomerReceiptShow: React.FC = () => {
 
   return (
     <Show title={`客户收款 ${record?.receipt_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="收款单号">{record?.receipt_number}</Descriptions.Item>
         <Descriptions.Item label="状态">
           <StatusTag status={record?.status} />

@@ -56,6 +56,13 @@
   "uoms": { "uoms": "计量单位" },
   "system": { "system": "系统管理" },
   "notifications": { "notifications": "通知中心" },
+  "profile-change-requests": { "profile-change-requests": "变更申请" },
+  "inventory-reservations": { "inventory-reservations": "库存预留" },
+  "document-attachments": { "document-attachments": "文档附件" },
+  "document-relations": { "document-relations": "单据关联" },
+  "workflows": { "workflows": "工作流" },
+  "approval-rules": { "approval-rules": "审批规则" },
+  "approval-records": { "approval-records": "审批记录" },
 
   "actions": {
     "list": "列表",

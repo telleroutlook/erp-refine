@@ -106,7 +106,6 @@ export const Sider: React.FC = () => {
         );
       }
 
-      const isSelected = key === activeKey;
       const isRoute = !(
         pickNotDeprecated(meta?.parent, options?.parent, parentName) !== undefined &&
         children.length === 0
@@ -115,14 +114,13 @@ export const Sider: React.FC = () => {
       return (
         <Menu.Item key={key} icon={icon ?? (isRoute && <UnorderedListOutlined />)}>
           <Link to={route ?? ''}>{label}</Link>
-          {!siderCollapsed && isSelected && <div className="ant-menu-tree-arrow" />}
         </Menu.Item>
       );
     });
   };
 
   const renderMenu = () => (
-    <div className="erp-sider-menu-scroll" style={{ overflow: 'auto', height: 'calc(100% - 56px)' }}>
+    <div className="erp-sider-menu-scroll" style={{ overflow: 'auto', height: 'calc(100% - var(--header-height))' }}>
       <Menu
         className="erp-accordion-menu"
         mode="inline"
@@ -148,7 +146,7 @@ export const Sider: React.FC = () => {
   );
 
   const titleStyle: React.CSSProperties = {
-    height: 56,
+    height: 'var(--header-height)' as any,
     display: 'flex',
     alignItems: 'center',
     justifyContent: siderCollapsed ? 'center' : 'flex-start',
@@ -177,7 +175,7 @@ export const Sider: React.FC = () => {
           placement={direction === 'rtl' ? 'right' : 'left'}
           closable={false}
           width={240}
-          bodyStyle={{ padding: 0 }}
+          styles={{ body: { padding: 0 } }}
           maskClosable
         >
           <Layout>

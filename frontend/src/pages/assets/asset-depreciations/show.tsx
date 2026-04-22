@@ -12,7 +12,7 @@ export const AssetDepreciationShow: React.FC = () => {
 
   return (
     <Show title="折旧记录详情" isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="资产ID">{record?.asset_id}</Descriptions.Item>
         <Descriptions.Item label="年度">{record?.period_year}</Descriptions.Item>
         <Descriptions.Item label="月份">{record?.period_month}</Descriptions.Item>

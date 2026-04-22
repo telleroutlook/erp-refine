@@ -11,7 +11,7 @@ export const SupplierInvoiceShow: React.FC = () => {
 
   return (
     <Show title={`供应商发票 ${record?.invoice_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="发票号">{record?.invoice_number}</Descriptions.Item>
         <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="供应商">{record?.supplier?.name}</Descriptions.Item>

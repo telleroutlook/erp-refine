@@ -10,7 +10,7 @@ export const WorkflowShow: React.FC = () => {
 
   return (
     <Show title={`工作流 ${record?.workflow_type ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="工作流类型">{record?.workflow_type || '-'}</Descriptions.Item>
         <Descriptions.Item label="状态">
           {record?.status ? <StatusTag status={record.status} /> : '-'}

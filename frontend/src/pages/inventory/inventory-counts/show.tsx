@@ -10,7 +10,7 @@ export const InventoryCountShow: React.FC = () => {
 
   return (
     <Show title={`库存盘点 ${record?.count_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="盘点单号">{record?.count_number}</Descriptions.Item>
         <Descriptions.Item label="状态">
           <StatusTag status={record?.status} />

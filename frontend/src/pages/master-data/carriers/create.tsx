@@ -9,17 +9,17 @@ export const CarrierCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建承运商">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="编号" name="code" rules={[{ required: true, message: '请输入承运商编号' }]}>
               <Input placeholder="如：SF-001" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="名称" name="name" rules={[{ required: true, message: '请输入承运商名称' }]}>
               <Input placeholder="如：顺丰速运" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="类型" name="carrier_type" initialValue="express">
               <Select>
                 <Select.Option value="express">快递</Select.Option>
@@ -31,17 +31,17 @@ export const CarrierCreate: React.FC = () => {
               </Select>
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="联系人" name="contact">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="电话" name="phone">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="启用" name="is_active" valuePropName="checked" initialValue={true}>
               <Switch />
             </Form.Item>

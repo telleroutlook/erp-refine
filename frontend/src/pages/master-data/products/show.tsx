@@ -10,7 +10,7 @@ export const ProductShow: React.FC = () => {
 
   return (
     <Show title={`产品 ${record?.code ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="产品编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="产品名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="状态">

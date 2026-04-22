@@ -10,7 +10,7 @@ export const InventoryReservationShow: React.FC = () => {
 
   return (
     <Show title={`库存预留 ${record?.id?.slice(0, 8) ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="ID">{record?.id}</Descriptions.Item>
         <Descriptions.Item label="状态">
           <StatusTag status={record?.status} />

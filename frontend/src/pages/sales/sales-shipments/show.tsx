@@ -10,7 +10,7 @@ export const SalesShipmentShow: React.FC = () => {
 
   return (
     <Show title={`销售发货 ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="发货单号">{record?.shipment_number}</Descriptions.Item>
         <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="销售订单号">{record?.sales_order?.order_number}</Descriptions.Item>

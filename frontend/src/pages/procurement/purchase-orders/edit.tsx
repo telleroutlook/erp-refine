@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import dayjs from 'dayjs';
+import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
 
 export const PurchaseOrderEdit: React.FC = () => {
@@ -11,44 +11,42 @@ export const PurchaseOrderEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑采购订单">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="订单号" name="order_number">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={PO_STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="订单日期"
               name="order_date"
-              getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
-              <DatePicker style={{ width: '100%' }} disabled />
+              <DatePicker style={FULL_WIDTH} disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="预计到货日期"
               name="expected_date"
-              getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="货币" name="currency">
               <Select options={CURRENCY_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="付款条件（天）" name="payment_terms">
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={24}>

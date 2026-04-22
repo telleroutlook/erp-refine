@@ -79,7 +79,7 @@ export const LoginPage: React.FC = () => {
         display: 'flex',
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
-        background: 'var(--login-gradient)',
+        background: 'var(--ai-gradient)',
         overflow: 'hidden',
         position: 'relative',
         padding: isMobile ? 0 : 16,
@@ -122,7 +122,7 @@ export const LoginPage: React.FC = () => {
           boxShadow: 'var(--login-card-shadow)',
           position: 'relative',
         }}
-        styles={{ body: { padding: isMobile ? '20px 20px 24px' : '24px 28px 20px' } }}
+        styles={{ body: { padding: isMobile ? '20px 20px max(24px, env(safe-area-inset-bottom))' : '24px 28px 20px' } }}
       >
         {/* Language switcher */}
         <div style={{ position: 'absolute', top: 16, right: isMobile ? 16 : 20, zIndex: 1 }}>

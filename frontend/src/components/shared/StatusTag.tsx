@@ -17,8 +17,8 @@ const STATUS_COLORS: Record<string, string> = {
   pending: 'orange',
   in_progress: 'processing',
   completed: 'success',
-  partially_received: 'gold',
-  partially_shipped: 'gold',
+  partially_received: 'geekblue',
+  partially_shipped: 'geekblue',
   confirmed: 'blue',
   failed: 'red',
   passed: 'green',
@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   accepted: 'green',
   rejected: 'red',
   expired: 'default',
-  conditional: 'gold',
+  conditional: 'purple',
   idle: 'orange',
   scrapped: 'default',
   disposed: 'default',
@@ -36,7 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
   quarantine: 'warning',
   available: 'success',
   sold: 'purple',
-  partially_paid: 'gold',
+  partially_paid: 'geekblue',
   paid: 'green',
 };
 

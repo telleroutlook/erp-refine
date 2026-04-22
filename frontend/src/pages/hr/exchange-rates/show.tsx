@@ -11,7 +11,7 @@ export const ExchangeRateShow: React.FC = () => {
 
   return (
     <Show title="汇率详情" isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="源币种">{record?.from_currency}</Descriptions.Item>
         <Descriptions.Item label="目标币种">{record?.to_currency}</Descriptions.Item>
         <Descriptions.Item label="汇率">{record?.rate}</Descriptions.Item>

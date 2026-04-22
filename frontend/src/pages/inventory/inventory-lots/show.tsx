@@ -10,7 +10,7 @@ export const InventoryLotShow: React.FC = () => {
 
   return (
     <Show title={`批次 ${record?.lot_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="批次号">{record?.lot_number}</Descriptions.Item>
         <Descriptions.Item label="产品">{record?.product?.name}</Descriptions.Item>
         <Descriptions.Item label="仓库">{record?.warehouse?.name}</Descriptions.Item>

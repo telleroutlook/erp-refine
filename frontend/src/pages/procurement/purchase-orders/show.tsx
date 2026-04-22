@@ -13,7 +13,7 @@ export const PurchaseOrderShow: React.FC = () => {
 
   return (
     <Show title={`采购订单 ${record?.order_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="订单号">{record?.order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />

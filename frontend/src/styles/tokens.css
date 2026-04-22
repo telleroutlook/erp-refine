@@ -8,22 +8,13 @@
   --ai-bg-bubble: #f7f8fc;
   --ai-border-bubble: #ededf0;
   --ai-input-bg: #fafafa;
-
-  /* ── Chart palette (8 colors, white-bg optimized) ─── */
-  --chart-1: #1677ff;
-  --chart-2: #16a34a;
-  --chart-3: #d97706;
-  --chart-4: #7c3aed;
-  --chart-5: #dc2626;
-  --chart-6: #0891b2;
-  --chart-7: #ea580c;
-  --chart-8: #db2777;
+  --ai-drag-bg: rgba(93, 54, 255, 0.13);
 
   /* ── Markdown rendering ────────────────────────────── */
   --md-code-bg: #f6f8fa;
   --md-code-border: #e1e4e8;
   --md-code-inline-bg: #f0f2f5;
-  --md-code-inline-color: #d63384;
+  --md-code-inline-color: #a8006f;
   --md-blockquote-border: #1677ff;
   --md-blockquote-bg: #eff6ff;
   --md-blockquote-text: #57606a;
@@ -33,14 +24,11 @@
   --md-hr-color: #e1e4e8;
 
   /* ── Login ─────────────────────────────────────────── */
-  --login-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --login-card-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
   --login-icon-glow: 0 4px 12px rgba(102, 126, 234, 0.4);
 
-  /* ── Shadows (multi-layer, light-mode) ─────────────── */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.12), 0 4px 20px rgba(0, 0, 0, 0.08);
+  /* ── Layout ────────────────────────────────────────── */
+  --header-height: 56px;
 
   /* ── Spring easing (from HCM) ──────────────────────── */
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -58,8 +46,19 @@
 }
 
 .erp-accordion-menu .ant-menu-submenu-open > .ant-menu-submenu-title {
-  color: #1677FF !important;
+  color: #0050b3 !important;
   font-weight: 500;
+}
+
+/* ── Selected item indicator ─────────────────────────── */
+
+.erp-accordion-menu .ant-menu-item-selected {
+  border-right: 3px solid #1677ff !important;
+  font-weight: 600;
+}
+
+.erp-accordion-menu.ant-menu-inline-collapsed .ant-menu-item-selected {
+  border-right: 3px solid #1677ff !important;
 }
 
 .erp-sider-menu-scroll::-webkit-scrollbar {
@@ -84,14 +83,4 @@
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
-}
-
-@keyframes erp-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes erp-scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
 }

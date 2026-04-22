@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTable, List } from '@refinedev/antd';
-import { Table, Button, Space, Tag } from 'antd';
+import { Table, Button, Space } from 'antd';
+import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +35,7 @@ export const DefectCodeList: React.FC = () => {
           dataIndex="is_active"
           title="状态"
           width={100}
-          render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? '启用' : '停用'}</Tag>}
+          render={(v) => <ActiveStatusTag value={v} />}
         />
         <Table.Column
           title={t('common.actions')}

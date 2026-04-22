@@ -104,7 +104,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
             width: HANDLE_W,
             cursor: 'col-resize',
             flexShrink: 0,
-            background: isDragging ? 'rgba(93, 54, 255, 0.13)' : 'transparent',
+            background: isDragging ? 'var(--ai-drag-bg)' : 'transparent',
             position: 'relative',
             zIndex: 10,
             transition: 'background 0.15s',

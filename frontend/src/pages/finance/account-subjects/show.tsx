@@ -12,7 +12,7 @@ export const AccountSubjectShow: React.FC = () => {
 
   return (
     <Show title={`会计科目 ${record?.code ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="科目编码">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="科目名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="类别">{record?.category}</Descriptions.Item>

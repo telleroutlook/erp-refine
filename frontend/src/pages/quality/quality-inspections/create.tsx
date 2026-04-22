@@ -3,6 +3,7 @@ import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { INSPECTION_STATUS_OPTIONS } from '../../../constants/options';
+import { FULL_WIDTH } from '../../../constants/styles';
 
 export const QualityInspectionCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'quality-inspections' });
@@ -16,44 +17,44 @@ export const QualityInspectionCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建质量检验">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="产品" name="product_id" rules={[{ required: true, message: '请选择产品' }]}>
               <Select options={productOptions} showSearch optionFilterProp="label" placeholder="选择产品" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="检验日期"
               name="inspection_date"
               rules={[{ required: true, message: '请选择检验日期' }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="检验员" name="inspector_id">
               <Select options={employeeOptions} showSearch optionFilterProp="label" placeholder="选择检验员" allowClear />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status" initialValue="draft">
               <Select options={INSPECTION_STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="来源类型" name="reference_type">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="来源单号" name="reference_id">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="总数量" name="total_quantity">
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={24}>

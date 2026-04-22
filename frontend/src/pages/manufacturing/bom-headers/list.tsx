@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
-import { Table, Button, Space, Tag } from 'antd';
+import { Table, Button, Space } from 'antd';
+import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +29,7 @@ export const BomHeaderList: React.FC = () => {
         <Table.Column dataIndex="quantity" title="基准数量" width={100} align="right" />
         <Table.Column dataIndex="version" title="版本" width={80} />
         <Table.Column dataIndex="effective_date" title="生效日期" width={120} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'} />
-        <Table.Column dataIndex="is_active" title="状态" width={80} render={(v) => <Tag color={v ? 'success' : 'default'}>{v ? '启用' : '停用'}</Tag>} />
+        <Table.Column dataIndex="is_active" title="状态" width={80} render={(v) => <ActiveStatusTag value={v} />} />
         <Table.Column title={t('common.actions')} width={120} render={(_, record: any) => (
           <Space>
             <Button size="small" icon={<EyeOutlined />} onClick={() => show('bom-headers', record.id)} />

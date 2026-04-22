@@ -9,32 +9,32 @@ export const SupplierCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建供应商">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="供应商编号" name="code" rules={[{ required: true, message: '请输入供应商编号' }]}>
               <Input placeholder="如：SUP-001" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="供应商名称" name="name" rules={[{ required: true, message: '请输入供应商名称' }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="联系人" name="contact_person">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="电话" name="contact_phone">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="邮箱" name="contact_email" rules={[{ type: 'email', message: '请输入有效邮箱' }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status" initialValue="active">
               <Select options={[
                 { label: '启用', value: 'active' },

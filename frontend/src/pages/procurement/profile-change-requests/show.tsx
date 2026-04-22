@@ -12,7 +12,7 @@ export const ProfileChangeRequestShow: React.FC = () => {
 
   return (
     <Show title={`变更申请 ${record?.change_request_id ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="变更申请编号">{record?.change_request_id}</Descriptions.Item>
         <Descriptions.Item label="申请类型">{record?.request_type}</Descriptions.Item>
         <Descriptions.Item label="供应商ID">{record?.supplier_id}</Descriptions.Item>

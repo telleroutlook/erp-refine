@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { WORK_ORDER_STATUS_OPTIONS } from '../../../constants/options';
+import { FULL_WIDTH } from '../../../constants/styles';
 
 const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS.slice(0, 2);
 
@@ -15,37 +16,37 @@ export const WorkOrderCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建生产工单">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="产品" name="product_id" rules={[{ required: true, message: '请选择产品' }]}>
               <Select {...productSelectProps} showSearch placeholder="选择产品" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="物料清单" name="bom_header_id">
               <Select {...bomSelectProps} showSearch placeholder="选择BOM" allowClear />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="计划数量" name="planned_quantity" rules={[{ required: true, message: '请输入计划数量' }]}>
-              <InputNumber style={{ width: '100%' }} min={1} />
+              <InputNumber style={FULL_WIDTH} min={1} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status" initialValue="draft">
               <Select options={STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="开始日期" name="start_date" getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="计划完成日期" name="planned_completion_date" getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库" name="warehouse_id">
               <Select {...warehouseSelectProps} showSearch placeholder="选择仓库" allowClear />
             </Form.Item>

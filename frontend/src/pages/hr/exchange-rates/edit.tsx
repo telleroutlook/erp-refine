@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import dayjs from 'dayjs';
+import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 
 export const ExchangeRateEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'exchange-rates' });
@@ -10,22 +10,22 @@ export const ExchangeRateEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑汇率">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="源币种" name="from_currency">
               <Select disabled options={[{ value: 'CNY', label: 'CNY' }, { value: 'USD', label: 'USD' }, { value: 'EUR', label: 'EUR' }]} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="目标币种" name="to_currency">
               <Select disabled options={[{ value: 'CNY', label: 'CNY' }, { value: 'USD', label: 'USD' }, { value: 'EUR', label: 'EUR' }]} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="汇率" name="rate">
-              <InputNumber style={{ width: '100%' }} min={0} step={0.0001} precision={4} />
+              <InputNumber style={FULL_WIDTH} min={0} step={0.0001} precision={4} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="类型" name="rate_type">
               <Select
                 options={[
@@ -35,24 +35,22 @@ export const ExchangeRateEdit: React.FC = () => {
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="生效日期"
               name="effective_date"
-              getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="到期日期"
               name="expiry_date"
-              getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
         </Row>

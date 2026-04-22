@@ -10,7 +10,7 @@ export const SupplierShow: React.FC = () => {
 
   return (
     <Show title={`供应商 ${record?.name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="供应商编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="供应商名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="状态">

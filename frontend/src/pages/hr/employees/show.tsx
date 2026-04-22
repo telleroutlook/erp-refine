@@ -12,7 +12,7 @@ export const EmployeeShow: React.FC = () => {
 
   return (
     <Show title={`员工 ${record?.name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="工号">{record?.employee_number}</Descriptions.Item>
         <Descriptions.Item label="姓名">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="部门">{record?.department?.name}</Descriptions.Item>

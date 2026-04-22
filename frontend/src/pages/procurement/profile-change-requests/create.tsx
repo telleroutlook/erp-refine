@@ -12,12 +12,12 @@ export const ProfileChangeRequestCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建变更申请">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="申请类型" name="request_type" rules={[{ required: true, message: '请输入申请类型' }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="变更申请编号" name="change_request_id" rules={[{ required: true, message: '请输入变更申请编号' }]}>
               <Input />
             </Form.Item>

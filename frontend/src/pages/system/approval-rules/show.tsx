@@ -3,6 +3,7 @@ import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions, Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
 
 export const ApprovalRuleShow: React.FC = () => {
   const { t } = useTranslation();
@@ -11,7 +12,7 @@ export const ApprovalRuleShow: React.FC = () => {
 
   return (
     <Show title={`审批规则 ${record?.rule_name ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="规则名称">{record?.rule_name}</Descriptions.Item>
         <Descriptions.Item label="单据类型">{record?.document_type}</Descriptions.Item>
         <Descriptions.Item label="最低金额">
@@ -27,9 +28,7 @@ export const ApprovalRuleShow: React.FC = () => {
         </Descriptions.Item>
         <Descriptions.Item label="顺序">{record?.sequence_order}</Descriptions.Item>
         <Descriptions.Item label="状态">
-          <Tag color={record?.is_active ? 'green' : 'default'}>
-            {record?.is_active ? '启用' : '停用'}
-          </Tag>
+          <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
         <Descriptions.Item label="创建时间">{record?.created_at}</Descriptions.Item>
         <Descriptions.Item label="ID">{record?.id}</Descriptions.Item>

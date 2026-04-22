@@ -11,7 +11,7 @@ export const WorkOrderProductionShow: React.FC = () => {
 
   return (
     <Show title="生产报工详情" isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="工单号">{record?.work_order?.work_order_number}</Descriptions.Item>
         <Descriptions.Item label="报工日期">{record?.production_date ? <DateField value={record.production_date} format="YYYY-MM-DD" /> : '-'}</Descriptions.Item>
         <Descriptions.Item label="生产数量">{record?.quantity}</Descriptions.Item>

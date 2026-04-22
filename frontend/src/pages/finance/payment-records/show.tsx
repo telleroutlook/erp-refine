@@ -13,7 +13,7 @@ export const PaymentRecordShow: React.FC = () => {
 
   return (
     <Show title={`付款记录 ${record?.payment_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="付款编号">{record?.payment_number}</Descriptions.Item>
         <Descriptions.Item label="付款日期">
           <DateField value={record?.payment_date} format="YYYY-MM-DD" />

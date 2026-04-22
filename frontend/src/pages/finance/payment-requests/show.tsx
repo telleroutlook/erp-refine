@@ -11,7 +11,7 @@ export const PaymentRequestShow: React.FC = () => {
 
   return (
     <Show title={`付款申请 ${record?.request_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="申请单号">{record?.request_number}</Descriptions.Item>
         <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="供应商">{record?.supplier?.name}</Descriptions.Item>

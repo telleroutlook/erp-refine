@@ -13,7 +13,7 @@ export const FixedAssetShow: React.FC = () => {
 
   return (
     <Show title={`固定资产 ${record?.asset_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="资产编号">{record?.asset_number}</Descriptions.Item>
         <Descriptions.Item label="资产名称">{record?.asset_name}</Descriptions.Item>
         <Descriptions.Item label="分类">{record?.category}</Descriptions.Item>

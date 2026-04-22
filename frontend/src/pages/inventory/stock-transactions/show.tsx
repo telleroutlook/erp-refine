@@ -9,7 +9,7 @@ export const StockTransactionShow: React.FC = () => {
 
   return (
     <Show title="库存流水详情" isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="日期">
           <DateField value={record?.transaction_date} format="YYYY-MM-DD" />
         </Descriptions.Item>

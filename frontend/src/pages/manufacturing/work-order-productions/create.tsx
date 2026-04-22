@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, DatePicker, Select, InputNumber, Row, Col, Input } from 'antd';
+import { FULL_WIDTH } from '../../../constants/styles';
 
 export const WorkOrderProductionCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'work-order-productions' });
@@ -12,29 +13,29 @@ export const WorkOrderProductionCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建生产报工">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="生产工单" name="work_order_id" rules={[{ required: true, message: '请选择工单' }]}>
               <Select options={workOrderOptions} showSearch optionFilterProp="label" placeholder="选择工单" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="报工日期" name="production_date" rules={[{ required: true }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item label="生产数量" name="quantity" rules={[{ required: true }]}>
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item label="合格数量" name="qualified_quantity" rules={[{ required: true }]}>
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item label="不良数量" name="defective_quantity" initialValue={0}>
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={24}>

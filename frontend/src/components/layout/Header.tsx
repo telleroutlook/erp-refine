@@ -24,7 +24,7 @@ export const Header: React.FC = () => {
         padding: '0 24px',
         background: token.colorBgContainer,
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        height: 56,
+        height: 'var(--header-height)',
       }}
     >
       <Space>
@@ -34,7 +34,7 @@ export const Header: React.FC = () => {
           </Button>
         </Tooltip>
         {user?.name && (
-          <span style={{ color: token.colorTextSecondary, fontSize: 13 }}>{user.name}</span>
+          <span style={{ color: token.colorTextSecondary, fontSize: 14 }}>{user.name}</span>
         )}
       </Space>
     </AntHeader>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import dayjs from 'dayjs';
+import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { INSPECTION_STATUS_OPTIONS, INSPECTION_RESULT_OPTIONS } from '../../../constants/options';
 
 export const QualityInspectionEdit: React.FC = () => {
@@ -11,39 +11,38 @@ export const QualityInspectionEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑质量检验">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="检验单号" name="inspection_number">
               <Input disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="状态" name="status">
               <Select options={INSPECTION_STATUS_OPTIONS} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="检验日期"
               name="inspection_date"
-              getValueProps={(v) => ({ value: v ? dayjs(v) : undefined })}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
-              <DatePicker style={{ width: '100%' }} disabled />
+              <DatePicker style={FULL_WIDTH} disabled />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="检验结果" name="result">
               <Select options={INSPECTION_RESULT_OPTIONS} placeholder="选择检验结果" allowClear />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="合格数量" name="qualified_quantity">
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="不合格数量" name="defective_quantity">
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={24}>

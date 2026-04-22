@@ -12,7 +12,7 @@ export const WorkOrderShow: React.FC = () => {
 
   return (
     <Show title={`生产工单 ${record?.work_order_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="工单号">{record?.work_order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="产品">{record?.product?.name}</Descriptions.Item>

@@ -9,17 +9,17 @@ export const CarrierEdit: React.FC = () => {
     <Edit saveButtonProps={saveButtonProps} title="编辑承运商">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="编号" name="code" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="名称" name="name" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="类型" name="carrier_type">
               <Select>
                 <Select.Option value="express">快递</Select.Option>
@@ -31,17 +31,17 @@ export const CarrierEdit: React.FC = () => {
               </Select>
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="联系人" name="contact">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="电话" name="phone">
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="启用" name="is_active" valuePropName="checked">
               <Switch />
             </Form.Item>

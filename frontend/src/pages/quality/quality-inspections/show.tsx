@@ -12,7 +12,7 @@ export const QualityInspectionShow: React.FC = () => {
 
   return (
     <Show title={`质量检验 ${record?.inspection_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="检验单号">{record?.inspection_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />

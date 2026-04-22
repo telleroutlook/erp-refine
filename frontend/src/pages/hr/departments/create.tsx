@@ -12,22 +12,22 @@ export const DepartmentCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建部门">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="编号" name="code" rules={[{ required: true, message: '请输入编号' }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="名称" name="name" rules={[{ required: true, message: '请输入名称' }]}>
               <Input />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="上级部门" name="parent_id">
               <Select options={deptOptions} showSearch optionFilterProp="label" allowClear placeholder="选择上级部门" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="负责人" name="manager_id">
               <Input />
             </Form.Item>

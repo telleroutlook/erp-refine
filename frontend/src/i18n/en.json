@@ -56,6 +56,13 @@
   "uoms": { "uoms": "Units of Measure" },
   "system": { "system": "System" },
   "notifications": { "notifications": "Notifications" },
+  "profile-change-requests": { "profile-change-requests": "Profile Change Requests" },
+  "inventory-reservations": { "inventory-reservations": "Inventory Reservations" },
+  "document-attachments": { "document-attachments": "Document Attachments" },
+  "document-relations": { "document-relations": "Document Relations" },
+  "workflows": { "workflows": "Workflows" },
+  "approval-rules": { "approval-rules": "Approval Rules" },
+  "approval-records": { "approval-records": "Approval Records" },
 
   "actions": {
     "list": "List",

@@ -205,3 +205,32 @@ export const RESERVATION_STATUS_OPTIONS = [
   { value: 'expired', label: '已过期' },
   { value: 'cancelled', label: '已取消' },
 ];
+
+export const VOUCHER_TYPE_OPTIONS = [
+  { value: 'general', label: '记账' },
+  { value: 'receipt', label: '收款' },
+  { value: 'payment', label: '付款' },
+  { value: 'transfer', label: '转账' },
+];
+
+export const PRODUCT_STATUS_OPTIONS = [
+  { value: 'active', label: '在产' },
+  { value: 'inactive', label: '停产' },
+  { value: 'discontinued', label: '淘汰' },
+];
+
+export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
+  info: 'blue',
+  warning: 'orange',
+  action_required: 'red',
+  approval: 'purple',
+  system: 'default',
+};
+
+export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  info: '通知',
+  warning: '警告',
+  action_required: '待处理',
+  approval: '待审批',
+  system: '系统',
+};

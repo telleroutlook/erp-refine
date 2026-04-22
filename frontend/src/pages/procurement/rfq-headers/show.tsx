@@ -12,7 +12,7 @@ export const RfqHeaderShow: React.FC = () => {
 
   return (
     <Show title={`询价单 ${record?.rfq_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <Descriptions bordered size="small" column={2}>
+      <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="询价单号">{record?.rfq_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />

@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
+import { FULL_WIDTH } from '../../../constants/styles';
 
 export const InventoryLotCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'inventory-lots' });
@@ -14,42 +15,42 @@ export const InventoryLotCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建批次">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="批次号" name="lot_number" rules={[{ required: true, message: '请输入批次号' }]}>
               <Input placeholder="如：LOT-20260401-001" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="产品" name="product_id" rules={[{ required: true, message: '请选择产品' }]}>
               <Select options={productOptions} showSearch optionFilterProp="label" placeholder="选择产品" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库" name="warehouse_id" rules={[{ required: true, message: '请选择仓库' }]}>
               <Select options={warehouseOptions} showSearch optionFilterProp="label" placeholder="选择仓库" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="数量" name="quantity" rules={[{ required: true, message: '请输入数量' }]}>
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="生产日期"
               name="manufacture_date"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item
               label="到期日期"
               name="expiry_date"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
         </Row>

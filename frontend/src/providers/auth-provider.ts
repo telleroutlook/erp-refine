@@ -2,8 +2,7 @@
 // Refine AuthProvider backed by Supabase Auth via our BFF
 
 import type { AuthProvider } from '@refinedev/core';
-
-const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+import { API_URL } from '../constants/api';
 
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {

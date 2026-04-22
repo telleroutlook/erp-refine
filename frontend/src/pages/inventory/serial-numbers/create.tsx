@@ -14,17 +14,17 @@ export const SerialNumberCreate: React.FC = () => {
     <Create saveButtonProps={saveButtonProps} title="新建序列号">
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="序列号" name="serial_number" rules={[{ required: true, message: '请输入序列号' }]}>
               <Input placeholder="如：SN-20260401-001" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="产品" name="product_id" rules={[{ required: true, message: '请选择产品' }]}>
               <Select options={productOptions} showSearch optionFilterProp="label" placeholder="选择产品" />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={24} md={12}>
             <Form.Item label="仓库" name="warehouse_id">
               <Select options={warehouseOptions} showSearch optionFilterProp="label" placeholder="选择仓库" allowClear />
             </Form.Item>
