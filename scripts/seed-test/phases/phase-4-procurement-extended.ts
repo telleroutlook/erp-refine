@@ -32,9 +32,9 @@ export async function runPhase4(ctx: TestContext, org: string): Promise<void> {
     const po = approvedPOs[i];
     const items = [
       {
-        product_id: prodIds[i % prodIds.length],
+        item_id: prodIds[i % prodIds.length],
         quantity: 10 + i * 5,
-        lot_number: `LOT-ASN-${Date.now()}-${i}`,
+        lot_no: `LOT-ASN-${Date.now()}-${i}`,
         line_number: 1,
       },
     ];
@@ -55,7 +55,7 @@ export async function runPhase4(ctx: TestContext, org: string): Promise<void> {
   if (approvedPOs.length === 0 && supIds.length > 0) {
     for (let i = 0; i < asnCount; i++) {
       const items = [
-        { product_id: prodIds[i % prodIds.length], quantity: 20, lot_number: `LOT-ASN-S-${i}`, line_number: 1 },
+        { item_id: prodIds[i % prodIds.length], quantity: 20, lot_no: `LOT-ASN-S-${i}`, line_number: 1 },
       ];
       await api.safePost('/api/advance-shipment-notices', {
         supplier_id: supIds[i % supIds.length],

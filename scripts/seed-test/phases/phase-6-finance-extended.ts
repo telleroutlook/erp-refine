@@ -79,10 +79,10 @@ export async function runPhase6(ctx: TestContext, org: string): Promise<void> {
       const v = await api.safePost<any>('/api/vouchers', {
         voucher_date: `2026-04-${String(20 + i).padStart(2, '0')}`,
         voucher_type: i === 0 ? 'payment' : 'receipt',
-        description: `API seed voucher #${i + 1}`,
+        notes: `API seed voucher #${i + 1}`,
         entries: [
-          { account_subject_id: acctIds[0], entry_type: 'debit', amount, description: '借方' },
-          { account_subject_id: acctIds[1], entry_type: 'credit', amount, description: '贷方' },
+          { account_subject_id: acctIds[0], entry_type: 'debit', amount, summary: '借方' },
+          { account_subject_id: acctIds[1], entry_type: 'credit', amount, summary: '贷方' },
         ],
       }, meta('voucher-create', i));
       if (v?.data?.id) {
