@@ -3,11 +3,13 @@ import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, DatePicker, Select, InputNumber, Row, Col, Input } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const WorkOrderProductionCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'work-order-productions' });
   const { data: workOrdersData } = useList({ resource: 'work-orders', pagination: { pageSize: 500 } });
   const workOrderOptions = (workOrdersData?.data ?? []).map((w: any) => ({ label: `${w.work_order_number} - ${w.product?.name ?? ''}`, value: w.id }));
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建生产报工">
@@ -39,7 +41,7 @@ export const WorkOrderProductionCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

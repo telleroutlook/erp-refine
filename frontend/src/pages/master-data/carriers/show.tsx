@@ -3,9 +3,11 @@ import { useShow } from '@refinedev/core';
 import { Show } from '@refinedev/antd';
 import { Descriptions } from 'antd';
 import { ActiveStatusTag } from '../../../components/shared/ActiveStatusTag';
+import { useTranslation } from 'react-i18next';
 
 export const CarrierShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'carriers' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
 
   const carrierTypeLabels: Record<string, string> = {
@@ -18,7 +20,7 @@ export const CarrierShow: React.FC = () => {
         <Descriptions.Item label="编号">{record?.code}</Descriptions.Item>
         <Descriptions.Item label="名称">{record?.name}</Descriptions.Item>
         <Descriptions.Item label="类型">{carrierTypeLabels[record?.carrier_type] ?? record?.carrier_type}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
         <Descriptions.Item label="联系人">{record?.contact}</Descriptions.Item>

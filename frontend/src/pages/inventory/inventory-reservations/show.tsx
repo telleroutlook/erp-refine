@@ -3,16 +3,18 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { useTranslation } from 'react-i18next';
 
 export const InventoryReservationShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'inventory-reservations' });
+  const { t } = useTranslation();
   const record = queryResult.data?.data as any;
 
   return (
     <Show title={`库存预留 ${record?.id?.slice(0, 8) ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="ID">{record?.id}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />
         </Descriptions.Item>
         <Descriptions.Item label="产品">{record?.product?.name}</Descriptions.Item>

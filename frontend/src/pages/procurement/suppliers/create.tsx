@@ -1,9 +1,11 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export const SupplierCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'suppliers' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建供应商">
@@ -35,7 +37,7 @@ export const SupplierCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="active">
+            <Form.Item label={t('common.status')} name="status" initialValue="active">
               <Select options={[
                 { label: '启用', value: 'active' },
                 { label: '停用', value: 'inactive' },
@@ -44,7 +46,7 @@ export const SupplierCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={2} />
             </Form.Item>
           </Col>

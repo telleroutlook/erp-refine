@@ -1,13 +1,14 @@
 import React from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
-
-const STATUS_OPTIONS = PO_STATUS_OPTIONS.slice(0, 3);
+import { useTranslation } from 'react-i18next';
 
 export const PurchaseOrderCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'purchase-orders' });
+  const { t } = useTranslation();
+  const statusOpts = translateOptions(PO_STATUS_OPTIONS.slice(0, 3), t);
   const { selectProps: supplierSelectProps } = useSelect({
     resource: 'suppliers',
     optionLabel: 'name',
@@ -24,8 +25,8 @@ export const PurchaseOrderCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="draft">
-              <Select options={STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+              <Select options={statusOpts} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -58,7 +59,7 @@ export const PurchaseOrderCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

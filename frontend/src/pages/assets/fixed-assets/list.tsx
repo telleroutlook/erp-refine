@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { ASSET_STATUS_OPTIONS } from '../../../constants/options';
+import { ASSET_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const FixedAssetList: React.FC = () => {
   const { t } = useTranslation();
@@ -23,7 +23,7 @@ export const FixedAssetList: React.FC = () => {
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'asset_number', label: t('filters.assetNumber'), placeholder: 'FA-...' },
     { type: 'search', field: 'asset_name', label: t('filters.name') },
-    { type: 'status', field: 'status', label: t('filters.status'), options: ASSET_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(ASSET_STATUS_OPTIONS, t) },
   ];
 
   return (

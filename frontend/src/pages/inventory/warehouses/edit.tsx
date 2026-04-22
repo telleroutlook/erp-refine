@@ -1,9 +1,11 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export const WarehouseEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'warehouses' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑仓库">
@@ -35,7 +37,7 @@ export const WarehouseEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
+            <Form.Item label={t('common.status')} name="status">
               <Select options={[
                 { label: '启用', value: 'active' },
                 { label: '停用', value: 'inactive' },

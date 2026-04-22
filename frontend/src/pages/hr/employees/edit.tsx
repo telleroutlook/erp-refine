@@ -3,12 +3,14 @@ import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { EMPLOYEE_STATUS_OPTIONS } from '../../../constants/options';
+import { EMPLOYEE_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const EmployeeEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'employees' });
   const { data: deptData } = useList({ resource: 'departments', pagination: { pageSize: 500 } });
   const deptOptions = (deptData?.data ?? []).map((d: any) => ({ label: `${d.code} - ${d.name}`, value: d.id }));
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑员工">
@@ -54,8 +56,8 @@ export const EmployeeEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={EMPLOYEE_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(EMPLOYEE_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
         </Row>

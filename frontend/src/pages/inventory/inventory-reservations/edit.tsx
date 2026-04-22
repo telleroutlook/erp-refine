@@ -2,10 +2,12 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { RESERVATION_STATUS_OPTIONS } from '../../../constants/options';
+import { RESERVATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const InventoryReservationEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'inventory-reservations' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑库存预留">
@@ -22,8 +24,8 @@ export const InventoryReservationEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={RESERVATION_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(RESERVATION_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

@@ -16,7 +16,7 @@ export const QualityStandardShow: React.FC = () => {
         <Descriptions.Item label="标准代码">{record?.standard_code}</Descriptions.Item>
         <Descriptions.Item label="标准名称">{record?.standard_name}</Descriptions.Item>
         <Descriptions.Item label="描述" span={2}>{record?.description}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
       </Descriptions>

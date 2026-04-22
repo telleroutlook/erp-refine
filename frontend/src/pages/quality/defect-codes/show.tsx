@@ -18,7 +18,7 @@ export const DefectCodeShow: React.FC = () => {
         <Descriptions.Item label="分类">{record?.category}</Descriptions.Item>
         <Descriptions.Item label="严重程度">{record?.severity}</Descriptions.Item>
         <Descriptions.Item label="描述" span={2}>{record?.description}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
       </Descriptions>

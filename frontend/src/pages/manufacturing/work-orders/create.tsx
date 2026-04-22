@@ -1,13 +1,14 @@
 import React from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import { WORK_ORDER_STATUS_OPTIONS } from '../../../constants/options';
+import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
-
-const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS.slice(0, 2);
+import { useTranslation } from 'react-i18next';
 
 export const WorkOrderCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'work-orders' });
+  const { t } = useTranslation();
+  const statusOpts = translateOptions(WORK_ORDER_STATUS_OPTIONS.slice(0, 2), t);
   const { selectProps: productSelectProps } = useSelect({ resource: 'products', optionLabel: 'name', optionValue: 'id' });
   const { selectProps: bomSelectProps } = useSelect({ resource: 'bom-headers', optionLabel: 'bom_number', optionValue: 'id' });
   const { selectProps: warehouseSelectProps } = useSelect({ resource: 'warehouses', optionLabel: 'name', optionValue: 'id' });
@@ -32,8 +33,8 @@ export const WorkOrderCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="draft">
-              <Select options={STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+              <Select options={statusOpts} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -52,7 +53,7 @@ export const WorkOrderCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

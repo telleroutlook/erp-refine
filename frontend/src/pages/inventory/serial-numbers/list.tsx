@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { SERIAL_STATUS_OPTIONS } from '../../../constants/options';
+import { SERIAL_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const SerialNumberList: React.FC = () => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const SerialNumberList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'serial_number', label: t('filters.search'), placeholder: 'SN-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: SERIAL_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(SERIAL_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
   ];
 

@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { PRICE_LIST_STATUS_OPTIONS } from '../../../constants/options';
+import { PRICE_LIST_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const PriceListList: React.FC = () => {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ export const PriceListList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'name', label: t('filters.name') },
-    { type: 'status', field: 'status', label: t('filters.status'), options: PRICE_LIST_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(PRICE_LIST_STATUS_OPTIONS, t) },
   ];
 
   return (

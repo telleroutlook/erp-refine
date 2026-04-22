@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { WORK_ORDER_STATUS_OPTIONS } from '../../../constants/options';
+import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const WorkOrderList: React.FC = () => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export const WorkOrderList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'work_order_number', label: t('filters.search'), placeholder: 'WO-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: WORK_ORDER_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(WORK_ORDER_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
     { type: 'dateRange', field: 'start_date', label: t('filters.dateRange') },
     { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct') },

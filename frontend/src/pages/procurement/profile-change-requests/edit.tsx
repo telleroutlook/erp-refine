@@ -3,6 +3,7 @@ import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_OPTIONS = [
   { label: '草稿', value: 'draft' },
@@ -16,6 +17,7 @@ export const ProfileChangeRequestEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'profile-change-requests' });
   const { data: suppliersData } = useList({ resource: 'suppliers', pagination: { pageSize: 500 } });
   const supplierOptions = (suppliersData?.data ?? []).map((s: any) => ({ label: `${s.code} - ${s.name}`, value: s.id }));
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑变更申请">
@@ -37,7 +39,7 @@ export const ProfileChangeRequestEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
+            <Form.Item label={t('common.status')} name="status">
               <Select options={STATUS_OPTIONS} />
             </Form.Item>
           </Col>

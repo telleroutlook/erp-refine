@@ -3,16 +3,18 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { useTranslation } from 'react-i18next';
 
 export const InventoryCountShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'inventory-counts' });
+  const { t } = useTranslation();
   const record = queryResult.data?.data as any;
 
   return (
     <Show title={`库存盘点 ${record?.count_number ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="盘点单号">{record?.count_number}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />
         </Descriptions.Item>
         <Descriptions.Item label="仓库">{record?.warehouse?.name}</Descriptions.Item>
@@ -20,7 +22,7 @@ export const InventoryCountShow: React.FC = () => {
           <DateField value={record?.count_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
         {record?.notes && (
-          <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>
+          <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>
         )}
       </Descriptions>
 

@@ -1,10 +1,12 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
-import { PRODUCT_STATUS_OPTIONS } from '../../../constants/options';
+import { PRODUCT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const ProductCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'products' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建产品">
@@ -26,8 +28,8 @@ export const ProductCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="active">
-              <Select options={PRODUCT_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="active">
+              <Select options={translateOptions(PRODUCT_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col span={24}>

@@ -16,7 +16,7 @@ export const AgentSessionShow: React.FC = () => {
         <Descriptions.Item label="Agent ID">{record?.agent_id}</Descriptions.Item>
         <Descriptions.Item label="会话类型">{record?.session_type}</Descriptions.Item>
         <Descriptions.Item label="用户ID">{record?.user_id}</Descriptions.Item>
-        <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
+        <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="消息数">{record?.message_count}</Descriptions.Item>
         <Descriptions.Item label="开始时间"><DateField value={record?.started_at} format="YYYY-MM-DD HH:mm:ss" /></Descriptions.Item>
         <Descriptions.Item label="结束时间">{record?.ended_at ? <DateField value={record.ended_at} format="YYYY-MM-DD HH:mm:ss" /> : '—'}</Descriptions.Item>

@@ -3,9 +3,10 @@ import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS } from '../../../constants/options';
+import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { useTranslation } from 'react-i18next';
 
 const ENTRY_TYPE_OPTIONS = [
   { label: '借', value: 'debit' },
@@ -14,6 +15,7 @@ const ENTRY_TYPE_OPTIONS = [
 
 export const VoucherEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'vouchers' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
   const { data: accountsData } = useList({ resource: 'account-subjects', pagination: { pageSize: 500 } });
   const accountOptions = (accountsData?.data ?? []).map((a: any) => ({ label: `${a.code} - ${a.name}`, value: a.id }));
@@ -34,16 +36,16 @@ export const VoucherEdit: React.FC = () => {
             <Form.Item label="凭证号" name="voucher_number"><Input disabled /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status"><Select options={VOUCHER_STATUS_OPTIONS} /></Form.Item>
+            <Form.Item label={t('common.status')} name="status"><Select options={translateOptions(VOUCHER_STATUS_OPTIONS, t)} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label="凭证日期" name="voucher_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="凭证类型" name="voucher_type"><Select options={VOUCHER_TYPE_OPTIONS} /></Form.Item>
+            <Form.Item label="凭证类型" name="voucher_type"><Select options={translateOptions(VOUCHER_TYPE_OPTIONS, t, 'enums.voucherType')} /></Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item>
+            <Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item>
           </Col>
         </Row>
       </Form>

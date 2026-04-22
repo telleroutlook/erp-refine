@@ -1,9 +1,11 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export const CustomerCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'customers' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建客户">
@@ -35,7 +37,7 @@ export const CustomerCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="active">
+            <Form.Item label={t('common.status')} name="status" initialValue="active">
               <Select options={[
                 { label: '启用', value: 'active' },
                 { label: '停用', value: 'inactive' },

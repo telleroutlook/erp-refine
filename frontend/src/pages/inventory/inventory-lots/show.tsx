@@ -3,9 +3,11 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { useTranslation } from 'react-i18next';
 
 export const InventoryLotShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'inventory-lots' });
+  const { t } = useTranslation();
   const record = queryResult.data?.data as any;
 
   return (
@@ -21,7 +23,7 @@ export const InventoryLotShow: React.FC = () => {
         <Descriptions.Item label="到期日期">
           {record?.expiry_date ? <DateField value={record.expiry_date} format="YYYY-MM-DD" /> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />
         </Descriptions.Item>
       </Descriptions>

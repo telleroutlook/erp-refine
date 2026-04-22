@@ -15,7 +15,7 @@ export const ImportLogShow: React.FC = () => {
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="资源类型">{record?.resource_type}</Descriptions.Item>
         <Descriptions.Item label="文件名">{record?.file_name}</Descriptions.Item>
-        <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
+        <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="导入人">{record?.imported_by}</Descriptions.Item>
         <Descriptions.Item label="总行数">{record?.total_rows}</Descriptions.Item>
         <Descriptions.Item label="成功数">{record?.success_count}</Descriptions.Item>

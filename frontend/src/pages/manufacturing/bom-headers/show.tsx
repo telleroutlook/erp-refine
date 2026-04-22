@@ -18,7 +18,7 @@ export const BomHeaderShow: React.FC = () => {
         <Descriptions.Item label="基准数量">{record?.quantity}</Descriptions.Item>
         <Descriptions.Item label="版本">{record?.version}</Descriptions.Item>
         <Descriptions.Item label="生效日期">{record?.effective_date ? <DateField value={record.effective_date} format="YYYY-MM-DD" /> : '-'}</Descriptions.Item>
-        <Descriptions.Item label="状态"><ActiveStatusTag value={record?.is_active} /></Descriptions.Item>
+        <Descriptions.Item label={t('common.status')}><ActiveStatusTag value={record?.is_active} /></Descriptions.Item>
         {record?.notes && <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>
       {record?.items && record.items.length > 0 && (

@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { RETURN_STATUS_OPTIONS } from '../../../constants/options';
+import { RETURN_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const SalesReturnList: React.FC = () => {
   const { t } = useTranslation();
@@ -20,7 +20,7 @@ export const SalesReturnList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'return_number', label: t('filters.returnNumber'), placeholder: 'SR-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: RETURN_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(RETURN_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'customer_id', label: t('filters.customer'), resource: 'customers' },
     { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
   ];

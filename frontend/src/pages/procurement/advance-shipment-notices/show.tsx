@@ -14,14 +14,14 @@ export const AdvanceShipmentNoticeShow: React.FC = () => {
     <Show title={`ASN ${record?.asn_no ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="ASN编号">{record?.asn_no}</Descriptions.Item>
-        <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
+        <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="供应商">{record?.supplier?.name}</Descriptions.Item>
         <Descriptions.Item label="仓库">{record?.warehouse?.name}</Descriptions.Item>
         <Descriptions.Item label="采购订单号">{record?.purchase_order?.order_number}</Descriptions.Item>
         <Descriptions.Item label="预计到货日">
           <DateField value={record?.expected_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
-        {record?.remark && <Descriptions.Item label="备注" span={2}>{record.remark}</Descriptions.Item>}
+        {record?.remark && <Descriptions.Item label={t('common.notes')} span={2}>{record.remark}</Descriptions.Item>}
       </Descriptions>
 
       {record?.items?.length > 0 && (

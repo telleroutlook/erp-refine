@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { QUOTATION_STATUS_OPTIONS } from '../../../constants/options';
+import { QUOTATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const SupplierQuotationList: React.FC = () => {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ export const SupplierQuotationList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'quotation_number', label: t('filters.search'), placeholder: 'QUO-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: QUOTATION_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(QUOTATION_STATUS_OPTIONS, t) },
   ];
 
   return (

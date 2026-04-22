@@ -2,12 +2,14 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, Select, Row, Col } from 'antd';
-import { DEPARTMENT_STATUS_OPTIONS } from '../../../constants/options';
+import { DEPARTMENT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const DepartmentEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'departments' });
   const { data: deptData } = useList({ resource: 'departments', pagination: { pageSize: 500 } });
   const deptOptions = (deptData?.data ?? []).map((d: any) => ({ label: `${d.code} - ${d.name}`, value: d.id }));
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑部门">
@@ -34,8 +36,8 @@ export const DepartmentEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={DEPARTMENT_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(DEPARTMENT_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
         </Row>

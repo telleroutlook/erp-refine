@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { RESERVATION_STATUS_OPTIONS } from '../../../constants/options';
+import { RESERVATION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const InventoryReservationList: React.FC = () => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export const InventoryReservationList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'status', field: 'status', label: t('filters.status'), options: RESERVATION_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(RESERVATION_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
     { type: 'entity', field: 'warehouse_id', label: t('filters.warehouse'), resource: 'warehouses' },
   ];

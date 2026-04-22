@@ -1,11 +1,13 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import { ASSET_STATUS_OPTIONS } from '../../../constants/options';
+import { ASSET_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const FixedAssetEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'fixed-assets' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑固定资产">
@@ -27,8 +29,8 @@ export const FixedAssetEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={ASSET_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(ASSET_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -71,7 +73,7 @@ export const FixedAssetEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

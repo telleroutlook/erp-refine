@@ -2,12 +2,14 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, Select, Row, Col } from 'antd';
-import { SERIAL_STATUS_OPTIONS } from '../../../constants/options';
+import { SERIAL_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const SerialNumberEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'serial-numbers' });
   const { data: warehousesData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
   const warehouseOptions = (warehousesData?.data ?? []).map((w: any) => ({ label: `${w.code} - ${w.name}`, value: w.id }));
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑序列号">
@@ -19,8 +21,8 @@ export const SerialNumberEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={SERIAL_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(SERIAL_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

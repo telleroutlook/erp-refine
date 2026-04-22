@@ -1,11 +1,13 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import { CONTRACT_TYPE_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { CONTRACT_TYPE_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const ContractCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'contracts' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建合同">
@@ -13,7 +15,7 @@ export const ContractCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label="合同类型" name="contract_type" rules={[{ required: true, message: '请选择合同类型' }]}>
-              <Select options={CONTRACT_TYPE_OPTIONS} />
+              <Select options={translateOptions(CONTRACT_TYPE_OPTIONS, t, 'enums.contractType')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -71,7 +73,7 @@ export const ContractCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

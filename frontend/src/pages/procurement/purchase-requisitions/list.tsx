@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { REQUISITION_STATUS_OPTIONS } from '../../../constants/options';
+import { REQUISITION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const PurchaseRequisitionList: React.FC = () => {
   const { t } = useTranslation();
@@ -22,7 +22,7 @@ export const PurchaseRequisitionList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'requisition_number', label: t('filters.search'), placeholder: 'REQ-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: REQUISITION_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(REQUISITION_STATUS_OPTIONS, t) },
     { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
   ];
 

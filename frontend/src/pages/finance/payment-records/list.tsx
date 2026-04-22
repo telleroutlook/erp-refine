@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { PAYMENT_RECORD_STATUS_OPTIONS } from '../../../constants/options';
+import { PAYMENT_RECORD_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const PaymentRecordList: React.FC = () => {
   const { t } = useTranslation();
@@ -22,7 +22,7 @@ export const PaymentRecordList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'payment_number', label: '付款编号', placeholder: '搜索付款编号' },
-    { type: 'status', field: 'status', label: t('common.status'), options: PAYMENT_RECORD_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(PAYMENT_RECORD_STATUS_OPTIONS, t) },
     { type: 'dateRange', field: 'payment_date', label: '付款日期' },
   ];
 

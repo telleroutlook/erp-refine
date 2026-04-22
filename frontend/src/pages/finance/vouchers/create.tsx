@@ -1,11 +1,13 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
-import { VOUCHER_TYPE_OPTIONS } from '../../../constants/options';
+import { VOUCHER_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const VoucherCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'vouchers' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建会计凭证">
@@ -23,11 +25,11 @@ export const VoucherCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label="凭证类型" name="voucher_type">
-              <Select options={VOUCHER_TYPE_OPTIONS} />
+              <Select options={translateOptions(VOUCHER_TYPE_OPTIONS, t, 'enums.voucherType')} />
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

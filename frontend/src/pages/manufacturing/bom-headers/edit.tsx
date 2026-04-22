@@ -4,9 +4,11 @@ import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Switch } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { useTranslation } from 'react-i18next';
 
 export const BomHeaderEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'bom-headers' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
   const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
   const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
@@ -32,7 +34,7 @@ export const BomHeaderEdit: React.FC = () => {
           <Col xs={24} sm={24} md={12}><Form.Item label="版本" name="version"><Input /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="生效日期" name="effective_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="启用" name="is_active" valuePropName="checked"><Switch /></Form.Item></Col>
-          <Col span={24}><Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
+          <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
       <EditableItemTable resource="bom-items" parentResource="bom-headers" parentId={record?.id} parentFk="bom_header_id" items={record?.items ?? []} columns={itemColumns} title="BOM明细" productsMap={productsMap} />

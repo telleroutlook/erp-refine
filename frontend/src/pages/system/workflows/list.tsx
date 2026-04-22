@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { WORKFLOW_STATUS_OPTIONS } from '../../../constants/options';
+import { WORKFLOW_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const WorkflowList: React.FC = () => {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ export const WorkflowList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'workflow_type', label: t('filters.search'), placeholder: t('filters.searchPlaceholder') },
-    { type: 'status', field: 'status', label: t('common.status'), options: WORKFLOW_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(WORKFLOW_STATUS_OPTIONS, t) },
   ];
 
   return (

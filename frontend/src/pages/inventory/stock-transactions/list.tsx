@@ -5,7 +5,7 @@ import { EyeOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { TRANSACTION_TYPE_OPTIONS } from '../../../constants/options';
+import { TRANSACTION_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const StockTransactionList: React.FC = () => {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export const StockTransactionList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'select', field: 'transaction_type', label: t('filters.transactionType'), options: TRANSACTION_TYPE_OPTIONS },
+    { type: 'select', field: 'transaction_type', label: t('filters.transactionType'), options: translateOptions(TRANSACTION_TYPE_OPTIONS, t, 'enums.transactionType') },
     { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
     { type: 'entity', field: 'warehouse_id', label: t('filters.warehouse'), resource: 'warehouses' },
     { type: 'dateRange', field: 'transaction_date', label: t('filters.dateRange') },

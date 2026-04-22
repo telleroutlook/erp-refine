@@ -4,24 +4,26 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { useTranslation } from 'react-i18next';
 
 export const SalesReturnShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'sales-returns' });
+  const { t } = useTranslation();
   const record = queryResult.data?.data as any;
 
   return (
     <Show title={`销售退货 ${record?.return_number ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="退货单号">{record?.return_number}</Descriptions.Item>
-        <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
+        <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="客户">{record?.customer?.name}</Descriptions.Item>
         <Descriptions.Item label="退货日期">
           <DateField value={record?.return_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
-        <Descriptions.Item label="合计">
+        <Descriptions.Item label={t('common.total')}>
           <AmountDisplay value={record?.total_amount} currency={record?.sales_order?.currency} />
         </Descriptions.Item>
-        {record?.notes && <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>}
+        {record?.notes && <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>
 
       {record?.items?.length > 0 && (

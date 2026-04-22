@@ -2,9 +2,11 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const FixedAssetCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'fixed-assets' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建固定资产">
@@ -70,7 +72,7 @@ export const FixedAssetCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

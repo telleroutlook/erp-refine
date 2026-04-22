@@ -2,15 +2,16 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
-import { QUOTATION_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { QUOTATION_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
-
-const STATUS_OPTIONS = QUOTATION_STATUS_OPTIONS.slice(0, 2);
+import { useTranslation } from 'react-i18next';
 
 export const SupplierQuotationCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'supplier-quotations' });
+  const { t } = useTranslation();
   const { data: suppliersData } = useList({ resource: 'suppliers', pagination: { pageSize: 500 } });
   const supplierOptions = (suppliersData?.data ?? []).map((s: any) => ({ label: `${s.code} - ${s.name}`, value: s.id }));
+  const statusOpts = translateOptions(QUOTATION_STATUS_OPTIONS.slice(0, 2), t);
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建供应商报价">
@@ -22,8 +23,8 @@ export const SupplierQuotationCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="draft">
-              <Select options={STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+              <Select options={statusOpts} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -46,7 +47,7 @@ export const SupplierQuotationCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { ASN_STATUS_OPTIONS } from '../../../constants/options';
+import { ASN_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const AdvanceShipmentNoticeList: React.FC = () => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const AdvanceShipmentNoticeList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'asn_no', label: t('filters.search'), placeholder: 'ASN-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: ASN_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(ASN_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'supplier_id', label: t('filters.supplier'), resource: 'suppliers' },
     { type: 'dateRange', field: 'expected_date', label: t('filters.dateRange') },
   ];

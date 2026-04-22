@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS } from '../../../constants/options';
+import { CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const ContractList: React.FC = () => {
   const { t } = useTranslation();
@@ -22,8 +22,8 @@ export const ContractList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'contract_number', label: t('filters.contractNumber'), placeholder: 'CON-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: CONTRACT_STATUS_OPTIONS },
-    { type: 'select', field: 'contract_type', label: t('filters.contractType'), options: CONTRACT_TYPE_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(CONTRACT_STATUS_OPTIONS, t) },
+    { type: 'select', field: 'contract_type', label: t('filters.contractType'), options: translateOptions(CONTRACT_TYPE_OPTIONS, t, 'enums.contractType') },
     { type: 'dateRange', field: 'start_date', label: t('filters.dateRange') },
     { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
   ];

@@ -3,11 +3,13 @@ import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const InventoryCountCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'inventory-counts' });
   const { data: warehousesData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
   const warehouseOptions = (warehousesData?.data ?? []).map((w: any) => ({ label: `${w.code} - ${w.name}`, value: w.id }));
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建库存盘点">
@@ -29,7 +31,7 @@ export const InventoryCountCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

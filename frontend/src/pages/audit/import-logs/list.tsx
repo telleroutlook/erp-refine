@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { IMPORT_STATUS_OPTIONS } from '../../../constants/options';
+import { IMPORT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const ImportLogList: React.FC = () => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export const ImportLogList: React.FC = () => {
   });
 
   const filterConfig: FilterFieldConfig[] = [
-    { type: 'status', field: 'status', label: t('common.status'), options: IMPORT_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(IMPORT_STATUS_OPTIONS, t) },
     { type: 'dateRange', field: 'created_at', label: t('filters.dateRange') },
   ];
 

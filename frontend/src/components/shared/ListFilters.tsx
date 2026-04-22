@@ -11,11 +11,12 @@ export interface FilterFieldConfig {
   field: string;
   label: string;
   placeholder?: string;
-  options?: { value: string; label: string }[];
+  options?: { value: string; label?: string }[];
   resource?: string;
   optionLabel?: string;
   optionValue?: string;
   span?: number;
+  i18nPrefix?: string;
 }
 
 export interface ListFiltersProps {
@@ -107,6 +108,15 @@ export const ListFilters: React.FC<ListFiltersProps> = ({ config, setFilters }) 
     setFilters([], 'replace');
   }, [form, setFilters]);
 
+  const resolveOptions = (cfg: FilterFieldConfig) => {
+    if (!cfg.options) return undefined;
+    const prefix = cfg.i18nPrefix ?? 'status';
+    return cfg.options.map((o) => ({
+      value: o.value,
+      label: o.label ?? t(`${prefix}.${o.value}`, o.value),
+    }));
+  };
+
   const renderField = (cfg: FilterFieldConfig) => {
     switch (cfg.type) {
       case 'search':
@@ -117,7 +127,7 @@ export const ListFilters: React.FC<ListFiltersProps> = ({ config, setFilters }) 
             mode="multiple"
             allowClear
             placeholder={cfg.placeholder ?? t('filters.allStatus')}
-            options={cfg.options}
+            options={resolveOptions(cfg)}
             maxTagCount="responsive"
             style={{ width: '100%' }}
           />
@@ -127,7 +137,7 @@ export const ListFilters: React.FC<ListFiltersProps> = ({ config, setFilters }) 
           <Select
             allowClear
             placeholder={cfg.placeholder ?? t('filters.all')}
-            options={cfg.options}
+            options={resolveOptions(cfg)}
             style={{ width: '100%' }}
           />
         );

@@ -2,11 +2,13 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { INSPECTION_STATUS_OPTIONS, INSPECTION_RESULT_OPTIONS } from '../../../constants/options';
+import { INSPECTION_STATUS_OPTIONS, INSPECTION_RESULT_OPTIONS, translateOptions } from '../../../constants/options';
 import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { useTranslation } from 'react-i18next';
 
 export const QualityInspectionEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'quality-inspections' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
 
   const itemColumns: ColumnConfig[] = [
@@ -25,13 +27,13 @@ export const QualityInspectionEdit: React.FC = () => {
             <Form.Item label="检验单号" name="inspection_number"><Input disabled /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status"><Select options={INSPECTION_STATUS_OPTIONS} /></Form.Item>
+            <Form.Item label={t('common.status')} name="status"><Select options={translateOptions(INSPECTION_STATUS_OPTIONS, t)} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label="检验日期" name="inspection_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} disabled /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="检验结果" name="result"><Select options={INSPECTION_RESULT_OPTIONS} placeholder="选择检验结果" allowClear /></Form.Item>
+            <Form.Item label="检验结果" name="result"><Select options={translateOptions(INSPECTION_RESULT_OPTIONS, t)} placeholder="选择检验结果" allowClear /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label="合格数量" name="qualified_quantity"><InputNumber style={FULL_WIDTH} min={0} /></Form.Item>
@@ -40,7 +42,7 @@ export const QualityInspectionEdit: React.FC = () => {
             <Form.Item label="不合格数量" name="defective_quantity"><InputNumber style={FULL_WIDTH} min={0} /></Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item>
+            <Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item>
           </Col>
         </Row>
       </Form>

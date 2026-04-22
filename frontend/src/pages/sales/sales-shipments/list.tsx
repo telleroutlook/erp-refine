@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { SHIPMENT_STATUS_OPTIONS } from '../../../constants/options';
+import { SHIPMENT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const SalesShipmentList: React.FC = () => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const SalesShipmentList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'shipment_number', label: t('filters.shipmentNumber'), placeholder: 'SHP-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: SHIPMENT_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(SHIPMENT_STATUS_OPTIONS, t) },
     { type: 'dateRange', field: 'shipment_date', label: t('filters.dateRange') },
     { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
   ];

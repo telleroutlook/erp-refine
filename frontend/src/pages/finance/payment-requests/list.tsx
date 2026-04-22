@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { PAYMENT_REQUEST_STATUS_OPTIONS } from '../../../constants/options';
+import { PAYMENT_REQUEST_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const PaymentRequestList: React.FC = () => {
   const { t } = useTranslation();
@@ -20,7 +20,7 @@ export const PaymentRequestList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'request_number', label: '申请单号', placeholder: '搜索申请单号' },
-    { type: 'status', field: 'status', label: t('common.status'), options: PAYMENT_REQUEST_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(PAYMENT_REQUEST_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'supplier_id', label: '供应商', resource: 'suppliers' },
     { type: 'dateRange', field: 'created_at', label: t('common.date') },
   ];

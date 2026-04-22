@@ -2,10 +2,12 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { LOT_STATUS_OPTIONS } from '../../../constants/options';
+import { LOT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const InventoryLotEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'inventory-lots' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑批次">
@@ -17,8 +19,8 @@ export const InventoryLotEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={LOT_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(LOT_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

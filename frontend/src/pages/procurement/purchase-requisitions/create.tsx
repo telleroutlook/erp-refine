@@ -2,13 +2,14 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
-import { REQUISITION_STATUS_OPTIONS } from '../../../constants/options';
+import { REQUISITION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
-
-const STATUS_OPTIONS = REQUISITION_STATUS_OPTIONS.slice(0, 2);
+import { useTranslation } from 'react-i18next';
 
 export const PurchaseRequisitionCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'purchase-requisitions' });
+  const { t } = useTranslation();
+  const statusOpts = translateOptions(REQUISITION_STATUS_OPTIONS.slice(0, 2), t);
   const { data: departmentsData } = useList({ resource: 'departments', pagination: { pageSize: 500 } });
   const departmentOptions = (departmentsData?.data ?? []).map((d: any) => ({ label: d.name, value: d.id }));
 
@@ -22,8 +23,8 @@ export const PurchaseRequisitionCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="draft">
-              <Select options={STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+              <Select options={statusOpts} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -46,7 +47,7 @@ export const PurchaseRequisitionCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

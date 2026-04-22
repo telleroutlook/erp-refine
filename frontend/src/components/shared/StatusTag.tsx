@@ -1,5 +1,6 @@
 import React from 'react';
 import { Tag } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'default',
@@ -38,6 +39,11 @@ const STATUS_COLORS: Record<string, string> = {
   sold: 'purple',
   partially_paid: 'geekblue',
   paid: 'green',
+  shipped: 'cyan',
+  delivered: 'success',
+  recalled: 'warning',
+  discontinued: 'default',
+  shipping: 'processing',
 };
 
 interface StatusTagProps {
@@ -46,6 +52,7 @@ interface StatusTagProps {
 }
 
 export const StatusTag: React.FC<StatusTagProps> = ({ status, label }) => {
+  const { t } = useTranslation();
   const color = STATUS_COLORS[status?.toLowerCase()] ?? 'default';
-  return <Tag color={color}>{label ?? status}</Tag>;
+  return <Tag color={color}>{label ?? t(`status.${status}`, { defaultValue: status })}</Tag>;
 };

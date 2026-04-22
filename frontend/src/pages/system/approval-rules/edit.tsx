@@ -2,9 +2,11 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const ApprovalRuleEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'approval-rules' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑审批规则">
@@ -41,7 +43,7 @@ export const ApprovalRuleEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="is_active">
+            <Form.Item label={t('common.status')} name="is_active">
               <Select
                 options={[
                   { label: '启用', value: true },

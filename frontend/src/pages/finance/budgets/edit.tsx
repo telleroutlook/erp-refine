@@ -1,13 +1,15 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, InputNumber, Row, Col } from 'antd';
-import { BUDGET_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { BUDGET_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { useTranslation } from 'react-i18next';
 
 export const BudgetEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'budgets' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
 
   const lineColumns: ColumnConfig[] = [
@@ -38,10 +40,10 @@ export const BudgetEdit: React.FC = () => {
             <Form.Item label="货币" name="currency"><Select options={CURRENCY_OPTIONS} /></Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status"><Select options={BUDGET_STATUS_OPTIONS} /></Form.Item>
+            <Form.Item label={t('common.status')} name="status"><Select options={translateOptions(BUDGET_STATUS_OPTIONS, t)} /></Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item>
+            <Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item>
           </Col>
         </Row>
       </Form>

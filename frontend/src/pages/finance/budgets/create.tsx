@@ -3,9 +3,11 @@ import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, InputNumber, Row, Col } from 'antd';
 import { CURRENCY_OPTIONS } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const BudgetCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'budgets' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建预算">
@@ -38,7 +40,7 @@ export const BudgetCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

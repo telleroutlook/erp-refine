@@ -8,6 +8,7 @@ import {
   CheckCircleOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { MarkdownMessage } from './MarkdownMessage';
 
 const { Text } = Typography;
@@ -26,27 +27,13 @@ interface Message {
   toolEvents?: ToolEvent[];
 }
 
-const TOOL_LABELS: Record<string, string> = {
-  get_sales_summary: '销售分析',
-  get_procurement_summary: '采购分析',
-  get_inventory_valuation: '库存估值',
-  list_purchase_orders: '查询采购单',
-  list_sales_orders: '查询销售单',
-  list_products: '查询产品',
-  list_customers: '查询客户',
-  list_suppliers: '查询供应商',
-  get_stock_levels: '库存查询',
-  list_payment_requests: '付款申请',
-  list_sales_invoices: '销售发票',
-  list_supplier_invoices: '供应商发票',
-};
-
-function toolLabel(name: string) {
-  return TOOL_LABELS[name] ?? name.replace(/_/g, ' ');
+function toolLabel(name: string, t: (key: string, opts?: Record<string, unknown>) => string) {
+  return t(`tools.${name}`, { defaultValue: name.replace(/_/g, ' ') });
 }
 
 export const AiSidebar: React.FC = () => {
   const { token } = theme.useToken();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -137,7 +124,7 @@ export const AiSidebar: React.FC = () => {
               toolEventsForMsg.push(ev);
               setActiveTools([...toolEventsForMsg]);
             } else if (payload.type === 'tool_end') {
-              const idx = toolEventsForMsg.findIndex((t) => t.callId === payload.callId);
+              const idx = toolEventsForMsg.findIndex((te) => te.callId === payload.callId);
               if (idx !== -1) toolEventsForMsg[idx] = { ...toolEventsForMsg[idx], status: 'done' };
               setActiveTools([...toolEventsForMsg]);
             }
@@ -152,7 +139,7 @@ export const AiSidebar: React.FC = () => {
         {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: accText || '（无响应）',
+          content: accText || `(${t('ai.networkError')})`,
           timestamp: new Date(),
           toolEvents: toolEventsForMsg.length > 0 ? [...toolEventsForMsg] : undefined,
         },
@@ -161,7 +148,7 @@ export const AiSidebar: React.FC = () => {
       if ((err as Error).name !== 'AbortError') {
         setMessages((prev) => [
           ...prev,
-          { id: crypto.randomUUID(), role: 'assistant', content: '网络错误，请重试。', timestamp: new Date() },
+          { id: crypto.randomUUID(), role: 'assistant', content: t('ai.networkError'), timestamp: new Date() },
         ]);
       }
     } finally {
@@ -170,7 +157,7 @@ export const AiSidebar: React.FC = () => {
       setActiveTools([]);
       abortRef.current = null;
     }
-  }, [streaming]);
+  }, [streaming, t]);
 
   const clear = useCallback(() => {
     stop();
@@ -194,9 +181,9 @@ export const AiSidebar: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <RobotOutlined style={{ color: '#fff', fontSize: 16 }} />
-          <Text strong style={{ color: '#fff', fontSize: 14 }}>AI 助手</Text>
+          <Text strong style={{ color: '#fff', fontSize: 14 }}>{t('ai.assistant')}</Text>
         </div>
-        <Tooltip title="清空对话">
+        <Tooltip title={t('ai.clearChat')}>
           <Button
             type="text"
             size="small"
@@ -218,9 +205,9 @@ export const AiSidebar: React.FC = () => {
         {messages.length === 0 && !streaming && (
           <div style={{ textAlign: 'center', paddingTop: 48 }}>
             <RobotOutlined style={{ fontSize: 32, color: token.colorTextQuaternary, marginBottom: 12 }} />
-            <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>您好！请告诉我您需要什么帮助。</div>
+            <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>{t('ai.greeting')}</div>
             <div style={{ color: token.colorTextSecondary, fontSize: 12, marginTop: 4 }}>
-              例如：销售分析、查看采购订单、库存情况...
+              {t('ai.examples')}
             </div>
           </div>
         )}
@@ -229,14 +216,14 @@ export const AiSidebar: React.FC = () => {
           <div key={msg.id}>
             {msg.role === 'assistant' && msg.toolEvents && msg.toolEvents.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, paddingLeft: 4 }}>
-                {msg.toolEvents.map((t) => (
+                {msg.toolEvents.map((te) => (
                   <Tag
-                    key={t.callId}
+                    key={te.callId}
                     icon={<CheckCircleOutlined />}
                     color="success"
                     style={{ fontSize: 11 }}
                   >
-                    {toolLabel(t.name)}
+                    {toolLabel(te.name, t)}
                   </Tag>
                 ))}
               </div>
@@ -268,14 +255,14 @@ export const AiSidebar: React.FC = () => {
           <div>
             {activeTools.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, paddingLeft: 4 }}>
-                {activeTools.map((t) => (
+                {activeTools.map((te) => (
                   <Tag
-                    key={t.callId}
-                    icon={t.status === 'running' ? <LoadingOutlined /> : <CheckCircleOutlined />}
-                    color={t.status === 'running' ? 'processing' : 'success'}
+                    key={te.callId}
+                    icon={te.status === 'running' ? <LoadingOutlined /> : <CheckCircleOutlined />}
+                    color={te.status === 'running' ? 'processing' : 'success'}
                     style={{ fontSize: 11 }}
                   >
-                    {toolLabel(t.name)}
+                    {toolLabel(te.name, t)}
                   </Tag>
                 ))}
               </div>
@@ -301,7 +288,7 @@ export const AiSidebar: React.FC = () => {
                 <div style={{ padding: '8px 12px', background: 'var(--ai-bg-bubble)', borderRadius: '12px 12px 12px 4px', border: '1px solid var(--ai-border-bubble)' }}>
                   <Spin size="small" indicator={<LoadingOutlined />} />
                   <span style={{ marginLeft: 8, fontSize: 12, color: token.colorTextSecondary }}>
-                    {activeTools.some((t) => t.status === 'running') ? '执行中...' : '思考中...'}
+                    {activeTools.some((te) => te.status === 'running') ? t('ai.executing') : t('ai.thinking')}
                   </span>
                 </div>
               </div>
@@ -330,7 +317,7 @@ export const AiSidebar: React.FC = () => {
               sendMessage(input);
             }
           }}
-          placeholder="输入问题，Enter 发送，Shift+Enter 换行..."
+          placeholder={t('ai.placeholder')}
           disabled={streaming}
           autoSize={{ minRows: 1, maxRows: 4 }}
           style={{ fontSize: 13, resize: 'none' }}

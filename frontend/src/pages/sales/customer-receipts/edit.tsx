@@ -1,9 +1,11 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export const CustomerReceiptEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'customer-receipts' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑客户收款">
@@ -29,7 +31,7 @@ export const CustomerReceiptEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

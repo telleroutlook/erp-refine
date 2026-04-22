@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { COUNT_STATUS_OPTIONS } from '../../../constants/options';
+import { COUNT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const InventoryCountList: React.FC = () => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const InventoryCountList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'count_number', label: t('filters.search'), placeholder: 'CNT-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: COUNT_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(COUNT_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'warehouse_id', label: t('filters.warehouse'), resource: 'warehouses' },
     { type: 'dateRange', field: 'count_date', label: t('filters.dateRange') },
     { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },

@@ -1,10 +1,12 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
-import { PAYMENT_REQUEST_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { PAYMENT_REQUEST_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const PaymentRequestEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'payment-requests' });
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑付款申请">
@@ -16,8 +18,8 @@ export const PaymentRequestEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
-              <Select options={PAYMENT_REQUEST_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status">
+              <Select options={translateOptions(PAYMENT_REQUEST_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -31,7 +33,7 @@ export const PaymentRequestEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

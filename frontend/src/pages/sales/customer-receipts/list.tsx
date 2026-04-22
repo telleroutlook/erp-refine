@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { CUSTOMER_RECEIPT_STATUS_OPTIONS } from '../../../constants/options';
+import { CUSTOMER_RECEIPT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const CustomerReceiptList: React.FC = () => {
   const { t } = useTranslation();
@@ -20,7 +20,7 @@ export const CustomerReceiptList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'receipt_number', label: t('filters.receiptNumber'), placeholder: 'CR-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: CUSTOMER_RECEIPT_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(CUSTOMER_RECEIPT_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'customer_id', label: t('filters.customer'), resource: 'customers' },
     { type: 'dateRange', field: 'receipt_date', label: t('filters.dateRange') },
   ];

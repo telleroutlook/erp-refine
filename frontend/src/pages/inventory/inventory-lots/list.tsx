@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { LOT_STATUS_OPTIONS } from '../../../constants/options';
+import { LOT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const InventoryLotList: React.FC = () => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const InventoryLotList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'lot_number', label: t('filters.search'), placeholder: 'LOT-...' },
-    { type: 'status', field: 'status', label: t('filters.status'), options: LOT_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(LOT_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'product_id', label: t('filters.product'), resource: 'products' },
   ];
 

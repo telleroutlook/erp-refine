@@ -5,7 +5,7 @@ import { EyeOutlined, CheckOutlined } from '@ant-design/icons';
 import { useNavigation, useCustomMutation, useInvalidate } from '@refinedev/core';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { NOTIFICATION_TYPE_COLORS, NOTIFICATION_TYPE_LABELS } from '../../../constants/options';
+import { NOTIFICATION_TYPE_COLORS } from '../../../constants/options';
 import { API_URL } from '../../../constants/api';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
 
@@ -46,35 +46,35 @@ export const NotificationList: React.FC = () => {
 
   return (
     <List
-      title="通知中心"
+      title={t('menu.notifications')}
       headerButtons={
-        <Button onClick={handleMarkAllRead}>全部标为已读</Button>
+        <Button onClick={handleMarkAllRead}>{t('notifications.markAllRead', '全部标为已读')}</Button>
       }
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column
           dataIndex="notification_type"
-          title="类型"
+          title={t('filters.type')}
           width={100}
-          render={(v) => <Tag color={NOTIFICATION_TYPE_COLORS[v] ?? 'default'}>{NOTIFICATION_TYPE_LABELS[v] ?? v}</Tag>}
+          render={(v) => <Tag color={NOTIFICATION_TYPE_COLORS[v] ?? 'default'}>{String(t(`enums.notificationType.${v}`, v))}</Tag>}
         />
-        <Table.Column dataIndex="title" title="标题" />
-        <Table.Column dataIndex="body" title="内容" ellipsis />
+        <Table.Column dataIndex="title" title={t('notifications.title', '标题')} />
+        <Table.Column dataIndex="body" title={t('notifications.body', '内容')} ellipsis />
         <Table.Column
           dataIndex="is_read"
-          title="状态"
+          title={t('common.status')}
           width={80}
-          render={(v) => <Tag color={v ? 'default' : 'blue'}>{v ? '已读' : '未读'}</Tag>}
+          render={(v) => <Tag color={v ? 'default' : 'blue'}>{v ? t('notifications.read', '已读') : t('notifications.unread', '未读')}</Tag>}
         />
         <Table.Column
           dataIndex="created_at"
-          title="时间"
+          title={t('notifications.time', '时间')}
           width={160}
           render={(v) => dayjs(v).format('YYYY-MM-DD HH:mm')}
         />
         <Table.Column
-          title="操作"
+          title={t('common.actions')}
           width={100}
           render={(_, record: any) => (
             <Space>

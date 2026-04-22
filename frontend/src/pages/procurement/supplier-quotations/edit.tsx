@@ -3,12 +3,14 @@ import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { QUOTATION_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { QUOTATION_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { useTranslation } from 'react-i18next';
 
 export const SupplierQuotationEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'supplier-quotations' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
   const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
   const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
@@ -30,10 +32,10 @@ export const SupplierQuotationEdit: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label="报价单号" name="quotation_number"><Input disabled /></Form.Item></Col>
-          <Col xs={24} sm={24} md={12}><Form.Item label="状态" name="status"><Select options={QUOTATION_STATUS_OPTIONS} /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(QUOTATION_STATUS_OPTIONS, t)} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="货币" name="currency"><Select options={CURRENCY_OPTIONS} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="有效期" name="validity_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
-          <Col span={24}><Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
+          <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
       <EditableItemTable resource="supplier-quotation-lines" parentResource="supplier-quotations" parentId={record?.id} parentFk="supplier_quotation_id" items={record?.lines ?? []} columns={lineColumns} title="报价行" productsMap={productsMap} priceField="cost_price" />

@@ -3,9 +3,10 @@ import { useForm, Edit, DateField } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
-import { WORK_ORDER_STATUS_OPTIONS } from '../../../constants/options';
+import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { useTranslation } from 'react-i18next';
 
 const WO_MATERIAL_STATUS_OPTIONS = [
   { label: 'pending', value: 'pending' },
@@ -15,6 +16,7 @@ const WO_MATERIAL_STATUS_OPTIONS = [
 
 export const WorkOrderEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'work-orders' });
+  const { t } = useTranslation();
   const record = queryResult?.data?.data as any;
   const { data: warehousesData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
   const warehouseOptions = (warehousesData?.data ?? []).map((w: any) => ({ label: w.name, value: w.id }));
@@ -43,12 +45,12 @@ export const WorkOrderEdit: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label="工单号" name="work_order_number"><Input disabled /></Form.Item></Col>
-          <Col xs={24} sm={24} md={12}><Form.Item label="状态" name="status"><Select options={WORK_ORDER_STATUS_OPTIONS} /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(WORK_ORDER_STATUS_OPTIONS, t)} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="计划数量" name="planned_quantity"><InputNumber style={FULL_WIDTH} min={1} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="仓库" name="warehouse_id"><Select options={warehouseOptions} showSearch optionFilterProp="label" allowClear /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="开始日期" name="start_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label="计划完成日期" name="planned_completion_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
-          <Col span={24}><Form.Item label="备注" name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
+          <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
       <EditableItemTable resource="work-order-materials" parentResource="work-orders" parentId={record?.id} parentFk="work_order_id" items={record?.materials ?? []} columns={materialColumns} title="物料需求" productsMap={productsMap} />

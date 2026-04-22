@@ -3,22 +3,24 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { useTranslation } from 'react-i18next';
 
 export const SalesShipmentShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'sales-shipments' });
+  const { t } = useTranslation();
   const record = queryResult.data?.data as any;
 
   return (
     <Show title={`销售发货 ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="发货单号">{record?.shipment_number}</Descriptions.Item>
-        <Descriptions.Item label="状态"><StatusTag status={record?.status} /></Descriptions.Item>
+        <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
         <Descriptions.Item label="销售订单号">{record?.sales_order?.order_number}</Descriptions.Item>
         <Descriptions.Item label="客户">{record?.sales_order?.customer?.name}</Descriptions.Item>
         <Descriptions.Item label="发货日期">
           <DateField value={record?.shipment_date} format="YYYY-MM-DD" />
         </Descriptions.Item>
-        {record?.notes && <Descriptions.Item label="备注" span={2}>{record.notes}</Descriptions.Item>}
+        {record?.notes && <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>
 
       {record?.items?.length > 0 && (

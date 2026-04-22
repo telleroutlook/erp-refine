@@ -27,7 +27,7 @@ export const ApprovalRuleShow: React.FC = () => {
             : '-'}
         </Descriptions.Item>
         <Descriptions.Item label="顺序">{record?.sequence_order}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           <ActiveStatusTag value={record?.is_active} />
         </Descriptions.Item>
         <Descriptions.Item label="创建时间">{record?.created_at}</Descriptions.Item>

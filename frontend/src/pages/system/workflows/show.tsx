@@ -3,16 +3,18 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { useTranslation } from 'react-i18next';
 
 export const WorkflowShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'workflows' });
+  const { t } = useTranslation();
   const record = queryResult.data?.data as any;
 
   return (
     <Show title={`工作流 ${record?.workflow_type ?? ''}`} isLoading={queryResult.isLoading}>
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label="工作流类型">{record?.workflow_type || '-'}</Descriptions.Item>
-        <Descriptions.Item label="状态">
+        <Descriptions.Item label={t('common.status')}>
           {record?.status ? <StatusTag status={record.status} /> : '-'}
         </Descriptions.Item>
         <Descriptions.Item label="关联类型">{record?.entity_type || '-'}</Descriptions.Item>

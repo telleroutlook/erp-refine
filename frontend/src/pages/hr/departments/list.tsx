@@ -6,7 +6,7 @@ import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { DEPARTMENT_STATUS_OPTIONS } from '../../../constants/options';
+import { DEPARTMENT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const DepartmentList: React.FC = () => {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ export const DepartmentList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'name', label: t('filters.name') },
-    { type: 'status', field: 'status', label: t('filters.status'), options: DEPARTMENT_STATUS_OPTIONS },
+    { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(DEPARTMENT_STATUS_OPTIONS, t) },
   ];
 
   return (

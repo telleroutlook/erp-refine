@@ -3,7 +3,7 @@ import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { FULL_WIDTH } from '../../../constants/styles';
-import { RECONCILIATION_STATUS_OPTIONS, CURRENCY_OPTIONS } from '../../../constants/options';
+import { RECONCILIATION_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const ReconciliationStatementCreate: React.FC = () => {
   const { t } = useTranslation();
@@ -35,12 +35,12 @@ export const ReconciliationStatementCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="draft">
-              <Select options={RECONCILIATION_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+              <Select options={translateOptions(RECONCILIATION_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

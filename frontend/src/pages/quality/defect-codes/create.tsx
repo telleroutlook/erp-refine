@@ -1,10 +1,12 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
-import { DEFECT_SEVERITY_OPTIONS } from '../../../constants/options';
+import { DEFECT_SEVERITY_OPTIONS, translateOptions } from '../../../constants/options';
+import { useTranslation } from 'react-i18next';
 
 export const DefectCodeCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'defect-codes' });
+  const { t } = useTranslation();
 
   return (
     <Create saveButtonProps={saveButtonProps} title="新建缺陷代码">
@@ -27,7 +29,7 @@ export const DefectCodeCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label="严重程度" name="severity">
-              <Select options={DEFECT_SEVERITY_OPTIONS} placeholder="选择严重程度" />
+              <Select options={translateOptions(DEFECT_SEVERITY_OPTIONS, t, 'enums.defectSeverity')} placeholder="选择严重程度" />
             </Form.Item>
           </Col>
           <Col span={24}>

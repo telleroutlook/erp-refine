@@ -2,13 +2,15 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import { INSPECTION_STATUS_OPTIONS } from '../../../constants/options';
+import { INSPECTION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
+import { useTranslation } from 'react-i18next';
 
 export const QualityInspectionCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'quality-inspections' });
   const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
   const { data: employeesData } = useList({ resource: 'employees', pagination: { pageSize: 500 } });
+  const { t } = useTranslation();
 
   const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
   const employeeOptions = (employeesData?.data ?? []).map((e: any) => ({ label: `${e.employee_code} - ${e.name}`, value: e.id }));
@@ -38,8 +40,8 @@ export const QualityInspectionCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status" initialValue="draft">
-              <Select options={INSPECTION_STATUS_OPTIONS} />
+            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+              <Select options={translateOptions(INSPECTION_STATUS_OPTIONS, t)} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -58,7 +60,7 @@ export const QualityInspectionCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item label="备注" name="notes">
+            <Form.Item label={t('common.notes')} name="notes">
               <Input.TextArea rows={3} />
             </Form.Item>
           </Col>

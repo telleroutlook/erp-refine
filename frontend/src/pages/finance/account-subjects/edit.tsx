@@ -2,11 +2,13 @@ import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export const AccountSubjectEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'account-subjects' });
   const { data: accountsData } = useList({ resource: 'account-subjects', pagination: { pageSize: 500 } });
   const parentOptions = (accountsData?.data ?? []).map((a: any) => ({ label: `${a.code} - ${a.name}`, value: a.id }));
+  const { t } = useTranslation();
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑会计科目">
@@ -56,7 +58,7 @@ export const AccountSubjectEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label="状态" name="status">
+            <Form.Item label={t('common.status')} name="status">
               <Select
                 options={[
                   { value: 'active', label: '启用' },
