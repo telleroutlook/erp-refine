@@ -1790,7 +1790,7 @@ export type Database = {
           created_at?: string | null
           from_object_id: string
           from_object_type: string
-          id: string
+          id?: string
           label?: string | null
           metadata?: Json | null
           organization_id: string
@@ -2101,6 +2101,13 @@ export type Database = {
             columns: ["cost_center_id"]
             isOneToOne: false
             referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_custodian_id_fkey"
+            columns: ["custodian_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
@@ -5174,13 +5181,19 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           description: string | null
+          expires_at: string | null
           id: string
+          json_schema: Json | null
           name: string
           organization_id: string
           risk_level: string
+          risk_score: number
           slug: string
           status: string
+          trace_id: string | null
+          ui_schema: Json | null
           updated_at: string
+          version: number
         }
         Insert: {
           activated_at?: string | null
@@ -5189,13 +5202,19 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: string
+          json_schema?: Json | null
           name: string
           organization_id: string
           risk_level?: string
+          risk_score?: number
           slug: string
           status?: string
+          trace_id?: string | null
+          ui_schema?: Json | null
           updated_at?: string
+          version?: number
         }
         Update: {
           activated_at?: string | null
@@ -5204,13 +5223,19 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: string
+          json_schema?: Json | null
           name?: string
           organization_id?: string
           risk_level?: string
+          risk_score?: number
           slug?: string
           status?: string
+          trace_id?: string | null
+          ui_schema?: Json | null
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {

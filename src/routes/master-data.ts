@@ -243,7 +243,8 @@ const priceListLinesConfig: CrudConfig = {
   createReturnSelect: 'id, unit_price, min_quantity',
   defaultSort: 'created_at',
   softDelete: false,
-  orgScoped: true,
+  orgScoped: false,
+  parentOwnership: { parentFk: 'price_list_id', parentTable: 'price_lists' },
 };
 masterData.route('', buildCrudRoutes(priceListLinesConfig));
 

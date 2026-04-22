@@ -104,7 +104,7 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'receipt_date']);
+  const PERMITTED = new Set(['status', 'notes', 'receipt_date', 'warehouse_id']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
