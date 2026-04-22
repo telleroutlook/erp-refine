@@ -13,6 +13,17 @@ export interface ColumnConfig {
   inputType?: 'text' | 'number' | 'select' | 'date';
   selectOptions?: { label: string; value: any }[];
   render?: (value: any, record: any) => React.ReactNode;
+  /** For computed display columns: derive value from current row state */
+  computed?: (rowState: Record<string, any>, originalRecord: any) => any;
+}
+
+export interface ProductInfo {
+  id: string;
+  code: string;
+  name: string;
+  uom?: string;
+  cost_price?: number;
+  sale_price?: number;
 }
 
 interface EditableItemTableProps {
@@ -23,6 +34,10 @@ interface EditableItemTableProps {
   items: any[];
   columns: ColumnConfig[];
   title: string;
+  /** Map of product_id → ProductInfo for auto-fill on product change */
+  productsMap?: Map<string, ProductInfo>;
+  /** Which price field to auto-fill when product changes */
+  priceField?: 'cost_price' | 'sale_price';
 }
 
 let _tempSeq = 0;
@@ -36,6 +51,8 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   items,
   columns,
   title,
+  productsMap,
+  priceField,
 }) => {
   const [edits, setEdits] = useState<Record<string, Record<string, any>>>({});
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
@@ -53,10 +70,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
-      if (isDirtyRef.current) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
+      if (isDirtyRef.current) { e.preventDefault(); e.returnValue = ''; }
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
@@ -65,59 +79,83 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   useEffect(() => {
     if (!isDirty) return;
     const orig = window.history.pushState;
-    const handleNav = () => {
-      if (isDirtyRef.current && !window.confirm('有未保存的修改，确定要离开吗？')) {
-        return true;
-      }
-      return false;
-    };
     window.history.pushState = function (...args) {
-      if (handleNav()) return;
+      if (isDirtyRef.current && !window.confirm('有未保存的修改，确定要离开吗？')) return;
       return orig.apply(this, args);
     };
     return () => { window.history.pushState = orig; };
   }, [isDirty]);
 
   const flatKey = (di: string | string[]) => (Array.isArray(di) ? di.join('.') : di);
-
   const getNestedValue = (obj: any, path: string | string[]): any => {
     const keys = Array.isArray(path) ? path : [path];
     return keys.reduce((o, k) => o?.[k], obj);
   };
+  const fieldName = (di: string | string[]) => Array.isArray(di) ? di[di.length - 1] : di;
 
-  const fieldName = (di: string | string[]) =>
-    Array.isArray(di) ? di[di.length - 1] : di;
+  /** Get the effective value of a field for a row, considering edits */
+  const getRowState = (recordId: string, record: any): Record<string, any> => {
+    const state: Record<string, any> = {};
+    columns.forEach((col) => {
+      const key = flatKey(col.dataIndex);
+      const editVal = edits[recordId]?.[key];
+      state[key] = editVal !== undefined ? editVal : getNestedValue(record, col.dataIndex);
+    });
+    return state;
+  };
+
+  const getNewRowState = (tempId: string): Record<string, any> => {
+    const row = newRows.find((r) => r.tempId === tempId);
+    return row?.values ?? {};
+  };
+
+  /** Apply side-effects when product_id changes */
+  const applyProductSideEffects = (productId: string | undefined): Record<string, any> => {
+    if (!productId || !productsMap) return {};
+    const product = productsMap.get(productId);
+    if (!product) return {};
+    const sideEffects: Record<string, any> = {
+      'product.name': product.name,
+      'product.code': product.code,
+      'product.uom': product.uom,
+    };
+    if (priceField && product[priceField] != null) {
+      sideEffects['unit_price'] = product[priceField];
+    }
+    return sideEffects;
+  };
 
   const updateCell = (recordId: string, col: ColumnConfig, value: any) => {
     const key = flatKey(col.dataIndex);
-    setEdits((prev) => ({
-      ...prev,
-      [recordId]: { ...prev[recordId], [key]: value },
-    }));
+    setEdits((prev) => {
+      const rowEdits = { ...prev[recordId], [key]: value };
+      if (key === 'product_id') {
+        Object.assign(rowEdits, applyProductSideEffects(value));
+      }
+      return { ...prev, [recordId]: rowEdits };
+    });
   };
 
   const updateNewRowCell = (tempId: string, col: ColumnConfig, value: any) => {
     const key = flatKey(col.dataIndex);
     setNewRows((prev) =>
-      prev.map((r) => r.tempId === tempId ? { ...r, values: { ...r.values, [key]: value } } : r)
+      prev.map((r) => {
+        if (r.tempId !== tempId) return r;
+        const newVals = { ...r.values, [key]: value };
+        if (key === 'product_id') {
+          Object.assign(newVals, applyProductSideEffects(value));
+        }
+        return { ...r, values: newVals };
+      })
     );
   };
 
-  const addRow = () => {
-    setNewRows((prev) => [...prev, { tempId: nextTempId(), values: {} }]);
-  };
-
-  const removeNewRow = (tempId: string) => {
-    setNewRows((prev) => prev.filter((r) => r.tempId !== tempId));
-  };
+  const addRow = () => setNewRows((prev) => [...prev, { tempId: nextTempId(), values: {} }]);
+  const removeNewRow = (tempId: string) => setNewRows((prev) => prev.filter((r) => r.tempId !== tempId));
 
   const markDeleted = (id: string) => {
     setDeletedIds((prev) => new Set(prev).add(id));
-    setEdits((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
+    setEdits((prev) => { const next = { ...prev }; delete next[id]; return next; });
   };
 
   const refresh = useCallback(() => {
@@ -138,10 +176,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
         if (deletedIds.has(id)) continue;
         const values: Record<string, any> = {};
         columns.forEach((col) => {
+          if (!col.editable) return;
           const key = flatKey(col.dataIndex);
-          if (key in changes) {
-            values[fieldName(col.dataIndex)] = changes[key];
-          }
+          if (key in changes) values[fieldName(col.dataIndex)] = changes[key];
         });
         if (Object.keys(values).length > 0) {
           promises.push(updateAsync({ resource, id, values }));
@@ -151,18 +188,14 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       for (const row of newRows) {
         const values: Record<string, any> = { [parentFk]: parentId };
         columns.forEach((col) => {
-          if (col.editable) {
-            const key = flatKey(col.dataIndex);
-            if (row.values[key] !== undefined) {
-              values[fieldName(col.dataIndex)] = row.values[key];
-            }
-          }
+          if (!col.editable) return;
+          const key = flatKey(col.dataIndex);
+          if (row.values[key] !== undefined) values[fieldName(col.dataIndex)] = row.values[key];
         });
         promises.push(createAsync({ resource, values }));
       }
 
       await Promise.all(promises);
-
       setEdits({});
       setNewRows([]);
       setDeletedIds(new Set());
@@ -180,13 +213,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       case 'number':
         return <InputNumber value={currentVal} onChange={onChange} size="small" style={{ width: '100%' }} />;
       case 'select':
-        return (
-          <Select value={currentVal} onChange={onChange} options={col.selectOptions} size="small" style={{ width: '100%' }} showSearch optionFilterProp="label" allowClear />
-        );
+        return <Select value={currentVal} onChange={onChange} options={col.selectOptions} size="small" style={{ width: '100%' }} showSearch optionFilterProp="label" allowClear />;
       case 'date':
-        return (
-          <DatePicker value={currentVal ? dayjs(currentVal) : null} onChange={(d) => onChange(d ? d.format('YYYY-MM-DD') : null)} size="small" style={{ width: '100%' }} />
-        );
+        return <DatePicker value={currentVal ? dayjs(currentVal) : null} onChange={(d) => onChange(d ? d.format('YYYY-MM-DD') : null)} size="small" style={{ width: '100%' }} />;
       default:
         return <Input value={currentVal} onChange={(e) => onChange(e.target.value)} size="small" />;
     }
@@ -203,16 +232,29 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       render: (value: any, record: any) => {
         const isNewRow = String(record.id).startsWith('__new_');
 
+        if (col.computed) {
+          const rowState = isNewRow ? getNewRowState(record.id) : getRowState(record.id, record);
+          const computedVal = col.computed(rowState, record);
+          return col.render ? col.render(computedVal, record) : computedVal;
+        }
+
         if (!col.editable) {
-          if (isNewRow) return null;
+          if (isNewRow) {
+            const rowState = getNewRowState(record.id);
+            const key = flatKey(col.dataIndex);
+            const overrideVal = rowState[key];
+            if (overrideVal !== undefined) return col.render ? col.render(overrideVal, record) : overrideVal;
+            return null;
+          }
+          const editOverride = edits[record.id]?.[flatKey(col.dataIndex)];
+          if (editOverride !== undefined) return col.render ? col.render(editOverride, record) : editOverride;
           return col.render ? col.render(value, record) : value;
         }
 
         if (isNewRow) {
           const row = newRows.find((r) => r.tempId === record.id);
           const key = flatKey(col.dataIndex);
-          const currentVal = row?.values[key];
-          return renderInput(col, currentVal, (v) => updateNewRowCell(record.id, col, v));
+          return renderInput(col, row?.values[key], (v) => updateNewRowCell(record.id, col, v));
         }
 
         const key = flatKey(col.dataIndex);
@@ -226,11 +268,8 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       width: 60,
       fixed: 'right' as const,
       render: (_: any, record: any) => {
-        const isNewRow = String(record.id).startsWith('__new_');
-        if (isNewRow) {
-          return (
-            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => removeNewRow(record.id)} />
-          );
+        if (String(record.id).startsWith('__new_')) {
+          return <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => removeNewRow(record.id)} />;
         }
         return (
           <Popconfirm title="确定删除?" onConfirm={() => markDeleted(record.id)} okText="确定" cancelText="取消">
@@ -241,10 +280,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     },
   ];
 
-  const dataSource = [
-    ...existingData,
-    ...newRows.map((r) => ({ id: r.tempId })),
-  ];
+  const dataSource = [...existingData, ...newRows.map((r) => ({ id: r.tempId }))];
 
   if (!parentId) return null;
 
@@ -260,17 +296,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
           )}
         </Space>
       </Divider>
-      <Table
-        dataSource={dataSource}
-        rowKey="id"
-        size="small"
-        pagination={false}
-        columns={tableColumns}
-        scroll={{ x: 'max-content' }}
+      <Table dataSource={dataSource} rowKey="id" size="small" pagination={false} columns={tableColumns} scroll={{ x: 'max-content' }}
         footer={() => (
-          <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={addRow} block>
-            添加行
-          </Button>
+          <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={addRow} block>添加行</Button>
         )}
       />
     </>
