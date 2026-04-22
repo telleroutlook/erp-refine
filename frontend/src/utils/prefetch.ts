@@ -1,0 +1,80 @@
+const prefetched = new Set<string>();
+
+const routeImports: Record<string, () => Promise<unknown>> = {
+  '/procurement/purchase-orders': () => import('../pages/procurement/purchase-orders/list'),
+  '/procurement/purchase-receipts': () => import('../pages/procurement/purchase-receipts/list'),
+  '/procurement/suppliers': () => import('../pages/procurement/suppliers/list'),
+  '/procurement/purchase-requisitions': () => import('../pages/procurement/purchase-requisitions/list'),
+  '/procurement/rfq-headers': () => import('../pages/procurement/rfq-headers/list'),
+  '/procurement/supplier-quotations': () => import('../pages/procurement/supplier-quotations/list'),
+  '/procurement/profile-change-requests': () => import('../pages/procurement/profile-change-requests/list'),
+  '/procurement/advance-shipment-notices': () => import('../pages/procurement/advance-shipment-notices/list'),
+  '/procurement/reconciliation-statements': () => import('../pages/procurement/reconciliation-statements/list'),
+  '/sales/sales-orders': () => import('../pages/sales/sales-orders/list'),
+  '/sales/customers': () => import('../pages/sales/customers/list'),
+  '/sales/sales-shipments': () => import('../pages/sales/sales-shipments/list'),
+  '/sales/sales-returns': () => import('../pages/sales/sales-returns/list'),
+  '/sales/customer-receipts': () => import('../pages/sales/customer-receipts/list'),
+  '/inventory/stock-records': () => import('../pages/inventory/index'),
+  '/inventory/warehouses': () => import('../pages/inventory/warehouses/list'),
+  '/inventory/inventory-counts': () => import('../pages/inventory/inventory-counts/list'),
+  '/inventory/inventory-lots': () => import('../pages/inventory/inventory-lots/list'),
+  '/inventory/serial-numbers': () => import('../pages/inventory/serial-numbers/list'),
+  '/inventory/stock-transactions': () => import('../pages/inventory/stock-transactions/list'),
+  '/inventory/inventory-reservations': () => import('../pages/inventory/inventory-reservations/list'),
+  '/manufacturing/bom-headers': () => import('../pages/manufacturing/bom-headers/list'),
+  '/manufacturing/work-orders': () => import('../pages/manufacturing/work-orders/list'),
+  '/manufacturing/work-order-productions': () => import('../pages/manufacturing/work-order-productions/list'),
+  '/quality/defect-codes': () => import('../pages/quality/defect-codes/list'),
+  '/quality/quality-standards': () => import('../pages/quality/quality-standards/list'),
+  '/quality/quality-inspections': () => import('../pages/quality/quality-inspections/list'),
+  '/finance/payment-requests': () => import('../pages/finance/payment-requests/list'),
+  '/finance/sales-invoices': () => import('../pages/finance/sales-invoices/list'),
+  '/finance/supplier-invoices': () => import('../pages/finance/supplier-invoices/list'),
+  '/finance/account-subjects': () => import('../pages/finance/account-subjects/list'),
+  '/finance/cost-centers': () => import('../pages/finance/cost-centers/list'),
+  '/finance/vouchers': () => import('../pages/finance/vouchers/list'),
+  '/finance/budgets': () => import('../pages/finance/budgets/list'),
+  '/finance/payment-records': () => import('../pages/finance/payment-records/list'),
+  '/assets/fixed-assets': () => import('../pages/assets/fixed-assets/list'),
+  '/assets/asset-depreciations': () => import('../pages/assets/asset-depreciations/list'),
+  '/assets/asset-maintenance': () => import('../pages/assets/asset-maintenance/list'),
+  '/contracts/contracts': () => import('../pages/contracts/contracts/list'),
+  '/hr/departments': () => import('../pages/hr/departments/list'),
+  '/hr/employees': () => import('../pages/hr/employees/list'),
+  '/hr/exchange-rates': () => import('../pages/hr/exchange-rates/list'),
+  '/master-data/products': () => import('../pages/master-data/products/list'),
+  '/master-data/carriers': () => import('../pages/master-data/carriers/list'),
+  '/master-data/product-categories': () => import('../pages/master-data/product-categories/list'),
+  '/master-data/storage-locations': () => import('../pages/master-data/storage-locations/list'),
+  '/master-data/price-lists': () => import('../pages/master-data/price-lists/list'),
+  '/master-data/currencies': () => import('../pages/master-data/currencies/list'),
+  '/master-data/uoms': () => import('../pages/master-data/uoms/list'),
+  '/system/notifications': () => import('../pages/system/notifications/list'),
+  '/system/document-attachments': () => import('../pages/system/document-attachments/list'),
+  '/system/document-relations': () => import('../pages/system/document-relations/list'),
+  '/system/workflows': () => import('../pages/system/workflows/list'),
+  '/system/approval-rules': () => import('../pages/system/approval-rules/list'),
+  '/system/approval-records': () => import('../pages/system/approval-records/list'),
+  '/system/roles': () => import('../pages/system/roles/list'),
+  '/system/user-roles': () => import('../pages/system/user-roles/list'),
+  '/system/number-sequences': () => import('../pages/system/number-sequences/list'),
+  '/audit/token-usage': () => import('../pages/audit/token-usage/list'),
+  '/audit/tool-call-metrics': () => import('../pages/audit/tool-call-metrics/list'),
+  '/audit/agent-sessions': () => import('../pages/audit/agent-sessions/list'),
+  '/audit/agent-decisions': () => import('../pages/audit/agent-decisions/list'),
+  '/audit/business-events': () => import('../pages/audit/business-events/list'),
+  '/audit/auth-events': () => import('../pages/audit/auth-events/list'),
+  '/audit/import-logs': () => import('../pages/audit/import-logs/list'),
+};
+
+export function prefetchRoute(route: string | undefined): void {
+  if (!route || prefetched.has(route)) return;
+  const importer = routeImports[route];
+  if (importer) {
+    prefetched.add(route);
+    importer().catch(() => {
+      prefetched.delete(route);
+    });
+  }
+}

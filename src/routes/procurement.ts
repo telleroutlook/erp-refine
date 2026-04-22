@@ -68,6 +68,7 @@ procurement.post('/purchase-orders', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate PO number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
+  const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const result = await atomicCreateWithItems(
     db,
     {

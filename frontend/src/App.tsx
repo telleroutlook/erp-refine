@@ -1,14 +1,15 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, lazy } from 'react';
 import { Refine, Authenticated } from '@refinedev/core';
 import { ErrorComponent } from '@refinedev/antd';
 import { BrowserRouter, Route, Routes, Outlet, Navigate } from 'react-router-dom';
 import routerBindings, { UnsavedChangesNotifier } from '@refinedev/react-router-v6';
-import { ConfigProvider, App as AntApp, Spin } from 'antd';
+import { ConfigProvider, App as AntApp } from 'antd';
 import type { Locale } from 'antd/es/locale';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import '@refinedev/antd/dist/reset.css';
 import './styles/tokens.css';
+import './styles/responsive.css';
 import './i18n/i18n';
 import i18n from './i18n/i18n';
 
@@ -16,6 +17,7 @@ import { dataProvider } from './providers/data-provider';
 import { authProvider } from './providers/auth-provider';
 import { i18nProvider } from './providers/i18n-provider';
 import { AppLayout } from './components/layout/AppLayout';
+import { NavigationProgress } from './components/layout/NavigationProgress';
 import { erpTheme } from './theme';
 import { LoginPage } from './pages/auth/LoginPage';
 
@@ -280,12 +282,6 @@ import {
   TruckOutlined, ReconciliationOutlined, CrownOutlined, KeyOutlined, OrderedListOutlined,
   DashboardOutlined, ThunderboltOutlined, RobotOutlined, AlertOutlined, LoginOutlined, ImportOutlined,
 } from '@ant-design/icons';
-
-const PAGE_SPINNER = (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-    <Spin size="large" />
-  </div>
-);
 
 const antdLocaleMap: Record<string, Locale> = { en: enUS, 'zh-CN': zhCN };
 
@@ -821,9 +817,9 @@ const App: React.FC = () => {
                 element={
                   <Authenticated key="protected" fallback={<Navigate to="/login" replace />}>
                     <AppLayout>
-                      <Suspense fallback={PAGE_SPINNER}>
+                      <NavigationProgress>
                         <Outlet />
-                      </Suspense>
+                      </NavigationProgress>
                     </AppLayout>
                   </Authenticated>
                 }

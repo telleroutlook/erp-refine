@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Layout, Menu, Grid, Drawer, Button, theme, ConfigProvider } from 'antd';
 import {
   LogoutOutlined,
-  BarsOutlined,
   LeftOutlined,
   RightOutlined,
   UnorderedListOutlined,
@@ -20,6 +19,7 @@ import {
   useWarnAboutChange,
 } from '@refinedev/core';
 import { useThemedLayoutContext } from '@refinedev/antd';
+import { prefetchRoute } from '../../utils/prefetch';
 
 export const Sider: React.FC = () => {
   const { token } = theme.useToken();
@@ -112,7 +112,11 @@ export const Sider: React.FC = () => {
       );
 
       return (
-        <Menu.Item key={key} icon={icon ?? (isRoute && <UnorderedListOutlined />)}>
+        <Menu.Item
+          key={key}
+          icon={icon ?? (isRoute && <UnorderedListOutlined />)}
+          onMouseEnter={() => prefetchRoute(route)}
+        >
           <Link to={route ?? ''}>{label}</Link>
         </Menu.Item>
       );
@@ -168,43 +172,29 @@ export const Sider: React.FC = () => {
 
   if (isMobile) {
     return (
-      <>
-        <Drawer
-          open={mobileSiderOpen}
-          onClose={() => setMobileSiderOpen(false)}
-          placement={direction === 'rtl' ? 'right' : 'left'}
-          closable={false}
-          width={240}
-          styles={{ body: { padding: 0 } }}
-          maskClosable
-        >
-          <Layout>
-            <Layout.Sider
-              style={{
-                height: '100vh',
-                backgroundColor: token.colorBgContainer,
-                borderRight: `1px solid ${token.colorBorderSecondary}`,
-              }}
-              width={240}
-            >
-              <div style={titleStyle}>ERP Refine</div>
-              {renderMenu()}
-            </Layout.Sider>
-          </Layout>
-        </Drawer>
-        <Button
-          size="large"
-          onClick={() => setMobileSiderOpen(true)}
-          icon={<BarsOutlined />}
-          style={{
-            position: 'fixed',
-            top: 12,
-            left: 12,
-            zIndex: 999,
-            borderRadius: token.borderRadius,
-          }}
-        />
-      </>
+      <Drawer
+        open={mobileSiderOpen}
+        onClose={() => setMobileSiderOpen(false)}
+        placement={direction === 'rtl' ? 'right' : 'left'}
+        closable={false}
+        width={260}
+        styles={{ body: { padding: 0 } }}
+        maskClosable
+      >
+        <Layout>
+          <Layout.Sider
+            style={{
+              height: '100vh',
+              backgroundColor: token.colorBgContainer,
+              borderRight: `1px solid ${token.colorBorderSecondary}`,
+            }}
+            width={260}
+          >
+            <div style={titleStyle}>ERP Refine</div>
+            {renderMenu()}
+          </Layout.Sider>
+        </Layout>
+      </Drawer>
     );
   }
 

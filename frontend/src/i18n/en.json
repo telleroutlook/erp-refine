@@ -254,5 +254,11 @@
     "returned": "Returned",
     "inactive": "Inactive",
     "suspended": "Suspended"
+  },
+  "layout": {
+    "menu": "Menu",
+    "content": "Content",
+    "aiAssistant": "AI Assistant",
+    "loading": "Loading..."
   }
 }

@@ -29,6 +29,10 @@
 
   /* ── Layout ────────────────────────────────────────── */
   --header-height: 56px;
+  --content-padding: 24px;
+  --mobile-tab-bar-height: 56px;
+  --header-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --color-border-secondary: #e5e7eb;
 
   /* ── Spring easing (from HCM) ──────────────────────── */
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);

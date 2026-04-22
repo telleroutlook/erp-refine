@@ -254,5 +254,11 @@
     "returned": "已退回",
     "inactive": "停用",
     "suspended": "暂停"
+  },
+  "layout": {
+    "menu": "菜单",
+    "content": "内容",
+    "aiAssistant": "AI 助手",
+    "loading": "加载中..."
   }
 }

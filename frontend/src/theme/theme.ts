@@ -68,7 +68,7 @@ export const erpTheme: ThemeConfig = {
       headerColor: '#6b7280',
       rowHoverBg: '#f0f7ff',
       headerBorderRadius: 8,
-      cellPaddingBlock: 10,
+      cellPaddingBlock: 12,
     },
     Card: {
       borderRadiusLG: 10,

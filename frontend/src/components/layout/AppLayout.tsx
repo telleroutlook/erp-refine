@@ -1,9 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
-import { Layout, Button, Tooltip, Spin, theme } from 'antd';
-import { RobotOutlined, RightOutlined } from '@ant-design/icons';
+import { Layout, Button, Tooltip, Spin, Drawer, Grid, theme } from 'antd';
+import { RobotOutlined, RightOutlined, CloseOutlined } from '@ant-design/icons';
 import { ThemedLayoutContextProvider } from '@refinedev/antd';
 import { Sider } from './Sider';
 import { Header } from './Header';
+import { MobileTabBar } from './MobileTabBar';
+import type { MobilePanel } from '../../hooks/useMobileLayout';
 
 const AiSidebar = lazy(() => import('../ai/AiSidebar').then(m => ({ default: m.AiSidebar })));
 
@@ -16,6 +18,9 @@ const COLLAPSED_KEY = 'erp_ai_sidebar_collapsed';
 
 export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const { token } = theme.useToken();
+  const breakpoint = Grid.useBreakpoint();
+  const isMobile = typeof breakpoint.lg === 'undefined' ? false : !breakpoint.lg;
+
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     return localStorage.getItem(COLLAPSED_KEY) === 'true';
   });
@@ -24,6 +29,8 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     return stored ? parseInt(stored, 10) : SIDEBAR_DEFAULT;
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('content');
+  const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
 
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
@@ -35,6 +42,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     currentWidth.current = sidebarWidth;
   }, [sidebarWidth]);
 
+  // Mouse drag for desktop
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     dragStartX.current = e.clientX;
@@ -42,10 +50,17 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     setIsDragging(true);
   }, []);
 
+  // Touch drag for tablet
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    dragStartX.current = e.touches[0].clientX;
+    dragStartWidth.current = currentWidth.current;
+    setIsDragging(true);
+  }, []);
+
   useEffect(() => {
     if (!isDragging) return;
 
-    const onMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent) => {
       const delta = dragStartX.current - e.clientX;
       const next = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, dragStartWidth.current + delta));
       currentWidth.current = next;
@@ -53,17 +68,29 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
       if (toggleRef.current) toggleRef.current.style.right = `${next + HANDLE_W + 4}px`;
     };
 
-    const onUp = () => {
+    const onTouchMove = (e: TouchEvent) => {
+      const delta = dragStartX.current - e.touches[0].clientX;
+      const next = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, dragStartWidth.current + delta));
+      currentWidth.current = next;
+      if (sidebarRef.current) sidebarRef.current.style.width = `${next}px`;
+      if (toggleRef.current) toggleRef.current.style.right = `${next + HANDLE_W + 4}px`;
+    };
+
+    const onEnd = () => {
       setIsDragging(false);
       setSidebarWidth(currentWidth.current);
       localStorage.setItem(STORAGE_KEY, String(currentWidth.current));
     };
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onEnd);
     };
   }, [isDragging]);
 
@@ -75,8 +102,77 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
     });
   }, []);
 
-  const transition = isDragging ? 'none' : 'all 0.25s var(--ease-spring)';
+  const handleMobileSwitch = useCallback((panel: MobilePanel) => {
+    setMobilePanel(panel);
+    if (panel === 'ai') {
+      setAiDrawerOpen(true);
+    } else {
+      setAiDrawerOpen(false);
+    }
+  }, []);
 
+  const transition = isDragging ? 'none' : 'width 0.25s var(--ease-spring)';
+
+  // ── Mobile layout ──
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
+        <ThemedLayoutContextProvider>
+          <Layout style={{ flex: 1, minHeight: 0 }} hasSider>
+            <Sider />
+            <Layout>
+              <Header />
+              <Layout.Content className="erp-main-content" style={{ overflow: 'auto' }}>
+                <div className="erp-content-area" style={{ minHeight: 200, padding: 12 }}>
+                  {children}
+                </div>
+              </Layout.Content>
+            </Layout>
+          </Layout>
+        </ThemedLayoutContextProvider>
+
+        {/* AI Drawer — bottom sheet */}
+        <Drawer
+          open={aiDrawerOpen}
+          onClose={() => { setAiDrawerOpen(false); setMobilePanel('content'); }}
+          placement="bottom"
+          height="85dvh"
+          closable={false}
+          styles={{
+            body: { padding: 0, display: 'flex', flexDirection: 'column' },
+            wrapper: { borderRadius: '16px 16px 0 0' },
+          }}
+          style={{ borderRadius: '16px 16px 0 0' }}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px 8px',
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            flexShrink: 0,
+          }}>
+            <span style={{ fontWeight: 600, fontSize: 15, color: token.colorText }}>AI Assistant</span>
+            <Button
+              type="text"
+              size="small"
+              icon={<CloseOutlined />}
+              onClick={() => { setAiDrawerOpen(false); setMobilePanel('content'); }}
+            />
+          </div>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Spin size="small" /></div>}>
+              <AiSidebar />
+            </Suspense>
+          </div>
+        </Drawer>
+
+        <MobileTabBar activePanel={mobilePanel} onSwitch={handleMobileSwitch} />
+      </div>
+    );
+  }
+
+  // ── Desktop layout ──
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       {/* Main content area */}
@@ -87,7 +183,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
             <Layout>
               <Header />
               <Layout.Content>
-                <div style={{ minHeight: 360, padding: 24 }}>
+                <div className="erp-content-area" style={{ minHeight: 360, padding: 'var(--content-padding)' }}>
                   {children}
                 </div>
               </Layout.Content>
@@ -100,6 +196,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
       {!collapsed && (
         <div
           onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
           style={{
             width: HANDLE_W,
             cursor: 'col-resize',
@@ -109,6 +206,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
             zIndex: 10,
             transition: 'background 0.15s',
             userSelect: 'none',
+            touchAction: 'none',
           }}
         >
           <div style={{
