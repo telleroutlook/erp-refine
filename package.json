@@ -9,7 +9,7 @@
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build && cd ..",
     "deploy": "npm run validate && npm run build && wrangler deploy",
-    "validate": "npx tsx scripts/validate-schema.ts && npx tsx scripts/validate-frontend-api.ts && npx tsx scripts/validate-i18n.ts && npx tsx scripts/validate-status.ts",
+    "validate": "npx tsx scripts/validate-schema.ts && npx tsx scripts/validate-frontend-api.ts && npx tsx scripts/validate-i18n.ts && npx tsx scripts/validate-status.ts && npx tsx scripts/validate-routes.ts",
     "test": "vitest run",
     "test:sql": "vitest run tests/sql-validation.test.ts",
     "test:api": "vitest run tests/api-integration.test.ts",

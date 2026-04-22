@@ -84,7 +84,7 @@ procurement.post('/purchase-orders', async (c) => {
         order_number: seqData,
         organization_id: user.organizationId,
         status: 'draft',
-        created_by: user.userId,
+        created_by: empId,
       },
       items: items ?? [],
     },
