@@ -31,8 +31,8 @@ export async function runPhase6(ctx: TestContext, org: string): Promise<void> {
     if (!pr.partner_id) continue;
     const result = await api.safePost<any>('/api/payment-records', {
       ...pr,
+      payment_number: `PAY-API-${Date.now()}-${i}`,
       payment_date: `2026-04-${String(18 + i).padStart(2, '0')}`,
-      notes: `API seed payment #${i + 1}`,
     }, meta('payment-record', i));
     if (result?.data?.id) {
       console.log(`    POST Payment Record → ${result.data.id} (${pr.payment_type})`);

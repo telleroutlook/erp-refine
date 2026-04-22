@@ -13,6 +13,8 @@ export async function runPhase5(ctx: TestContext, org: string): Promise<void> {
   const custIds = (customers?.data ?? []).map((c: any) => c.id);
   const prods = await api.safeGet<any>('/api/products', { _limit: 5, status: 'active' }, meta('prod-lookup', 0));
   const prodIds = (prods?.data ?? []).map((p: any) => p.id);
+  const whs = await api.safeGet<any>('/api/warehouses', { _limit: 2 }, meta('wh-lookup', 0));
+  const whIds = (whs?.data ?? []).map((w: any) => w.id);
 
   // Lookup confirmed shipments
   const shipments = await api.safeGet<any>('/api/sales-shipments', { _limit: 5 }, meta('ship-lookup', 0));
@@ -58,12 +60,13 @@ export async function runPhase5(ctx: TestContext, org: string): Promise<void> {
   const returnIds: string[] = [];
   for (let i = 0; i < returnCount; i++) {
     const items = [
-      { product_id: prodIds[i % prodIds.length], quantity: 2 + i, unit_price: 100 + i * 10, reason: `质量问题 #${i + 1}`, line_number: 1 },
+      { product_id: prodIds[i % prodIds.length], quantity: 2 + i, unit_price: 100 + i * 10, reason: `质量问题 #${i + 1}` },
     ];
     const ret = await api.safePost<any>('/api/sales-returns', {
       customer_id: custIds[i % custIds.length] ?? custIds[0],
       sales_order_id: soIds.length > 0 ? soIds[i % soIds.length] : undefined,
       return_date: `2026-04-${String(20 + i).padStart(2, '0')}`,
+      warehouse_id: whIds.length > 0 ? whIds[0] : undefined,
       reason: `客户退货 #${i + 1}`,
       notes: `API seed return #${i + 1}`,
       items,

@@ -106,6 +106,7 @@ export async function runPhase13(ctx: TestContext, org: string): Promise<void> {
           purchase_order_id: advPo.data.id,
           supplier_id: supIds[0],
           receipt_date: '2026-04-22',
+          warehouse_id: whIds[0],
           items: poItems.map((item: any, idx: number) => ({
             purchase_order_item_id: item.id,
             product_id: item.product_id,

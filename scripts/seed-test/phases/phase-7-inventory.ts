@@ -43,7 +43,6 @@ export async function runPhase7(ctx: TestContext, org: string): Promise<void> {
       manufacture_date: '2026-03-01',
       expiry_date: i === 2 ? '2026-01-01' : '2027-03-01', // expired for i=2
       status: lotStatuses[i % lotStatuses.length],
-      notes: `API seed lot #${i + 1}`,
     }, meta('lot-create', i));
     if (lot?.data?.id) {
       console.log(`    POST Lot → ${lot.data.id} (${lotStatuses[i % lotStatuses.length]})`);
@@ -61,7 +60,6 @@ export async function runPhase7(ctx: TestContext, org: string): Promise<void> {
       product_id: prodIds[i % prodIds.length],
       warehouse_id: whIds[0],
       status: snStatuses[i % snStatuses.length],
-      notes: `API seed serial #${i + 1}`,
     }, meta('sn-create', i));
     if (sn?.data?.id) {
       console.log(`    POST Serial → ${sn.data.id} (${snStatuses[i % snStatuses.length]})`);
@@ -82,7 +80,6 @@ export async function runPhase7(ctx: TestContext, org: string): Promise<void> {
       reference_id: soList?.data?.[i]?.id ?? soList?.data?.[0]?.id,
       status: i === 0 ? 'active' : 'released',
       expires_at: '2026-05-31T23:59:59Z',
-      notes: `API seed reservation #${i + 1}`,
     }, meta('reservation-create', i));
     if (res?.data?.id) {
       console.log(`    POST Reservation → ${res.data.id}`);

@@ -85,9 +85,9 @@ export async function runPhase10(ctx: TestContext, org: string): Promise<void> {
   await api.safeGet('/api/dynamic-form-data', { _limit: 5 }, meta('form-data-list', 0));
 
   // --- Message Feedback ---
-  // Columns: message_id, feedback, comment, session_id
+  // Columns: message_id (integer), feedback, comment, session_id
   await api.safePost('/api/message-feedback', {
-    message_id: `test-msg-${Date.now()}`,
+    message_id: 1,
     feedback: 'good',
     comment: 'API seed test feedback',
     session_id: `test-session-${Date.now()}`,

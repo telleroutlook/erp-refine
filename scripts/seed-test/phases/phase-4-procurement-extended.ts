@@ -123,6 +123,7 @@ export async function runPhase4(ctx: TestContext, org: string): Promise<void> {
         purchase_order_id: po.id,
         supplier_id: po.supplier_id,
         receipt_date: '2026-04-22',
+        warehouse_id: whIds[0],
         notes: 'API seed receipt',
         items: receiptItems,
       }, meta('receipt-create', 0));
