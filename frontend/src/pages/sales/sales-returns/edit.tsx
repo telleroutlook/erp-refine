@@ -1,11 +1,13 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
+import { Form, Input, DatePicker, Select, Row, Col, Table, Divider } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { RETURN_STATUS_OPTIONS } from '../../../constants/options';
+import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 
 export const SalesReturnEdit: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({ resource: 'sales-returns' });
+  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'sales-returns' });
+  const record = queryResult?.data?.data as any;
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑销售退货单">
@@ -37,6 +39,25 @@ export const SalesReturnEdit: React.FC = () => {
           </Col>
         </Row>
       </Form>
+
+      {record?.items?.length > 0 && (
+        <>
+          <Divider>退货行</Divider>
+          <Table
+            dataSource={record.items}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            columns={[
+              { dataIndex: ['product', 'name'], title: '产品' },
+              { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
+              { dataIndex: 'quantity', title: '退货数量', width: 100, align: 'right' },
+              { dataIndex: 'unit_price', title: '单价', width: 100, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.sales_order?.currency} /> },
+              { dataIndex: 'amount', title: '行合计', width: 120, align: 'right', render: (v: number) => <AmountDisplay value={v} currency={record?.sales_order?.currency} /> },
+            ]}
+          />
+        </>
+      )}
     </Edit>
   );
 };

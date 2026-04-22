@@ -1,11 +1,12 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
-import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Switch } from 'antd';
+import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Switch, Table, Divider } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 
 export const BomHeaderEdit: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({ resource: 'bom-headers' });
+  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'bom-headers' });
+  const record = queryResult?.data?.data as any;
   const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
   const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
 
@@ -50,6 +51,21 @@ export const BomHeaderEdit: React.FC = () => {
           </Col>
         </Row>
       </Form>
+
+      {record?.items && record.items.length > 0 && (
+        <>
+          <Divider>BOM明细</Divider>
+          <Table dataSource={record.items} rowKey="id" size="small" pagination={false} columns={[
+            { dataIndex: 'sequence', title: '序号', width: 60 },
+            { dataIndex: ['product', 'name'], title: '物料' },
+            { dataIndex: ['product', 'code'], title: '物料编号', width: 120 },
+            { dataIndex: 'quantity', title: '用量', width: 80, align: 'right' as const },
+            { dataIndex: 'unit', title: '单位', width: 80 },
+            { dataIndex: 'scrap_rate', title: '损耗率(%)', width: 100, align: 'right' as const, render: (v: number) => v ? `${v}%` : '-' },
+            { dataIndex: 'notes', title: '备注' },
+          ]} />
+        </>
+      )}
     </Edit>
   );
 };

@@ -1,11 +1,12 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
+import { Form, Input, DatePicker, Select, Row, Col, Table, Divider } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { COUNT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const InventoryCountEdit: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({ resource: 'inventory-counts' });
+  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'inventory-counts' });
+  const record = queryResult?.data?.data as any;
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑库存盘点">
@@ -37,6 +38,25 @@ export const InventoryCountEdit: React.FC = () => {
           </Col>
         </Row>
       </Form>
+
+      {record?.lines && record.lines.length > 0 && (
+        <>
+          <Divider>盘点明细</Divider>
+          <Table
+            dataSource={record.lines}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            columns={[
+              { dataIndex: ['product', 'name'], title: '产品' },
+              { dataIndex: 'system_quantity', title: '系统数量', width: 100, align: 'right' as const },
+              { dataIndex: 'counted_quantity', title: '盘点数量', width: 100, align: 'right' as const },
+              { dataIndex: 'variance_quantity', title: '差异数量', width: 100, align: 'right' as const },
+              { dataIndex: 'notes', title: '备注' },
+            ]}
+          />
+        </>
+      )}
     </Edit>
   );
 };

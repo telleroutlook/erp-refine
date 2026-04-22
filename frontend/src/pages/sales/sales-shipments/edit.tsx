@@ -1,11 +1,12 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
+import { Form, Input, DatePicker, Select, Row, Col, Table, Divider } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { SHIPMENT_STATUS_OPTIONS } from '../../../constants/options';
 
 export const SalesShipmentEdit: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({ resource: 'sales-shipments' });
+  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'sales-shipments' });
+  const record = queryResult?.data?.data as any;
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="编辑销售发货单">
@@ -37,6 +38,23 @@ export const SalesShipmentEdit: React.FC = () => {
           </Col>
         </Row>
       </Form>
+
+      {record?.items?.length > 0 && (
+        <>
+          <Divider>发货行</Divider>
+          <Table
+            dataSource={record.items}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            columns={[
+              { dataIndex: ['product', 'name'], title: '产品' },
+              { dataIndex: ['product', 'code'], title: '产品编号', width: 120 },
+              { dataIndex: 'quantity', title: '发货数量', width: 100, align: 'right' },
+            ]}
+          />
+        </>
+      )}
     </Edit>
   );
 };

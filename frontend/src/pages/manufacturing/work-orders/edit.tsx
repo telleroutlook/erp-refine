@@ -1,12 +1,14 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
+import { useForm, Edit, DateField } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
-import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
+import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Table, Divider } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { WORK_ORDER_STATUS_OPTIONS } from '../../../constants/options';
+import { StatusTag } from '../../../components/shared/StatusTag';
 
 export const WorkOrderEdit: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({ resource: 'work-orders' });
+  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'work-orders' });
+  const record = queryResult?.data?.data as any;
   const { data: warehousesData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
   const warehouseOptions = (warehousesData?.data ?? []).map((w: any) => ({ label: w.name, value: w.id }));
 
@@ -51,6 +53,32 @@ export const WorkOrderEdit: React.FC = () => {
           </Col>
         </Row>
       </Form>
+
+      {record?.materials && record.materials.length > 0 && (
+        <>
+          <Divider>物料需求</Divider>
+          <Table dataSource={record.materials} rowKey="id" size="small" pagination={false} columns={[
+            { dataIndex: ['product', 'name'], title: '物料' },
+            { dataIndex: 'required_quantity', title: '需求数量', width: 100, align: 'right' as const },
+            { dataIndex: 'issued_quantity', title: '已领数量', width: 100, align: 'right' as const },
+            { dataIndex: 'status', title: '状态', width: 100, render: (v: string) => <StatusTag status={v} /> },
+            { dataIndex: 'notes', title: '备注' },
+          ]} />
+        </>
+      )}
+
+      {record?.productions && record.productions.length > 0 && (
+        <>
+          <Divider>生产报工</Divider>
+          <Table dataSource={record.productions} rowKey="id" size="small" pagination={false} columns={[
+            { dataIndex: 'production_date', title: '报工日期', width: 120, render: (v: string) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-' },
+            { dataIndex: 'quantity', title: '生产数量', width: 100, align: 'right' as const },
+            { dataIndex: 'qualified_quantity', title: '合格数量', width: 100, align: 'right' as const },
+            { dataIndex: 'defective_quantity', title: '不良数量', width: 100, align: 'right' as const },
+            { dataIndex: 'notes', title: '备注' },
+          ]} />
+        </>
+      )}
     </Edit>
   );
 };
