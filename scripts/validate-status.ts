@@ -127,9 +127,9 @@ for (const file of [...pageFiles, ...componentFiles]) {
   const content = readFileSync(file, 'utf-8');
   const statusPatterns = [
     /status\s*===?\s*['"]([a-z_]+)['"]/g,
-    /['"]([a-z_]+)['"]\s*:\s*\{?\s*(?:color|label|text|icon|bg|GRAY|BLUE|GREEN|YELLOW|RED|CYAN|PURPLE)/g,
+    /['"]([a-z_]+)['"]\s*:\s*\{?\s*(?:color|label|text|icon|bg|GRAY|BLUE|GREEN|YELLOW|RED|CYAN|PURPLE|CHIP_GRAY|CHIP_BLUE|CHIP_GREEN|CHIP_YELLOW|CHIP_RED|CHIP_CYAN|CHIP_PURPLE)/g,
     /case\s+['"]([a-z_]+)['"]/g,
-    /\b([a-z_]+)\s*:\s*(?:GRAY|BLUE|GREEN|YELLOW|RED|CYAN|PURPLE)\b/g,
+    /\b([a-z_]+)\s*:\s*(?:CHIP_)?(?:GRAY|BLUE|GREEN|YELLOW|RED|CYAN|PURPLE)\b/g,
   ];
   for (const re of statusPatterns) {
     let m: RegExpExecArray | null;

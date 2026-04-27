@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col, Divider, Spin } from 'antd';
+import { Form, Input, DatePicker, Select, Row, Col, Divider } from 'antd';
+import { PageSpinner } from '../../../components/shared/PageSpinner';
 import { CURRENCY_OPTIONS } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -46,7 +47,7 @@ export const SupplierInvoiceCreate: React.FC = () => {
     return onFinish(payload);
   };
 
-  if (sourceLoading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
+  if (sourceLoading) return <PageSpinner />;
 
   return (
     <Create saveButtonProps={saveButtonProps} title={pt('supplier_invoices', 'create')}>

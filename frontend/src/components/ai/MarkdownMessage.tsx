@@ -17,7 +17,7 @@ const MD_COMPONENTS = {
     <pre style={{
       background: 'var(--md-code-bg)',
       border: '1px solid var(--md-code-border)',
-      borderRadius: 6,
+      borderRadius: 8,
       padding: '12px 16px',
       overflowX: 'auto',
       fontSize: 12,
@@ -85,8 +85,8 @@ const MD_COMPONENTS = {
     </blockquote>
   ),
   p: ({ children }: any) => <p style={{ margin: '4px 0', lineHeight: 1.6 }}>{children}</p>,
-  h1: ({ children }: any) => <h1 style={{ fontSize: 16, margin: '12px 0 6px', fontWeight: 600 }}>{children}</h1>,
-  h2: ({ children }: any) => <h2 style={{ fontSize: 16, margin: '10px 0 5px', fontWeight: 600 }}>{children}</h2>,
+  h1: ({ children }: any) => <h1 style={{ fontSize: 20, margin: '12px 0 8px', fontWeight: 600 }}>{children}</h1>,
+  h2: ({ children }: any) => <h2 style={{ fontSize: 16, margin: '12px 0 4px', fontWeight: 600 }}>{children}</h2>,
   h3: ({ children }: any) => <h3 style={{ fontSize: 14, margin: '8px 0 4px', fontWeight: 600 }}>{children}</h3>,
   ul: ({ children }: any) => <ul style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ul>,
   ol: ({ children }: any) => <ol style={{ margin: '4px 0', paddingLeft: 20 }}>{children}</ol>,

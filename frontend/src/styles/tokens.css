@@ -10,12 +10,22 @@
   --color-surface: #FFFFFF;
   --color-border: #E2E8F0;
 
+  /* ── Status chip palette ────────────────────────────── */
+  --status-gray-bg: #F1F5F9;     --status-gray-text: #475569;
+  --status-blue-bg: #DBEAFE;     --status-blue-text: #1E40AF;
+  --status-green-bg: #DCFCE7;    --status-green-text: #166534;
+  --status-yellow-bg: #FEF3C7;   --status-yellow-text: #92400E;
+  --status-red-bg: #FEE2E2;      --status-red-text: #991B1B;
+  --status-cyan-bg: #CFFAFE;     --status-cyan-text: #155E75;
+  --status-purple-bg: #F3E8FF;   --status-purple-text: #6B21A8;
+
   /* ── Sidebar ────────────────────────────────────────── */
   --sider-bg: #131B2E;
   --sider-text: rgba(255, 255, 255, 0.7);
   --sider-text-active: #FFFFFF;
   --sider-active-indicator: #059669;
   --sider-hover-bg: rgba(255, 255, 255, 0.06);
+  --sider-border: rgba(255, 255, 255, 0.08);
 
   /* ── AI accent ─────────────────────────────────────── */
   --ai-primary: #0F172A;
@@ -27,6 +37,8 @@
   --ai-border-bubble: #E2E8F0;
   --ai-input-bg: #F8FAFC;
   --ai-drag-bg: rgba(15, 23, 42, 0.08);
+  --ai-subtitle-color: rgba(255, 255, 255, 0.6);
+  --ai-icon-bg: rgba(255, 255, 255, 0.12);
 
   /* ── Markdown rendering ────────────────────────────── */
   --md-code-bg: #F8FAFC;
@@ -128,4 +140,12 @@
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* ── Focus ring for custom interactive elements ──────── */
+
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-navy, #0F172A);
+  outline-offset: 2px;
 }

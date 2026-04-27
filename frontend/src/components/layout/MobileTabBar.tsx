@@ -22,8 +22,12 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({ activePanel, onSwitc
       {tabs.map((tab) => (
         <div
           key={tab.key}
+          role="button"
+          tabIndex={0}
+          aria-current={activePanel === tab.key ? 'page' : undefined}
           className={`erp-mobile-tab-bar__item${activePanel === tab.key ? ' erp-mobile-tab-bar__item--active' : ''}`}
           onClick={() => onSwitch(tab.key)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSwitch(tab.key); } }}
         >
           {tab.icon}
           <span>{translate(tab.labelKey, tab.labelKey.split('.')[1])}</span>

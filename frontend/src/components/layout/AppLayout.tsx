@@ -17,6 +17,12 @@ const HANDLE_W = 5;
 const STORAGE_KEY = 'erp_ai_sidebar_width';
 const COLLAPSED_KEY = 'erp_ai_sidebar_collapsed';
 
+const AI_FALLBACK = (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+    <Spin size="small" />
+  </div>
+);
+
 const MobileLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('content');
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
@@ -48,7 +54,7 @@ const MobileLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
         <Layout>
           <Header />
           <Layout.Content className="erp-main-content" style={{ overflow: 'auto' }}>
-            <div className="erp-content-area" style={{ minHeight: 200, padding: 12 }}>
+            <div className="erp-content-area" style={{ minHeight: 200, padding: 'var(--content-padding)' }}>
               {children}
             </div>
           </Layout.Content>
@@ -64,7 +70,7 @@ const MobileLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
         styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column' } }}
       >
         <div style={{ flex: 1, minHeight: 0 }}>
-          <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Spin size="small" /></div>}>
+          <Suspense fallback={AI_FALLBACK}>
             <AiSidebar onClose={closeAi} />
           </Suspense>
         </div>
@@ -235,10 +241,10 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
               background: 'var(--ai-primary)',
               borderColor: 'var(--ai-primary)',
               boxShadow: 'var(--ai-glow)',
-              width: 28,
-              height: 28,
-              minWidth: 28,
-              fontSize: 12,
+              width: 36,
+              height: 36,
+              minWidth: 36,
+              fontSize: 14,
             }}
           />
         </Tooltip>
@@ -254,7 +260,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
           flexDirection: 'column',
           transition,
         }}>
-          <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Spin size="small" /></div>}>
+          <Suspense fallback={AI_FALLBACK}>
             <AiSidebar />
           </Suspense>
         </div>

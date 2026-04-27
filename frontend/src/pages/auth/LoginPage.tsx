@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useLogin, useIsAuthenticated } from '@refinedev/core';
 import { Navigate } from 'react-router-dom';
-import { Form, Input, Button, Divider, Typography, Tag, Grid } from 'antd';
+import { Form, Input, Button, Divider, Typography, Grid, theme } from 'antd';
 import { UserOutlined, LockOutlined, SafetyOutlined, RobotOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { CHIP_RED, CHIP_BLUE, CHIP_PURPLE, CHIP_CYAN, CHIP_YELLOW, type ChipStyle } from '../../components/shared/StatusTag';
 
 const { Title, Text } = Typography;
 
@@ -12,21 +13,21 @@ interface QuickUser {
   password: string;
   org: string;
   role: string;
-  roleColor: string;
+  chip: ChipStyle;
 }
 
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? '';
 
 const QUICK_USERS: QuickUser[] = [
-  { email: 'admin@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', role: 'admin',               roleColor: 'red' },
-  { email: 'manager@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', role: 'manager',             roleColor: 'orange' },
-  { email: 'sales@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', role: 'sales_manager',       roleColor: 'blue' },
-  { email: 'purchasing@erp.demo', password: DEMO_PASSWORD, org: 'DEFAULT', role: 'procurement_manager', roleColor: 'purple' },
-  { email: 'finance@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', role: 'finance_manager',     roleColor: 'gold' },
-  { email: 'warehouse@erp.demo',  password: DEMO_PASSWORD, org: 'DEFAULT', role: 'inventory_manager',   roleColor: 'cyan' },
-  { email: 'admin@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    role: 'admin',               roleColor: 'red' },
-  { email: 'finance@tech.demo',   password: DEMO_PASSWORD, org: 'TECH',    role: 'finance_manager',     roleColor: 'gold' },
-  { email: 'sales@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    role: 'sales_manager',       roleColor: 'blue' },
+  { email: 'admin@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', role: 'admin',               chip: CHIP_RED },
+  { email: 'manager@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', role: 'manager',             chip: CHIP_YELLOW },
+  { email: 'sales@erp.demo',      password: DEMO_PASSWORD, org: 'DEFAULT', role: 'sales_manager',       chip: CHIP_BLUE },
+  { email: 'purchasing@erp.demo', password: DEMO_PASSWORD, org: 'DEFAULT', role: 'procurement_manager', chip: CHIP_PURPLE },
+  { email: 'finance@erp.demo',    password: DEMO_PASSWORD, org: 'DEFAULT', role: 'finance_manager',     chip: CHIP_YELLOW },
+  { email: 'warehouse@erp.demo',  password: DEMO_PASSWORD, org: 'DEFAULT', role: 'inventory_manager',   chip: CHIP_CYAN },
+  { email: 'admin@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    role: 'admin',               chip: CHIP_RED },
+  { email: 'finance@tech.demo',   password: DEMO_PASSWORD, org: 'TECH',    role: 'finance_manager',     chip: CHIP_YELLOW },
+  { email: 'sales@tech.demo',     password: DEMO_PASSWORD, org: 'TECH',    role: 'sales_manager',       chip: CHIP_BLUE },
 ];
 
 const ROLE_I18N: Record<string, { en: string; zh: string }> = {
@@ -43,15 +44,6 @@ const ORG_I18N: Record<string, { en: string; zh: string }> = {
   TECH:    { en: 'Tech Innovation', zh: '科技创新' },
 };
 
-const CHIP_COLORS: Record<string, { bg: string; color: string }> = {
-  red:    { bg: '#FEE2E2', color: '#991B1B' },
-  orange: { bg: '#FEF3C7', color: '#92400E' },
-  blue:   { bg: '#DBEAFE', color: '#1E40AF' },
-  purple: { bg: '#F3E8FF', color: '#6B21A8' },
-  gold:   { bg: '#FEF3C7', color: '#92400E' },
-  cyan:   { bg: '#CFFAFE', color: '#155E75' },
-};
-
 export const LoginPage: React.FC = () => {
   const { mutate: login, isLoading } = useLogin<{ email: string; password: string }>();
   const { data: authData } = useIsAuthenticated();
@@ -61,6 +53,7 @@ export const LoginPage: React.FC = () => {
   const lang = i18n.language.startsWith('zh') ? 'zh' : 'en';
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
+  const { token } = theme.useToken();
 
   if (authData?.authenticated) return <Navigate to="/" replace />;
 
@@ -89,10 +82,11 @@ export const LoginPage: React.FC = () => {
       padding: isMobile ? '32px 20px' : '48px 56px',
       maxWidth: isMobile ? undefined : 600,
       overflow: 'auto',
-      background: '#FFFFFF',
+      background: token.colorBgContainer,
+      position: 'relative',
     }}>
       {/* Language switcher */}
-      <div style={{ position: 'absolute', top: 16, right: isMobile ? 16 : undefined, left: isMobile ? undefined : 16, zIndex: 1 }}>
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
         <Button.Group size="small">
           <Button
             type={lang === 'en' ? 'primary' : 'default'}
@@ -113,29 +107,29 @@ export const LoginPage: React.FC = () => {
 
       {/* Brand header — hidden on mobile where a separate header renders above */}
       {!isMobile && (
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: 8,
+              background: token.colorText, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <SafetyOutlined style={{ color: '#FFFFFF', fontSize: 16 }} />
+              <SafetyOutlined style={{ color: token.colorBgContainer, fontSize: 16 }} />
             </div>
-            <Title level={3} style={{ margin: 0, fontWeight: 700, color: '#0F172A' }}>
+            <Title level={3} style={{ margin: 0, fontWeight: 700, color: token.colorText }}>
               ERP Refine
             </Title>
           </div>
-          <Text style={{ fontSize: 13, color: '#64748B' }}>
+          <Text style={{ fontSize: 13, color: token.colorTextSecondary }}>
             {t('Enterprise Resource Planning Portal', '企业资源计划管理门户')}
           </Text>
         </div>
       )}
 
       {/* Sign In heading */}
-      <Title level={2} style={{ margin: '0 0 4px', fontWeight: 700, color: '#0F172A' }}>
+      <Title level={2} style={{ margin: '0 0 4px', fontWeight: 700, color: token.colorText }}>
         {t('Sign In', '登录')}
       </Title>
-      <Text style={{ color: '#64748B', fontSize: 14, display: 'block', marginBottom: 24 }}>
+      <Text style={{ color: token.colorTextSecondary, fontSize: 14, display: 'block', marginBottom: 24 }}>
         {t('Enter your credentials to access the ERP dashboard.', '输入您的凭证以访问 ERP 仪表板。')}
       </Text>
 
@@ -143,26 +137,26 @@ export const LoginPage: React.FC = () => {
       <Form form={form} onFinish={handleFormLogin} size="large" layout="vertical">
         <Form.Item
           name="email"
-          label={<span style={{ fontWeight: 500, color: '#0F172A' }}>{t('Email Address', '邮箱地址')}</span>}
+          label={<span style={{ fontWeight: 500, color: token.colorText }}>{t('Email Address', '邮箱地址')}</span>}
           style={{ marginBottom: 16 }}
           rules={[{ required: true, type: 'email', message: t('Valid email required', '请输入有效邮箱') }]}
         >
           <Input
-            prefix={<UserOutlined style={{ color: '#94A3B8' }} />}
+            prefix={<UserOutlined style={{ color: token.colorTextTertiary }} />}
             placeholder={t('your@email.com', '您的邮箱')}
-            style={{ borderColor: '#E2E8F0' }}
+            style={{ borderColor: token.colorBorder }}
           />
         </Form.Item>
         <Form.Item
           name="password"
-          label={<span style={{ fontWeight: 500, color: '#0F172A' }}>{t('Password', '密码')}</span>}
+          label={<span style={{ fontWeight: 500, color: token.colorText }}>{t('Password', '密码')}</span>}
           style={{ marginBottom: 20 }}
           rules={[{ required: true, message: t('Password required', '请输入密码') }]}
         >
           <Input.Password
-            prefix={<LockOutlined style={{ color: '#94A3B8' }} />}
+            prefix={<LockOutlined style={{ color: token.colorTextTertiary }} />}
             placeholder="••••••••"
-            style={{ borderColor: '#E2E8F0' }}
+            style={{ borderColor: token.colorBorder }}
           />
         </Form.Item>
         <Form.Item style={{ marginBottom: 0 }}>
@@ -181,7 +175,7 @@ export const LoginPage: React.FC = () => {
       {/* Quick login demo accounts */}
       {DEMO_PASSWORD && (
         <>
-          <Divider style={{ margin: '20px 0 12px', fontSize: 12, color: '#94A3B8' }}>
+          <Divider style={{ margin: '20px 0 12px', fontSize: 12, color: token.colorTextSecondary }}>
             {t('SELECT ACCESS PORTAL', '选择访问入口')}
           </Divider>
 
@@ -192,7 +186,7 @@ export const LoginPage: React.FC = () => {
               <div key={org} style={{ marginBottom: 12 }}>
                 <Text style={{
                   fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5,
-                  fontWeight: 600, color: '#94A3B8',
+                  fontWeight: 600, color: token.colorTextSecondary,
                 }}>
                   {orgName}
                 </Text>
@@ -204,7 +198,6 @@ export const LoginPage: React.FC = () => {
                 }}>
                   {orgUsers.map((user) => {
                     const roleLabel = ROLE_I18N[user.role]?.[lang] ?? user.role;
-                    const chip = CHIP_COLORS[user.roleColor] ?? CHIP_COLORS.blue;
                     return (
                       <Button
                         key={user.email}
@@ -219,20 +212,20 @@ export const LoginPage: React.FC = () => {
                           display: 'flex',
                           alignItems: 'center',
                           gap: 6,
-                          border: '1px solid #E2E8F0',
+                          border: `1px solid ${token.colorBorder}`,
                           justifyContent: 'center',
                           flexDirection: 'column',
                         }}
                       >
                         <div style={{
                           width: 28, height: 28, borderRadius: 8,
-                          background: chip.bg,
+                          background: user.chip.bg,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           marginBottom: 2,
                         }}>
-                          <UserOutlined style={{ color: chip.color, fontSize: 13 }} />
+                          <UserOutlined style={{ color: user.chip.color, fontSize: 13 }} />
                         </div>
-                        <Text style={{ fontSize: 12, color: '#0F172A', fontWeight: 500 }}>{roleLabel}</Text>
+                        <Text style={{ fontSize: 12, color: token.colorText, fontWeight: 500 }}>{roleLabel}</Text>
                       </Button>
                     );
                   })}
@@ -245,7 +238,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Footer */}
       <div style={{ marginTop: 24, textAlign: 'center' }}>
-        <Text style={{ fontSize: 11, color: '#CBD5E1' }}>
+        <Text style={{ fontSize: 11, color: token.colorTextTertiary }}>
           ERP Refine v2.0 · {new Date().getFullYear()}
         </Text>
       </div>
@@ -255,7 +248,7 @@ export const LoginPage: React.FC = () => {
   const decorativePanel = (
     <div style={{
       flex: '0 0 45%',
-      background: '#F8FAFC',
+      background: token.colorBgLayout,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -270,30 +263,32 @@ export const LoginPage: React.FC = () => {
         width: 180, height: 180, borderRadius: '50%',
         background: '#F1F5F9',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: '1px solid #E2E8F0',
+        border: `1px solid ${token.colorBorder}`,
       }}>
         <div style={{
-          width: 64, height: 64, borderRadius: 16,
-          background: '#0F172A',
+          width: 64, height: 64, borderRadius: 12,
+          background: token.colorText,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <RobotOutlined style={{ color: '#FFFFFF', fontSize: 28 }} />
+          <RobotOutlined style={{ color: token.colorBgContainer, fontSize: 28 }} />
         </div>
       </div>
 
       {/* AI Feature card */}
       <div style={{ textAlign: 'center', maxWidth: 280 }}>
-        <Tag style={{
+        <span style={{
+          display: 'inline-block',
           textTransform: 'uppercase', fontSize: 10, fontWeight: 600,
           letterSpacing: '0.5px', border: 'none', borderRadius: 4,
-          background: '#DCFCE7', color: '#166534', marginBottom: 8,
+          background: 'var(--status-green-bg)', color: 'var(--status-green-text)',
+          padding: '2px 8px', marginBottom: 8,
         }}>
           {t('AI-POWERED', 'AI 驱动')}
-        </Tag>
-        <Title level={4} style={{ margin: '0 0 8px', fontWeight: 700, color: '#0F172A' }}>
+        </span>
+        <Title level={4} style={{ margin: '0 0 8px', fontWeight: 700, color: token.colorText }}>
           {t('Enterprise Intelligence', '企业智能')}
         </Title>
-        <Text style={{ color: '#64748B', fontSize: 13, lineHeight: 1.6 }}>
+        <Text style={{ color: token.colorTextSecondary, fontSize: 13, lineHeight: 1.6 }}>
           {t(
             'ERP Refine streamlines business operations using AI-powered analytics and real-time data synchronization.',
             'ERP Refine 利用 AI 驱动的分析和实时数据同步简化企业运营。'
@@ -303,7 +298,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Secured badge */}
       <div style={{
-        background: '#0F172A', borderRadius: 12, padding: '16px 24px',
+        background: token.colorText, borderRadius: 12, padding: '16px 24px',
         display: 'flex', alignItems: 'center', gap: 12, width: '100%', maxWidth: 280,
       }}>
         <div style={{
@@ -311,10 +306,10 @@ export const LoginPage: React.FC = () => {
           background: 'rgba(255, 255, 255, 0.1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          <SafetyOutlined style={{ color: '#FFFFFF', fontSize: 16 }} />
+          <SafetyOutlined style={{ color: token.colorBgContainer, fontSize: 16 }} />
         </div>
         <div>
-          <Text style={{ color: '#FFFFFF', fontWeight: 600, fontSize: 13, display: 'block' }}>
+          <Text style={{ color: token.colorBgContainer, fontWeight: 600, fontSize: 13, display: 'block' }}>
             {t('Secured Access', '安全访问')}
           </Text>
           <Text style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: 11 }}>
@@ -331,26 +326,26 @@ export const LoginPage: React.FC = () => {
         minHeight: '100dvh',
         display: 'flex',
         flexDirection: 'column',
-        background: '#F8FAFC',
+        background: token.colorBgLayout,
       }}>
         {/* Mobile brand header */}
         <div style={{
           textAlign: 'center',
           padding: '40px 20px 16px',
-          background: '#FFFFFF',
+          background: token.colorBgContainer,
         }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <div style={{
               width: 32, height: 32, borderRadius: 8,
-              background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: token.colorText, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <SafetyOutlined style={{ color: '#FFFFFF', fontSize: 14 }} />
+              <SafetyOutlined style={{ color: token.colorBgContainer, fontSize: 14 }} />
             </div>
-            <Title level={4} style={{ margin: 0, fontWeight: 700, color: '#0F172A' }}>
+            <Title level={4} style={{ margin: 0, fontWeight: 700, color: token.colorText }}>
               ERP Refine
             </Title>
           </div>
-          <Text style={{ display: 'block', fontSize: 12, color: '#64748B' }}>
+          <Text style={{ display: 'block', fontSize: 12, color: token.colorTextSecondary }}>
             {t('Enterprise Resource Planning Portal', '企业资源计划管理门户')}
           </Text>
         </div>
@@ -364,7 +359,7 @@ export const LoginPage: React.FC = () => {
       height: '100dvh',
       display: 'flex',
       overflow: 'hidden',
-      background: '#FFFFFF',
+      background: token.colorBgContainer,
     }}>
       {formPanel}
       {decorativePanel}

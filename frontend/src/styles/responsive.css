@@ -33,7 +33,7 @@
   background: var(--ai-primary);
   z-index: 9999;
   border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 8px rgba(93, 54, 255, 0.4);
+  box-shadow: 0 0 8px rgba(15, 23, 42, 0.25);
 }
 
 .erp-nav-progress--loading {
@@ -44,9 +44,9 @@
   animation: progress-finish 0.3s ease-in forwards;
 }
 
-/* ── Mobile breakpoint (<768px) ─────────────────────── */
+/* ── Mobile breakpoint (<1024px — matches !breakpoint.lg) ── */
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   /* Force horizontal scroll on all tables */
   .ant-table-wrapper {
     overflow-x: auto;
@@ -88,11 +88,6 @@
     padding-bottom: calc(var(--mobile-tab-bar-height) + env(safe-area-inset-bottom)) !important;
   }
 
-  /* Refine page header: tighter on mobile */
-  .ant-page-header {
-    padding: 12px !important;
-  }
-
   /* Card padding reduction */
   .ant-card-body {
     padding: 12px !important;
@@ -109,12 +104,11 @@
   }
 }
 
-/* ── Tablet breakpoint (768px–991px) ────────────────── */
+/* ── Description content overflow ──────────────────── */
 
-@media (min-width: 768px) and (max-width: 991px) {
-  .erp-content-area {
-    padding: 16px !important;
-  }
+.ant-descriptions-item-content {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* ── Mobile tab bar ─────────────────────────────────── */
@@ -130,8 +124,8 @@
   justify-content: space-around;
   height: var(--mobile-tab-bar-height);
   padding-bottom: env(safe-area-inset-bottom);
-  background: #ffffff;
-  border-top: 1px solid var(--color-border-secondary, #e5e7eb);
+  background: var(--color-surface, #FFFFFF);
+  border-top: 1px solid var(--color-border-secondary, #E2E8F0);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -144,7 +138,7 @@
   gap: 2px;
   padding: 6px 0;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--color-slate, #64748B);
   font-size: 11px;
   line-height: 1;
   transition: color 0.15s;
@@ -154,6 +148,8 @@
 
 .erp-mobile-tab-bar__item--active {
   color: var(--color-navy, #0F172A);
+  border-top: 2px solid var(--color-navy, #0F172A);
+  padding-top: 4px;
 }
 
 .erp-mobile-tab-bar__item .anticon {

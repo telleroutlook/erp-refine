@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Divider, Spin } from 'antd';
+import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Divider } from 'antd';
+import { PageSpinner } from '../../../components/shared/PageSpinner';
 import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +44,7 @@ export const PurchaseOrderCreate: React.FC = () => {
     return onFinish(payload);
   };
 
-  if (sourceLoading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
+  if (sourceLoading) return <PageSpinner />;
 
   return (
     <Create saveButtonProps={saveButtonProps} title={pt('purchase_orders', 'create')}>

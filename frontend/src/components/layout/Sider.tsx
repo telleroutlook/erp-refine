@@ -21,9 +21,6 @@ import {
 import { useThemedLayoutContext } from '@refinedev/antd';
 import { prefetchRoute } from '../../utils/prefetch';
 
-const SIDER_BG = '#131B2E';
-const SIDER_BORDER = 'rgba(255, 255, 255, 0.08)';
-
 export const Sider: React.FC = () => {
   const direction = useContext(ConfigProvider.ConfigContext)?.direction;
 
@@ -160,14 +157,14 @@ export const Sider: React.FC = () => {
     padding: siderCollapsed ? '0' : '0 16px',
     fontWeight: 700,
     fontSize: 16,
-    color: '#FFFFFF',
-    borderBottom: `1px solid ${SIDER_BORDER}`,
+    color: 'var(--sider-text-active)',
+    borderBottom: '1px solid var(--sider-border)',
     flexShrink: 0,
     gap: 10,
   };
 
   const renderClosingIcons = () => {
-    const iconProps = { style: { color: 'rgba(255, 255, 255, 0.7)' } };
+    const iconProps = { style: { color: 'var(--sider-text)' } };
     const OpenIcon = direction === 'rtl' ? RightOutlined : LeftOutlined;
     const CollapsedIcon = direction === 'rtl' ? LeftOutlined : RightOutlined;
     const IconComponent = siderCollapsed ? CollapsedIcon : OpenIcon;
@@ -185,7 +182,7 @@ export const Sider: React.FC = () => {
       justifyContent: 'center',
       flexShrink: 0,
     }}>
-      <span style={{ color: '#059669', fontWeight: 700, fontSize: 14 }}>E</span>
+      <span style={{ color: 'var(--sider-active-indicator)', fontWeight: 700, fontSize: 14 }}>E</span>
     </div>
   );
 
@@ -204,7 +201,7 @@ export const Sider: React.FC = () => {
           <Layout.Sider
             style={{
               height: '100vh',
-              backgroundColor: SIDER_BG,
+              backgroundColor: 'var(--sider-bg)',
               borderRight: 'none',
             }}
             width={260}
@@ -223,7 +220,7 @@ export const Sider: React.FC = () => {
   return (
     <Layout.Sider
       style={{
-        backgroundColor: SIDER_BG,
+        backgroundColor: 'var(--sider-bg)',
         borderRight: 'none',
       }}
       collapsible
@@ -240,7 +237,7 @@ export const Sider: React.FC = () => {
             borderRadius: 0,
             height: '100%',
             width: '100%',
-            backgroundColor: '#1E293B',
+            backgroundColor: 'var(--ai-primary-hover)',
           }}
         >
           {renderClosingIcons()}

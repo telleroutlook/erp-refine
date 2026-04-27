@@ -2,91 +2,91 @@ import React from 'react';
 import { Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
 
-interface ChipStyle {
+export interface ChipStyle {
   bg: string;
   color: string;
 }
 
-const GRAY: ChipStyle    = { bg: '#F1F5F9', color: '#64748B' };
-const BLUE: ChipStyle    = { bg: '#DBEAFE', color: '#1E40AF' };
-const GREEN: ChipStyle   = { bg: '#DCFCE7', color: '#166534' };
-const YELLOW: ChipStyle  = { bg: '#FEF3C7', color: '#92400E' };
-const RED: ChipStyle     = { bg: '#FEE2E2', color: '#991B1B' };
-const CYAN: ChipStyle    = { bg: '#CFFAFE', color: '#155E75' };
-const PURPLE: ChipStyle  = { bg: '#F3E8FF', color: '#6B21A8' };
+export const CHIP_GRAY: ChipStyle    = { bg: 'var(--status-gray-bg)', color: 'var(--status-gray-text)' };
+export const CHIP_BLUE: ChipStyle    = { bg: 'var(--status-blue-bg)', color: 'var(--status-blue-text)' };
+export const CHIP_GREEN: ChipStyle   = { bg: 'var(--status-green-bg)', color: 'var(--status-green-text)' };
+export const CHIP_YELLOW: ChipStyle  = { bg: 'var(--status-yellow-bg)', color: 'var(--status-yellow-text)' };
+export const CHIP_RED: ChipStyle     = { bg: 'var(--status-red-bg)', color: 'var(--status-red-text)' };
+export const CHIP_CYAN: ChipStyle    = { bg: 'var(--status-cyan-bg)', color: 'var(--status-cyan-text)' };
+export const CHIP_PURPLE: ChipStyle  = { bg: 'var(--status-purple-bg)', color: 'var(--status-purple-text)' };
 
 const STATUS_STYLES: Record<string, ChipStyle> = {
-  draft: GRAY,
-  inactive: GRAY,
-  archived: GRAY,
-  closed: GRAY,
-  expired: GRAY,
-  scrapped: GRAY,
-  disposed: GRAY,
-  discontinued: GRAY,
-  void: GRAY,
-  idle: GRAY,
-  voided: GRAY,
-  skipped: GRAY,
+  draft: CHIP_GRAY,
+  inactive: CHIP_GRAY,
+  archived: CHIP_GRAY,
+  closed: CHIP_GRAY,
+  expired: CHIP_GRAY,
+  scrapped: CHIP_GRAY,
+  disposed: CHIP_GRAY,
+  discontinued: CHIP_GRAY,
+  void: CHIP_GRAY,
+  idle: CHIP_GRAY,
+  voided: CHIP_GRAY,
+  skipped: CHIP_GRAY,
 
-  submitted: BLUE,
-  in_progress: BLUE,
-  processing: BLUE,
-  confirmed: BLUE,
-  ordered: BLUE,
-  issued: BLUE,
-  released: BLUE,
-  shipping: BLUE,
-  partially_received: BLUE,
-  partially_shipped: BLUE,
-  in_transit: BLUE,
-  in_stock: BLUE,
-  open: BLUE,
-  selected: BLUE,
+  submitted: CHIP_BLUE,
+  in_progress: CHIP_BLUE,
+  processing: CHIP_BLUE,
+  confirmed: CHIP_BLUE,
+  ordered: CHIP_BLUE,
+  issued: CHIP_BLUE,
+  released: CHIP_BLUE,
+  shipping: CHIP_BLUE,
+  partially_received: CHIP_BLUE,
+  partially_shipped: CHIP_BLUE,
+  in_transit: CHIP_BLUE,
+  in_stock: CHIP_BLUE,
+  open: CHIP_BLUE,
+  selected: CHIP_BLUE,
 
-  approved: GREEN,
-  active: GREEN,
-  completed: GREEN,
-  passed: GREEN,
-  accepted: GREEN,
-  available: GREEN,
-  received: GREEN,
-  paid: GREEN,
-  delivered: GREEN,
-  posted: GREEN,
-  fulfilled: GREEN,
-  reconciled: GREEN,
-  verified: GREEN,
-  valid: GREEN,
+  approved: CHIP_GREEN,
+  active: CHIP_GREEN,
+  completed: CHIP_GREEN,
+  passed: CHIP_GREEN,
+  accepted: CHIP_GREEN,
+  available: CHIP_GREEN,
+  received: CHIP_GREEN,
+  paid: CHIP_GREEN,
+  delivered: CHIP_GREEN,
+  posted: CHIP_GREEN,
+  fulfilled: CHIP_GREEN,
+  reconciled: CHIP_GREEN,
+  verified: CHIP_GREEN,
+  valid: CHIP_GREEN,
 
-  pending: YELLOW,
-  quarantine: YELLOW,
-  recalled: YELLOW,
-  partially_paid: YELLOW,
-  invoiced: YELLOW,
-  pending_approval: YELLOW,
-  overdue: YELLOW,
-  expiring: YELLOW,
-  partial: YELLOW,
-  disputed: YELLOW,
-  evaluated: YELLOW,
+  pending: CHIP_YELLOW,
+  quarantine: CHIP_YELLOW,
+  recalled: CHIP_YELLOW,
+  partially_paid: CHIP_YELLOW,
+  invoiced: CHIP_YELLOW,
+  pending_approval: CHIP_YELLOW,
+  overdue: CHIP_YELLOW,
+  expiring: CHIP_YELLOW,
+  partial: CHIP_YELLOW,
+  disputed: CHIP_YELLOW,
+  evaluated: CHIP_YELLOW,
 
-  cancelled: RED,
-  rejected: RED,
-  failed: RED,
-  terminated: RED,
-  aborted: RED,
-  blocked: RED,
-  suspended: RED,
+  cancelled: CHIP_RED,
+  rejected: CHIP_RED,
+  failed: CHIP_RED,
+  terminated: CHIP_RED,
+  aborted: CHIP_RED,
+  blocked: CHIP_RED,
+  suspended: CHIP_RED,
 
-  shipped: CYAN,
-  returned: CYAN,
-  converted: CYAN,
-  consumed: CYAN,
-  under_maintenance: CYAN,
+  shipped: CHIP_CYAN,
+  returned: CHIP_CYAN,
+  converted: CHIP_CYAN,
+  consumed: CHIP_CYAN,
+  under_maintenance: CHIP_CYAN,
 
-  conditional: PURPLE,
-  sold: PURPLE,
+  conditional: CHIP_PURPLE,
+  sold: CHIP_PURPLE,
 };
 
 const chipBase: React.CSSProperties = {
@@ -107,7 +107,7 @@ interface StatusTagProps {
 
 export const StatusTag: React.FC<StatusTagProps> = ({ status, label }) => {
   const { t } = useTranslation();
-  const style = STATUS_STYLES[status?.toLowerCase()] ?? GRAY;
+  const style = STATUS_STYLES[status?.toLowerCase()] ?? CHIP_GRAY;
 
   return (
     <Tag

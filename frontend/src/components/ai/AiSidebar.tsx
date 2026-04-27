@@ -176,7 +176,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: token.colorBgContainer }}>
       {/* Header */}
       <div style={{
-        padding: '10px 12px',
+        padding: '12px',
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
         display: 'flex',
         alignItems: 'center',
@@ -189,27 +189,27 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
             <Button
               type="text"
               size="small"
-              icon={<CloseOutlined style={{ color: '#ffffff' }} />}
+              icon={<CloseOutlined style={{ color: 'var(--sider-text-active)' }} />}
               onClick={onClose}
             />
           )}
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.12)',
+            background: 'var(--ai-icon-bg)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <RobotOutlined style={{ color: '#fff', fontSize: 15 }} />
+            <RobotOutlined style={{ color: 'var(--sider-text-active)', fontSize: 15 }} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
-            <Text strong style={{ color: '#fff', fontSize: 14 }}>{t('ai.assistant')}</Text>
-            <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 11 }}>Enterprise Intelligence</Text>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, minWidth: 0 }}>
+            <Text strong style={{ color: 'var(--sider-text-active)', fontSize: 14 }}>{t('ai.assistant')}</Text>
+            <Text style={{ color: 'var(--ai-subtitle-color)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Enterprise Intelligence</Text>
           </div>
         </div>
         <Tooltip title={t('ai.clearChat')}>
           <Button
             type="text"
             size="small"
-            icon={<ClearOutlined style={{ color: '#ffffff' }} />}
+            icon={<ClearOutlined style={{ color: 'var(--sider-text-active)' }} />}
             onClick={clear}
           />
         </Tooltip>
@@ -222,7 +222,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
         padding: '12px 12px 4px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
+        gap: 8,
       }}>
         {messages.length === 0 && !streaming && (
           <div style={{ textAlign: 'center', paddingTop: 48 }}>
@@ -256,7 +256,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
                 padding: '8px 12px',
                 borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
                 background: msg.role === 'user' ? 'var(--ai-primary)' : 'var(--ai-bg-bubble)',
-                color: msg.role === 'user' ? '#fff' : token.colorText,
+                color: msg.role === 'user' ? 'var(--sider-text-active)' : token.colorText,
                 fontSize: 13,
                 lineHeight: 1.6,
                 border: msg.role === 'assistant' ? '1px solid var(--ai-border-bubble)' : 'none',
@@ -323,7 +323,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
 
       {/* Input */}
       <div style={{
-        padding: '10px 12px',
+        padding: '12px',
         borderTop: `1px solid ${token.colorBorderSecondary}`,
         display: 'flex',
         gap: 8,
