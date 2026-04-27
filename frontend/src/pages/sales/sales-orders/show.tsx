@@ -1,7 +1,8 @@
 import React from 'react';
-import { useShow } from '@refinedev/core';
+import { useShow, useNavigation } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
-import { Descriptions, Table, Divider } from 'antd';
+import { Descriptions, Table, Divider, Button, Dropdown, Space } from 'antd';
+import { DownOutlined, CarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { useTranslation } from 'react-i18next';
@@ -12,10 +13,40 @@ export const SalesOrderShow: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
+  const { push } = useNavigation();
   const record = queryResult.data?.data as any;
 
+  const canCreateFrom = record?.status === 'approved';
+
+  const createFromItems = [
+    {
+      key: 'shipment',
+      icon: <CarOutlined />,
+      label: t('buttons.createSalesShipment', 'Create Shipment'),
+      onClick: () => push(`/sales/sales-shipments/create?createFrom=sales-order&sourceId=${record.id}`),
+    },
+    {
+      key: 'invoice',
+      icon: <FileTextOutlined />,
+      label: t('buttons.createSalesInvoice', 'Create Sales Invoice'),
+      onClick: () => push(`/finance/sales-invoices/create?createFrom=sales-order&sourceId=${record.id}`),
+    },
+  ];
+
+  const headerButtons = canCreateFrom ? (
+    <Dropdown menu={{ items: createFromItems }} trigger={['click']}>
+      <Button type="primary">
+        {t('buttons.createFromSource', 'Reference Create')} <DownOutlined />
+      </Button>
+    </Dropdown>
+  ) : undefined;
+
   return (
-    <Show title={`${pt('sales_orders', 'show')} ${record?.order_number ?? ''}`} isLoading={queryResult.isLoading}>
+    <Show
+      title={`${pt('sales_orders', 'show')} ${record?.order_number ?? ''}`}
+      isLoading={queryResult.isLoading}
+      headerButtons={headerButtons}
+    >
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_orders', 'order_number')}>{record?.order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
@@ -47,6 +78,8 @@ export const SalesOrderShow: React.FC = () => {
               { dataIndex: ['product', 'name'], title: fl('sales_order_items', 'product_id') },
               { dataIndex: ['product', 'code'], title: fl('products', 'code'), width: 120 },
               { dataIndex: 'quantity', title: fl('sales_order_items', 'quantity'), width: 80, align: 'right' },
+              { dataIndex: 'shipped_quantity', title: t('fields.shipped_quantity', 'Shipped'), width: 80, align: 'right' },
+              { dataIndex: 'invoiced_quantity', title: t('fields.invoiced_quantity', 'Invoiced'), width: 80, align: 'right' },
               { dataIndex: 'unit_price', title: fl('sales_order_items', 'unit_price'), width: 100, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
               { dataIndex: 'amount', title: fl('sales_order_items', 'line_total'), width: 120, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
             ]}

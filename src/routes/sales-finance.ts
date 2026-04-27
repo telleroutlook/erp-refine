@@ -11,6 +11,8 @@ import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
+import { findFlow } from '../utils/document-flow';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
 
 const salesFinance = new Hono<{ Bindings: Env }>();
 salesFinance.use('*', authMiddleware());
@@ -61,6 +63,28 @@ salesFinance.get('/sales-invoices/:id', async (c) => {
   return c.json({ data });
 });
 
+// GET create-from: SO → Sales Invoice (参考销售订单创建销售发票)
+salesFinance.get('/sales-invoices/create-from/sales-order/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('sales_order', 'sales_invoice')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully invoiced', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
+// GET create-from: Shipment → Sales Invoice (参考发货单创建销售发票)
+salesFinance.get('/sales-invoices/create-from/sales-shipment/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('sales_shipment', 'sales_invoice')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully invoiced', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // POST create (atomic header + items)
 salesFinance.post('/sales-invoices', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -73,7 +97,7 @@ salesFinance.post('/sales-invoices', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, ...headerFields } = body;
+  const { items, _sourceRef, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
     {
@@ -95,6 +119,10 @@ salesFinance.post('/sales-invoices', async (c) => {
     },
     { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_sales_invoice', resource: 'sales_invoices' }
   );
+
+  if (_sourceRef?.type && _sourceRef?.id) {
+    await createDocumentRelation(db, user.organizationId, _sourceRef.type, _sourceRef.id, 'sales_invoice', result.header.id as string, `${_sourceRef.type} → sales_invoice`);
+  }
 
   return c.json({ data: result.header }, 201);
 });

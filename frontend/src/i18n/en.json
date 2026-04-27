@@ -271,7 +271,13 @@
     "confirm": "Confirm",
     "refresh": "Refresh",
     "logout": "Logout",
-    "notAccessTitle": "You are not authorized to access this resource"
+    "notAccessTitle": "You are not authorized to access this resource",
+    "createPurchaseOrder": "Create Purchase Order",
+    "createPurchaseReceipt": "Create Purchase Receipt",
+    "createSupplierInvoice": "Create Supplier Invoice",
+    "createSalesShipment": "Create Shipment",
+    "createSalesInvoice": "Create Sales Invoice",
+    "createFromSource": "Reference Create"
   },
   "common": {
     "loading": "Loading...",
@@ -787,6 +793,15 @@
     "measuredValue": "Measured Value"
   },
   "fields": {
+    "product": "Product",
+    "open_quantity": "Open Qty",
+    "quantity": "Quantity",
+    "unit_price": "Unit Price",
+    "amount": "Amount",
+    "total": "Total",
+    "received_quantity": "Received",
+    "shipped_quantity": "Shipped",
+    "invoiced_quantity": "Invoiced",
     "common": {
       "id": "ID",
       "code": "Code",
@@ -1618,14 +1633,16 @@
     "rfqLines": "RFQ Lines",
     "reconciliationLines": "Reconciliation Lines",
     "asnLines": "ASN Lines",
-    "inspectionDetails": "Inspection Details"
+    "inspectionDetails": "Inspection Details",
+    "lineItems": "Line Items"
   },
   "messages": {
     "saveSuccess": "Saved successfully",
     "saveFailed": "Save failed, please retry",
     "deleteConfirm": "Are you sure you want to delete?",
     "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
-    "submitSuccess": "Submitted successfully"
+    "submitSuccess": "Submitted successfully",
+    "createFromInfo": "Pre-filled from {{sourceType}} {{sourceNumber}}"
   },
   "placeholders": {
     "select": "Select {{field}}",

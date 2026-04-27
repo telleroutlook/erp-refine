@@ -1,7 +1,8 @@
 import React from 'react';
-import { useShow } from '@refinedev/core';
+import { useShow, useNavigation } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
-import { Descriptions, Table, Divider } from 'antd';
+import { Descriptions, Table, Divider, Button, Space } from 'antd';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
@@ -11,11 +12,30 @@ export const PurchaseRequisitionShow: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
+  const { push } = useNavigation();
   const { queryResult } = useShow({ resource: 'purchase-requisitions' });
   const record = queryResult.data?.data as any;
 
+  const canCreatePO = record?.status === 'approved';
+
+  const headerButtons = canCreatePO ? (
+    <Space>
+      <Button
+        type="primary"
+        icon={<ShoppingCartOutlined />}
+        onClick={() => push(`/procurement/purchase-orders/create?createFrom=purchase-requisition&sourceId=${record.id}`)}
+      >
+        {t('buttons.createPurchaseOrder', 'Create Purchase Order')}
+      </Button>
+    </Space>
+  ) : undefined;
+
   return (
-    <Show title={`${pt('purchase_requisitions', 'show')} ${record?.requisition_number ?? ''}`} isLoading={queryResult.isLoading}>
+    <Show
+      title={`${pt('purchase_requisitions', 'show')} ${record?.requisition_number ?? ''}`}
+      isLoading={queryResult.isLoading}
+      headerButtons={headerButtons}
+    >
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('purchase_requisitions', 'requisition_number')}>{record?.requisition_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

@@ -271,7 +271,13 @@
     "confirm": "确认",
     "refresh": "刷新",
     "logout": "退出登录",
-    "notAccessTitle": "您无权访问此资源"
+    "notAccessTitle": "您无权访问此资源",
+    "createPurchaseOrder": "创建采购订单",
+    "createPurchaseReceipt": "创建采购收货",
+    "createSupplierInvoice": "创建供应商发票",
+    "createSalesShipment": "创建发货单",
+    "createSalesInvoice": "创建销售发票",
+    "createFromSource": "参考创建"
   },
   "common": {
     "loading": "加载中...",
@@ -787,6 +793,15 @@
     "measuredValue": "测量值"
   },
   "fields": {
+    "product": "产品",
+    "open_quantity": "未清数量",
+    "quantity": "数量",
+    "unit_price": "单价",
+    "amount": "金额",
+    "total": "合计",
+    "received_quantity": "已收货",
+    "shipped_quantity": "已发货",
+    "invoiced_quantity": "已开票",
     "common": {
       "id": "ID",
       "code": "编号",
@@ -1618,14 +1633,16 @@
     "rfqLines": "询价明细",
     "reconciliationLines": "对账明细",
     "asnLines": "ASN明细",
-    "inspectionDetails": "检验明细"
+    "inspectionDetails": "检验明细",
+    "lineItems": "明细行"
   },
   "messages": {
     "saveSuccess": "保存成功",
     "saveFailed": "保存失败，请重试",
     "deleteConfirm": "确定删除?",
     "unsavedChanges": "有未保存的修改，确定要离开吗？",
-    "submitSuccess": "提交成功"
+    "submitSuccess": "提交成功",
+    "createFromInfo": "已从 {{sourceType}} {{sourceNumber}} 预填"
   },
   "placeholders": {
     "select": "选择{{field}}",

@@ -4492,6 +4492,8 @@ export type Database = {
           product_id: string
           quantity: number
           sales_invoice_id: string
+          sales_order_item_id: string | null
+          sales_shipment_item_id: string | null
           tax_rate: number
           unit_price: number
         }
@@ -4503,6 +4505,8 @@ export type Database = {
           product_id: string
           quantity: number
           sales_invoice_id: string
+          sales_order_item_id?: string | null
+          sales_shipment_item_id?: string | null
           tax_rate?: number
           unit_price?: number
         }
@@ -4514,6 +4518,8 @@ export type Database = {
           product_id?: string
           quantity?: number
           sales_invoice_id?: string
+          sales_order_item_id?: string | null
+          sales_shipment_item_id?: string | null
           tax_rate?: number
           unit_price?: number
         }
@@ -4530,6 +4536,20 @@ export type Database = {
             columns: ["sales_invoice_id"]
             isOneToOne: false
             referencedRelation: "sales_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_items_sales_order_item_id_fkey"
+            columns: ["sales_order_item_id"]
+            isOneToOne: false
+            referencedRelation: "sales_order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_items_sales_shipment_item_id_fkey"
+            columns: ["sales_shipment_item_id"]
+            isOneToOne: false
+            referencedRelation: "sales_shipment_items"
             referencedColumns: ["id"]
           },
         ]
@@ -4650,6 +4670,7 @@ export type Database = {
           deleted_at: string | null
           discount_rate: number
           id: string
+          invoiced_quantity: number
           line_number: number
           notes: string | null
           product_id: string
@@ -4664,6 +4685,7 @@ export type Database = {
           deleted_at?: string | null
           discount_rate?: number
           id?: string
+          invoiced_quantity?: number
           line_number?: number
           notes?: string | null
           product_id: string
@@ -4678,6 +4700,7 @@ export type Database = {
           deleted_at?: string | null
           discount_rate?: number
           id?: string
+          invoiced_quantity?: number
           line_number?: number
           notes?: string | null
           product_id?: string
@@ -5870,6 +5893,8 @@ export type Database = {
           amount: number
           id: string
           product_id: string
+          purchase_order_item_id: string | null
+          purchase_receipt_item_id: string | null
           quantity: number
           supplier_invoice_id: string
           tax_rate: number
@@ -5879,6 +5904,8 @@ export type Database = {
           amount?: number
           id?: string
           product_id: string
+          purchase_order_item_id?: string | null
+          purchase_receipt_item_id?: string | null
           quantity: number
           supplier_invoice_id: string
           tax_rate?: number
@@ -5888,6 +5915,8 @@ export type Database = {
           amount?: number
           id?: string
           product_id?: string
+          purchase_order_item_id?: string | null
+          purchase_receipt_item_id?: string | null
           quantity?: number
           supplier_invoice_id?: string
           tax_rate?: number
@@ -5899,6 +5928,20 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoice_items_purchase_order_item_id_fkey"
+            columns: ["purchase_order_item_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoice_items_purchase_receipt_item_id_fkey"
+            columns: ["purchase_receipt_item_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_receipt_items"
             referencedColumns: ["id"]
           },
           {
@@ -7645,3 +7688,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

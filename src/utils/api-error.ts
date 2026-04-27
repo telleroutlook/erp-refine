@@ -64,12 +64,23 @@ export class ApiError extends HTTPException {
   }
 
   /** Create a state transition error */
-  static invalidState(resource: string, currentStatus: string, action: string, requestId?: string): ApiError {
+  static invalidState(resource: string, currentStatus: string, action: string, requestId?: string, hint?: string): ApiError {
     return new ApiError({
       code: ErrorCode.INVALID_STATE,
       detail: `Cannot ${action} ${resource}: current status is '${currentStatus}'.`,
       requestId,
-      hint: `This operation requires the ${resource} to be in a valid state for '${action}'.`,
+      hint: hint ?? `This operation requires the ${resource} to be in a valid state for '${action}'.`,
+    });
+  }
+
+  /** Create a 400 bad request error */
+  static badRequest(detail: string, requestId?: string, hint?: string): ApiError {
+    return new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail,
+      requestId,
+      hint,
+      status: 400,
     });
   }
 

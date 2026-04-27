@@ -11,6 +11,8 @@ import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
+import { findFlow } from '../utils/document-flow';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
 
 const procurementReceiving = new Hono<{ Bindings: Env }>();
 procurementReceiving.use('*', authMiddleware());
@@ -61,6 +63,17 @@ procurementReceiving.get('/purchase-receipts/:id', async (c) => {
   return c.json({ data });
 });
 
+// GET create-from: PO → Purchase Receipt (参考采购订单创建收货单)
+procurementReceiving.get('/purchase-receipts/create-from/purchase-order/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('purchase_order', 'purchase_receipt')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully received', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // POST create (atomic header + items)
 procurementReceiving.post('/purchase-receipts', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -73,7 +86,7 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, ...headerFields } = body;
+  const { items, _sourceRef, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
     {
@@ -95,6 +108,10 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
     },
     { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_purchase_receipt', resource: 'purchase_receipts' }
   );
+
+  if (_sourceRef?.type && _sourceRef?.id) {
+    await createDocumentRelation(db, user.organizationId, _sourceRef.type, _sourceRef.id, 'purchase_receipt', result.header.id as string, `${_sourceRef.type} → purchase_receipt`);
+  }
 
   return c.json({ data: result.header }, 201);
 });
@@ -230,6 +247,28 @@ procurementReceiving.get('/supplier-invoices/:id', async (c) => {
   return c.json({ data });
 });
 
+// GET create-from: PO → Supplier Invoice (参考采购订单创建供应商发票)
+procurementReceiving.get('/supplier-invoices/create-from/purchase-order/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('purchase_order', 'supplier_invoice')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully invoiced', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
+// GET create-from: Receipt → Supplier Invoice (参考收货单创建供应商发票)
+procurementReceiving.get('/supplier-invoices/create-from/purchase-receipt/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('purchase_receipt', 'supplier_invoice')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully invoiced', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // POST create (atomic header + items)
 procurementReceiving.post('/supplier-invoices', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -243,7 +282,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
-  const { items, ...headerFields } = body;
+  const { items, _sourceRef, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
     {
@@ -265,6 +304,10 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
     },
     { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_supplier_invoice', resource: 'supplier_invoices' }
   );
+
+  if (_sourceRef?.type && _sourceRef?.id) {
+    await createDocumentRelation(db, user.organizationId, _sourceRef.type, _sourceRef.id, 'supplier_invoice', result.header.id as string, `${_sourceRef.type} → supplier_invoice`);
+  }
 
   return c.json({ data: result.header }, 201);
 });

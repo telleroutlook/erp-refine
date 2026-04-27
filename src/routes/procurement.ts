@@ -9,6 +9,8 @@ import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } 
 import { applyFilters, atomicStatusTransition, resolveEmployeeId, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
+import { findFlow } from '../utils/document-flow';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
 
 const procurement = new Hono<{ Bindings: Env }>();
 procurement.use('*', authMiddleware());
@@ -59,6 +61,17 @@ procurement.get('/purchase-orders/:id', async (c) => {
   return c.json({ data });
 });
 
+// GET create-from: PR → PO (参考采购申请创建采购订单)
+procurement.get('/purchase-orders/create-from/purchase-requisition/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('purchase_requisition', 'purchase_order')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully fulfilled', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // POST create (atomic: header + items)
 procurement.post('/purchase-orders', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -71,7 +84,7 @@ procurement.post('/purchase-orders', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate PO number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, ...headerFields } = body;
+  const { items, _sourceRef, ...headerFields } = body;
   const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const result = await atomicCreateWithItems(
     db,
@@ -101,6 +114,10 @@ procurement.post('/purchase-orders', async (c) => {
       resource: 'purchase_orders',
     }
   );
+
+  if (_sourceRef?.type && _sourceRef?.id) {
+    await createDocumentRelation(db, user.organizationId, _sourceRef.type, _sourceRef.id, 'purchase_order', result.header.id as string, `${_sourceRef.type} → purchase_order`);
+  }
 
   return c.json({ data: result.header }, 201);
 });

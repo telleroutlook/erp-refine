@@ -10,6 +10,8 @@ import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyI
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
+import { findFlow } from '../utils/document-flow';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
 
 const sales = new Hono<{ Bindings: Env }>();
 sales.use('*', authMiddleware());
@@ -254,6 +256,17 @@ sales.get('/sales-shipments/:id', async (c) => {
   return c.json({ data });
 });
 
+// GET create-from: SO → Sales Shipment (参考销售订单创建发货单)
+sales.get('/sales-shipments/create-from/sales-order/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('sales_order', 'sales_shipment')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully shipped', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // POST create (atomic: header + items)
 sales.post('/sales-shipments', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -266,7 +279,7 @@ sales.post('/sales-shipments', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate shipment number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, ...headerFields } = body;
+  const { items, _sourceRef, ...headerFields } = body;
   const result = await atomicCreateWithItems(
     db,
     {
@@ -294,6 +307,10 @@ sales.post('/sales-shipments', async (c) => {
       resource: 'sales_shipments',
     }
   );
+
+  if (_sourceRef?.type && _sourceRef?.id) {
+    await createDocumentRelation(db, user.organizationId, _sourceRef.type, _sourceRef.id, 'sales_shipment', result.header.id as string, `${_sourceRef.type} → sales_shipment`);
+  }
 
   return c.json({ data: result.header }, 201);
 });
