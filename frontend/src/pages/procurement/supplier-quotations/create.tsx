@@ -21,8 +21,8 @@ export const SupplierQuotationCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('supplier_quotations', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
-              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder="选择供应商" />
+            <Form.Item label={fl('supplier_quotations', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: t('validation.required_supplier') }]}>
+              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_supplier')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -32,7 +32,7 @@ export const SupplierQuotationCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('supplier_quotations', 'rfq_id')} name="rfq_id">
-              <Input placeholder="关联询价单（可选）" />
+              <Input placeholder={t('placeholder.link_rfq_optional')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

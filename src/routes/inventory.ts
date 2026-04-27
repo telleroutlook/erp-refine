@@ -61,7 +61,7 @@ const stockTransactionsConfig: CrudConfig = {
   table: 'stock_transactions',
   path: '/stock-transactions',
   resourceName: 'StockTransaction',
-  listSelect: 'id, transaction_type, quantity, reference_type, reference_id, notes, created_at, product:products(id,name,code), warehouse:warehouses(id,name)',
+  listSelect: 'id, transaction_type, transaction_date, quantity, reference_type, reference_id, notes, created_at, product:products(id,name,code), warehouse:warehouses(id,name)',
   detailSelect: '*, product:products(id,name,code), warehouse:warehouses(id,name,code)',
   createReturnSelect: 'id, transaction_type, quantity',
   defaultSort: 'created_at',

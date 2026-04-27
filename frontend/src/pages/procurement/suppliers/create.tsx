@@ -15,12 +15,12 @@ export const SupplierCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('suppliers', 'code')} name="code" rules={[{ required: true, message: '请输入供应商编号' }]}>
-              <Input placeholder="如：SUP-001" />
+            <Form.Item label={fl('suppliers', 'code')} name="code" rules={[{ required: true, message: t('validation.required_supplier_code') }]}>
+              <Input placeholder={t('placeholder.example_code', { example: 'SUP-001' })} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('suppliers', 'name')} name="name" rules={[{ required: true, message: '请输入供应商名称' }]}>
+            <Form.Item label={fl('suppliers', 'name')} name="name" rules={[{ required: true, message: t('validation.required_supplier_name') }]}>
               <Input />
             </Form.Item>
           </Col>
@@ -35,7 +35,7 @@ export const SupplierCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('suppliers', 'contact_email')} name="contact_email" rules={[{ type: 'email', message: '请输入有效邮箱' }]}>
+            <Form.Item label={fl('suppliers', 'contact_email')} name="contact_email" rules={[{ type: 'email', message: t('validation.valid_email') }]}>
               <Input />
             </Form.Item>
           </Col>

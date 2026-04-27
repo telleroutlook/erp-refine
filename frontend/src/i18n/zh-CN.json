@@ -1,82 +1,235 @@
 {
-  "procurement": { "procurement": "采购管理" },
-  "purchase-orders": { "purchase-orders": "采购订单" },
-  "purchase-receipts": { "purchase-receipts": "采购收货" },
-  "suppliers": { "suppliers": "供应商" },
-  "purchase-requisitions": { "purchase-requisitions": "采购申请" },
-  "rfq-headers": { "rfq-headers": "询价单" },
-  "supplier-quotations": { "supplier-quotations": "供应商报价" },
-  "sales": { "sales": "销售管理" },
-  "sales-orders": { "sales-orders": "销售订单" },
-  "sales-invoices": { "sales-invoices": "销售发票" },
-  "sales-shipments": { "sales-shipments": "销售发货" },
-  "sales-returns": { "sales-returns": "销售退货" },
-  "customers": { "customers": "客户" },
-  "customer-receipts": { "customer-receipts": "客户收款" },
-  "inventory": { "inventory": "库存管理" },
-  "stock-records": { "stock-records": "库存余额" },
-  "warehouses": { "warehouses": "仓库" },
-  "inventory-counts": { "inventory-counts": "库存盘点" },
-  "inventory-lots": { "inventory-lots": "批次管理" },
-  "serial-numbers": { "serial-numbers": "序列号" },
-  "stock-transactions": { "stock-transactions": "库存流水" },
-  "manufacturing": { "manufacturing": "生产管理" },
-  "bom-headers": { "bom-headers": "物料清单" },
-  "work-orders": { "work-orders": "生产工单" },
-  "work-order-productions": { "work-order-productions": "生产报工" },
-  "quality": { "quality": "质量管理" },
-  "defect-codes": { "defect-codes": "缺陷代码" },
-  "quality-standards": { "quality-standards": "质量标准" },
-  "quality-inspections": { "quality-inspections": "质量检验" },
-  "finance": { "finance": "财务管理" },
-  "payment-requests": { "payment-requests": "付款申请" },
-  "supplier-invoices": { "supplier-invoices": "供应商发票" },
-  "account-subjects": { "account-subjects": "会计科目" },
-  "cost-centers": { "cost-centers": "成本中心" },
-  "vouchers": { "vouchers": "会计凭证" },
-  "budgets": { "budgets": "预算管理" },
-  "payment-records": { "payment-records": "付款记录" },
-  "fixedAssets": { "fixedAssets": "资产管理" },
-  "fixed-assets": { "fixed-assets": "固定资产" },
-  "asset-depreciations": { "asset-depreciations": "折旧记录" },
-  "asset-maintenance": { "asset-maintenance": "资产维保" },
-  "contractMgmt": { "contractMgmt": "合同管理" },
-  "contracts": { "contracts": "合同" },
-  "hr": { "hr": "人力资源" },
-  "departments": { "departments": "部门" },
-  "employees": { "employees": "员工" },
-  "exchange-rates": { "exchange-rates": "汇率" },
-  "masterData": { "masterData": "主数据" },
-  "products": { "products": "产品" },
-  "carriers": { "carriers": "承运商" },
-  "product-categories": { "product-categories": "产品分类" },
-  "storage-locations": { "storage-locations": "库位" },
-  "price-lists": { "price-lists": "价格表" },
-  "currencies": { "currencies": "币种" },
-  "uoms": { "uoms": "计量单位" },
-  "system": { "system": "系统管理" },
-  "notifications": { "notifications": "通知中心" },
-  "profile-change-requests": { "profile-change-requests": "变更申请" },
-  "inventory-reservations": { "inventory-reservations": "库存预留" },
-  "document-attachments": { "document-attachments": "文档附件" },
-  "document-relations": { "document-relations": "单据关联" },
-  "workflows": { "workflows": "工作流" },
-  "approval-rules": { "approval-rules": "审批规则" },
-  "approval-records": { "approval-records": "审批记录" },
-  "advance-shipment-notices": { "advance-shipment-notices": "预发货通知" },
-  "reconciliation-statements": { "reconciliation-statements": "对账单" },
-  "roles": { "roles": "角色管理" },
-  "user-roles": { "user-roles": "用户角色" },
-  "number-sequences": { "number-sequences": "编号规则" },
-  "token-usage": { "token-usage": "Token用量" },
-  "tool-call-metrics": { "tool-call-metrics": "工具调用指标" },
-  "agent-sessions": { "agent-sessions": "Agent会话" },
-  "agent-decisions": { "agent-decisions": "Agent决策" },
-  "business-events": { "business-events": "业务事件" },
-  "auth-events": { "auth-events": "认证事件" },
-  "import-logs": { "import-logs": "导入日志" },
-  "audit": { "audit": "审计监控" },
-
+  "procurement": {
+    "procurement": "采购管理"
+  },
+  "purchase-orders": {
+    "purchase-orders": "采购订单"
+  },
+  "purchase-receipts": {
+    "purchase-receipts": "采购收货"
+  },
+  "suppliers": {
+    "suppliers": "供应商"
+  },
+  "purchase-requisitions": {
+    "purchase-requisitions": "采购申请"
+  },
+  "rfq-headers": {
+    "rfq-headers": "询价单"
+  },
+  "supplier-quotations": {
+    "supplier-quotations": "供应商报价"
+  },
+  "sales": {
+    "sales": "销售管理"
+  },
+  "sales-orders": {
+    "sales-orders": "销售订单"
+  },
+  "sales-invoices": {
+    "sales-invoices": "销售发票"
+  },
+  "sales-shipments": {
+    "sales-shipments": "销售发货"
+  },
+  "sales-returns": {
+    "sales-returns": "销售退货"
+  },
+  "customers": {
+    "customers": "客户"
+  },
+  "customer-receipts": {
+    "customer-receipts": "客户收款"
+  },
+  "inventory": {
+    "inventory": "库存管理"
+  },
+  "stock-records": {
+    "stock-records": "库存余额"
+  },
+  "warehouses": {
+    "warehouses": "仓库"
+  },
+  "inventory-counts": {
+    "inventory-counts": "库存盘点"
+  },
+  "inventory-lots": {
+    "inventory-lots": "批次管理"
+  },
+  "serial-numbers": {
+    "serial-numbers": "序列号"
+  },
+  "stock-transactions": {
+    "stock-transactions": "库存流水"
+  },
+  "manufacturing": {
+    "manufacturing": "生产管理"
+  },
+  "bom-headers": {
+    "bom-headers": "物料清单"
+  },
+  "work-orders": {
+    "work-orders": "生产工单"
+  },
+  "work-order-productions": {
+    "work-order-productions": "生产报工"
+  },
+  "quality": {
+    "quality": "质量管理"
+  },
+  "defect-codes": {
+    "defect-codes": "缺陷代码"
+  },
+  "quality-standards": {
+    "quality-standards": "质量标准"
+  },
+  "quality-inspections": {
+    "quality-inspections": "质量检验"
+  },
+  "finance": {
+    "finance": "财务管理"
+  },
+  "payment-requests": {
+    "payment-requests": "付款申请"
+  },
+  "supplier-invoices": {
+    "supplier-invoices": "供应商发票"
+  },
+  "account-subjects": {
+    "account-subjects": "会计科目"
+  },
+  "cost-centers": {
+    "cost-centers": "成本中心"
+  },
+  "vouchers": {
+    "vouchers": "会计凭证"
+  },
+  "budgets": {
+    "budgets": "预算管理"
+  },
+  "payment-records": {
+    "payment-records": "付款记录"
+  },
+  "fixedAssets": {
+    "fixedAssets": "资产管理"
+  },
+  "fixed-assets": {
+    "fixed-assets": "固定资产"
+  },
+  "asset-depreciations": {
+    "asset-depreciations": "折旧记录"
+  },
+  "asset-maintenance": {
+    "asset-maintenance": "资产维保"
+  },
+  "contractMgmt": {
+    "contractMgmt": "合同管理"
+  },
+  "contracts": {
+    "contracts": "合同"
+  },
+  "hr": {
+    "hr": "人力资源"
+  },
+  "departments": {
+    "departments": "部门"
+  },
+  "employees": {
+    "employees": "员工"
+  },
+  "exchange-rates": {
+    "exchange-rates": "汇率"
+  },
+  "masterData": {
+    "masterData": "主数据"
+  },
+  "products": {
+    "products": "产品"
+  },
+  "carriers": {
+    "carriers": "承运商"
+  },
+  "product-categories": {
+    "product-categories": "产品分类"
+  },
+  "storage-locations": {
+    "storage-locations": "库位"
+  },
+  "price-lists": {
+    "price-lists": "价格表"
+  },
+  "currencies": {
+    "currencies": "币种"
+  },
+  "uoms": {
+    "uoms": "计量单位"
+  },
+  "system": {
+    "system": "系统管理"
+  },
+  "notifications": {
+    "notifications": "通知中心"
+  },
+  "profile-change-requests": {
+    "profile-change-requests": "变更申请"
+  },
+  "inventory-reservations": {
+    "inventory-reservations": "库存预留"
+  },
+  "document-attachments": {
+    "document-attachments": "文档附件"
+  },
+  "document-relations": {
+    "document-relations": "单据关联"
+  },
+  "workflows": {
+    "workflows": "工作流"
+  },
+  "approval-rules": {
+    "approval-rules": "审批规则"
+  },
+  "approval-records": {
+    "approval-records": "审批记录"
+  },
+  "advance-shipment-notices": {
+    "advance-shipment-notices": "预发货通知"
+  },
+  "reconciliation-statements": {
+    "reconciliation-statements": "对账单"
+  },
+  "roles": {
+    "roles": "角色管理"
+  },
+  "user-roles": {
+    "user-roles": "用户角色"
+  },
+  "number-sequences": {
+    "number-sequences": "编号规则"
+  },
+  "token-usage": {
+    "token-usage": "Token用量"
+  },
+  "tool-call-metrics": {
+    "tool-call-metrics": "工具调用指标"
+  },
+  "agent-sessions": {
+    "agent-sessions": "Agent会话"
+  },
+  "agent-decisions": {
+    "agent-decisions": "Agent决策"
+  },
+  "business-events": {
+    "business-events": "业务事件"
+  },
+  "auth-events": {
+    "auth-events": "认证事件"
+  },
+  "import-logs": {
+    "import-logs": "导入日志"
+  },
+  "audit": {
+    "audit": "审计监控"
+  },
   "actions": {
     "list": "列表",
     "show": "查看",
@@ -121,6 +274,27 @@
     "notes": "备注",
     "total": "合计",
     "welcome": "欢迎使用 ERP Refine"
+  },
+  "validation": {
+    "required": "请输入{{field}}",
+    "requiredSelect": "请选择{{field}}",
+    "email": "请输入有效邮箱",
+    "min": "{{field}}不能小于{{min}}",
+    "max": "{{field}}不能大于{{max}}",
+    "requiredField": "必填"
+  },
+  "placeholder": {
+    "select_supplier": "选择供应商",
+    "select_warehouse": "选择仓库",
+    "select_customer": "选择客户",
+    "select_department": "选择部门",
+    "select_purchase_order": "选择采购订单",
+    "select_severity": "选择严重程度",
+    "select_inspection_result": "选择检验结果",
+    "select_payment_method": "选择收款方式",
+    "json_format": "JSON 格式",
+    "link_rfq_optional": "关联询价单（可选）",
+    "example_code": "如：{{example}}"
   },
   "filters": {
     "search": "搜索",
@@ -300,7 +474,22 @@
     "shipped": "已发货",
     "delivered": "已送达",
     "recalled": "已撤回",
-    "discontinued": "已淘汰"
+    "discontinued": "已淘汰",
+    "open": "开放",
+    "aborted": "已中止",
+    "fulfilled": "已履行",
+    "reconciled": "已对账",
+    "processing": "处理中",
+    "overdue": "逾期",
+    "valid": "有效",
+    "expiring": "即将过期",
+    "blocked": "已冻结",
+    "pending_approval": "待审批",
+    "partial": "部分",
+    "skipped": "已跳过",
+    "bank_transfer": "银行转账",
+    "cash": "现金",
+    "check": "支票"
   },
   "enums": {
     "defectSeverity": {
@@ -332,6 +521,76 @@
       "action_required": "待处理",
       "approval": "待审批",
       "system": "系统"
+    },
+    "balanceDirection": {
+      "debit": "借",
+      "credit": "贷"
+    },
+    "paymentMethod": {
+      "bank_transfer": "银行转账",
+      "cash": "现金",
+      "check": "支票",
+      "alipay": "支付宝",
+      "wechat": "微信支付",
+      "other": "其他"
+    },
+    "partyType": {
+      "customer": "客户",
+      "supplier": "供应商"
+    },
+    "depreciationMethod": {
+      "straight_line": "直线法",
+      "declining_balance": "余额递减法"
+    },
+    "carrierType": {
+      "express": "快递",
+      "freight": "快运",
+      "ltl": "零担",
+      "ftl": "整车",
+      "air": "空运",
+      "ocean": "海运",
+      "rail": "铁路运输"
+    },
+    "budgetType": {
+      "annual": "年度",
+      "quarterly": "季度",
+      "monthly": "月度"
+    },
+    "yesNo": {
+      "yes": "是",
+      "no": "否"
+    },
+    "accountCategory": {
+      "asset": "资产",
+      "liability": "负债",
+      "equity": "权益",
+      "revenue": "收入",
+      "expense": "费用"
+    },
+    "maintenanceType": {
+      "preventive": "预防性维护",
+      "corrective": "纠正性维护",
+      "inspection": "检查",
+      "other": "其他"
+    },
+    "assetStatus": {
+      "active": "在用",
+      "idle": "闲置",
+      "under_maintenance": "维修中",
+      "scrapped": "已报废",
+      "disposed": "已处置"
+    },
+    "rateType": {
+      "spot": "即期",
+      "average": "平均"
+    },
+    "successFail": {
+      "success": "成功",
+      "fail": "失败"
+    },
+    "cacheHit": {
+      "hit": "命中",
+      "miss": "未命中"
     }
   },
   "tools": {
@@ -478,7 +737,21 @@
     "closeAi": "关闭 AI 助手",
     "loading": "加载中..."
   },
-
+  "dynamicForm": {
+    "loadFailed": "加载表单失败",
+    "notActive": "此表单尚未激活",
+    "contactAdmin": "请联系管理员激活此表单",
+    "submitSuccess": "提交成功",
+    "submitFailed": "提交失败"
+  },
+  "qualityInspection": {
+    "title": "质量检验",
+    "inspectionDetails": "检验明细",
+    "checkItem": "检验项目",
+    "checkStandard": "检验标准",
+    "checkResult": "检验结果",
+    "measuredValue": "测量值"
+  },
   "fields": {
     "common": {
       "id": "ID",
@@ -552,7 +825,6 @@
       "assigned_by": "分配人",
       "assigned_at": "分配时间",
       "line_total": "行合计",
-
       "invoice_number": "发票号",
       "invoice_date": "发票日期",
       "receipt_number": "收款单号",
@@ -564,7 +836,6 @@
       "voucher_number": "凭证号",
       "voucher_date": "凭证日期",
       "voucher_type": "凭证类型",
-
       "lot_number": "批次号",
       "lot_no": "批次号",
       "serial_number": "序列号",
@@ -587,7 +858,6 @@
       "variance_quantity": "差异数量",
       "total_quantity": "总数量",
       "total_rows": "总行数",
-
       "from_currency": "源币种",
       "to_currency": "目标币种",
       "rate": "汇率",
@@ -597,7 +867,6 @@
       "symbol": "符号",
       "currency_code": "币种代码",
       "currency_name": "币种名称",
-
       "approval_status": "审批状态",
       "decision_by": "审批人",
       "decision_at": "审批时间",
@@ -607,7 +876,6 @@
       "rule_name": "规则名称",
       "document_type": "单据类型",
       "document_id": "单据ID",
-
       "entity_id": "实体ID",
       "entity_type": "实体类型",
       "from_object_id": "来源ID",
@@ -616,20 +884,17 @@
       "to_object_type": "目标类型",
       "party_id": "对方ID",
       "party_type": "对方类型",
-
       "file_name": "文件名",
       "file_path": "文件路径",
       "file_size": "文件大小",
       "mime_type": "MIME类型",
       "uploaded_by": "上传人",
       "resource_type": "资源类型",
-
       "event_type": "事件类型",
       "occurred_at": "发生时间",
       "ip_address": "IP地址",
       "source_system": "来源系统",
       "severity": "严重程度",
-
       "tool_name": "工具名称",
       "model": "模型",
       "input_tokens": "输入Token",
@@ -643,7 +908,6 @@
       "error_count": "失败数",
       "success_count": "成功数",
       "message_count": "消息数",
-
       "risk_level": "风险等级",
       "confidence": "置信度",
       "decision": "决策",
@@ -652,13 +916,11 @@
       "session_type": "会话类型",
       "workflow_type": "工作流类型",
       "current_step": "当前步骤",
-
       "prefix": "前缀",
       "increment_by": "步长",
       "padding": "补零位数",
       "current_value": "当前值",
       "sequence_name": "序列名称",
-
       "cost": "费用",
       "cost_estimate": "费用估算",
       "paid_amount": "已付金额",
@@ -673,12 +935,10 @@
       "min_amount": "最低金额",
       "max_amount": "最高金额",
       "min_quantity": "最小数量",
-
       "account_code": "科目编码",
       "account_subject_id": "会计科目",
       "entry_type": "借/贷",
       "summary": "摘要",
-
       "before_data": "变更前数据",
       "after_data": "变更后数据",
       "request_type": "申请类型",
@@ -699,7 +959,6 @@
       "title": "标题",
       "body": "内容"
     },
-
     "products": {
       "code": "产品编号",
       "name": "产品名称",
@@ -774,7 +1033,12 @@
       "tracking_url_template": "快递单追踪URL模板"
     },
     "defect_codes": {
-      "code": "缺陷代码"
+      "code": "缺陷代码",
+      "name": "名称",
+      "category": "分类",
+      "severity": "严重程度",
+      "description": "描述",
+      "is_active": "启用"
     },
     "quality_standards": {
       "standard_code": "标准代码",
@@ -836,14 +1100,20 @@
     "purchase_orders": {
       "po_id": "采购订单"
     },
+    "purchase_requisitions": {
+      "request_date": "申请日期",
+      "required_date": "需求日期"
+    },
     "purchase_receipts": {
-      "quantity": "收货数量"
+      "quantity": "收货数量",
+      "purchase_order_id": "采购订单"
     },
     "sales_returns": {
       "quantity": "退货数量"
     },
     "sales_shipments": {
-      "quantity": "发货数量"
+      "quantity": "发货数量",
+      "sales_order_id": "销售订单"
     },
     "customer_receipts": {
       "receipt_number": "收款单号",
@@ -857,22 +1127,34 @@
     },
     "reconciliation_statements": {
       "statement_no": "对账单号",
-      "statement_period": "对账期间"
+      "statement_period": "对账期间",
+      "period_end": "期间结束",
+      "period_start": "期间开始"
     },
     "advance_shipment_notices": {
-      "asn_no": "ASN编号"
+      "asn_no": "ASN编号",
+      "po_id": "采购订单"
     },
     "rfq_headers": {
-      "rfq_number": "询价单号"
+      "rfq_number": "询价单号",
+      "issued_at": "发布时间",
+      "issued_by": "发布人"
     },
     "supplier_quotations": {
       "quotation_number": "报价单号",
-      "validity_date": "有效期"
+      "validity_date": "有效期",
+      "rfq_id": "询价单"
     },
     "quality_inspections": {
       "reference_id": "来源单号",
       "reference_type": "来源类型",
-      "result": "检验结果"
+      "result": "检验结果",
+      "inspection_number": "检验单号",
+      "inspection_date": "检验日期",
+      "qualified_quantity": "合格数量",
+      "defective_quantity": "不合格数量",
+      "total_quantity": "总数量",
+      "inspector_id": "检验员"
     },
     "inventory_counts": {
       "count_number": "盘点单号",
@@ -924,7 +1206,8 @@
     "notifications": {
       "notification_type": "类型",
       "recipient_id": "接收人",
-      "is_read": "已读"
+      "is_read": "已读",
+      "read_at": "阅读时间"
     },
     "workflows": {
       "entity_id": "关联ID",
@@ -955,7 +1238,8 @@
       "scrap_rate": "损耗率(%)"
     },
     "rfq_lines": {
-      "qty_requested": "需求数量"
+      "qty_requested": "需求数量",
+      "unit_of_measure": "计量单位"
     },
     "supplier_quotation_lines": {
       "qty_offered": "报价数量",
@@ -992,61 +1276,204 @@
     },
     "auth_events": {
       "user_agent": "浏览器"
+    },
+    "approval_records": {
+      "rule_id": "审批规则"
+    },
+    "quality_standard_items": {
+      "acceptance_criteria": "验收标准",
+      "check_method": "检查方法",
+      "is_mandatory": "是否必检",
+      "item_name": "检验项目"
     }
   },
-
   "titles": {
-    "purchase_orders": { "create": "新建采购订单", "edit": "编辑采购订单" },
-    "purchase_receipts": { "edit": "编辑采购收货单" },
-    "purchase_requisitions": { "create": "新建采购申请", "edit": "编辑采购申请" },
-    "suppliers": { "create": "新建供应商", "edit": "编辑供应商" },
-    "supplier_invoices": { "edit": "编辑供应商发票" },
-    "supplier_quotations": { "create": "新建供应商报价", "edit": "编辑供应商报价" },
-    "rfq_headers": { "create": "新建询价单", "edit": "编辑询价单" },
-    "advance_shipment_notices": { "create": "新建ASN", "edit": "编辑ASN" },
-    "reconciliation_statements": { "create": "新建对账单", "edit": "编辑对账单" },
-    "profile_change_requests": { "create": "新建变更申请", "edit": "编辑变更申请" },
-    "sales_orders": { "edit": "编辑销售订单" },
-    "sales_invoices": { "edit": "编辑销售发票" },
-    "sales_shipments": { "edit": "编辑销售发货单" },
-    "sales_returns": { "edit": "编辑销售退货单" },
-    "customers": { "create": "新建客户", "edit": "编辑客户" },
-    "customer_receipts": { "create": "新建客户收款", "edit": "编辑客户收款" },
-    "warehouses": { "create": "新建仓库", "edit": "编辑仓库" },
-    "storage_locations": { "create": "新建库位", "edit": "编辑库位" },
-    "inventory_counts": { "create": "新建库存盘点", "edit": "编辑库存盘点" },
-    "inventory_lots": { "create": "新建批次", "edit": "编辑批次" },
-    "inventory_reservations": { "create": "新建库存预留", "edit": "编辑库存预留" },
-    "serial_numbers": { "create": "新建序列号", "edit": "编辑序列号" },
-    "bom_headers": { "create": "新建物料清单", "edit": "编辑物料清单" },
-    "work_orders": { "create": "新建生产工单", "edit": "编辑生产工单" },
-    "work_order_productions": { "create": "新建生产报工" },
-    "quality_standards": { "create": "新建质量标准", "edit": "编辑质量标准" },
-    "quality_inspections": { "create": "新建质量检验", "edit": "编辑质量检验" },
-    "defect_codes": { "create": "新建缺陷代码", "edit": "编辑缺陷代码" },
-    "account_subjects": { "create": "新建会计科目", "edit": "编辑会计科目" },
-    "cost_centers": { "create": "新建成本中心", "edit": "编辑成本中心" },
-    "vouchers": { "create": "新建会计凭证", "edit": "编辑会计凭证" },
-    "budgets": { "create": "新建预算", "edit": "编辑预算" },
-    "payment_requests": { "edit": "编辑付款申请" },
-    "exchange_rates": { "create": "新建汇率", "edit": "编辑汇率" },
-    "fixed_assets": { "create": "新建固定资产", "edit": "编辑固定资产" },
-    "asset_maintenance": { "create": "新建资产维保" },
-    "contracts": { "create": "新建合同", "edit": "编辑合同" },
-    "employees": { "create": "新建员工", "edit": "编辑员工" },
-    "departments": { "create": "新建部门", "edit": "编辑部门" },
-    "products": { "create": "新建产品", "edit": "编辑产品" },
-    "product_categories": { "create": "新建产品分类", "edit": "编辑产品分类" },
-    "price_lists": { "create": "新建价格表", "edit": "编辑价格表" },
-    "carriers": { "create": "新建承运商", "edit": "编辑承运商" },
-    "roles": { "create": "新建角色", "edit": "编辑角色" },
-    "user_roles": { "edit": "分配用户角色" },
-    "number_sequences": { "edit": "编辑编号规则" },
-    "approval_rules": { "create": "新建审批规则", "edit": "编辑审批规则" },
-    "document_attachments": { "create": "新建文档附件", "edit": "编辑文档附件" },
-    "document_relations": { "create": "新建单据关联", "edit": "编辑单据关联" }
+    "purchase_orders": {
+      "create": "新建采购订单",
+      "edit": "编辑采购订单"
+    },
+    "purchase_receipts": {
+      "edit": "编辑采购收货单"
+    },
+    "purchase_requisitions": {
+      "create": "新建采购申请",
+      "edit": "编辑采购申请"
+    },
+    "suppliers": {
+      "create": "新建供应商",
+      "edit": "编辑供应商"
+    },
+    "supplier_invoices": {
+      "edit": "编辑供应商发票"
+    },
+    "supplier_quotations": {
+      "create": "新建供应商报价",
+      "edit": "编辑供应商报价"
+    },
+    "rfq_headers": {
+      "create": "新建询价单",
+      "edit": "编辑询价单"
+    },
+    "advance_shipment_notices": {
+      "create": "新建ASN",
+      "edit": "编辑ASN"
+    },
+    "reconciliation_statements": {
+      "create": "新建对账单",
+      "edit": "编辑对账单"
+    },
+    "profile_change_requests": {
+      "create": "新建变更申请",
+      "edit": "编辑变更申请"
+    },
+    "sales_orders": {
+      "edit": "编辑销售订单"
+    },
+    "sales_invoices": {
+      "edit": "编辑销售发票"
+    },
+    "sales_shipments": {
+      "edit": "编辑销售发货单"
+    },
+    "sales_returns": {
+      "edit": "编辑销售退货单"
+    },
+    "customers": {
+      "create": "新建客户",
+      "edit": "编辑客户"
+    },
+    "customer_receipts": {
+      "create": "新建客户收款",
+      "edit": "编辑客户收款"
+    },
+    "warehouses": {
+      "create": "新建仓库",
+      "edit": "编辑仓库"
+    },
+    "storage_locations": {
+      "create": "新建库位",
+      "edit": "编辑库位"
+    },
+    "inventory_counts": {
+      "create": "新建库存盘点",
+      "edit": "编辑库存盘点"
+    },
+    "inventory_lots": {
+      "create": "新建批次",
+      "edit": "编辑批次"
+    },
+    "inventory_reservations": {
+      "create": "新建库存预留",
+      "edit": "编辑库存预留"
+    },
+    "serial_numbers": {
+      "create": "新建序列号",
+      "edit": "编辑序列号"
+    },
+    "bom_headers": {
+      "create": "新建物料清单",
+      "edit": "编辑物料清单"
+    },
+    "work_orders": {
+      "create": "新建生产工单",
+      "edit": "编辑生产工单"
+    },
+    "work_order_productions": {
+      "create": "新建生产报工"
+    },
+    "quality_standards": {
+      "create": "新建质量标准",
+      "edit": "编辑质量标准"
+    },
+    "quality_inspections": {
+      "create": "新建质量检验",
+      "edit": "编辑质量检验"
+    },
+    "defect_codes": {
+      "create": "新建缺陷代码",
+      "edit": "编辑缺陷代码"
+    },
+    "account_subjects": {
+      "create": "新建会计科目",
+      "edit": "编辑会计科目"
+    },
+    "cost_centers": {
+      "create": "新建成本中心",
+      "edit": "编辑成本中心"
+    },
+    "vouchers": {
+      "create": "新建会计凭证",
+      "edit": "编辑会计凭证"
+    },
+    "budgets": {
+      "create": "新建预算",
+      "edit": "编辑预算"
+    },
+    "payment_requests": {
+      "edit": "编辑付款申请"
+    },
+    "exchange_rates": {
+      "create": "新建汇率",
+      "edit": "编辑汇率"
+    },
+    "fixed_assets": {
+      "create": "新建固定资产",
+      "edit": "编辑固定资产"
+    },
+    "asset_maintenance": {
+      "create": "新建资产维保"
+    },
+    "contracts": {
+      "create": "新建合同",
+      "edit": "编辑合同"
+    },
+    "employees": {
+      "create": "新建员工",
+      "edit": "编辑员工"
+    },
+    "departments": {
+      "create": "新建部门",
+      "edit": "编辑部门"
+    },
+    "products": {
+      "create": "新建产品",
+      "edit": "编辑产品"
+    },
+    "product_categories": {
+      "create": "新建产品分类",
+      "edit": "编辑产品分类"
+    },
+    "price_lists": {
+      "create": "新建价格表",
+      "edit": "编辑价格表"
+    },
+    "carriers": {
+      "create": "新建承运商",
+      "edit": "编辑承运商"
+    },
+    "roles": {
+      "create": "新建角色",
+      "edit": "编辑角色"
+    },
+    "user_roles": {
+      "edit": "分配用户角色"
+    },
+    "number_sequences": {
+      "edit": "编辑编号规则"
+    },
+    "approval_rules": {
+      "create": "新建审批规则",
+      "edit": "编辑审批规则"
+    },
+    "document_attachments": {
+      "create": "新建文档附件",
+      "edit": "编辑文档附件"
+    },
+    "document_relations": {
+      "create": "新建单据关联",
+      "edit": "编辑单据关联"
+    }
   },
-
   "sections": {
     "orderLines": "订单行",
     "invoiceLines": "发票行",
@@ -1069,16 +1496,6 @@
     "asnLines": "ASN明细",
     "inspectionDetails": "检验明细"
   },
-
-  "validation": {
-    "required": "请输入{{field}}",
-    "requiredSelect": "请选择{{field}}",
-    "email": "请输入有效邮箱",
-    "min": "{{field}}不能小于{{min}}",
-    "max": "{{field}}不能大于{{max}}",
-    "requiredField": "必填"
-  },
-
   "messages": {
     "saveSuccess": "保存成功",
     "saveFailed": "保存失败，请重试",
@@ -1086,113 +1503,9 @@
     "unsavedChanges": "有未保存的修改，确定要离开吗？",
     "submitSuccess": "提交成功"
   },
-
   "placeholders": {
     "select": "选择{{field}}",
     "input": "输入{{field}}",
     "example": "如：{{example}}"
-  },
-
-  "enums": {
-    "defectSeverity": {
-      "critical": "严重",
-      "major": "主要",
-      "minor": "次要"
-    },
-    "contractType": {
-      "sales": "销售合同",
-      "procurement": "采购合同",
-      "service": "服务合同",
-      "framework": "框架合同"
-    },
-    "voucherType": {
-      "general": "记账",
-      "receipt": "收款",
-      "payment": "付款",
-      "transfer": "转账"
-    },
-    "transactionType": {
-      "in": "入库",
-      "out": "出库",
-      "transfer": "调拨",
-      "adjust": "调整"
-    },
-    "notificationType": {
-      "info": "通知",
-      "warning": "警告",
-      "action_required": "待处理",
-      "approval": "待审批",
-      "system": "系统"
-    },
-    "balanceDirection": {
-      "debit": "借",
-      "credit": "贷"
-    },
-    "paymentMethod": {
-      "bank_transfer": "银行转账",
-      "cash": "现金",
-      "check": "支票",
-      "alipay": "支付宝",
-      "wechat": "微信支付",
-      "other": "其他"
-    },
-    "partyType": {
-      "customer": "客户",
-      "supplier": "供应商"
-    },
-    "depreciationMethod": {
-      "straight_line": "直线法",
-      "declining_balance": "余额递减法"
-    },
-    "carrierType": {
-      "express": "快递",
-      "freight": "快运",
-      "ltl": "零担",
-      "ftl": "整车",
-      "air": "空运",
-      "ocean": "海运",
-      "rail": "铁路运输"
-    },
-    "budgetType": {
-      "annual": "年度",
-      "quarterly": "季度",
-      "monthly": "月度"
-    },
-    "yesNo": {
-      "yes": "是",
-      "no": "否"
-    },
-    "accountCategory": {
-      "asset": "资产",
-      "liability": "负债",
-      "equity": "权益",
-      "revenue": "收入",
-      "expense": "费用"
-    },
-    "maintenanceType": {
-      "preventive": "预防性维护",
-      "corrective": "纠正性维护",
-      "inspection": "检查",
-      "other": "其他"
-    },
-    "assetStatus": {
-      "active": "在用",
-      "idle": "闲置",
-      "under_maintenance": "维修中",
-      "scrapped": "已报废",
-      "disposed": "已处置"
-    },
-    "rateType": {
-      "spot": "即期",
-      "average": "平均"
-    },
-    "successFail": {
-      "success": "成功",
-      "fail": "失败"
-    },
-    "cacheHit": {
-      "hit": "命中",
-      "miss": "未命中"
-    }
   }
 }

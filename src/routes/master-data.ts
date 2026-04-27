@@ -201,7 +201,7 @@ const uomsConfig: CrudConfig = {
   table: 'uoms',
   path: '/uoms',
   resourceName: 'UoM',
-  listSelect: 'id, uom_code, uom_name, uom_type',
+  listSelect: 'id, uom_code, uom_name, uom_type, conversion_factor',
   detailSelect: 'id, uom_code, uom_name, uom_type, base_uom_id, conversion_factor',
   createReturnSelect: 'id, uom_code, uom_name',
   defaultSort: 'uom_code',

@@ -1,82 +1,235 @@
 {
-  "procurement": { "procurement": "Procurement" },
-  "purchase-orders": { "purchase-orders": "Purchase Orders" },
-  "purchase-receipts": { "purchase-receipts": "Purchase Receipts" },
-  "suppliers": { "suppliers": "Suppliers" },
-  "purchase-requisitions": { "purchase-requisitions": "Purchase Requisitions" },
-  "rfq-headers": { "rfq-headers": "Requests for Quotation" },
-  "supplier-quotations": { "supplier-quotations": "Supplier Quotations" },
-  "sales": { "sales": "Sales" },
-  "sales-orders": { "sales-orders": "Sales Orders" },
-  "sales-invoices": { "sales-invoices": "Sales Invoices" },
-  "sales-shipments": { "sales-shipments": "Sales Shipments" },
-  "sales-returns": { "sales-returns": "Sales Returns" },
-  "customers": { "customers": "Customers" },
-  "customer-receipts": { "customer-receipts": "Customer Receipts" },
-  "inventory": { "inventory": "Inventory" },
-  "stock-records": { "stock-records": "Stock Records" },
-  "warehouses": { "warehouses": "Warehouses" },
-  "inventory-counts": { "inventory-counts": "Inventory Counts" },
-  "inventory-lots": { "inventory-lots": "Inventory Lots" },
-  "serial-numbers": { "serial-numbers": "Serial Numbers" },
-  "stock-transactions": { "stock-transactions": "Stock Transactions" },
-  "manufacturing": { "manufacturing": "Manufacturing" },
-  "bom-headers": { "bom-headers": "Bills of Material" },
-  "work-orders": { "work-orders": "Work Orders" },
-  "work-order-productions": { "work-order-productions": "Production Reports" },
-  "quality": { "quality": "Quality" },
-  "defect-codes": { "defect-codes": "Defect Codes" },
-  "quality-standards": { "quality-standards": "Quality Standards" },
-  "quality-inspections": { "quality-inspections": "Quality Inspections" },
-  "finance": { "finance": "Finance" },
-  "payment-requests": { "payment-requests": "Payment Requests" },
-  "supplier-invoices": { "supplier-invoices": "Supplier Invoices" },
-  "account-subjects": { "account-subjects": "Chart of Accounts" },
-  "cost-centers": { "cost-centers": "Cost Centers" },
-  "vouchers": { "vouchers": "Journal Vouchers" },
-  "budgets": { "budgets": "Budgets" },
-  "payment-records": { "payment-records": "Payment Records" },
-  "fixedAssets": { "fixedAssets": "Fixed Assets" },
-  "fixed-assets": { "fixed-assets": "Assets" },
-  "asset-depreciations": { "asset-depreciations": "Depreciation Records" },
-  "asset-maintenance": { "asset-maintenance": "Asset Maintenance" },
-  "contractMgmt": { "contractMgmt": "Contracts" },
-  "contracts": { "contracts": "Contracts" },
-  "hr": { "hr": "HR" },
-  "departments": { "departments": "Departments" },
-  "employees": { "employees": "Employees" },
-  "exchange-rates": { "exchange-rates": "Exchange Rates" },
-  "masterData": { "masterData": "Master Data" },
-  "products": { "products": "Products" },
-  "carriers": { "carriers": "Carriers" },
-  "product-categories": { "product-categories": "Product Categories" },
-  "storage-locations": { "storage-locations": "Storage Locations" },
-  "price-lists": { "price-lists": "Price Lists" },
-  "currencies": { "currencies": "Currencies" },
-  "uoms": { "uoms": "Units of Measure" },
-  "system": { "system": "System" },
-  "notifications": { "notifications": "Notifications" },
-  "profile-change-requests": { "profile-change-requests": "Profile Change Requests" },
-  "inventory-reservations": { "inventory-reservations": "Inventory Reservations" },
-  "document-attachments": { "document-attachments": "Document Attachments" },
-  "document-relations": { "document-relations": "Document Relations" },
-  "workflows": { "workflows": "Workflows" },
-  "approval-rules": { "approval-rules": "Approval Rules" },
-  "approval-records": { "approval-records": "Approval Records" },
-  "advance-shipment-notices": { "advance-shipment-notices": "Advance Shipment Notices" },
-  "reconciliation-statements": { "reconciliation-statements": "Reconciliation Statements" },
-  "roles": { "roles": "Roles" },
-  "user-roles": { "user-roles": "User Roles" },
-  "number-sequences": { "number-sequences": "Number Sequences" },
-  "token-usage": { "token-usage": "Token Usage" },
-  "tool-call-metrics": { "tool-call-metrics": "Tool Call Metrics" },
-  "agent-sessions": { "agent-sessions": "Agent Sessions" },
-  "agent-decisions": { "agent-decisions": "Agent Decisions" },
-  "business-events": { "business-events": "Business Events" },
-  "auth-events": { "auth-events": "Auth Events" },
-  "import-logs": { "import-logs": "Import Logs" },
-  "audit": { "audit": "Audit" },
-
+  "procurement": {
+    "procurement": "Procurement"
+  },
+  "purchase-orders": {
+    "purchase-orders": "Purchase Orders"
+  },
+  "purchase-receipts": {
+    "purchase-receipts": "Purchase Receipts"
+  },
+  "suppliers": {
+    "suppliers": "Suppliers"
+  },
+  "purchase-requisitions": {
+    "purchase-requisitions": "Purchase Requisitions"
+  },
+  "rfq-headers": {
+    "rfq-headers": "Requests for Quotation"
+  },
+  "supplier-quotations": {
+    "supplier-quotations": "Supplier Quotations"
+  },
+  "sales": {
+    "sales": "Sales"
+  },
+  "sales-orders": {
+    "sales-orders": "Sales Orders"
+  },
+  "sales-invoices": {
+    "sales-invoices": "Sales Invoices"
+  },
+  "sales-shipments": {
+    "sales-shipments": "Sales Shipments"
+  },
+  "sales-returns": {
+    "sales-returns": "Sales Returns"
+  },
+  "customers": {
+    "customers": "Customers"
+  },
+  "customer-receipts": {
+    "customer-receipts": "Customer Receipts"
+  },
+  "inventory": {
+    "inventory": "Inventory"
+  },
+  "stock-records": {
+    "stock-records": "Stock Records"
+  },
+  "warehouses": {
+    "warehouses": "Warehouses"
+  },
+  "inventory-counts": {
+    "inventory-counts": "Inventory Counts"
+  },
+  "inventory-lots": {
+    "inventory-lots": "Inventory Lots"
+  },
+  "serial-numbers": {
+    "serial-numbers": "Serial Numbers"
+  },
+  "stock-transactions": {
+    "stock-transactions": "Stock Transactions"
+  },
+  "manufacturing": {
+    "manufacturing": "Manufacturing"
+  },
+  "bom-headers": {
+    "bom-headers": "Bills of Material"
+  },
+  "work-orders": {
+    "work-orders": "Work Orders"
+  },
+  "work-order-productions": {
+    "work-order-productions": "Production Reports"
+  },
+  "quality": {
+    "quality": "Quality"
+  },
+  "defect-codes": {
+    "defect-codes": "Defect Codes"
+  },
+  "quality-standards": {
+    "quality-standards": "Quality Standards"
+  },
+  "quality-inspections": {
+    "quality-inspections": "Quality Inspections"
+  },
+  "finance": {
+    "finance": "Finance"
+  },
+  "payment-requests": {
+    "payment-requests": "Payment Requests"
+  },
+  "supplier-invoices": {
+    "supplier-invoices": "Supplier Invoices"
+  },
+  "account-subjects": {
+    "account-subjects": "Chart of Accounts"
+  },
+  "cost-centers": {
+    "cost-centers": "Cost Centers"
+  },
+  "vouchers": {
+    "vouchers": "Journal Vouchers"
+  },
+  "budgets": {
+    "budgets": "Budgets"
+  },
+  "payment-records": {
+    "payment-records": "Payment Records"
+  },
+  "fixedAssets": {
+    "fixedAssets": "Fixed Assets"
+  },
+  "fixed-assets": {
+    "fixed-assets": "Assets"
+  },
+  "asset-depreciations": {
+    "asset-depreciations": "Depreciation Records"
+  },
+  "asset-maintenance": {
+    "asset-maintenance": "Asset Maintenance"
+  },
+  "contractMgmt": {
+    "contractMgmt": "Contracts"
+  },
+  "contracts": {
+    "contracts": "Contracts"
+  },
+  "hr": {
+    "hr": "HR"
+  },
+  "departments": {
+    "departments": "Departments"
+  },
+  "employees": {
+    "employees": "Employees"
+  },
+  "exchange-rates": {
+    "exchange-rates": "Exchange Rates"
+  },
+  "masterData": {
+    "masterData": "Master Data"
+  },
+  "products": {
+    "products": "Products"
+  },
+  "carriers": {
+    "carriers": "Carriers"
+  },
+  "product-categories": {
+    "product-categories": "Product Categories"
+  },
+  "storage-locations": {
+    "storage-locations": "Storage Locations"
+  },
+  "price-lists": {
+    "price-lists": "Price Lists"
+  },
+  "currencies": {
+    "currencies": "Currencies"
+  },
+  "uoms": {
+    "uoms": "Units of Measure"
+  },
+  "system": {
+    "system": "System"
+  },
+  "notifications": {
+    "notifications": "Notifications"
+  },
+  "profile-change-requests": {
+    "profile-change-requests": "Profile Change Requests"
+  },
+  "inventory-reservations": {
+    "inventory-reservations": "Inventory Reservations"
+  },
+  "document-attachments": {
+    "document-attachments": "Document Attachments"
+  },
+  "document-relations": {
+    "document-relations": "Document Relations"
+  },
+  "workflows": {
+    "workflows": "Workflows"
+  },
+  "approval-rules": {
+    "approval-rules": "Approval Rules"
+  },
+  "approval-records": {
+    "approval-records": "Approval Records"
+  },
+  "advance-shipment-notices": {
+    "advance-shipment-notices": "Advance Shipment Notices"
+  },
+  "reconciliation-statements": {
+    "reconciliation-statements": "Reconciliation Statements"
+  },
+  "roles": {
+    "roles": "Roles"
+  },
+  "user-roles": {
+    "user-roles": "User Roles"
+  },
+  "number-sequences": {
+    "number-sequences": "Number Sequences"
+  },
+  "token-usage": {
+    "token-usage": "Token Usage"
+  },
+  "tool-call-metrics": {
+    "tool-call-metrics": "Tool Call Metrics"
+  },
+  "agent-sessions": {
+    "agent-sessions": "Agent Sessions"
+  },
+  "agent-decisions": {
+    "agent-decisions": "Agent Decisions"
+  },
+  "business-events": {
+    "business-events": "Business Events"
+  },
+  "auth-events": {
+    "auth-events": "Auth Events"
+  },
+  "import-logs": {
+    "import-logs": "Import Logs"
+  },
+  "audit": {
+    "audit": "Audit"
+  },
   "actions": {
     "list": "List",
     "show": "Show",
@@ -121,6 +274,27 @@
     "notes": "Notes",
     "total": "Total",
     "welcome": "Welcome to ERP Refine"
+  },
+  "validation": {
+    "required": "{{field}} is required",
+    "requiredSelect": "Please select {{field}}",
+    "email": "Please enter a valid email",
+    "min": "{{field}} must be at least {{min}}",
+    "max": "{{field}} must be at most {{max}}",
+    "requiredField": "Required"
+  },
+  "placeholder": {
+    "select_supplier": "Select supplier",
+    "select_warehouse": "Select warehouse",
+    "select_customer": "Select customer",
+    "select_department": "Select department",
+    "select_purchase_order": "Select purchase order",
+    "select_severity": "Select severity",
+    "select_inspection_result": "Select result",
+    "select_payment_method": "Select payment method",
+    "json_format": "JSON format",
+    "link_rfq_optional": "Link RFQ (optional)",
+    "example_code": "e.g.: {{example}}"
   },
   "filters": {
     "search": "Search",
@@ -300,7 +474,22 @@
     "shipped": "Shipped",
     "delivered": "Delivered",
     "recalled": "Recalled",
-    "discontinued": "Discontinued"
+    "discontinued": "Discontinued",
+    "open": "Open",
+    "aborted": "Aborted",
+    "fulfilled": "Fulfilled",
+    "reconciled": "Reconciled",
+    "processing": "Processing",
+    "overdue": "Overdue",
+    "valid": "Valid",
+    "expiring": "Expiring",
+    "blocked": "Blocked",
+    "pending_approval": "Pending Approval",
+    "partial": "Partial",
+    "skipped": "Skipped",
+    "bank_transfer": "Bank Transfer",
+    "cash": "Cash",
+    "check": "Check"
   },
   "enums": {
     "defectSeverity": {
@@ -332,6 +521,76 @@
       "action_required": "Action Required",
       "approval": "Approval",
       "system": "System"
+    },
+    "balanceDirection": {
+      "debit": "Debit",
+      "credit": "Credit"
+    },
+    "paymentMethod": {
+      "bank_transfer": "Bank Transfer",
+      "cash": "Cash",
+      "check": "Check",
+      "alipay": "Alipay",
+      "wechat": "WeChat Pay",
+      "other": "Other"
+    },
+    "partyType": {
+      "customer": "Customer",
+      "supplier": "Supplier"
+    },
+    "depreciationMethod": {
+      "straight_line": "Straight Line",
+      "declining_balance": "Declining Balance"
+    },
+    "carrierType": {
+      "express": "Express",
+      "freight": "Freight",
+      "ltl": "LTL",
+      "ftl": "FTL",
+      "air": "Air Freight",
+      "ocean": "Ocean Freight",
+      "rail": "Rail"
+    },
+    "budgetType": {
+      "annual": "Annual",
+      "quarterly": "Quarterly",
+      "monthly": "Monthly"
+    },
+    "yesNo": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "accountCategory": {
+      "asset": "Asset",
+      "liability": "Liability",
+      "equity": "Equity",
+      "revenue": "Revenue",
+      "expense": "Expense"
+    },
+    "maintenanceType": {
+      "preventive": "Preventive",
+      "corrective": "Corrective",
+      "inspection": "Inspection",
+      "other": "Other"
+    },
+    "assetStatus": {
+      "active": "Active",
+      "idle": "Idle",
+      "under_maintenance": "Under Maintenance",
+      "scrapped": "Scrapped",
+      "disposed": "Disposed"
+    },
+    "rateType": {
+      "spot": "Spot",
+      "average": "Average"
+    },
+    "successFail": {
+      "success": "Success",
+      "fail": "Fail"
+    },
+    "cacheHit": {
+      "hit": "Hit",
+      "miss": "Miss"
     }
   },
   "tools": {
@@ -478,7 +737,21 @@
     "closeAi": "Close AI Assistant",
     "loading": "Loading..."
   },
-
+  "dynamicForm": {
+    "loadFailed": "Failed to load form",
+    "notActive": "This form is not yet active",
+    "contactAdmin": "Please contact an administrator to activate this form",
+    "submitSuccess": "Submitted successfully",
+    "submitFailed": "Submission failed"
+  },
+  "qualityInspection": {
+    "title": "Quality Inspection",
+    "inspectionDetails": "Inspection Details",
+    "checkItem": "Check Item",
+    "checkStandard": "Standard",
+    "checkResult": "Result",
+    "measuredValue": "Measured Value"
+  },
   "fields": {
     "common": {
       "id": "ID",
@@ -552,7 +825,6 @@
       "assigned_by": "Assigned By",
       "assigned_at": "Assigned At",
       "line_total": "Line Total",
-
       "invoice_number": "Invoice No.",
       "invoice_date": "Invoice Date",
       "receipt_number": "Receipt No.",
@@ -564,7 +836,6 @@
       "voucher_number": "Voucher No.",
       "voucher_date": "Voucher Date",
       "voucher_type": "Voucher Type",
-
       "lot_number": "Lot No.",
       "lot_no": "Lot No.",
       "serial_number": "Serial No.",
@@ -587,7 +858,6 @@
       "variance_quantity": "Variance Qty",
       "total_quantity": "Total Quantity",
       "total_rows": "Total Rows",
-
       "from_currency": "Source Currency",
       "to_currency": "Target Currency",
       "rate": "Rate",
@@ -597,7 +867,6 @@
       "symbol": "Symbol",
       "currency_code": "Currency Code",
       "currency_name": "Currency Name",
-
       "approval_status": "Approval Status",
       "decision_by": "Approver",
       "decision_at": "Approved At",
@@ -607,7 +876,6 @@
       "rule_name": "Rule Name",
       "document_type": "Document Type",
       "document_id": "Document ID",
-
       "entity_id": "Entity ID",
       "entity_type": "Entity Type",
       "from_object_id": "Source ID",
@@ -616,20 +884,17 @@
       "to_object_type": "Target Type",
       "party_id": "Party ID",
       "party_type": "Party Type",
-
       "file_name": "File Name",
       "file_path": "File Path",
       "file_size": "File Size",
       "mime_type": "MIME Type",
       "uploaded_by": "Uploaded By",
       "resource_type": "Resource Type",
-
       "event_type": "Event Type",
       "occurred_at": "Occurred At",
       "ip_address": "IP Address",
       "source_system": "Source System",
       "severity": "Severity",
-
       "tool_name": "Tool Name",
       "model": "Model",
       "input_tokens": "Input Tokens",
@@ -643,7 +908,6 @@
       "error_count": "Errors",
       "success_count": "Success Count",
       "message_count": "Message Count",
-
       "risk_level": "Risk Level",
       "confidence": "Confidence",
       "decision": "Decision",
@@ -652,13 +916,11 @@
       "session_type": "Session Type",
       "workflow_type": "Workflow Type",
       "current_step": "Current Step",
-
       "prefix": "Prefix",
       "increment_by": "Increment",
       "padding": "Padding",
       "current_value": "Current Value",
       "sequence_name": "Sequence Name",
-
       "cost": "Cost",
       "cost_estimate": "Cost Estimate",
       "paid_amount": "Paid Amount",
@@ -673,12 +935,10 @@
       "min_amount": "Min Amount",
       "max_amount": "Max Amount",
       "min_quantity": "Min Qty",
-
       "account_code": "Account Code",
       "account_subject_id": "Account Subject",
       "entry_type": "Debit/Credit",
       "summary": "Summary",
-
       "before_data": "Before Data",
       "after_data": "After Data",
       "request_type": "Request Type",
@@ -699,7 +959,6 @@
       "title": "Title",
       "body": "Body"
     },
-
     "products": {
       "code": "Product Code",
       "name": "Product Name",
@@ -774,7 +1033,12 @@
       "tracking_url_template": "Tracking URL Template"
     },
     "defect_codes": {
-      "code": "Defect Code"
+      "code": "Defect Code",
+      "name": "Name",
+      "category": "Category",
+      "severity": "Severity",
+      "description": "Description",
+      "is_active": "Active"
     },
     "quality_standards": {
       "standard_code": "Standard Code",
@@ -836,14 +1100,20 @@
     "purchase_orders": {
       "po_id": "Purchase Order"
     },
+    "purchase_requisitions": {
+      "request_date": "Request Date",
+      "required_date": "Required Date"
+    },
     "purchase_receipts": {
-      "quantity": "Received Qty"
+      "quantity": "Received Qty",
+      "purchase_order_id": "Purchase Order"
     },
     "sales_returns": {
       "quantity": "Return Qty"
     },
     "sales_shipments": {
-      "quantity": "Shipped Qty"
+      "quantity": "Shipped Qty",
+      "sales_order_id": "Sales Order"
     },
     "customer_receipts": {
       "receipt_number": "Receipt No.",
@@ -857,22 +1127,34 @@
     },
     "reconciliation_statements": {
       "statement_no": "Statement No.",
-      "statement_period": "Statement Period"
+      "statement_period": "Statement Period",
+      "period_end": "Period End",
+      "period_start": "Period Start"
     },
     "advance_shipment_notices": {
-      "asn_no": "ASN No."
+      "asn_no": "ASN No.",
+      "po_id": "Purchase Order"
     },
     "rfq_headers": {
-      "rfq_number": "RFQ No."
+      "rfq_number": "RFQ No.",
+      "issued_at": "Issued At",
+      "issued_by": "Issued By"
     },
     "supplier_quotations": {
       "quotation_number": "Quotation No.",
-      "validity_date": "Validity Date"
+      "validity_date": "Validity Date",
+      "rfq_id": "RFQ"
     },
     "quality_inspections": {
       "reference_id": "Source No.",
       "reference_type": "Source Type",
-      "result": "Result"
+      "result": "Result",
+      "inspection_number": "Inspection No.",
+      "inspection_date": "Inspection Date",
+      "qualified_quantity": "Qualified Qty",
+      "defective_quantity": "Defective Qty",
+      "total_quantity": "Total Qty",
+      "inspector_id": "Inspector"
     },
     "inventory_counts": {
       "count_number": "Count No.",
@@ -924,7 +1206,8 @@
     "notifications": {
       "notification_type": "Type",
       "recipient_id": "Recipient",
-      "is_read": "Read"
+      "is_read": "Read",
+      "read_at": "Read At"
     },
     "workflows": {
       "entity_id": "Reference ID",
@@ -955,7 +1238,8 @@
       "scrap_rate": "Scrap Rate (%)"
     },
     "rfq_lines": {
-      "qty_requested": "Qty Requested"
+      "qty_requested": "Qty Requested",
+      "unit_of_measure": "Unit of Measure"
     },
     "supplier_quotation_lines": {
       "qty_offered": "Qty Offered",
@@ -992,61 +1276,204 @@
     },
     "auth_events": {
       "user_agent": "User Agent"
+    },
+    "approval_records": {
+      "rule_id": "Approval Rule"
+    },
+    "quality_standard_items": {
+      "acceptance_criteria": "Acceptance Criteria",
+      "check_method": "Check Method",
+      "is_mandatory": "Mandatory",
+      "item_name": "Item Name"
     }
   },
-
   "titles": {
-    "purchase_orders": { "create": "Create Purchase Order", "edit": "Edit Purchase Order" },
-    "purchase_receipts": { "edit": "Edit Purchase Receipt" },
-    "purchase_requisitions": { "create": "Create Purchase Requisition", "edit": "Edit Purchase Requisition" },
-    "suppliers": { "create": "Create Supplier", "edit": "Edit Supplier" },
-    "supplier_invoices": { "edit": "Edit Supplier Invoice" },
-    "supplier_quotations": { "create": "Create Supplier Quotation", "edit": "Edit Supplier Quotation" },
-    "rfq_headers": { "create": "Create RFQ", "edit": "Edit RFQ" },
-    "advance_shipment_notices": { "create": "Create ASN", "edit": "Edit ASN" },
-    "reconciliation_statements": { "create": "Create Reconciliation Statement", "edit": "Edit Reconciliation Statement" },
-    "profile_change_requests": { "create": "Create Change Request", "edit": "Edit Change Request" },
-    "sales_orders": { "edit": "Edit Sales Order" },
-    "sales_invoices": { "edit": "Edit Sales Invoice" },
-    "sales_shipments": { "edit": "Edit Sales Shipment" },
-    "sales_returns": { "edit": "Edit Sales Return" },
-    "customers": { "create": "Create Customer", "edit": "Edit Customer" },
-    "customer_receipts": { "create": "Create Customer Receipt", "edit": "Edit Customer Receipt" },
-    "warehouses": { "create": "Create Warehouse", "edit": "Edit Warehouse" },
-    "storage_locations": { "create": "Create Storage Location", "edit": "Edit Storage Location" },
-    "inventory_counts": { "create": "Create Inventory Count", "edit": "Edit Inventory Count" },
-    "inventory_lots": { "create": "Create Lot", "edit": "Edit Lot" },
-    "inventory_reservations": { "create": "Create Reservation", "edit": "Edit Reservation" },
-    "serial_numbers": { "create": "Create Serial Number", "edit": "Edit Serial Number" },
-    "bom_headers": { "create": "Create BOM", "edit": "Edit BOM" },
-    "work_orders": { "create": "Create Work Order", "edit": "Edit Work Order" },
-    "work_order_productions": { "create": "Create Production Report" },
-    "quality_standards": { "create": "Create Quality Standard", "edit": "Edit Quality Standard" },
-    "quality_inspections": { "create": "Create Inspection", "edit": "Edit Inspection" },
-    "defect_codes": { "create": "Create Defect Code", "edit": "Edit Defect Code" },
-    "account_subjects": { "create": "Create Account", "edit": "Edit Account" },
-    "cost_centers": { "create": "Create Cost Center", "edit": "Edit Cost Center" },
-    "vouchers": { "create": "Create Voucher", "edit": "Edit Voucher" },
-    "budgets": { "create": "Create Budget", "edit": "Edit Budget" },
-    "payment_requests": { "edit": "Edit Payment Request" },
-    "exchange_rates": { "create": "Create Exchange Rate", "edit": "Edit Exchange Rate" },
-    "fixed_assets": { "create": "Create Fixed Asset", "edit": "Edit Fixed Asset" },
-    "asset_maintenance": { "create": "Create Maintenance Record" },
-    "contracts": { "create": "Create Contract", "edit": "Edit Contract" },
-    "employees": { "create": "Create Employee", "edit": "Edit Employee" },
-    "departments": { "create": "Create Department", "edit": "Edit Department" },
-    "products": { "create": "Create Product", "edit": "Edit Product" },
-    "product_categories": { "create": "Create Category", "edit": "Edit Category" },
-    "price_lists": { "create": "Create Price List", "edit": "Edit Price List" },
-    "carriers": { "create": "Create Carrier", "edit": "Edit Carrier" },
-    "roles": { "create": "Create Role", "edit": "Edit Role" },
-    "user_roles": { "edit": "Assign User Roles" },
-    "number_sequences": { "edit": "Edit Number Sequence" },
-    "approval_rules": { "create": "Create Approval Rule", "edit": "Edit Approval Rule" },
-    "document_attachments": { "create": "Create Attachment", "edit": "Edit Attachment" },
-    "document_relations": { "create": "Create Document Relation", "edit": "Edit Document Relation" }
+    "purchase_orders": {
+      "create": "Create Purchase Order",
+      "edit": "Edit Purchase Order"
+    },
+    "purchase_receipts": {
+      "edit": "Edit Purchase Receipt"
+    },
+    "purchase_requisitions": {
+      "create": "Create Purchase Requisition",
+      "edit": "Edit Purchase Requisition"
+    },
+    "suppliers": {
+      "create": "Create Supplier",
+      "edit": "Edit Supplier"
+    },
+    "supplier_invoices": {
+      "edit": "Edit Supplier Invoice"
+    },
+    "supplier_quotations": {
+      "create": "Create Supplier Quotation",
+      "edit": "Edit Supplier Quotation"
+    },
+    "rfq_headers": {
+      "create": "Create RFQ",
+      "edit": "Edit RFQ"
+    },
+    "advance_shipment_notices": {
+      "create": "Create ASN",
+      "edit": "Edit ASN"
+    },
+    "reconciliation_statements": {
+      "create": "Create Reconciliation Statement",
+      "edit": "Edit Reconciliation Statement"
+    },
+    "profile_change_requests": {
+      "create": "Create Change Request",
+      "edit": "Edit Change Request"
+    },
+    "sales_orders": {
+      "edit": "Edit Sales Order"
+    },
+    "sales_invoices": {
+      "edit": "Edit Sales Invoice"
+    },
+    "sales_shipments": {
+      "edit": "Edit Sales Shipment"
+    },
+    "sales_returns": {
+      "edit": "Edit Sales Return"
+    },
+    "customers": {
+      "create": "Create Customer",
+      "edit": "Edit Customer"
+    },
+    "customer_receipts": {
+      "create": "Create Customer Receipt",
+      "edit": "Edit Customer Receipt"
+    },
+    "warehouses": {
+      "create": "Create Warehouse",
+      "edit": "Edit Warehouse"
+    },
+    "storage_locations": {
+      "create": "Create Storage Location",
+      "edit": "Edit Storage Location"
+    },
+    "inventory_counts": {
+      "create": "Create Inventory Count",
+      "edit": "Edit Inventory Count"
+    },
+    "inventory_lots": {
+      "create": "Create Lot",
+      "edit": "Edit Lot"
+    },
+    "inventory_reservations": {
+      "create": "Create Reservation",
+      "edit": "Edit Reservation"
+    },
+    "serial_numbers": {
+      "create": "Create Serial Number",
+      "edit": "Edit Serial Number"
+    },
+    "bom_headers": {
+      "create": "Create BOM",
+      "edit": "Edit BOM"
+    },
+    "work_orders": {
+      "create": "Create Work Order",
+      "edit": "Edit Work Order"
+    },
+    "work_order_productions": {
+      "create": "Create Production Report"
+    },
+    "quality_standards": {
+      "create": "Create Quality Standard",
+      "edit": "Edit Quality Standard"
+    },
+    "quality_inspections": {
+      "create": "Create Inspection",
+      "edit": "Edit Inspection"
+    },
+    "defect_codes": {
+      "create": "Create Defect Code",
+      "edit": "Edit Defect Code"
+    },
+    "account_subjects": {
+      "create": "Create Account",
+      "edit": "Edit Account"
+    },
+    "cost_centers": {
+      "create": "Create Cost Center",
+      "edit": "Edit Cost Center"
+    },
+    "vouchers": {
+      "create": "Create Voucher",
+      "edit": "Edit Voucher"
+    },
+    "budgets": {
+      "create": "Create Budget",
+      "edit": "Edit Budget"
+    },
+    "payment_requests": {
+      "edit": "Edit Payment Request"
+    },
+    "exchange_rates": {
+      "create": "Create Exchange Rate",
+      "edit": "Edit Exchange Rate"
+    },
+    "fixed_assets": {
+      "create": "Create Fixed Asset",
+      "edit": "Edit Fixed Asset"
+    },
+    "asset_maintenance": {
+      "create": "Create Maintenance Record"
+    },
+    "contracts": {
+      "create": "Create Contract",
+      "edit": "Edit Contract"
+    },
+    "employees": {
+      "create": "Create Employee",
+      "edit": "Edit Employee"
+    },
+    "departments": {
+      "create": "Create Department",
+      "edit": "Edit Department"
+    },
+    "products": {
+      "create": "Create Product",
+      "edit": "Edit Product"
+    },
+    "product_categories": {
+      "create": "Create Category",
+      "edit": "Edit Category"
+    },
+    "price_lists": {
+      "create": "Create Price List",
+      "edit": "Edit Price List"
+    },
+    "carriers": {
+      "create": "Create Carrier",
+      "edit": "Edit Carrier"
+    },
+    "roles": {
+      "create": "Create Role",
+      "edit": "Edit Role"
+    },
+    "user_roles": {
+      "edit": "Assign User Roles"
+    },
+    "number_sequences": {
+      "edit": "Edit Number Sequence"
+    },
+    "approval_rules": {
+      "create": "Create Approval Rule",
+      "edit": "Edit Approval Rule"
+    },
+    "document_attachments": {
+      "create": "Create Attachment",
+      "edit": "Edit Attachment"
+    },
+    "document_relations": {
+      "create": "Create Document Relation",
+      "edit": "Edit Document Relation"
+    }
   },
-
   "sections": {
     "orderLines": "Order Lines",
     "invoiceLines": "Invoice Lines",
@@ -1069,16 +1496,6 @@
     "asnLines": "ASN Lines",
     "inspectionDetails": "Inspection Details"
   },
-
-  "validation": {
-    "required": "{{field}} is required",
-    "requiredSelect": "Please select {{field}}",
-    "email": "Please enter a valid email",
-    "min": "{{field}} must be at least {{min}}",
-    "max": "{{field}} must be at most {{max}}",
-    "requiredField": "Required"
-  },
-
   "messages": {
     "saveSuccess": "Saved successfully",
     "saveFailed": "Save failed, please retry",
@@ -1086,113 +1503,9 @@
     "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
     "submitSuccess": "Submitted successfully"
   },
-
   "placeholders": {
     "select": "Select {{field}}",
     "input": "Enter {{field}}",
     "example": "e.g., {{example}}"
-  },
-
-  "enums": {
-    "defectSeverity": {
-      "critical": "Critical",
-      "major": "Major",
-      "minor": "Minor"
-    },
-    "contractType": {
-      "sales": "Sales Contract",
-      "procurement": "Procurement Contract",
-      "service": "Service Contract",
-      "framework": "Framework Contract"
-    },
-    "voucherType": {
-      "general": "General",
-      "receipt": "Receipt",
-      "payment": "Payment",
-      "transfer": "Transfer"
-    },
-    "transactionType": {
-      "in": "Inbound",
-      "out": "Outbound",
-      "transfer": "Transfer",
-      "adjust": "Adjustment"
-    },
-    "notificationType": {
-      "info": "Info",
-      "warning": "Warning",
-      "action_required": "Action Required",
-      "approval": "Approval",
-      "system": "System"
-    },
-    "balanceDirection": {
-      "debit": "Debit",
-      "credit": "Credit"
-    },
-    "paymentMethod": {
-      "bank_transfer": "Bank Transfer",
-      "cash": "Cash",
-      "check": "Check",
-      "alipay": "Alipay",
-      "wechat": "WeChat Pay",
-      "other": "Other"
-    },
-    "partyType": {
-      "customer": "Customer",
-      "supplier": "Supplier"
-    },
-    "depreciationMethod": {
-      "straight_line": "Straight Line",
-      "declining_balance": "Declining Balance"
-    },
-    "carrierType": {
-      "express": "Express",
-      "freight": "Freight",
-      "ltl": "LTL",
-      "ftl": "FTL",
-      "air": "Air Freight",
-      "ocean": "Ocean Freight",
-      "rail": "Rail"
-    },
-    "budgetType": {
-      "annual": "Annual",
-      "quarterly": "Quarterly",
-      "monthly": "Monthly"
-    },
-    "yesNo": {
-      "yes": "Yes",
-      "no": "No"
-    },
-    "accountCategory": {
-      "asset": "Asset",
-      "liability": "Liability",
-      "equity": "Equity",
-      "revenue": "Revenue",
-      "expense": "Expense"
-    },
-    "maintenanceType": {
-      "preventive": "Preventive",
-      "corrective": "Corrective",
-      "inspection": "Inspection",
-      "other": "Other"
-    },
-    "assetStatus": {
-      "active": "Active",
-      "idle": "Idle",
-      "under_maintenance": "Under Maintenance",
-      "scrapped": "Scrapped",
-      "disposed": "Disposed"
-    },
-    "rateType": {
-      "spot": "Spot",
-      "average": "Average"
-    },
-    "successFail": {
-      "success": "Success",
-      "fail": "Fail"
-    },
-    "cacheHit": {
-      "hit": "Hit",
-      "miss": "Miss"
-    }
   }
 }

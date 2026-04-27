@@ -23,8 +23,8 @@ export const PurchaseOrderCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('purchase_orders', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
-              <Select {...supplierSelectProps} showSearch placeholder="选择供应商" />
+            <Form.Item label={fl('purchase_orders', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: t('validation.required_supplier') }]}>
+              <Select {...supplierSelectProps} showSearch placeholder={t('placeholder.select_supplier')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -36,7 +36,7 @@ export const PurchaseOrderCreate: React.FC = () => {
             <Form.Item
               label={fl('purchase_orders', 'order_date')}
               name="order_date"
-              rules={[{ required: true, message: '请选择订单日期' }]}
+              rules={[{ required: true, message: t('validation.required_order_date') }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
               <DatePicker style={FULL_WIDTH} />

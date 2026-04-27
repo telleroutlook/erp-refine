@@ -23,13 +23,13 @@ export const ProfileChangeRequestEdit: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('profile_change_requests', 'request_type')} name="request_type" rules={[{ required: true, message: '请输入申请类型' }]}>
+            <Form.Item label={fl('profile_change_requests', 'request_type')} name="request_type" rules={[{ required: true, message: t('validation.required_request_type') }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('profile_change_requests', 'supplier_id')} name="supplier_id">
-              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder="选择供应商" allowClear />
+              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_supplier')} allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -45,12 +45,12 @@ export const ProfileChangeRequestEdit: React.FC = () => {
           </Col>
           <Col span={24}>
             <Form.Item label={fl('profile_change_requests', 'before_data')} name="before_data">
-              <Input.TextArea rows={4} placeholder="JSON 格式" />
+              <Input.TextArea rows={4} placeholder={t('placeholder.json_format')} />
             </Form.Item>
           </Col>
           <Col span={24}>
             <Form.Item label={fl('profile_change_requests', 'after_data')} name="after_data">
-              <Input.TextArea rows={4} placeholder="JSON 格式" />
+              <Input.TextArea rows={4} placeholder={t('placeholder.json_format')} />
             </Form.Item>
           </Col>
         </Row>

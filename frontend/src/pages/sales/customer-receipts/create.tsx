@@ -19,22 +19,22 @@ export const CustomerReceiptCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('customer_receipts', 'customer_id')} name="customer_id" rules={[{ required: true, message: '请选择客户' }]}>
-              <Select options={customerOptions} showSearch optionFilterProp="label" placeholder="选择客户" />
+            <Form.Item label={fl('customer_receipts', 'customer_id')} name="customer_id" rules={[{ required: true, message: t('validation.required_customer') }]}>
+              <Select options={customerOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_customer')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
               label={fl('customer_receipts', 'receipt_date')}
               name="receipt_date"
-              rules={[{ required: true, message: '请选择收款日期' }]}
+              rules={[{ required: true, message: t('validation.required_receipt_date') }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={t('common.amount')} name="amount" rules={[{ required: true, message: '请输入金额' }]}>
+            <Form.Item label={t('common.amount')} name="amount" rules={[{ required: true, message: t('validation.required_amount') }]}>
               <InputNumber style={FULL_WIDTH} min={0} precision={2} />
             </Form.Item>
           </Col>
@@ -46,7 +46,7 @@ export const CustomerReceiptCreate: React.FC = () => {
                   { value: 'cash', label: t('status.cash') },
                   { value: 'check', label: t('status.check') },
                 ]}
-                placeholder="选择收款方式"
+                placeholder={t('placeholder.select_payment_method')}
               />
             </Form.Item>
           </Col>

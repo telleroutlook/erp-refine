@@ -18,8 +18,8 @@ export const ReconciliationStatementCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('reconciliation_statements', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
-              <Select {...supplierProps} showSearch placeholder="选择供应商" />
+            <Form.Item label={fl('reconciliation_statements', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: t('validation.required_supplier') }]}>
+              <Select {...supplierProps} showSearch placeholder={t('placeholder.select_supplier')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -28,12 +28,12 @@ export const ReconciliationStatementCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('reconciliation_statements', 'period_start')} name="period_start" rules={[{ required: true, message: '请选择期间开始日期' }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
+            <Form.Item label={fl('reconciliation_statements', 'period_start')} name="period_start" rules={[{ required: true, message: t('validation.required_period_start') }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('reconciliation_statements', 'period_end')} name="period_end" rules={[{ required: true, message: '请选择期间结束日期' }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
+            <Form.Item label={fl('reconciliation_statements', 'period_end')} name="period_end" rules={[{ required: true, message: t('validation.required_period_end') }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>

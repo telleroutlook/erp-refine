@@ -188,8 +188,7 @@ const profileChangeRequestsConfig: CrudConfig = {
   createReturnSelect: 'id, request_type, status',
   defaultSort: 'created_at',
   softDelete: false,
-  orgScoped: false,
-  parentOwnership: { parentFk: 'supplier_id', parentTable: 'suppliers' },
+  orgScoped: true,
 };
 
 partners.route('', buildCrudRoutes(profileChangeRequestsConfig));

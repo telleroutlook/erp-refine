@@ -21,7 +21,7 @@ export const RfqHeaderCreate: React.FC = () => {
             <Form.Item
               label={fl('rfq_headers', 'due_date')}
               name="due_date"
-              rules={[{ required: true, message: '请选择截止日期' }]}
+              rules={[{ required: true, message: t('validation.required_due_date') }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
               <DatePicker style={FULL_WIDTH} />

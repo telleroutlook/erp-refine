@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useOne } from '@refinedev/core';
 import { Spin, Result, message, theme } from 'antd';
 import { DynamicFormRenderer } from '../../components/dynamic-form/DynamicFormRenderer';
+import { useTranslation } from 'react-i18next';
 
 interface DynamicFormPageProps {
   schemaId: string;
@@ -9,6 +10,7 @@ interface DynamicFormPageProps {
 
 export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) => {
   const { token } = theme.useToken();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
 
   const { data, isLoading, isError } = useOne({
@@ -17,12 +19,12 @@ export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) =>
   });
 
   if (isLoading) return <Spin size="large" style={{ display: 'block', margin: '40px auto' }} />;
-  if (isError) return <Result status="error" title="加载表单失败" />;
+  if (isError) return <Result status="error" title={t('dynamicForm.loadFailed')} />;
 
   const schema = data?.data;
 
   if (schema?.status !== 'active') {
-    return <Result status="warning" title="此表单尚未激活" subTitle="请联系管理员激活此表单" />;
+    return <Result status="warning" title={t('dynamicForm.notActive')} subTitle={t('dynamicForm.contactAdmin')} />;
   }
 
   const handleSubmit = async (formData: Record<string, unknown>) => {
@@ -38,10 +40,10 @@ export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) =>
         body: JSON.stringify({ schemaId, data: formData }),
       });
 
-      if (!res.ok) throw new Error('提交失败');
-      message.success('提交成功');
+      if (!res.ok) throw new Error(t('dynamicForm.submitFailed'));
+      message.success(t('dynamicForm.submitSuccess'));
     } catch (err) {
-      message.error(err instanceof Error ? err.message : '提交失败');
+      message.error(err instanceof Error ? err.message : t('dynamicForm.submitFailed'));
     } finally {
       setSubmitting(false);
     }

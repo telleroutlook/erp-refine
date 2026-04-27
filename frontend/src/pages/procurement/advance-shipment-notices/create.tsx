@@ -20,22 +20,22 @@ export const AdvanceShipmentNoticeCreate: React.FC = () => {
       <Form {...formProps} layout="vertical">
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('advance_shipment_notices', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: '请选择供应商' }]}>
-              <Select {...supplierProps} showSearch placeholder="选择供应商" />
+            <Form.Item label={fl('advance_shipment_notices', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: t('validation.required_supplier') }]}>
+              <Select {...supplierProps} showSearch placeholder={t('placeholder.select_supplier')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('advance_shipment_notices', 'warehouse_id')} name="warehouse_id" rules={[{ required: true, message: '请选择仓库' }]}>
-              <Select {...warehouseProps} showSearch placeholder="选择仓库" />
+            <Form.Item label={fl('advance_shipment_notices', 'warehouse_id')} name="warehouse_id" rules={[{ required: true, message: t('validation.required_warehouse') }]}>
+              <Select {...warehouseProps} showSearch placeholder={t('placeholder.select_warehouse')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('advance_shipment_notices', 'po_id')} name="po_id">
-              <Select {...poProps} showSearch allowClear placeholder="选择采购订单" />
+              <Select {...poProps} showSearch allowClear placeholder={t('placeholder.select_purchase_order')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('advance_shipment_notices', 'expected_date')} name="expected_date" rules={[{ required: true, message: '请选择预计到货日' }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
+            <Form.Item label={fl('advance_shipment_notices', 'expected_date')} name="expected_date" rules={[{ required: true, message: t('validation.required_expected_date') }]} getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}>
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
           </Col>

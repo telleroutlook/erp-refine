@@ -22,7 +22,7 @@ export const PurchaseRequisitionCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('purchase_requisitions', 'department_id')} name="department_id">
-              <Select options={departmentOptions} showSearch optionFilterProp="label" placeholder="选择部门" />
+              <Select options={departmentOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_department')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -34,7 +34,7 @@ export const PurchaseRequisitionCreate: React.FC = () => {
             <Form.Item
               label={fl('purchase_requisitions', 'request_date')}
               name="request_date"
-              rules={[{ required: true, message: '请选择申请日期' }]}
+              rules={[{ required: true, message: t('validation.required_request_date') }]}
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
               <DatePicker style={FULL_WIDTH} />

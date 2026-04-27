@@ -108,7 +108,7 @@ const exchangeRatesConfig: CrudConfig = {
   table: 'exchange_rates',
   path: '/exchange-rates',
   resourceName: 'ExchangeRate',
-  listSelect: 'id, from_currency, to_currency, rate, effective_date',
+  listSelect: 'id, from_currency, to_currency, rate, rate_type, effective_date, expiry_date',
   detailSelect: '*',
   createReturnSelect: 'id, from_currency, to_currency, rate, effective_date',
   defaultSort: 'effective_date',

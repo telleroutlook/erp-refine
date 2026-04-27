@@ -121,14 +121,15 @@ function walkDir(dir: string, ext: string): string[] {
 // Collect all status values rendered in frontend
 const frontendStatusValues = new Set<string>();
 const pageFiles = walkDir(join(FRONTEND, 'pages'), '.tsx');
+const componentFiles = walkDir(join(FRONTEND, 'components'), '.tsx');
 
-for (const file of pageFiles) {
+for (const file of [...pageFiles, ...componentFiles]) {
   const content = readFileSync(file, 'utf-8');
-  // Match status string literals used in comparisons or mappings
   const statusPatterns = [
     /status\s*===?\s*['"]([a-z_]+)['"]/g,
-    /['"]([a-z_]+)['"]\s*:\s*\{?\s*(?:color|label|text|icon)/g,
+    /['"]([a-z_]+)['"]\s*:\s*\{?\s*(?:color|label|text|icon|bg|GRAY|BLUE|GREEN|YELLOW|RED|CYAN|PURPLE)/g,
     /case\s+['"]([a-z_]+)['"]/g,
+    /\b([a-z_]+)\s*:\s*(?:GRAY|BLUE|GREEN|YELLOW|RED|CYAN|PURPLE)\b/g,
   ];
   for (const re of statusPatterns) {
     let m: RegExpExecArray | null;
