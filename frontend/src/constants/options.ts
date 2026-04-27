@@ -293,3 +293,37 @@ export const NOTIFICATION_TYPE_OPTIONS = [
   { value: 'approval' },
   { value: 'system' },
 ];
+
+export const MATCH_STATUS_OPTIONS = [
+  { value: 'matched' },
+  { value: 'partial_match' },
+  { value: 'mismatched' },
+  { value: 'pending' },
+];
+
+export const ORGANIZATION_STATUS_OPTIONS = [
+  { value: 'active' },
+  { value: 'inactive' },
+  { value: 'suspended' },
+];
+
+export const COST_METHOD_OPTIONS = [
+  { value: 'weighted_average' },
+  { value: 'fifo' },
+  { value: 'standard' },
+];
+
+export const PAYMENT_METHOD_OPTIONS = [
+  { value: 'bank_transfer' },
+  { value: 'cash' },
+  { value: 'check' },
+  { value: 'alipay' },
+  { value: 'wechat' },
+  { value: 'other' },
+];
+
+export const PORTAL_USER_STATUS_OPTIONS = [
+  { value: 'active' },
+  { value: 'inactive' },
+  { value: 'suspended' },
+];

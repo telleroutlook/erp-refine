@@ -6,8 +6,10 @@ import { API_URL } from '../constants/api';
 
 const ADMIN_RESOURCES = new Set([
   'roles', 'user-roles', 'role-permissions', 'approval-rules', 'approval-rule-steps',
+  'approval-records',
   'token-usage', 'tool-call-metrics', 'agent-sessions', 'agent-decisions',
   'business-events', 'auth-events', 'import-logs',
+  'failed-login-attempts', 'portal-users',
   'semantic-metadata', 'component-whitelist', 'schema-versions',
 ]);
 

@@ -227,6 +227,27 @@
   "import-logs": {
     "import-logs": "Import Logs"
   },
+  "failed-login-attempts": {
+    "failed-login-attempts": "Failed Login Attempts"
+  },
+  "organizations": {
+    "organizations": "Organizations"
+  },
+  "organization-currencies": {
+    "organization-currencies": "Organization Currencies"
+  },
+  "organization-uoms": {
+    "organization-uoms": "Organization UoMs"
+  },
+  "product-cost-history": {
+    "product-cost-history": "Product Cost History"
+  },
+  "three-way-match": {
+    "three-way-match": "Three-Way Match"
+  },
+  "portal-users": {
+    "portal-users": "Portal Users"
+  },
   "audit": {
     "audit": "Audit"
   },
@@ -416,7 +437,14 @@
     "authEvents": "Auth Events",
     "importLogs": "Import Logs",
     "profileChangeRequests": "Profile Change Requests",
-    "schemaManager": "Dynamic Forms"
+    "schemaManager": "Dynamic Forms",
+    "failedLoginAttempts": "Failed Login Attempts",
+    "organizations": "Organizations",
+    "organizationCurrencies": "Org Currencies",
+    "organizationUoms": "Org UoMs",
+    "productCostHistory": "Cost History",
+    "threeWayMatch": "Three-Way Match",
+    "portalUsers": "Portal Users"
   },
   "status": {
     "draft": "Draft",
@@ -489,7 +517,13 @@
     "skipped": "Skipped",
     "bank_transfer": "Bank Transfer",
     "cash": "Cash",
-    "check": "Check"
+    "check": "Check",
+    "matched": "Matched",
+    "mismatched": "Mismatched",
+    "partial_match": "Partial Match",
+    "weighted_average": "Weighted Average",
+    "fifo": "FIFO",
+    "standard": "Standard"
   },
   "enums": {
     "defectSeverity": {
@@ -1109,11 +1143,16 @@
       "purchase_order_id": "Purchase Order"
     },
     "sales_returns": {
-      "quantity": "Return Qty"
+      "quantity": "Return Qty",
+      "sales_order_id": "Sales Order",
+      "reason": "Reason"
     },
     "sales_shipments": {
       "quantity": "Shipped Qty",
-      "sales_order_id": "Sales Order"
+      "sales_order_id": "Sales Order",
+      "carrier": "Carrier",
+      "shipping_method": "Shipping Method",
+      "tracking_number": "Tracking Number"
     },
     "customer_receipts": {
       "receipt_number": "Receipt No.",
@@ -1285,6 +1324,74 @@
       "check_method": "Check Method",
       "is_mandatory": "Mandatory",
       "item_name": "Item Name"
+    },
+    "organizations": {
+      "code": "Org Code",
+      "name": "Org Name",
+      "tax_number": "Tax Number",
+      "plan": "Plan",
+      "address": "Address"
+    },
+    "three_way_match_results": {
+      "match_status": "Match Status",
+      "purchase_order_id": "Purchase Order",
+      "purchase_receipt_id": "Purchase Receipt",
+      "supplier_invoice_id": "Supplier Invoice",
+      "quantity_variance": "Qty Variance",
+      "price_variance": "Price Variance",
+      "amount_variance": "Amount Variance",
+      "matched_at": "Matched At",
+      "matched_by": "Matched By"
+    },
+    "failed_login_attempts": {
+      "username": "Username",
+      "ip_address": "IP Address",
+      "reason": "Reason"
+    },
+    "portal_users": {
+      "username": "Username",
+      "role": "Role",
+      "last_login_at": "Last Login",
+      "password_changed_at": "Password Changed At"
+    },
+    "product_cost_history": {
+      "unit_cost": "Unit Cost",
+      "total_value": "Total Value",
+      "total_quantity": "Total Qty",
+      "cost_method": "Cost Method"
+    },
+    "organization_currencies": {
+      "currency_code": "Currency",
+      "is_default": "Default"
+    },
+    "organization_uoms": {
+      "uom_id": "Unit of Measure",
+      "is_default": "Default"
+    },
+    "three_way_match": {
+      "match_status": "Match Status",
+      "purchase_order_id": "Purchase Order",
+      "purchase_receipt_id": "Purchase Receipt",
+      "supplier_invoice_id": "Supplier Invoice",
+      "quantity_variance": "Qty Variance",
+      "price_variance": "Price Variance",
+      "amount_variance": "Amount Variance",
+      "matched_at": "Matched At",
+      "matched_by": "Matched By",
+      "notes": "Notes",
+      "created_at": "Created At"
+    },
+    "payment_requests": {
+      "supplier_invoice_id": "Supplier Invoice"
+    },
+    "sales_invoices": {
+      "sales_order_id": "Sales Order"
+    },
+    "supplier_invoices": {
+      "purchase_order_id": "Purchase Order"
+    },
+    "sales_orders": {
+      "delivery_date": "Delivery Date"
     }
   },
   "titles": {
@@ -1293,6 +1400,7 @@
       "edit": "Edit Purchase Order"
     },
     "purchase_receipts": {
+      "create": "Create Purchase Receipt",
       "edit": "Edit Purchase Receipt"
     },
     "purchase_requisitions": {
@@ -1304,6 +1412,7 @@
       "edit": "Edit Supplier"
     },
     "supplier_invoices": {
+      "create": "Create Supplier Invoice",
       "edit": "Edit Supplier Invoice"
     },
     "supplier_quotations": {
@@ -1327,15 +1436,19 @@
       "edit": "Edit Change Request"
     },
     "sales_orders": {
+      "create": "Create Sales Order",
       "edit": "Edit Sales Order"
     },
     "sales_invoices": {
+      "create": "Create Sales Invoice",
       "edit": "Edit Sales Invoice"
     },
     "sales_shipments": {
+      "create": "Create Sales Shipment",
       "edit": "Edit Sales Shipment"
     },
     "sales_returns": {
+      "create": "Create Sales Return",
       "edit": "Edit Sales Return"
     },
     "customers": {
@@ -1410,6 +1523,7 @@
       "edit": "Edit Budget"
     },
     "payment_requests": {
+      "create": "Create Payment Request",
       "edit": "Edit Payment Request"
     },
     "exchange_rates": {
@@ -1472,6 +1586,16 @@
     "document_relations": {
       "create": "Create Document Relation",
       "edit": "Edit Document Relation"
+    },
+    "organizations": {
+      "create": "Create Organization",
+      "edit": "Edit Organization"
+    },
+    "organization_currencies": {
+      "create": "Add Organization Currency"
+    },
+    "organization_uoms": {
+      "create": "Add Organization UoM"
     }
   },
   "sections": {

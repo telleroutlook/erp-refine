@@ -227,6 +227,27 @@
   "import-logs": {
     "import-logs": "导入日志"
   },
+  "failed-login-attempts": {
+    "failed-login-attempts": "登录失败记录"
+  },
+  "organizations": {
+    "organizations": "组织管理"
+  },
+  "organization-currencies": {
+    "organization-currencies": "组织币种"
+  },
+  "organization-uoms": {
+    "organization-uoms": "组织计量单位"
+  },
+  "product-cost-history": {
+    "product-cost-history": "产品成本历史"
+  },
+  "three-way-match": {
+    "three-way-match": "三单匹配"
+  },
+  "portal-users": {
+    "portal-users": "门户用户"
+  },
   "audit": {
     "audit": "审计监控"
   },
@@ -416,7 +437,14 @@
     "authEvents": "认证事件",
     "importLogs": "导入日志",
     "profileChangeRequests": "变更申请",
-    "schemaManager": "动态表单"
+    "schemaManager": "动态表单",
+    "failedLoginAttempts": "登录失败记录",
+    "organizations": "组织管理",
+    "organizationCurrencies": "组织币种",
+    "organizationUoms": "组织计量单位",
+    "productCostHistory": "成本历史",
+    "threeWayMatch": "三单匹配",
+    "portalUsers": "门户用户"
   },
   "status": {
     "draft": "草稿",
@@ -489,7 +517,13 @@
     "skipped": "已跳过",
     "bank_transfer": "银行转账",
     "cash": "现金",
-    "check": "支票"
+    "check": "支票",
+    "matched": "已匹配",
+    "mismatched": "不匹配",
+    "partial_match": "部分匹配",
+    "weighted_average": "加权平均",
+    "fifo": "先进先出",
+    "standard": "标准成本"
   },
   "enums": {
     "defectSeverity": {
@@ -1109,11 +1143,16 @@
       "purchase_order_id": "采购订单"
     },
     "sales_returns": {
-      "quantity": "退货数量"
+      "quantity": "退货数量",
+      "sales_order_id": "销售订单",
+      "reason": "退货原因"
     },
     "sales_shipments": {
       "quantity": "发货数量",
-      "sales_order_id": "销售订单"
+      "sales_order_id": "销售订单",
+      "carrier": "承运商",
+      "shipping_method": "配送方式",
+      "tracking_number": "运单号"
     },
     "customer_receipts": {
       "receipt_number": "收款单号",
@@ -1285,6 +1324,74 @@
       "check_method": "检查方法",
       "is_mandatory": "是否必检",
       "item_name": "检验项目"
+    },
+    "organizations": {
+      "code": "组织编码",
+      "name": "组织名称",
+      "tax_number": "税号",
+      "plan": "套餐",
+      "address": "地址"
+    },
+    "three_way_match_results": {
+      "match_status": "匹配状态",
+      "purchase_order_id": "采购订单",
+      "purchase_receipt_id": "采购收货单",
+      "supplier_invoice_id": "供应商发票",
+      "quantity_variance": "数量差异",
+      "price_variance": "价格差异",
+      "amount_variance": "金额差异",
+      "matched_at": "匹配时间",
+      "matched_by": "匹配人"
+    },
+    "failed_login_attempts": {
+      "username": "用户名",
+      "ip_address": "IP地址",
+      "reason": "原因"
+    },
+    "portal_users": {
+      "username": "用户名",
+      "role": "角色",
+      "last_login_at": "最后登录",
+      "password_changed_at": "密码修改时间"
+    },
+    "product_cost_history": {
+      "unit_cost": "单位成本",
+      "total_value": "总价值",
+      "total_quantity": "总数量",
+      "cost_method": "成本方法"
+    },
+    "organization_currencies": {
+      "currency_code": "币种",
+      "is_default": "默认"
+    },
+    "organization_uoms": {
+      "uom_id": "计量单位",
+      "is_default": "默认"
+    },
+    "three_way_match": {
+      "match_status": "匹配状态",
+      "purchase_order_id": "采购订单",
+      "purchase_receipt_id": "采购收货单",
+      "supplier_invoice_id": "供应商发票",
+      "quantity_variance": "数量差异",
+      "price_variance": "价格差异",
+      "amount_variance": "金额差异",
+      "matched_at": "匹配时间",
+      "matched_by": "匹配人",
+      "notes": "备注",
+      "created_at": "创建时间"
+    },
+    "payment_requests": {
+      "supplier_invoice_id": "供应商发票"
+    },
+    "sales_invoices": {
+      "sales_order_id": "销售订单"
+    },
+    "supplier_invoices": {
+      "purchase_order_id": "采购订单"
+    },
+    "sales_orders": {
+      "delivery_date": "交货日期"
     }
   },
   "titles": {
@@ -1293,6 +1400,7 @@
       "edit": "编辑采购订单"
     },
     "purchase_receipts": {
+      "create": "新建采购收货单",
       "edit": "编辑采购收货单"
     },
     "purchase_requisitions": {
@@ -1304,6 +1412,7 @@
       "edit": "编辑供应商"
     },
     "supplier_invoices": {
+      "create": "新建供应商发票",
       "edit": "编辑供应商发票"
     },
     "supplier_quotations": {
@@ -1327,15 +1436,19 @@
       "edit": "编辑变更申请"
     },
     "sales_orders": {
+      "create": "新建销售订单",
       "edit": "编辑销售订单"
     },
     "sales_invoices": {
+      "create": "新建销售发票",
       "edit": "编辑销售发票"
     },
     "sales_shipments": {
+      "create": "新建销售发货单",
       "edit": "编辑销售发货单"
     },
     "sales_returns": {
+      "create": "新建销售退货单",
       "edit": "编辑销售退货单"
     },
     "customers": {
@@ -1410,6 +1523,7 @@
       "edit": "编辑预算"
     },
     "payment_requests": {
+      "create": "新建付款申请",
       "edit": "编辑付款申请"
     },
     "exchange_rates": {
@@ -1472,6 +1586,16 @@
     "document_relations": {
       "create": "新建单据关联",
       "edit": "编辑单据关联"
+    },
+    "organizations": {
+      "create": "新建组织",
+      "edit": "编辑组织"
+    },
+    "organization_currencies": {
+      "create": "新增组织币种"
+    },
+    "organization_uoms": {
+      "create": "新增组织计量单位"
     }
   },
   "sections": {

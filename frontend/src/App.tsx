@@ -32,6 +32,7 @@ const SupplierCreate = lazy(() => import('./pages/procurement/suppliers/create')
 const SupplierEdit = lazy(() => import('./pages/procurement/suppliers/edit').then((m) => ({ default: m.SupplierEdit })));
 const PurchaseReceiptList = lazy(() => import('./pages/procurement/purchase-receipts/list').then((m) => ({ default: m.PurchaseReceiptList })));
 const PurchaseReceiptShow = lazy(() => import('./pages/procurement/purchase-receipts/show').then((m) => ({ default: m.PurchaseReceiptShow })));
+const PurchaseReceiptCreate = lazy(() => import('./pages/procurement/purchase-receipts/create').then((m) => ({ default: m.PurchaseReceiptCreate })));
 const PurchaseReceiptEdit = lazy(() => import('./pages/procurement/purchase-receipts/edit').then((m) => ({ default: m.PurchaseReceiptEdit })));
 const PurchaseRequisitionList = lazy(() => import('./pages/procurement/purchase-requisitions/list').then((m) => ({ default: m.PurchaseRequisitionList })));
 const PurchaseRequisitionShow = lazy(() => import('./pages/procurement/purchase-requisitions/show').then((m) => ({ default: m.PurchaseRequisitionShow })));
@@ -57,10 +58,13 @@ const ReconciliationStatementList = lazy(() => import('./pages/procurement/recon
 const ReconciliationStatementShow = lazy(() => import('./pages/procurement/reconciliation-statements/show').then((m) => ({ default: m.ReconciliationStatementShow })));
 const ReconciliationStatementCreate = lazy(() => import('./pages/procurement/reconciliation-statements/create').then((m) => ({ default: m.ReconciliationStatementCreate })));
 const ReconciliationStatementEdit = lazy(() => import('./pages/procurement/reconciliation-statements/edit').then((m) => ({ default: m.ReconciliationStatementEdit })));
+const ThreeWayMatchList = lazy(() => import('./pages/procurement/three-way-match/list').then((m) => ({ default: m.ThreeWayMatchList })));
+const ThreeWayMatchShow = lazy(() => import('./pages/procurement/three-way-match/show').then((m) => ({ default: m.ThreeWayMatchShow })));
 
 // ── Sales ──
 const SalesOrderList = lazy(() => import('./pages/sales/sales-orders/list').then((m) => ({ default: m.SalesOrderList })));
 const SalesOrderShow = lazy(() => import('./pages/sales/sales-orders/show').then((m) => ({ default: m.SalesOrderShow })));
+const SalesOrderCreate = lazy(() => import('./pages/sales/sales-orders/create').then((m) => ({ default: m.SalesOrderCreate })));
 const SalesOrderEdit = lazy(() => import('./pages/sales/sales-orders/edit').then((m) => ({ default: m.SalesOrderEdit })));
 const CustomerList = lazy(() => import('./pages/sales/customers/list').then((m) => ({ default: m.CustomerList })));
 const CustomerShow = lazy(() => import('./pages/sales/customers/show').then((m) => ({ default: m.CustomerShow })));
@@ -68,9 +72,11 @@ const CustomerCreate = lazy(() => import('./pages/sales/customers/create').then(
 const CustomerEdit = lazy(() => import('./pages/sales/customers/edit').then((m) => ({ default: m.CustomerEdit })));
 const SalesShipmentList = lazy(() => import('./pages/sales/sales-shipments/list').then((m) => ({ default: m.SalesShipmentList })));
 const SalesShipmentShow = lazy(() => import('./pages/sales/sales-shipments/show').then((m) => ({ default: m.SalesShipmentShow })));
+const SalesShipmentCreate = lazy(() => import('./pages/sales/sales-shipments/create').then((m) => ({ default: m.SalesShipmentCreate })));
 const SalesShipmentEdit = lazy(() => import('./pages/sales/sales-shipments/edit').then((m) => ({ default: m.SalesShipmentEdit })));
 const SalesReturnList = lazy(() => import('./pages/sales/sales-returns/list').then((m) => ({ default: m.SalesReturnList })));
 const SalesReturnShow = lazy(() => import('./pages/sales/sales-returns/show').then((m) => ({ default: m.SalesReturnShow })));
+const SalesReturnCreate = lazy(() => import('./pages/sales/sales-returns/create').then((m) => ({ default: m.SalesReturnCreate })));
 const SalesReturnEdit = lazy(() => import('./pages/sales/sales-returns/edit').then((m) => ({ default: m.SalesReturnEdit })));
 const CustomerReceiptList = lazy(() => import('./pages/sales/customer-receipts/list').then((m) => ({ default: m.CustomerReceiptList })));
 const CustomerReceiptShow = lazy(() => import('./pages/sales/customer-receipts/show').then((m) => ({ default: m.CustomerReceiptShow })));
@@ -132,12 +138,15 @@ const QualityInspectionEdit = lazy(() => import('./pages/quality/quality-inspect
 // ── Finance ──
 const PaymentRequestList = lazy(() => import('./pages/finance/payment-requests/list').then((m) => ({ default: m.PaymentRequestList })));
 const PaymentRequestShow = lazy(() => import('./pages/finance/payment-requests/show').then((m) => ({ default: m.PaymentRequestShow })));
+const PaymentRequestCreate = lazy(() => import('./pages/finance/payment-requests/create').then((m) => ({ default: m.PaymentRequestCreate })));
 const PaymentRequestEdit = lazy(() => import('./pages/finance/payment-requests/edit').then((m) => ({ default: m.PaymentRequestEdit })));
 const SalesInvoiceList = lazy(() => import('./pages/finance/sales-invoices/list').then((m) => ({ default: m.SalesInvoiceList })));
 const SalesInvoiceShow = lazy(() => import('./pages/finance/sales-invoices/show').then((m) => ({ default: m.SalesInvoiceShow })));
+const SalesInvoiceCreate = lazy(() => import('./pages/finance/sales-invoices/create').then((m) => ({ default: m.SalesInvoiceCreate })));
 const SalesInvoiceEdit = lazy(() => import('./pages/finance/sales-invoices/edit').then((m) => ({ default: m.SalesInvoiceEdit })));
 const SupplierInvoiceList = lazy(() => import('./pages/finance/supplier-invoices/list').then((m) => ({ default: m.SupplierInvoiceList })));
 const SupplierInvoiceShow = lazy(() => import('./pages/finance/supplier-invoices/show').then((m) => ({ default: m.SupplierInvoiceShow })));
+const SupplierInvoiceCreate = lazy(() => import('./pages/finance/supplier-invoices/create').then((m) => ({ default: m.SupplierInvoiceCreate })));
 const SupplierInvoiceEdit = lazy(() => import('./pages/finance/supplier-invoices/edit').then((m) => ({ default: m.SupplierInvoiceEdit })));
 const AccountSubjectList = lazy(() => import('./pages/finance/account-subjects/list').then((m) => ({ default: m.AccountSubjectList })));
 const AccountSubjectShow = lazy(() => import('./pages/finance/account-subjects/show').then((m) => ({ default: m.AccountSubjectShow })));
@@ -214,6 +223,14 @@ const CurrencyList = lazy(() => import('./pages/master-data/currencies/list').th
 const CurrencyShow = lazy(() => import('./pages/master-data/currencies/show').then((m) => ({ default: m.CurrencyShow })));
 const UomList = lazy(() => import('./pages/master-data/uoms/list').then((m) => ({ default: m.UomList })));
 const UomShow = lazy(() => import('./pages/master-data/uoms/show').then((m) => ({ default: m.UomShow })));
+const OrganizationCurrencyList = lazy(() => import('./pages/master-data/organization-currencies/list').then((m) => ({ default: m.OrganizationCurrencyList })));
+const OrganizationCurrencyShow = lazy(() => import('./pages/master-data/organization-currencies/show').then((m) => ({ default: m.OrganizationCurrencyShow })));
+const OrganizationCurrencyCreate = lazy(() => import('./pages/master-data/organization-currencies/create').then((m) => ({ default: m.OrganizationCurrencyCreate })));
+const OrganizationUomList = lazy(() => import('./pages/master-data/organization-uoms/list').then((m) => ({ default: m.OrganizationUomList })));
+const OrganizationUomShow = lazy(() => import('./pages/master-data/organization-uoms/show').then((m) => ({ default: m.OrganizationUomShow })));
+const OrganizationUomCreate = lazy(() => import('./pages/master-data/organization-uoms/create').then((m) => ({ default: m.OrganizationUomCreate })));
+const ProductCostHistoryList = lazy(() => import('./pages/master-data/product-cost-history/list').then((m) => ({ default: m.ProductCostHistoryList })));
+const ProductCostHistoryShow = lazy(() => import('./pages/master-data/product-cost-history/show').then((m) => ({ default: m.ProductCostHistoryShow })));
 
 // ── System ──
 const NotificationList = lazy(() => import('./pages/system/notifications/list').then((m) => ({ default: m.NotificationList })));
@@ -245,6 +262,12 @@ const UserRoleEdit = lazy(() => import('./pages/system/user-roles/edit').then((m
 const NumberSequenceList = lazy(() => import('./pages/system/number-sequences/list').then((m) => ({ default: m.NumberSequenceList })));
 const NumberSequenceShow = lazy(() => import('./pages/system/number-sequences/show').then((m) => ({ default: m.NumberSequenceShow })));
 const NumberSequenceEdit = lazy(() => import('./pages/system/number-sequences/edit').then((m) => ({ default: m.NumberSequenceEdit })));
+const OrganizationList = lazy(() => import('./pages/system/organizations/list').then((m) => ({ default: m.OrganizationList })));
+const OrganizationShow = lazy(() => import('./pages/system/organizations/show').then((m) => ({ default: m.OrganizationShow })));
+const OrganizationCreate = lazy(() => import('./pages/system/organizations/create').then((m) => ({ default: m.OrganizationCreate })));
+const OrganizationEdit = lazy(() => import('./pages/system/organizations/edit').then((m) => ({ default: m.OrganizationEdit })));
+const PortalUserList = lazy(() => import('./pages/system/portal-users/list').then((m) => ({ default: m.PortalUserList })));
+const PortalUserShow = lazy(() => import('./pages/system/portal-users/show').then((m) => ({ default: m.PortalUserShow })));
 
 // ── Audit ──
 const TokenUsageList = lazy(() => import('./pages/audit/token-usage/list').then((m) => ({ default: m.TokenUsageList })));
@@ -261,6 +284,8 @@ const AuthEventList = lazy(() => import('./pages/audit/auth-events/list').then((
 const AuthEventShow = lazy(() => import('./pages/audit/auth-events/show').then((m) => ({ default: m.AuthEventShow })));
 const ImportLogList = lazy(() => import('./pages/audit/import-logs/list').then((m) => ({ default: m.ImportLogList })));
 const ImportLogShow = lazy(() => import('./pages/audit/import-logs/show').then((m) => ({ default: m.ImportLogShow })));
+const FailedLoginAttemptList = lazy(() => import('./pages/audit/failed-login-attempts/list').then((m) => ({ default: m.FailedLoginAttemptList })));
+const FailedLoginAttemptShow = lazy(() => import('./pages/audit/failed-login-attempts/show').then((m) => ({ default: m.FailedLoginAttemptShow })));
 
 // Icons
 import {
@@ -281,6 +306,7 @@ import {
   LockOutlined, SafetyOutlined, LinkOutlined, PaperClipOutlined, NodeIndexOutlined, PartitionOutlined, FormOutlined,
   TruckOutlined, ReconciliationOutlined, CrownOutlined, KeyOutlined, OrderedListOutlined,
   DashboardOutlined, ThunderboltOutlined, RobotOutlined, AlertOutlined, LoginOutlined, ImportOutlined,
+  StopOutlined, UserSwitchOutlined, HistoryOutlined,
 } from '@ant-design/icons';
 
 const antdLocaleMap: Record<string, Locale> = { en: enUS, 'zh-CN': zhCN };
@@ -321,6 +347,7 @@ const App: React.FC = () => {
                 list: '/procurement/purchase-receipts',
                 show: '/procurement/purchase-receipts/:id',
                 edit: '/procurement/purchase-receipts/:id/edit',
+                create: '/procurement/purchase-receipts/create',
                 meta: { parent: 'procurement', icon: <FileDoneOutlined /> },
               },
               {
@@ -379,6 +406,12 @@ const App: React.FC = () => {
                 create: '/procurement/reconciliation-statements/create',
                 meta: { parent: 'procurement', icon: <ReconciliationOutlined /> },
               },
+              {
+                name: 'three-way-match',
+                list: '/procurement/three-way-match',
+                show: '/procurement/three-way-match/:id',
+                meta: { parent: 'procurement', icon: <ReconciliationOutlined /> },
+              },
               // ── Sales ──
               { name: 'sales' },
               {
@@ -386,6 +419,7 @@ const App: React.FC = () => {
                 list: '/sales/sales-orders',
                 show: '/sales/sales-orders/:id',
                 edit: '/sales/sales-orders/:id/edit',
+                create: '/sales/sales-orders/create',
                 meta: { parent: 'sales', icon: <ShopOutlined /> },
               },
               {
@@ -393,6 +427,7 @@ const App: React.FC = () => {
                 list: '/sales/sales-shipments',
                 show: '/sales/sales-shipments/:id',
                 edit: '/sales/sales-shipments/:id/edit',
+                create: '/sales/sales-shipments/create',
                 meta: { parent: 'sales', icon: <CarOutlined /> },
               },
               {
@@ -400,6 +435,7 @@ const App: React.FC = () => {
                 list: '/sales/sales-returns',
                 show: '/sales/sales-returns/:id',
                 edit: '/sales/sales-returns/:id/edit',
+                create: '/sales/sales-returns/create',
                 meta: { parent: 'sales', icon: <RollbackOutlined /> },
               },
               {
@@ -529,6 +565,7 @@ const App: React.FC = () => {
                 list: '/finance/payment-requests',
                 show: '/finance/payment-requests/:id',
                 edit: '/finance/payment-requests/:id/edit',
+                create: '/finance/payment-requests/create',
                 meta: { parent: 'finance', icon: <DollarOutlined /> },
               },
               {
@@ -536,6 +573,7 @@ const App: React.FC = () => {
                 list: '/finance/sales-invoices',
                 show: '/finance/sales-invoices/:id',
                 edit: '/finance/sales-invoices/:id/edit',
+                create: '/finance/sales-invoices/create',
                 meta: { parent: 'finance', icon: <FileTextOutlined /> },
               },
               {
@@ -543,6 +581,7 @@ const App: React.FC = () => {
                 list: '/finance/supplier-invoices',
                 show: '/finance/supplier-invoices/:id',
                 edit: '/finance/supplier-invoices/:id/edit',
+                create: '/finance/supplier-invoices/create',
                 meta: { parent: 'finance', icon: <BankOutlined /> },
               },
               {
@@ -696,6 +735,26 @@ const App: React.FC = () => {
                 show: '/master-data/uoms/:id',
                 meta: { parent: 'masterData', icon: <ColumnWidthOutlined /> },
               },
+              {
+                name: 'organization-currencies',
+                list: '/master-data/organization-currencies',
+                show: '/master-data/organization-currencies/:id',
+                create: '/master-data/organization-currencies/create',
+                meta: { parent: 'masterData', icon: <DollarCircleOutlined /> },
+              },
+              {
+                name: 'organization-uoms',
+                list: '/master-data/organization-uoms',
+                show: '/master-data/organization-uoms/:id',
+                create: '/master-data/organization-uoms/create',
+                meta: { parent: 'masterData', icon: <ColumnWidthOutlined /> },
+              },
+              {
+                name: 'product-cost-history',
+                list: '/master-data/product-cost-history',
+                show: '/master-data/product-cost-history/:id',
+                meta: { parent: 'masterData', icon: <HistoryOutlined /> },
+              },
               // ── System ──
               { name: 'system' },
               {
@@ -763,6 +822,20 @@ const App: React.FC = () => {
                 edit: '/system/number-sequences/:id/edit',
                 meta: { parent: 'system', icon: <OrderedListOutlined /> },
               },
+              {
+                name: 'organizations',
+                list: '/system/organizations',
+                show: '/system/organizations/:id',
+                edit: '/system/organizations/:id/edit',
+                create: '/system/organizations/create',
+                meta: { parent: 'system', icon: <BankOutlined /> },
+              },
+              {
+                name: 'portal-users',
+                list: '/system/portal-users',
+                show: '/system/portal-users/:id',
+                meta: { parent: 'system', icon: <UserSwitchOutlined /> },
+              },
               // ── Audit ──
               { name: 'audit' },
               {
@@ -807,6 +880,12 @@ const App: React.FC = () => {
                 show: '/audit/import-logs/:id',
                 meta: { parent: 'audit', icon: <ImportOutlined /> },
               },
+              {
+                name: 'failed-login-attempts',
+                list: '/audit/failed-login-attempts',
+                show: '/audit/failed-login-attempts/:id',
+                meta: { parent: 'audit', icon: <StopOutlined /> },
+              },
             ]}
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}
           >
@@ -832,6 +911,7 @@ const App: React.FC = () => {
                   <Route path="/procurement/purchase-orders/:id" element={<PurchaseOrderShow />} />
                   <Route path="/procurement/purchase-orders/:id/edit" element={<PurchaseOrderEdit />} />
                   <Route path="/procurement/purchase-receipts" element={<PurchaseReceiptList />} />
+                  <Route path="/procurement/purchase-receipts/create" element={<PurchaseReceiptCreate />} />
                   <Route path="/procurement/purchase-receipts/:id" element={<PurchaseReceiptShow />} />
                   <Route path="/procurement/purchase-receipts/:id/edit" element={<PurchaseReceiptEdit />} />
                   <Route path="/procurement/suppliers" element={<SupplierList />} />
@@ -862,15 +942,20 @@ const App: React.FC = () => {
                   <Route path="/procurement/reconciliation-statements/create" element={<ReconciliationStatementCreate />} />
                   <Route path="/procurement/reconciliation-statements/:id" element={<ReconciliationStatementShow />} />
                   <Route path="/procurement/reconciliation-statements/:id/edit" element={<ReconciliationStatementEdit />} />
+                  <Route path="/procurement/three-way-match" element={<ThreeWayMatchList />} />
+                  <Route path="/procurement/three-way-match/:id" element={<ThreeWayMatchShow />} />
 
                   {/* Sales */}
                   <Route path="/sales/sales-orders" element={<SalesOrderList />} />
+                  <Route path="/sales/sales-orders/create" element={<SalesOrderCreate />} />
                   <Route path="/sales/sales-orders/:id" element={<SalesOrderShow />} />
                   <Route path="/sales/sales-orders/:id/edit" element={<SalesOrderEdit />} />
                   <Route path="/sales/sales-shipments" element={<SalesShipmentList />} />
+                  <Route path="/sales/sales-shipments/create" element={<SalesShipmentCreate />} />
                   <Route path="/sales/sales-shipments/:id" element={<SalesShipmentShow />} />
                   <Route path="/sales/sales-shipments/:id/edit" element={<SalesShipmentEdit />} />
                   <Route path="/sales/sales-returns" element={<SalesReturnList />} />
+                  <Route path="/sales/sales-returns/create" element={<SalesReturnCreate />} />
                   <Route path="/sales/sales-returns/:id" element={<SalesReturnShow />} />
                   <Route path="/sales/sales-returns/:id/edit" element={<SalesReturnEdit />} />
                   <Route path="/sales/customers" element={<CustomerList />} />
@@ -936,12 +1021,15 @@ const App: React.FC = () => {
 
                   {/* Finance */}
                   <Route path="/finance/payment-requests" element={<PaymentRequestList />} />
+                  <Route path="/finance/payment-requests/create" element={<PaymentRequestCreate />} />
                   <Route path="/finance/payment-requests/:id" element={<PaymentRequestShow />} />
                   <Route path="/finance/payment-requests/:id/edit" element={<PaymentRequestEdit />} />
                   <Route path="/finance/sales-invoices" element={<SalesInvoiceList />} />
+                  <Route path="/finance/sales-invoices/create" element={<SalesInvoiceCreate />} />
                   <Route path="/finance/sales-invoices/:id" element={<SalesInvoiceShow />} />
                   <Route path="/finance/sales-invoices/:id/edit" element={<SalesInvoiceEdit />} />
                   <Route path="/finance/supplier-invoices" element={<SupplierInvoiceList />} />
+                  <Route path="/finance/supplier-invoices/create" element={<SupplierInvoiceCreate />} />
                   <Route path="/finance/supplier-invoices/:id" element={<SupplierInvoiceShow />} />
                   <Route path="/finance/supplier-invoices/:id/edit" element={<SupplierInvoiceEdit />} />
                   <Route path="/finance/account-subjects" element={<AccountSubjectList />} />
@@ -1019,6 +1107,14 @@ const App: React.FC = () => {
                   <Route path="/master-data/currencies/:id" element={<CurrencyShow />} />
                   <Route path="/master-data/uoms" element={<UomList />} />
                   <Route path="/master-data/uoms/:id" element={<UomShow />} />
+                  <Route path="/master-data/organization-currencies" element={<OrganizationCurrencyList />} />
+                  <Route path="/master-data/organization-currencies/create" element={<OrganizationCurrencyCreate />} />
+                  <Route path="/master-data/organization-currencies/:id" element={<OrganizationCurrencyShow />} />
+                  <Route path="/master-data/organization-uoms" element={<OrganizationUomList />} />
+                  <Route path="/master-data/organization-uoms/create" element={<OrganizationUomCreate />} />
+                  <Route path="/master-data/organization-uoms/:id" element={<OrganizationUomShow />} />
+                  <Route path="/master-data/product-cost-history" element={<ProductCostHistoryList />} />
+                  <Route path="/master-data/product-cost-history/:id" element={<ProductCostHistoryShow />} />
 
                   {/* System */}
                   <Route path="/system/notifications" element={<NotificationList />} />
@@ -1050,6 +1146,12 @@ const App: React.FC = () => {
                   <Route path="/system/number-sequences" element={<NumberSequenceList />} />
                   <Route path="/system/number-sequences/:id" element={<NumberSequenceShow />} />
                   <Route path="/system/number-sequences/:id/edit" element={<NumberSequenceEdit />} />
+                  <Route path="/system/organizations" element={<OrganizationList />} />
+                  <Route path="/system/organizations/create" element={<OrganizationCreate />} />
+                  <Route path="/system/organizations/:id" element={<OrganizationShow />} />
+                  <Route path="/system/organizations/:id/edit" element={<OrganizationEdit />} />
+                  <Route path="/system/portal-users" element={<PortalUserList />} />
+                  <Route path="/system/portal-users/:id" element={<PortalUserShow />} />
 
                   {/* Audit */}
                   <Route path="/audit/token-usage" element={<TokenUsageList />} />
@@ -1066,6 +1168,8 @@ const App: React.FC = () => {
                   <Route path="/audit/auth-events/:id" element={<AuthEventShow />} />
                   <Route path="/audit/import-logs" element={<ImportLogList />} />
                   <Route path="/audit/import-logs/:id" element={<ImportLogShow />} />
+                  <Route path="/audit/failed-login-attempts" element={<FailedLoginAttemptList />} />
+                  <Route path="/audit/failed-login-attempts/:id" element={<FailedLoginAttemptShow />} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<ErrorComponent />} />
