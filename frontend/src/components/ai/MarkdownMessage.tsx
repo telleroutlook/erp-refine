@@ -38,7 +38,7 @@ const MD_COMPONENTS = {
         padding: '1px 5px',
         borderRadius: 4,
         fontSize: '0.875em',
-        fontFamily: 'ui-monospace, monospace',
+        fontFamily: 'var(--font-code, ui-monospace, monospace)',
       }} {...props}>{children}</code>
     );
   },

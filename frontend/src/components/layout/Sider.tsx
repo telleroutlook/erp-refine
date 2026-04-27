@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useContext } from 'react';
-import { Layout, Menu, Grid, Drawer, Button, theme, ConfigProvider } from 'antd';
+import { Layout, Menu, Grid, Drawer, Button, ConfigProvider } from 'antd';
 import {
   LogoutOutlined,
   LeftOutlined,
@@ -21,8 +21,10 @@ import {
 import { useThemedLayoutContext } from '@refinedev/antd';
 import { prefetchRoute } from '../../utils/prefetch';
 
+const SIDER_BG = '#131B2E';
+const SIDER_BORDER = 'rgba(255, 255, 255, 0.08)';
+
 export const Sider: React.FC = () => {
-  const { token } = theme.useToken();
   const direction = useContext(ConfigProvider.ConfigContext)?.direction;
 
   const {
@@ -127,12 +129,13 @@ export const Sider: React.FC = () => {
     <div className="erp-sider-menu-scroll" style={{ overflow: 'auto', height: 'calc(100% - var(--header-height))' }}>
       <Menu
         className="erp-accordion-menu"
+        theme="dark"
         mode="inline"
         selectedKeys={selectedKey ? [selectedKey] : []}
         openKeys={siderCollapsed ? [] : openKeys}
         onOpenChange={onOpenChange}
         onClick={() => setMobileSiderOpen(false)}
-        style={{ paddingTop: 4, border: 'none' }}
+        style={{ paddingTop: 4, border: 'none', background: 'transparent' }}
       >
         {hasDashboard && (
           <Menu.Item key="dashboard" icon={<UnorderedListOutlined />}>
@@ -157,18 +160,34 @@ export const Sider: React.FC = () => {
     padding: siderCollapsed ? '0' : '0 16px',
     fontWeight: 700,
     fontSize: 16,
-    color: token.colorPrimary,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    color: '#FFFFFF',
+    borderBottom: `1px solid ${SIDER_BORDER}`,
     flexShrink: 0,
+    gap: 10,
   };
 
   const renderClosingIcons = () => {
-    const iconProps = { style: { color: token.colorPrimary } };
+    const iconProps = { style: { color: 'rgba(255, 255, 255, 0.7)' } };
     const OpenIcon = direction === 'rtl' ? RightOutlined : LeftOutlined;
     const CollapsedIcon = direction === 'rtl' ? LeftOutlined : RightOutlined;
     const IconComponent = siderCollapsed ? CollapsedIcon : OpenIcon;
     return <IconComponent {...iconProps} />;
   };
+
+  const logoIcon = (
+    <div style={{
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      background: 'rgba(5, 150, 105, 0.15)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    }}>
+      <span style={{ color: '#059669', fontWeight: 700, fontSize: 14 }}>E</span>
+    </div>
+  );
 
   if (isMobile) {
     return (
@@ -185,12 +204,15 @@ export const Sider: React.FC = () => {
           <Layout.Sider
             style={{
               height: '100vh',
-              backgroundColor: token.colorBgContainer,
-              borderRight: `1px solid ${token.colorBorderSecondary}`,
+              backgroundColor: SIDER_BG,
+              borderRight: 'none',
             }}
             width={260}
           >
-            <div style={titleStyle}>ERP Refine</div>
+            <div style={titleStyle}>
+              {logoIcon}
+              <span>ERP Refine</span>
+            </div>
             {renderMenu()}
           </Layout.Sider>
         </Layout>
@@ -201,8 +223,8 @@ export const Sider: React.FC = () => {
   return (
     <Layout.Sider
       style={{
-        backgroundColor: token.colorBgContainer,
-        borderRight: `1px solid ${token.colorBorderSecondary}`,
+        backgroundColor: SIDER_BG,
+        borderRight: 'none',
       }}
       collapsible
       collapsed={siderCollapsed}
@@ -218,14 +240,17 @@ export const Sider: React.FC = () => {
             borderRadius: 0,
             height: '100%',
             width: '100%',
-            backgroundColor: token.colorBgElevated,
+            backgroundColor: '#1E293B',
           }}
         >
           {renderClosingIcons()}
         </Button>
       }
     >
-      <div style={titleStyle}>{siderCollapsed ? 'ERP' : 'ERP Refine'}</div>
+      <div style={titleStyle}>
+        {logoIcon}
+        {!siderCollapsed && <span>ERP Refine</span>}
+      </div>
       {renderMenu()}
     </Layout.Sider>
   );

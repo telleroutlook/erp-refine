@@ -1,44 +1,81 @@
+/* ── Design System: Verdana Health ────────────────────── */
+
 :root {
+  /* ── Brand palette ──────────────────────────────────── */
+  --color-navy: #0F172A;
+  --color-navy-light: #1E293B;
+  --color-slate: #64748B;
+  --color-sage: #059669;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+
+  /* ── Sidebar ────────────────────────────────────────── */
+  --sider-bg: #131B2E;
+  --sider-text: rgba(255, 255, 255, 0.7);
+  --sider-text-active: #FFFFFF;
+  --sider-active-indicator: #059669;
+  --sider-hover-bg: rgba(255, 255, 255, 0.06);
+
   /* ── AI accent ─────────────────────────────────────── */
-  --ai-primary: #5D36FF;
-  --ai-primary-hover: #7c5cff;
-  --ai-primary-active: #4a22e6;
-  --ai-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --ai-glow: 0 2px 8px rgba(93, 54, 255, 0.35);
-  --ai-bg-bubble: #f7f8fc;
-  --ai-border-bubble: #ededf0;
-  --ai-input-bg: #fafafa;
-  --ai-drag-bg: rgba(93, 54, 255, 0.13);
+  --ai-primary: #0F172A;
+  --ai-primary-hover: #1E293B;
+  --ai-primary-active: #020617;
+  --ai-gradient: linear-gradient(135deg, #131B2E 0%, #1E293B 100%);
+  --ai-glow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  --ai-bg-bubble: #F8FAFC;
+  --ai-border-bubble: #E2E8F0;
+  --ai-input-bg: #F8FAFC;
+  --ai-drag-bg: rgba(15, 23, 42, 0.08);
 
   /* ── Markdown rendering ────────────────────────────── */
-  --md-code-bg: #f6f8fa;
-  --md-code-border: #e1e4e8;
-  --md-code-inline-bg: #f0f2f5;
-  --md-code-inline-color: #a8006f;
-  --md-blockquote-border: #1677ff;
-  --md-blockquote-bg: #eff6ff;
-  --md-blockquote-text: #57606a;
-  --md-link-color: #1677ff;
-  --md-table-border: #d0d7de;
-  --md-table-header-bg: #f6f8fa;
-  --md-hr-color: #e1e4e8;
+  --md-code-bg: #F8FAFC;
+  --md-code-border: #E2E8F0;
+  --md-code-inline-bg: #F1F5F9;
+  --md-code-inline-color: #0F172A;
+  --md-blockquote-border: #059669;
+  --md-blockquote-bg: #F0FDF4;
+  --md-blockquote-text: #334155;
+  --md-link-color: #0F172A;
+  --md-table-border: #E2E8F0;
+  --md-table-header-bg: #F8FAFC;
+  --md-hr-color: #E2E8F0;
 
   /* ── Login ─────────────────────────────────────────── */
-  --login-card-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --login-icon-glow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  --login-card-shadow: 0 20px 60px rgba(15, 23, 42, 0.12), 0 1px 3px rgba(15, 23, 42, 0.08);
+  --login-icon-glow: 0 4px 12px rgba(5, 150, 105, 0.3);
 
   /* ── Layout ────────────────────────────────────────── */
   --header-height: 56px;
   --content-padding: 24px;
   --mobile-tab-bar-height: 56px;
-  --header-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  --color-border-secondary: #e5e7eb;
+  --header-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --color-border-secondary: #E2E8F0;
 
-  /* ── Spring easing (from HCM) ──────────────────────── */
+  /* ── Typography ────────────────────────────────────── */
+  --font-heading: "Plus Jakarta Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  --font-body: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  --font-code: "Fira Code", "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* ── Spring easing ─────────────────────────────────── */
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── Accordion sider menu ────────────────────────────── */
+/* ── Font declarations (local only, no CDN) ─────────── */
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: local("Plus Jakarta Sans");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fira Code";
+  src: local("Fira Code");
+  font-display: swap;
+}
+
+/* ── Dark sidebar menu styles ───────────────────────── */
 
 .erp-accordion-menu .ant-menu-sub.ant-menu-inline {
   transition: height 0.3s var(--ease-spring),
@@ -50,20 +87,24 @@
 }
 
 .erp-accordion-menu .ant-menu-submenu-open > .ant-menu-submenu-title {
-  color: #0050b3 !important;
+  color: var(--sider-text-active) !important;
   font-weight: 500;
 }
 
-/* ── Selected item indicator ─────────────────────────── */
+/* ── Active item indicator (left green bar) ─────────── */
 
 .erp-accordion-menu .ant-menu-item-selected {
-  border-right: 3px solid #1677ff !important;
+  border-left: 3px solid var(--sider-active-indicator) !important;
+  border-right: none !important;
   font-weight: 600;
 }
 
 .erp-accordion-menu.ant-menu-inline-collapsed .ant-menu-item-selected {
-  border-right: 3px solid #1677ff !important;
+  border-left: 3px solid var(--sider-active-indicator) !important;
+  border-right: none !important;
 }
+
+/* ── Sidebar scrollbar ──────────────────────────────── */
 
 .erp-sider-menu-scroll::-webkit-scrollbar {
   width: 4px;
@@ -74,12 +115,12 @@
 }
 
 .erp-sider-menu-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 2px;
 }
 
 .erp-sider-menu-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Animation keyframes ──────────────────────────────── */

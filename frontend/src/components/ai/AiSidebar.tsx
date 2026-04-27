@@ -193,8 +193,17 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
               onClick={onClose}
             />
           )}
-          <RobotOutlined style={{ color: '#fff', fontSize: 16 }} />
-          <Text strong style={{ color: '#fff', fontSize: 14 }}>{t('ai.assistant')}</Text>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <RobotOutlined style={{ color: '#fff', fontSize: 15 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
+            <Text strong style={{ color: '#fff', fontSize: 14 }}>{t('ai.assistant')}</Text>
+            <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 11 }}>Enterprise Intelligence</Text>
+          </div>
         </div>
         <Tooltip title={t('ai.clearChat')}>
           <Button
