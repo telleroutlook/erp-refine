@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
-import { Form, Input, Select, Row, Col } from 'antd';
+import { Form, Input, Select, Row, Col, Switch } from 'antd';
 import { PRODUCT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -33,6 +33,11 @@ export const ProductCreate: React.FC = () => {
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={t('common.status')} name="status" initialValue="active">
               <Select options={translateOptions(PRODUCT_STATUS_OPTIONS, t)} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={12}>
+            <Form.Item label={fl('products', 'requires_inspection')} name="requires_inspection" valuePropName="checked" initialValue={false}>
+              <Switch />
             </Form.Item>
           </Col>
           <Col span={24}>

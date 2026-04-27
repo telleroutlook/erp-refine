@@ -8,7 +8,7 @@ import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, resolveEmployeeId, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction, batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 import { findFlow } from '../utils/document-flow';
@@ -160,45 +160,116 @@ procurementReceiving.delete('/purchase-receipts/:id', async (c) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// POST /purchase-receipts/:id/confirm — stock entry (CRITICAL)
+// POST /purchase-receipts/:id/confirm — stock entry + auto QI for inspection items
 // ────────────────────────────────────────────────────────────────────────────
 
 procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get receipt (no need to fetch items — trigger handles stock/qty updates)
+  // 1. Fetch receipt with items + product inspection flag
   const { data: receipt, error: fetchError } = await db
     .from('purchase_receipts')
-    .select('id, status, receipt_number')
+    .select(`id, status, receipt_number, warehouse_id, organization_id, purchase_order_id,
+      items:purchase_receipt_items(id, product_id, quantity, lot_number, purchase_order_item_id,
+        product:products(id, name, code, requires_inspection))`)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
     .single();
 
   if (fetchError || !receipt) throw ApiError.notFound('PurchaseReceipt', id, requestId);
-
-  // 2. Validate status
   if (receipt.status !== 'draft') {
     throw ApiError.invalidState('PurchaseReceipt', receipt.status, 'confirm', requestId);
   }
+  if (!receipt.warehouse_id) {
+    throw ApiError.badRequest('Warehouse is required to confirm a receipt', requestId);
+  }
 
-  // 3. Update status to 'confirmed' — triggers handle stock transactions,
-  //    received_quantity on PO items, and PO status automatically.
+  const items = (receipt as any).items ?? [];
+  const immediateItems = items.filter((i: any) => !i.product?.requires_inspection);
+  const inspectionItems = items.filter((i: any) => i.product?.requires_inspection);
+
+  // 2. Update status to confirmed
   const { error: updateError } = await db
     .from('purchase_receipts')
-    .update({
-      status: 'confirmed',
-      confirmed_by: user.userId,
-      confirmed_at: new Date().toISOString(),
-    })
+    .update({ status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString() })
     .eq('id', id)
     .eq('organization_id', user.organizationId);
-
   if (updateError) throw ApiError.database(updateError.message, requestId);
 
+  // 3. Stock-in for items NOT requiring inspection (trigger auto-syncs stock_records)
+  if (immediateItems.length > 0) {
+    await batchCreateStockTransactions(db, immediateItems.map((item: any) => ({
+      organizationId: user.organizationId,
+      warehouseId: receipt.warehouse_id!,
+      productId: item.product_id,
+      transactionType: 'in' as const,
+      qty: Number(item.quantity),
+      referenceType: 'purchase_receipt',
+      referenceId: receipt.id,
+      lotNumber: item.lot_number ?? undefined,
+      createdBy: user.userId,
+    })), requestId);
+
+    // Update PO received_quantity atomically
+    for (const item of immediateItems) {
+      if (item.purchase_order_item_id) {
+        await db.rpc('increment_po_received_qty', {
+          p_poi_id: item.purchase_order_item_id,
+          p_qty: Number(item.quantity),
+        });
+      }
+    }
+  }
+
+  // 4. Auto-create quality inspections for items requiring inspection
+  let inspectionsCreated = 0;
+  if (inspectionItems.length > 0) {
+    const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
+    for (const item of inspectionItems) {
+      const { data: seqData } = await db.rpc('get_next_sequence', {
+        p_organization_id: user.organizationId,
+        p_sequence_name: 'quality_inspection',
+      });
+
+      const { data: qi } = await db.from('quality_inspections').insert({
+        inspection_number: seqData,
+        organization_id: user.organizationId,
+        product_id: item.product_id,
+        reference_type: 'purchase_receipt',
+        reference_id: receipt.id,
+        purchase_receipt_item_id: item.id,
+        total_quantity: Number(item.quantity),
+        qualified_quantity: 0,
+        defective_quantity: 0,
+        inspection_date: new Date().toISOString().split('T')[0],
+        status: 'draft',
+        result: 'pending',
+        created_by: empId,
+      }).select('id, inspection_number').single();
+
+      if (qi) {
+        await createDocumentRelation(
+          db, user.organizationId,
+          'purchase_receipt', receipt.id,
+          'quality_inspection', qi.id,
+          'receipt_to_inspection'
+        );
+        inspectionsCreated++;
+      }
+    }
+  }
+
+  const confirmedStatus = 'confirmed';
   return c.json({
-    data: { id: receipt.id, receipt_number: receipt.receipt_number, status: 'confirmed' },
+    data: {
+      id: receipt.id,
+      receipt_number: receipt.receipt_number,
+      status: confirmedStatus,
+      stock_transactions_created: immediateItems.length,
+      inspections_created: inspectionsCreated,
+    },
   });
 });
 

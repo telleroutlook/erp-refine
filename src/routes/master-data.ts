@@ -44,7 +44,7 @@ masterData.get('/products/:id', async (c) => {
 
   const { data, error } = await db
     .from('products')
-    .select('id, name, code, description, type, uom, cost_price, sale_price, category_id, default_tax_code, status, is_active, is_lot_controlled, is_serial_controlled, safety_stock_days, average_daily_consumption, min_stock, max_stock, deleted_at, created_at, updated_at, category:product_categories(id,name)')
+    .select('id, name, code, description, type, uom, cost_price, sale_price, category_id, default_tax_code, status, is_active, is_lot_controlled, is_serial_controlled, requires_inspection, safety_stock_days, average_daily_consumption, min_stock, max_stock, deleted_at, created_at, updated_at, category:product_categories(id,name)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -88,6 +88,7 @@ masterData.put('/products/:id', async (c) => {
     category_id: true, code: true, name: true, description: true,
     uom: true, type: true,
     is_lot_controlled: true, is_serial_controlled: true,
+    requires_inspection: true,
     safety_stock_days: true, average_daily_consumption: true,
     cost_price: true, sale_price: true,
     min_stock: true, max_stock: true, status: true,

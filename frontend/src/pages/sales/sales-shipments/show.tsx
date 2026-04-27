@@ -1,11 +1,12 @@
 import React from 'react';
-import { useShow, useNavigation } from '@refinedev/core';
+import { useShow, useNavigation, useCustomMutation, useInvalidate } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
-import { Descriptions, Table, Divider, Button } from 'antd';
-import { FileTextOutlined } from '@ant-design/icons';
+import { Descriptions, Table, Divider, Button, Space, Popconfirm, message } from 'antd';
+import { FileTextOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
+import { API_URL } from '../../../constants/api';
 
 export const SalesShipmentShow: React.FC = () => {
   const { queryResult } = useShow({ resource: 'sales-shipments' });
@@ -13,19 +14,49 @@ export const SalesShipmentShow: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const { push } = useNavigation();
+  const { mutate: doConfirm, isLoading: confirming } = useCustomMutation();
+  const invalidate = useInvalidate();
   const record = queryResult.data?.data as any;
 
+  const canConfirm = record?.status === 'draft';
   const canCreateInvoice = record?.status === 'confirmed';
 
-  const headerButtons = canCreateInvoice ? (
-    <Button
-      type="primary"
-      icon={<FileTextOutlined />}
-      onClick={() => push(`/finance/sales-invoices/create?createFrom=sales-shipment&sourceId=${record.id}`)}
-    >
-      {t('buttons.createSalesInvoice', 'Create Sales Invoice')}
-    </Button>
-  ) : undefined;
+  const handleConfirm = () => {
+    doConfirm({
+      url: `${API_URL}/sales-shipments/${record.id}/confirm`,
+      method: 'post',
+      values: {},
+    }, {
+      onSuccess: () => {
+        message.success(t('messages.shipmentConfirmed', 'Shipment confirmed. Stock-out transactions created.'));
+        invalidate({ resource: 'sales-shipments', invalidates: ['detail', 'list'] });
+      },
+    });
+  };
+
+  const headerButtons = (
+    <Space>
+      {canConfirm && (
+        <Popconfirm
+          title={t('messages.confirmShipmentPrompt', 'Confirm this shipment? Stock-out transactions will be created.')}
+          onConfirm={handleConfirm}
+        >
+          <Button type="primary" icon={<CheckCircleOutlined />} loading={confirming}>
+            {t('buttons.confirmShipment', 'Confirm Shipment')}
+          </Button>
+        </Popconfirm>
+      )}
+      {canCreateInvoice && (
+        <Button
+          type="primary"
+          icon={<FileTextOutlined />}
+          onClick={() => push(`/finance/sales-invoices/create?createFrom=sales-shipment&sourceId=${record.id}`)}
+        >
+          {t('buttons.createSalesInvoice', 'Create Sales Invoice')}
+        </Button>
+      )}
+    </Space>
+  );
 
   return (
     <Show title={`${pt('sales_shipments', 'show')} ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading} headerButtons={headerButtons}>

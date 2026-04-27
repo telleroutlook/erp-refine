@@ -277,7 +277,10 @@
     "createSupplierInvoice": "Create Supplier Invoice",
     "createSalesShipment": "Create Shipment",
     "createSalesInvoice": "Create Sales Invoice",
-    "createFromSource": "Reference Create"
+    "createFromSource": "Reference Create",
+    "confirmReceipt": "Confirm Receipt",
+    "confirmShipment": "Confirm Shipment",
+    "completeInspection": "Complete Inspection"
   },
   "common": {
     "loading": "Loading...",
@@ -631,6 +634,13 @@
     "cacheHit": {
       "hit": "Hit",
       "miss": "Miss"
+    },
+    "referenceType": {
+      "purchase_receipt": "Purchase Receipt",
+      "work_order": "Work Order",
+      "sales_return": "Sales Return",
+      "in_process": "In-Process",
+      "final": "Final"
     }
   },
   "tools": {
@@ -802,6 +812,7 @@
     "received_quantity": "Received",
     "shipped_quantity": "Shipped",
     "invoiced_quantity": "Invoiced",
+    "requires_inspection": "Requires Inspection",
     "common": {
       "id": "ID",
       "code": "Code",
@@ -1022,7 +1033,8 @@
       "item_type": "Item Type",
       "min_stock": "Min Stock",
       "max_stock": "Max Stock",
-      "safety_stock": "Safety Stock"
+      "safety_stock": "Safety Stock",
+      "requires_inspection": "Requires Inspection"
     },
     "customers": {
       "code": "Customer Code",
@@ -1642,7 +1654,12 @@
     "deleteConfirm": "Are you sure you want to delete?",
     "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
     "submitSuccess": "Submitted successfully",
-    "createFromInfo": "Pre-filled from {{sourceType}} {{sourceNumber}}"
+    "createFromInfo": "Pre-filled from {{sourceType}} {{sourceNumber}}",
+    "confirmReceiptPrompt": "Confirm this receipt? Stock-in and quality inspections will be created as needed.",
+    "confirmShipmentPrompt": "Confirm this shipment? Stock-out transactions will be created.",
+    "receiptConfirmed": "Confirmed. Stock-in: {{stock}}, Inspections created: {{inspections}}",
+    "shipmentConfirmed": "Shipment confirmed. Stock-out transactions created.",
+    "inspectionCompleted": "Inspection completed."
   },
   "placeholders": {
     "select": "Select {{field}}",

@@ -3227,6 +3227,7 @@ export type Database = {
           min_stock: number
           name: string
           organization_id: string
+          requires_inspection: boolean
           safety_stock: number | null
           safety_stock_days: number
           sale_price: number
@@ -3260,6 +3261,7 @@ export type Database = {
           min_stock?: number
           name: string
           organization_id: string
+          requires_inspection?: boolean
           safety_stock?: number | null
           safety_stock_days?: number
           sale_price?: number
@@ -3293,6 +3295,7 @@ export type Database = {
           min_stock?: number
           name?: string
           organization_id?: string
+          requires_inspection?: boolean
           safety_stock?: number | null
           safety_stock_days?: number
           sale_price?: number
@@ -3992,6 +3995,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           product_id: string
+          purchase_receipt_item_id: string | null
           qualified_quantity: number
           reference_id: string
           reference_type: string
@@ -4014,6 +4018,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           product_id: string
+          purchase_receipt_item_id?: string | null
           qualified_quantity?: number
           reference_id: string
           reference_type: string
@@ -4036,6 +4041,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           product_id?: string
+          purchase_receipt_item_id?: string | null
           qualified_quantity?: number
           reference_id?: string
           reference_type?: string
@@ -4064,6 +4070,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_inspections_purchase_receipt_item_id_fkey"
+            columns: ["purchase_receipt_item_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_receipt_items"
             referencedColumns: ["id"]
           },
         ]
@@ -7433,6 +7446,31 @@ export type Database = {
       }
     }
     Functions: {
+      adjust_stock: {
+        Args: {
+          p_org_id: string
+          p_product_id: string
+          p_qty_delta: number
+          p_reserved_delta?: number
+          p_warehouse_id: string
+        }
+        Returns: {
+          available_quantity: number | null
+          id: string
+          organization_id: string
+          product_id: string
+          quantity: number
+          reserved_quantity: number
+          updated_at: string
+          warehouse_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "stock_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       apply_updated_at_trigger: {
         Args: { table_name: string }
         Returns: undefined
@@ -7494,6 +7532,14 @@ export type Database = {
       }
       get_user_org_id: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
+      increment_po_received_qty: {
+        Args: { p_poi_id: string; p_qty: number }
+        Returns: undefined
+      }
+      increment_so_shipped_qty: {
+        Args: { p_qty: number; p_soi_id: string }
+        Returns: undefined
+      }
       link_employee_to_auth: {
         Args: {
           p_auth_email: string
@@ -7688,4 +7734,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

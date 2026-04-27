@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, Select, InputNumber, Row, Col } from 'antd';
+import { Form, Input, Select, InputNumber, Row, Col, Switch } from 'antd';
 import { PRODUCT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +33,11 @@ export const ProductEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('products', 'sale_price')} name="sale_price"><InputNumber style={FULL_WIDTH} min={0} precision={2} /></Form.Item>
+          </Col>
+          <Col xs={24} sm={24} md={12}>
+            <Form.Item label={fl('products', 'requires_inspection')} name="requires_inspection" valuePropName="checked">
+              <Switch />
+            </Form.Item>
           </Col>
           <Col span={24}>
             <Form.Item label={fl('products', 'description')} name="description"><Input.TextArea rows={3} /></Form.Item>

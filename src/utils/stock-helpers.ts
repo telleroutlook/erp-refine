@@ -16,7 +16,7 @@ export interface StockTransactionInput {
   organizationId: string;
   warehouseId: string;
   productId: string;
-  transactionType: 'in' | 'out' | 'transfer' | 'adjust' | 'scrap';
+  transactionType: 'in' | 'out' | 'transfer' | 'adjust';
   qty: number;
   referenceType?: string;
   referenceId?: string;

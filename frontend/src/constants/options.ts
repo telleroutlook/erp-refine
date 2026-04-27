@@ -99,6 +99,14 @@ export const INSPECTION_RESULT_OPTIONS = [
   { value: 'conditional' },
 ];
 
+export const INSPECTION_REFERENCE_TYPE_OPTIONS = [
+  { value: 'purchase_receipt' },
+  { value: 'work_order' },
+  { value: 'sales_return' },
+  { value: 'in_process' },
+  { value: 'final' },
+];
+
 export const DEFECT_SEVERITY_OPTIONS = [
   { value: 'critical' },
   { value: 'major' },

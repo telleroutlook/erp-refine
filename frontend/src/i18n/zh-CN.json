@@ -277,7 +277,10 @@
     "createSupplierInvoice": "创建供应商发票",
     "createSalesShipment": "创建发货单",
     "createSalesInvoice": "创建销售发票",
-    "createFromSource": "参考创建"
+    "createFromSource": "参考创建",
+    "confirmReceipt": "确认收货",
+    "confirmShipment": "确认发货",
+    "completeInspection": "完成检验"
   },
   "common": {
     "loading": "加载中...",
@@ -631,6 +634,13 @@
     "cacheHit": {
       "hit": "命中",
       "miss": "未命中"
+    },
+    "referenceType": {
+      "purchase_receipt": "采购收货",
+      "work_order": "工单",
+      "sales_return": "销售退货",
+      "in_process": "制程检验",
+      "final": "成品检验"
     }
   },
   "tools": {
@@ -802,6 +812,7 @@
     "received_quantity": "已收货",
     "shipped_quantity": "已发货",
     "invoiced_quantity": "已开票",
+    "requires_inspection": "需要质检",
     "common": {
       "id": "ID",
       "code": "编号",
@@ -1022,7 +1033,8 @@
       "item_type": "产品类型",
       "min_stock": "最低库存",
       "max_stock": "最高库存",
-      "safety_stock": "安全库存"
+      "safety_stock": "安全库存",
+      "requires_inspection": "需要质检"
     },
     "customers": {
       "code": "客户编号",
@@ -1642,7 +1654,12 @@
     "deleteConfirm": "确定删除?",
     "unsavedChanges": "有未保存的修改，确定要离开吗？",
     "submitSuccess": "提交成功",
-    "createFromInfo": "已从 {{sourceType}} {{sourceNumber}} 预填"
+    "createFromInfo": "已从 {{sourceType}} {{sourceNumber}} 预填",
+    "confirmReceiptPrompt": "确认此收货单？系统将自动创建入库记录和质检单。",
+    "confirmShipmentPrompt": "确认此发货单？系统将自动创建出库记录。",
+    "receiptConfirmed": "已确认。入库记录：{{stock}}，创建质检单：{{inspections}}",
+    "shipmentConfirmed": "发货单已确认，已创建出库记录。",
+    "inspectionCompleted": "质检已完成。"
   },
   "placeholders": {
     "select": "选择{{field}}",

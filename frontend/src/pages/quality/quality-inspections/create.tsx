@@ -2,21 +2,38 @@ import React from 'react';
 import { useForm, Create } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
-import { INSPECTION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { INSPECTION_STATUS_OPTIONS, INSPECTION_REFERENCE_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const QualityInspectionCreate: React.FC = () => {
-  const { formProps, saveButtonProps } = useForm({ resource: 'quality-inspections' });
+  const { formProps, saveButtonProps, form } = useForm({ resource: 'quality-inspections' });
   const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
   const { data: employeesData } = useList({ resource: 'employees', pagination: { pageSize: 500 } });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
 
+  const referenceType = Form.useWatch('reference_type', form);
+
+  const referenceResource = referenceType === 'purchase_receipt' ? 'purchase-receipts'
+    : referenceType === 'work_order' ? 'work-orders'
+    : referenceType === 'sales_return' ? 'sales-returns'
+    : undefined;
+
+  const { data: refDocsData } = useList({
+    resource: referenceResource ?? '',
+    pagination: { pageSize: 200 },
+    queryOptions: { enabled: !!referenceResource },
+  });
+
   const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
-  const employeeOptions = (employeesData?.data ?? []).map((e: any) => ({ label: `${e.employee_code} - ${e.name}`, value: e.id }));
+  const employeeOptions = (employeesData?.data ?? []).map((e: any) => ({ label: `${e.employee_number ?? e.code} - ${e.name}`, value: e.id }));
+  const refDocOptions = (refDocsData?.data ?? []).map((d: any) => ({
+    label: d.receipt_number ?? d.work_order_number ?? d.return_number ?? d.id,
+    value: d.id,
+  }));
 
   return (
     <Create saveButtonProps={saveButtonProps} title={pt('quality_inspections', 'create')}>
@@ -49,12 +66,20 @@ export const QualityInspectionCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('quality_inspections', 'reference_type')} name="reference_type">
-              <Input />
+              <Select
+                options={translateOptions(INSPECTION_REFERENCE_TYPE_OPTIONS, t, 'enums.referenceType')}
+                allowClear
+                onChange={() => form.setFieldValue('reference_id', undefined)}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('quality_inspections', 'reference_id')} name="reference_id">
-              <Input />
+              {referenceResource ? (
+                <Select options={refDocOptions} showSearch optionFilterProp="label" allowClear />
+              ) : (
+                <Input disabled={!referenceType} />
+              )}
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

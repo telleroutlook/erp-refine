@@ -9,6 +9,7 @@ import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/que
 import { applyFilters, atomicStatusTransition, resolveEmployeeId } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
+import { createStockTransaction } from '../utils/stock-helpers';
 
 const quality = new Hono<{ Bindings: Env }>();
 quality.use('*', authMiddleware());
@@ -146,7 +147,7 @@ quality.get('/quality-inspections/:id', async (c) => {
 
   const { data, error } = await db
     .from('quality_inspections')
-    .select('*, items:quality_inspection_items(*, defect_code:defect_codes(id,code,name))')
+    .select('*, product:products(id,name,code), inspector:employees!inspector_id(id,name,employee_number), items:quality_inspection_items(*, defect_code:defect_codes(id,code,name))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -221,22 +222,85 @@ quality.delete('/quality-inspections/:id', async (c) => {
 // ─── Quality Inspection Workflow — complete ─────────────────────────────────
 
 // POST /quality-inspections/:id/complete — draft/in_progress → completed
+// On pass/conditional for purchase_receipt inspections: creates stock-in + updates PO received_qty
 quality.post('/quality-inspections/:id/complete', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json().catch(() => ({}));
 
+  // 1. Fetch QI with receipt item link (need it for post-completion logic)
+  const { data: qi, error: qiError } = await db
+    .from('quality_inspections')
+    .select('id, inspection_number, reference_type, reference_id, product_id, purchase_receipt_item_id, total_quantity, qualified_quantity, defective_quantity, result, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (qiError || !qi) throw ApiError.notFound('QualityInspection', id, requestId);
+
+  const result = body.result ?? qi.result;
+  if (!result || result === 'pending') {
+    throw ApiError.badRequest('Inspection result (pass/fail/conditional) is required to complete', requestId);
+  }
+
+  const qualifiedQty = Number(body.qualified_quantity ?? qi.qualified_quantity ?? 0);
+  const defectiveQty = Number(body.defective_quantity ?? qi.defective_quantity ?? 0);
+
   const updatePayload: Record<string, unknown> = {
     status: 'completed',
     completed_at: new Date().toISOString(),
     completed_by: user.userId,
+    result,
+    qualified_quantity: qualifiedQty,
+    defective_quantity: defectiveQty,
   };
-  if (body.result) updatePayload.result = body.result;
 
+  // 2. Atomic status transition
   const { data, error } = await atomicStatusTransition(db, 'quality_inspections', id, user.organizationId,
-    ['draft', 'in_progress'], updatePayload, 'id, inspection_number, status');
+    ['draft', 'in_progress'], updatePayload, 'id, inspection_number, status, result');
   if (error) throw ApiError.database((error as any).message, requestId);
   if (!data) throw ApiError.invalidState('QualityInspection', 'unknown', 'complete', requestId);
+
+  // 3. Post-completion: stock-in + PO update for purchase_receipt inspections
+  if (qi.reference_type === 'purchase_receipt' && (result === 'pass' || result === 'conditional') && qualifiedQty > 0) {
+    const { data: receipt } = await db
+      .from('purchase_receipts')
+      .select('warehouse_id')
+      .eq('id', qi.reference_id)
+      .single();
+
+    if (receipt?.warehouse_id) {
+      await createStockTransaction(db, {
+        organizationId: user.organizationId,
+        warehouseId: receipt.warehouse_id,
+        productId: qi.product_id,
+        transactionType: 'in',
+        qty: qualifiedQty,
+        referenceType: 'purchase_receipt',
+        referenceId: qi.reference_id,
+        notes: `QI ${qi.inspection_number} ${result}: ${qualifiedQty} qualified`,
+        createdBy: user.userId,
+      }, requestId);
+
+      // Update PO received_quantity via receipt item link
+      if (qi.purchase_receipt_item_id) {
+        const { data: receiptItem } = await db
+          .from('purchase_receipt_items')
+          .select('purchase_order_item_id')
+          .eq('id', qi.purchase_receipt_item_id)
+          .single();
+
+        if (receiptItem?.purchase_order_item_id) {
+          await db.rpc('increment_po_received_qty', {
+            p_poi_id: receiptItem.purchase_order_item_id,
+            p_qty: qualifiedQty,
+          });
+        }
+      }
+    }
+  }
+
   return c.json({ data });
 });
 

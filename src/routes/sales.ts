@@ -8,7 +8,7 @@ import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/cr
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems } from '../utils/atomic-helpers';
-import { createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction, batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { findFlow } from '../utils/document-flow';
 import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
@@ -359,20 +359,66 @@ sales.delete('/sales-shipments/:id', async (c) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// POST /sales-shipments/:id/confirm — stock deduction
+// POST /sales-shipments/:id/confirm — stock deduction + SO shipped_qty update
 // ────────────────────────────────────────────────────────────────────────────
 
 sales.post('/sales-shipments/:id/confirm', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  const { data, error } = await atomicStatusTransition(db, 'sales_shipments', id, user.organizationId, 'draft', {
-    status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString(),
-  }, 'id, shipment_number, status');
+  // 1. Fetch shipment with items
+  const { data: shipment, error: fetchError } = await db
+    .from('sales_shipments')
+    .select('id, status, shipment_number, warehouse_id, organization_id, sales_order_id, items:sales_shipment_items(id, product_id, quantity, sales_order_item_id)')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
 
-  if (error) throw ApiError.database((error as any).message, requestId);
-  if (!data) throw ApiError.invalidState('SalesShipment', 'unknown', 'confirm', requestId);
-  return c.json({ data });
+  if (fetchError || !shipment) throw ApiError.notFound('SalesShipment', id, requestId);
+  if (shipment.status !== 'draft') {
+    throw ApiError.invalidState('SalesShipment', shipment.status, 'confirm', requestId);
+  }
+  if (!shipment.warehouse_id) {
+    throw ApiError.badRequest('Warehouse is required to confirm a shipment', requestId);
+  }
+
+  // 2. Status transition
+  const { error: updateError } = await db
+    .from('sales_shipments')
+    .update({ status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+
+  // 3. Stock-out transactions (trigger auto-syncs stock_records)
+  const items = (shipment as any).items ?? [];
+  if (items.length > 0) {
+    await batchCreateStockTransactions(db, items.map((item: any) => ({
+      organizationId: user.organizationId,
+      warehouseId: shipment.warehouse_id!,
+      productId: item.product_id,
+      transactionType: 'out' as const,
+      qty: Number(item.quantity),
+      referenceType: 'sales_shipment',
+      referenceId: shipment.id,
+      createdBy: user.userId,
+    })), requestId);
+
+    // Update SO shipped_quantity atomically
+    for (const item of items) {
+      if (item.sales_order_item_id) {
+        await db.rpc('increment_so_shipped_qty', {
+          p_soi_id: item.sales_order_item_id,
+          p_qty: Number(item.quantity),
+        });
+      }
+    }
+  }
+
+  return c.json({
+    data: { id: shipment.id, shipment_number: shipment.shipment_number, status: 'confirmed' },
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
