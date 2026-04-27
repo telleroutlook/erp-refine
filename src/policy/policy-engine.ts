@@ -61,7 +61,7 @@ export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
 
   // 3. No rule found — allow reads, deny writes (per CLAUDE.md specification)
   if (!rule) {
-    const WRITE_KEYWORDS = ['create', 'update', 'delete', 'workflow', 'batch', 'approve', 'close', 'submit'];
+    const WRITE_KEYWORDS = ['create', 'update', 'delete', 'workflow', 'batch', 'approve', 'close', 'submit', 'post', 'void', 'reverse', 'pay', 'receive', 'ship', 'issue', 'confirm', 'reject', 'cancel'];
     const isWrite = WRITE_KEYWORDS.some((kw) => action.includes(kw));
     if (isWrite) {
       return {

@@ -138,7 +138,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
             .eq('organization_id', organizationId)
             .gte('payment_date', fromDate)
             .lte('payment_date', toDate)
-            .limit(500),
+            .limit(5000),
         ]);
 
         const paidRows = paymentRecRes.data ?? [];

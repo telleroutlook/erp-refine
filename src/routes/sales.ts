@@ -239,6 +239,17 @@ sales.get('/sales-shipments', async (c) => {
   return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
+// GET create-from: SO → Sales Shipment (参考销售订单创建发货单)
+sales.get('/sales-shipments/create-from/sales-order/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('sales_order', 'sales_shipment')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully shipped', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // GET detail
 sales.get('/sales-shipments/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -254,17 +265,6 @@ sales.get('/sales-shipments/:id', async (c) => {
 
   if (error) throw ApiError.notFound('SalesShipment', id, requestId);
   return c.json({ data });
-});
-
-// GET create-from: SO → Sales Shipment (参考销售订单创建发货单)
-sales.get('/sales-shipments/create-from/sales-order/:sourceId', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const sourceId = c.req.param('sourceId');
-  const flow = findFlow('sales_order', 'sales_shipment')!;
-  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
-  if (items.length === 0) throw ApiError.badRequest('All items are fully shipped', requestId);
-  const preview = buildPrefilledData(flow, source, items);
-  return c.json({ data: preview });
 });
 
 // POST create (atomic: header + items)
@@ -406,14 +406,16 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
     })), requestId);
 
     // Update SO shipped_quantity atomically
-    for (const item of items) {
-      if (item.sales_order_item_id) {
-        await db.rpc('increment_so_shipped_qty', {
-          p_soi_id: item.sales_order_item_id,
-          p_qty: Number(item.quantity),
-        });
-      }
-    }
+    await Promise.all(
+      items
+        .filter((item: any) => item.sales_order_item_id)
+        .map((item: any) =>
+          db.rpc('increment_so_shipped_qty', {
+            p_soi_id: item.sales_order_item_id,
+            p_qty: Number(item.quantity),
+          })
+        )
+    );
   }
 
   return c.json({

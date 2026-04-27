@@ -80,6 +80,7 @@ export class SchemaRegistry {
       .update({
         status: 'active',
         activated_at: new Date().toISOString(),
+        activated_by: userId,
         expires_at: null,
       })
       .eq('id', schemaId)
@@ -102,7 +103,8 @@ export class SchemaRegistry {
         archived_at: new Date().toISOString(),
       })
       .eq('id', schemaId)
-      .eq('organization_id', this.organizationId);
+      .eq('organization_id', this.organizationId)
+      .eq('status', 'active');
 
     if (error) throw new Error(error.message);
   }

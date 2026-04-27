@@ -10,7 +10,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
     list_vouchers: tool({
       description: 'List accounting vouchers',
       inputSchema: z.object({
-        status: z.enum(['draft','posted','void']).optional(),
+        status: z.enum(['draft','approved','posted','voided','cancelled']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
       execute: async ({ status, limit }) => {

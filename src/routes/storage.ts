@@ -124,8 +124,6 @@ storage.delete('/storage/:id', async (c) => {
 
   if (fetchError || !attachment) throw ApiError.notFound('DocumentAttachment', id, requestId);
 
-  await c.env.STORAGE.delete(attachment.file_path);
-
   const { error: deleteError } = await db
     .from('document_attachments')
     .delete()
@@ -133,6 +131,8 @@ storage.delete('/storage/:id', async (c) => {
     .eq('organization_id', user.organizationId);
 
   if (deleteError) throw ApiError.database(deleteError.message, requestId);
+
+  await c.env.STORAGE.delete(attachment.file_path).catch(() => {});
 
   return c.json({ data: { success: true } });
 });

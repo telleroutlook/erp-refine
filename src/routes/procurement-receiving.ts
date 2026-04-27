@@ -46,6 +46,17 @@ procurementReceiving.get('/purchase-receipts', async (c) => {
   return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
+// GET create-from: PO → Purchase Receipt (参考采购订单创建收货单)
+procurementReceiving.get('/purchase-receipts/create-from/purchase-order/:sourceId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const sourceId = c.req.param('sourceId');
+  const flow = findFlow('purchase_order', 'purchase_receipt')!;
+  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
+  if (items.length === 0) throw ApiError.badRequest('All items are fully received', requestId);
+  const preview = buildPrefilledData(flow, source, items);
+  return c.json({ data: preview });
+});
+
 // GET detail
 procurementReceiving.get('/purchase-receipts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -61,17 +72,6 @@ procurementReceiving.get('/purchase-receipts/:id', async (c) => {
 
   if (error) throw ApiError.notFound('PurchaseReceipt', id, requestId);
   return c.json({ data });
-});
-
-// GET create-from: PO → Purchase Receipt (参考采购订单创建收货单)
-procurementReceiving.get('/purchase-receipts/create-from/purchase-order/:sourceId', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const sourceId = c.req.param('sourceId');
-  const flow = findFlow('purchase_order', 'purchase_receipt')!;
-  const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
-  if (items.length === 0) throw ApiError.badRequest('All items are fully received', requestId);
-  const preview = buildPrefilledData(flow, source, items);
-  return c.json({ data: preview });
 });
 
 // POST create (atomic header + items)
@@ -213,14 +213,16 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
     })), requestId);
 
     // Update PO received_quantity atomically
-    for (const item of immediateItems) {
-      if (item.purchase_order_item_id) {
-        await db.rpc('increment_po_received_qty', {
-          p_poi_id: item.purchase_order_item_id,
-          p_qty: Number(item.quantity),
-        });
-      }
-    }
+    await Promise.all(
+      immediateItems
+        .filter((item: any) => item.purchase_order_item_id)
+        .map((item: any) =>
+          db.rpc('increment_po_received_qty', {
+            p_poi_id: item.purchase_order_item_id,
+            p_qty: Number(item.quantity),
+          })
+        )
+    );
   }
 
   // 4. Auto-create quality inspections for items requiring inspection
@@ -301,23 +303,6 @@ procurementReceiving.get('/supplier-invoices', async (c) => {
   return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
-// GET detail
-procurementReceiving.get('/supplier-invoices/:id', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('supplier_invoices')
-    .select('*, supplier:suppliers(id,name), items:supplier_invoice_items(*, product:products(id,name,code))')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (error) throw ApiError.notFound('SupplierInvoice', id, requestId);
-  return c.json({ data });
-});
-
 // GET create-from: PO → Supplier Invoice (参考采购订单创建供应商发票)
 procurementReceiving.get('/supplier-invoices/create-from/purchase-order/:sourceId', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -338,6 +323,23 @@ procurementReceiving.get('/supplier-invoices/create-from/purchase-receipt/:sourc
   if (items.length === 0) throw ApiError.badRequest('All items are fully invoiced', requestId);
   const preview = buildPrefilledData(flow, source, items);
   return c.json({ data: preview });
+});
+
+// GET detail
+procurementReceiving.get('/supplier-invoices/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data, error } = await db
+    .from('supplier_invoices')
+    .select('*, supplier:suppliers(id,name), items:supplier_invoice_items(*, product:products(id,name,code))')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) throw ApiError.notFound('SupplierInvoice', id, requestId);
+  return c.json({ data });
 });
 
 // POST create (atomic header + items)

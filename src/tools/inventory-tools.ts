@@ -226,12 +226,12 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
           notes: notes ?? null,
         };
 
-        const { error: outErr } = await db.from('stock_transactions').insert({
+        const { data: outTxn, error: outErr } = await db.from('stock_transactions').insert({
           ...txnBase,
           warehouse_id: fromWarehouseId,
           transaction_type: 'out',
           quantity,
-        });
+        }).select('id').single();
         if (outErr) throw new Error(outErr.message);
 
         const { error: inErr } = await db.from('stock_transactions').insert({
@@ -240,7 +240,10 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
           transaction_type: 'in',
           quantity,
         });
-        if (inErr) throw new Error(inErr.message);
+        if (inErr) {
+          await db.from('stock_transactions').delete().eq('id', outTxn.id);
+          throw new Error(inErr.message);
+        }
 
         return { success: true, productId, fromWarehouseId, toWarehouseId, quantity };
       },

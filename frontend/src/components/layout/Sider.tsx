@@ -68,7 +68,7 @@ export const Sider: React.FC = () => {
     if (parentKey) {
       setOpenKeys([parentKey]);
     }
-  }, [selectedKey, siderCollapsed]);
+  }, [selectedKey, siderCollapsed, menuItems]);
 
   const onOpenChange = (keys: string[]) => {
     const latestOpenKey = keys.find((key) => !openKeys.includes(key));

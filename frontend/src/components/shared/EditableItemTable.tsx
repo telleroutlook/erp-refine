@@ -78,15 +78,16 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
+  const origPushStateRef = useRef(window.history.pushState.bind(window.history));
+
   useEffect(() => {
-    if (!isDirty) return;
-    const orig = window.history.pushState;
+    const orig = origPushStateRef.current;
     window.history.pushState = function (...args) {
       if (isDirtyRef.current && !window.confirm(t('messages.unsavedChanges'))) return;
       return orig.apply(this, args);
     };
     return () => { window.history.pushState = orig; };
-  }, [isDirty]);
+  }, []);
 
   const flatKey = (di: string | string[]) => (Array.isArray(di) ? di.join('.') : di);
   const getNestedValue = (obj: any, path: string | string[]): any => {

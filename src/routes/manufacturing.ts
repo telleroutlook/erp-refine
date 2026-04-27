@@ -206,7 +206,8 @@ manufacturing.post('/work-orders', async (c) => {
   if (bomItems.length > 0) {
     const invalidScrap = bomItems.find((item: any) => (item.scrap_rate || 0) >= 1);
     if (invalidScrap) {
-      await db.from('work_orders').delete().eq('id', wo.id);
+      const { error: rollbackErr } = await db.from('work_orders').delete().eq('id', wo.id);
+      if (rollbackErr) console.error('[manufacturing] Failed to rollback WO:', rollbackErr.message);
       throw ApiError.validation('Scrap rate must be less than 100%', [{ field: 'scrap_rate', message: 'must be less than 1.0', code: 'invalid_value' }], requestId);
     }
     const materials = bomItems.map((item: any) => ({
@@ -458,7 +459,7 @@ manufacturing.put('/work-order-productions/:id', async (c) => {
     .from('work_order_productions')
     .select('id, work_order:work_orders!inner(id, organization_id)')
     .eq('id', id)
-    .eq('work_orders.organization_id', user.organizationId)
+    .eq('work_order.organization_id', user.organizationId)
     .single();
   if (prodErr || !prod) throw ApiError.notFound('WorkOrderProduction', id, requestId);
 
@@ -486,7 +487,7 @@ manufacturing.delete('/work-order-productions/:id', async (c) => {
     .from('work_order_productions')
     .select('id, work_order:work_orders!inner(id, organization_id)')
     .eq('id', id)
-    .eq('work_orders.organization_id', user.organizationId)
+    .eq('work_order.organization_id', user.organizationId)
     .single();
   if (prodErr || !prod) throw ApiError.notFound('WorkOrderProduction', id, requestId);
 

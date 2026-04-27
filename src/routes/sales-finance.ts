@@ -46,23 +46,6 @@ salesFinance.get('/sales-invoices', async (c) => {
   return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
-// GET detail
-salesFinance.get('/sales-invoices/:id', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const id = c.req.param('id');
-
-  const { data, error } = await db
-    .from('sales_invoices')
-    .select('*, customer:customers(id,name), sales_order:sales_orders(id,order_number), items:sales_invoice_items(*, product:products(id,name,code))')
-    .eq('id', id)
-    .eq('organization_id', user.organizationId)
-    .is('deleted_at', null)
-    .single();
-
-  if (error) throw ApiError.notFound('SalesInvoice', id, requestId);
-  return c.json({ data });
-});
-
 // GET create-from: SO → Sales Invoice (参考销售订单创建销售发票)
 salesFinance.get('/sales-invoices/create-from/sales-order/:sourceId', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -83,6 +66,23 @@ salesFinance.get('/sales-invoices/create-from/sales-shipment/:sourceId', async (
   if (items.length === 0) throw ApiError.badRequest('All items are fully invoiced', requestId);
   const preview = buildPrefilledData(flow, source, items);
   return c.json({ data: preview });
+});
+
+// GET detail
+salesFinance.get('/sales-invoices/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data, error } = await db
+    .from('sales_invoices')
+    .select('*, customer:customers(id,name), sales_order:sales_orders(id,order_number), items:sales_invoice_items(*, product:products(id,name,code))')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) throw ApiError.notFound('SalesInvoice', id, requestId);
+  return c.json({ data });
 });
 
 // POST create (atomic header + items)
@@ -321,7 +321,12 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     throw ApiError.invalidState('SalesReturn', salesReturn.status, 'receive', requestId);
   }
 
-  // 3. Batch-insert all stock-in transactions (trigger updates stock_records per row)
+  // 3. Validate warehouse
+  if (!salesReturn.warehouse_id) {
+    throw ApiError.badRequest('Warehouse is required to receive a sales return', requestId);
+  }
+
+  // 4. Batch-insert all stock-in transactions (trigger updates stock_records per row)
   await batchCreateStockTransactions(
     db,
     (salesReturn.items as Record<string, unknown>[]).map((item) => ({

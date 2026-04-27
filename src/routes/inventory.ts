@@ -282,6 +282,15 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
   }
 
+  // 2b. Validate all lines have counted_quantity
+  const countLines = countDoc.lines as Record<string, unknown>[];
+  const unfilledLines = countLines.filter(
+    (l) => l.counted_quantity === null || l.counted_quantity === undefined
+  );
+  if (unfilledLines.length > 0) {
+    throw ApiError.badRequest(`${unfilledLines.length} count line(s) have no counted_quantity. Complete all lines before finalizing.`, requestId);
+  }
+
   // 3. Collect lines with variance and batch-insert a single stock adjustment transaction set
   const stockTxInputs: Parameters<typeof batchCreateStockTransactions>[1] = [];
 

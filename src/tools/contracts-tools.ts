@@ -205,7 +205,11 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
             ...item,
             contract_id: newContract.id,
           }));
-          await db.from('contract_items').insert(newItems);
+          const { error: itemsErr } = await db.from('contract_items').insert(newItems);
+          if (itemsErr) {
+            await db.from('contracts').delete().eq('id', newContract.id);
+            throw new Error(`Contract created but items copy failed: ${itemsErr.message}`);
+          }
         }
 
         return { id: newContract.id, contractNumber: newContract.contract_number, status: 'draft', renewedFrom: contract.contract_number };

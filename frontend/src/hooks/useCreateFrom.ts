@@ -40,6 +40,7 @@ export function useCreateFrom(targetResource: string): UseCreateFromResult {
   useEffect(() => {
     if (!createFrom || !sourceId) return;
 
+    const controller = new AbortController();
     const token = localStorage.getItem('access_token');
     const url = `${API_URL}/${targetResource}/create-from/${createFrom}/${sourceId}`;
 
@@ -51,6 +52,7 @@ export function useCreateFrom(targetResource: string): UseCreateFromResult {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -63,11 +65,14 @@ export function useCreateFrom(targetResource: string): UseCreateFromResult {
         setSourceData(json.data);
       })
       .catch((err) => {
+        if (err.name === 'AbortError') return;
         setError(err.message);
       })
       .finally(() => {
         setIsLoading(false);
       });
+
+    return () => controller.abort();
   }, [createFrom, sourceId, targetResource]);
 
   return {

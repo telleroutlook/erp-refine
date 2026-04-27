@@ -15,15 +15,17 @@ export class RateLimiterDO {
     }
 
     const { limit, period } = await request.json<{ limit: number; period: number }>();
+    const safeLimit = Math.min(Math.max(Number(limit) || 60, 1), 1000);
+    const safePeriod = Math.min(Math.max(Number(period) || 60, 1), 3600);
     const now = Date.now();
-    const windowMs = period * 1000;
+    const windowMs = safePeriod * 1000;
 
     // Load stored requests
     const stored = await this.state.storage.get<number[]>('requests') ?? [];
     // Evict old entries
     this.requests = stored.filter((t) => now - t < windowMs);
 
-    if (this.requests.length >= limit) {
+    if (this.requests.length >= safeLimit) {
       return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
         status: 429,
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +35,7 @@ export class RateLimiterDO {
     this.requests.push(now);
     await this.state.storage.put('requests', this.requests);
 
-    return new Response(JSON.stringify({ remaining: limit - this.requests.length }), {
+    return new Response(JSON.stringify({ remaining: safeLimit - this.requests.length }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
