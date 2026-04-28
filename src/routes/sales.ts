@@ -145,7 +145,6 @@ sales.put('/sales-orders/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  // Header-only update (no items)
   const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
@@ -374,7 +373,6 @@ sales.put('/sales-shipments/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  // Header-only update (no items)
   const PERMITTED = new Set(permittedFields);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {

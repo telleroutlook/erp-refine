@@ -1,6 +1,3 @@
-// src/utils/atomic-helpers.ts
-// Atomic create-with-items: insert header + lines, rollback on failure via CASCADE delete
-
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ApiError } from './api-error';
 import { executeWithAudit, type AuditContext } from './database';
@@ -71,7 +68,6 @@ export async function atomicUpdateWithItems(
 
   const ITEM_BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by', headerFk]);
 
-  // Step 1: soft-delete removed items
   for (const itemId of input.items.delete) {
     if (softDeleteItems) {
       const { error } = await db
@@ -86,7 +82,6 @@ export async function atomicUpdateWithItems(
     }
   }
 
-  // Step 2: upsert items (id present → update, no id → insert)
   let lineSeq = 0;
   for (const item of input.items.upsert) {
     lineSeq++;
@@ -98,30 +93,30 @@ export async function atomicUpdateWithItems(
     }
 
     if (item.id) {
-      const { error } = await db
+      let q = db
         .from(itemsTable)
         .update(sanitized)
         .eq('id', item.id)
         .eq(headerFk, headerId);
+      if (softDeleteItems) q = q.is('deleted_at', null);
+      const { error } = await q;
       if (error) throw ApiError.database(error.message, requestId, `Failed to update ${itemsTable} item ${item.id}`);
     } else {
       sanitized[headerFk] = headerId;
+      sanitized['organization_id'] = organizationId;
       const { error } = await db.from(itemsTable).insert(sanitized);
       if (error) throw ApiError.database(error.message, requestId, `Failed to insert new ${itemsTable} item`);
     }
   }
 
-  // Step 3: build header update payload
   const headerUpdate: Record<string, unknown> = {};
   for (const k of headerPermittedFields) {
     if (input.header[k] !== undefined) headerUpdate[k] = input.header[k];
   }
 
-  // Step 3b: auto-sum from surviving items
   if (autoSum) {
-    const softDeleteFilter = softDeleteItems;
     let q = db.from(itemsTable).select('*').eq(headerFk, headerId);
-    if (softDeleteFilter) q = q.is('deleted_at', null);
+    if (softDeleteItems) q = q.is('deleted_at', null);
     const { data: allItems, error: sumErr } = await q;
     if (sumErr) throw ApiError.database(sumErr.message, requestId, 'Failed to recalculate totals');
     const total = (allItems ?? []).reduce(
@@ -131,7 +126,6 @@ export async function atomicUpdateWithItems(
     headerUpdate[autoSum.headerField] = Number(total.toFixed(2));
   }
 
-  // Step 4: update header
   if (Object.keys(headerUpdate).length > 0) {
     const { error } = await db
       .from(headerTable)
@@ -142,7 +136,6 @@ export async function atomicUpdateWithItems(
     if (error) throw ApiError.database(error.message, requestId, `Failed to update ${headerTable}`);
   }
 
-  // Step 5: return full document
   const { data: header, error: hErr } = await db
     .from(headerTable)
     .select(headerReturnSelect)
@@ -172,7 +165,6 @@ export async function atomicCreateWithItems(
     Object.entries(header).filter(([k]) => !HEADER_BLOCKED.has(k))
   );
 
-  // Step 1: Insert header
   const insertHeader = async () => {
     const result = await db.from(headerTable).insert(sanitizedHeader).select(headerReturnSelect).single();
     return result as { data: Record<string, unknown> | null; error: { message: string } | null };
@@ -194,7 +186,6 @@ export async function atomicCreateWithItems(
 
   const headerId = headerData.id;
 
-  // Step 2: Insert items with header FK
   if (items.length > 0) {
     const itemsWithFk = items.map((item, idx) => {
       const row: Record<string, unknown> = {

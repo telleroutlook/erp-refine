@@ -137,7 +137,6 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
   const PERMITTED = new Set(['notes', 'due_date', 'tax_amount']);
 
   if (body.items) {
-    // Atomic update: header + items in one call
     const result = await atomicUpdateWithItems(
       db,
       {
@@ -157,7 +156,6 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  // Header-only update (no items)
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -286,7 +284,6 @@ salesFinance.put('/sales-returns/:id', async (c) => {
   const PERMITTED = new Set(['status', 'notes', 'reason', 'warehouse_id']);
 
   if (body.items) {
-    // Atomic update: header + items in one call
     const result = await atomicUpdateWithItems(
       db,
       {
@@ -306,7 +303,6 @@ salesFinance.put('/sales-returns/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  // Header-only update (no items)
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
