@@ -11,7 +11,7 @@ import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig }
 import { createStockTransaction, batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { findFlow } from '../utils/document-flow';
-import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation, validateItemsAgainstSource } from '../utils/create-from-helpers';
 
 const sales = new Hono<{ Bindings: Env }>();
 sales.use('*', authMiddleware());
@@ -310,6 +310,13 @@ sales.post('/sales-shipments', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate shipment number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, _sourceRef, ...headerFields } = body;
+
+  // Validate quantities against source open items
+  if (_sourceRef?.type === 'sales_order' && _sourceRef?.id && items?.length) {
+    const flow = findFlow('sales_order', 'sales_shipment')!;
+    await validateItemsAgainstSource(db, flow, _sourceRef.id, items, user.organizationId, requestId);
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {
@@ -468,6 +475,26 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
           })
         )
     );
+  }
+
+  // 4. Auto-progress SO status based on total fulfillment
+  if (shipment.sales_order_id) {
+    const { data: soItems } = await db
+      .from('sales_order_items')
+      .select('quantity, shipped_quantity')
+      .eq('sales_order_id', shipment.sales_order_id)
+      .is('deleted_at', null);
+
+    if (soItems && soItems.length > 0) {
+      const allShipped = soItems.every((i: any) => Number(i.shipped_quantity ?? 0) >= Number(i.quantity));
+      const anyShipped = soItems.some((i: any) => Number(i.shipped_quantity ?? 0) > 0);
+
+      if (allShipped) {
+        await db.from('sales_orders').update({ status: 'shipped' }).eq('id', shipment.sales_order_id);
+      } else if (anyShipped) {
+        await db.from('sales_orders').update({ status: 'shipping' }).eq('id', shipment.sales_order_id);
+      }
+    }
   }
 
   return c.json({

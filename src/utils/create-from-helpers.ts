@@ -143,6 +143,91 @@ export function buildPrefilledData(
 }
 
 /**
+ * Validate that items to be created do not exceed source open quantities.
+ * Call this BEFORE atomicCreateWithItems when _sourceRef is provided.
+ */
+export async function validateItemsAgainstSource(
+  db: SupabaseClient<any, any, any>,
+  flow: DocumentFlowConfig,
+  sourceId: string,
+  items: Record<string, unknown>[],
+  orgId: string,
+  requestId?: string
+): Promise<void> {
+  const { items: openItems } = await fetchSourceWithOpenQuantities(db, flow, sourceId, orgId, requestId);
+
+  const openMap = new Map<string, { openQuantity: number; productId: string }>();
+  for (const { item, openQuantity } of openItems) {
+    openMap.set(item.id as string, { openQuantity, productId: (item.product_id as string) ?? '' });
+  }
+
+  const sourceItemFk = flow.targetItemSourceItemFk;
+  if (!sourceItemFk) return;
+
+  for (const newItem of items) {
+    const sourceItemId = newItem[sourceItemFk] as string | undefined;
+    if (!sourceItemId) continue;
+
+    const open = openMap.get(sourceItemId);
+    const qty = Number(newItem.quantity ?? 0);
+
+    if (!open) {
+      throw ApiError.badRequest(
+        `Item references source item ${sourceItemId} which has no open quantity (already fully fulfilled)`,
+        requestId
+      );
+    }
+    if (qty > open.openQuantity) {
+      throw ApiError.badRequest(
+        `Item quantity ${qty} exceeds open quantity ${open.openQuantity} for source item ${sourceItemId}`,
+        requestId
+      );
+    }
+  }
+}
+
+/**
+ * Validate that a payment amount does not exceed invoice outstanding balance.
+ */
+export async function validateReceiptAmount(
+  db: SupabaseClient<any, any, any>,
+  referenceType: string,
+  referenceId: string,
+  amount: number,
+  orgId: string,
+  requestId?: string
+): Promise<void> {
+  if (referenceType !== 'sales_invoice') return;
+
+  const [receiptsResult, invoiceResult] = await Promise.all([
+    db
+      .from('customer_receipts')
+      .select('amount')
+      .eq('reference_type', 'sales_invoice')
+      .eq('reference_id', referenceId)
+      .eq('organization_id', orgId)
+      .is('deleted_at', null),
+    db
+      .from('sales_invoices')
+      .select('id, total_amount, tax_amount')
+      .eq('id', referenceId)
+      .eq('organization_id', orgId)
+      .single(),
+  ]);
+
+  const existingTotal = (receiptsResult.data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
+  const invoiceTotal = Number(invoiceResult.data?.total_amount ?? 0) + Number(invoiceResult.data?.tax_amount ?? 0);
+  const outstanding = invoiceTotal - existingTotal;
+
+  if (amount > outstanding) {
+    throw ApiError.badRequest(
+      `Receipt amount ${amount} exceeds outstanding balance ${outstanding} (invoice total: ${invoiceTotal}, already received: ${existingTotal})`,
+      requestId
+    );
+  }
+}
+
+/**
  * Insert a document_relations record linking source → target.
  */
 export async function createDocumentRelation(

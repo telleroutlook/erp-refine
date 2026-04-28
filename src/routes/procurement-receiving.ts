@@ -12,7 +12,7 @@ import { createStockTransaction, batchCreateStockTransactions } from '../utils/s
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 import { findFlow } from '../utils/document-flow';
-import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation, validateItemsAgainstSource } from '../utils/create-from-helpers';
 
 const procurementReceiving = new Hono<{ Bindings: Env }>();
 procurementReceiving.use('*', authMiddleware());
@@ -87,6 +87,13 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, _sourceRef, ...headerFields } = body;
+
+  // Validate quantities against source open items
+  if (_sourceRef?.type === 'purchase_order' && _sourceRef?.id && items?.length) {
+    const flow = findFlow('purchase_order', 'purchase_receipt')!;
+    await validateItemsAgainstSource(db, flow, _sourceRef.id, items, user.organizationId, requestId);
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {
@@ -277,6 +284,26 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
     }
   }
 
+  // 5. Auto-progress PO status based on total fulfillment
+  if (receipt.purchase_order_id) {
+    const { data: poItems } = await db
+      .from('purchase_order_items')
+      .select('quantity, received_quantity')
+      .eq('purchase_order_id', receipt.purchase_order_id)
+      .is('deleted_at', null);
+
+    if (poItems && poItems.length > 0) {
+      const allReceived = poItems.every((i: any) => Number(i.received_quantity ?? 0) >= Number(i.quantity));
+      const anyReceived = poItems.some((i: any) => Number(i.received_quantity ?? 0) > 0);
+
+      if (allReceived) {
+        await db.from('purchase_orders').update({ status: 'received' }).eq('id', receipt.purchase_order_id);
+      } else if (anyReceived) {
+        await db.from('purchase_orders').update({ status: 'partially_received' }).eq('id', receipt.purchase_order_id);
+      }
+    }
+  }
+
   const confirmedStatus = 'confirmed';
   return c.json({
     data: {
@@ -370,6 +397,14 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
 
   const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const { items, _sourceRef, ...headerFields } = body;
+
+  // Validate quantities against source open items
+  if (_sourceRef?.type && _sourceRef?.id && items?.length) {
+    const flowKey = _sourceRef.type === 'purchase_receipt' ? 'purchase_receipt' : 'purchase_order';
+    const flow = findFlow(flowKey, 'supplier_invoice')!;
+    await validateItemsAgainstSource(db, flow, _sourceRef.id, items, user.organizationId, requestId);
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {
@@ -454,6 +489,35 @@ procurementReceiving.delete('/supplier-invoices/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   await performSoftDelete(db, 'supplier_invoices', c.req.param('id'), user.organizationId, 'SupplierInvoice', requestId);
   return c.json({ data: { success: true } });
+});
+
+// POST verify: draft → verified (triggers invoiced_quantity update on PO items)
+procurementReceiving.post('/supplier-invoices/:id/verify', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: invoice, error: fetchError } = await db
+    .from('supplier_invoices')
+    .select('id, invoice_number, status, organization_id')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !invoice) throw ApiError.notFound('SupplierInvoice', id, requestId);
+  if (invoice.status !== 'draft') {
+    throw ApiError.invalidState('SupplierInvoice', invoice.status, 'verify', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('supplier_invoices')
+    .update({ status: 'verified' })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+
+  return c.json({ data: { id: invoice.id, invoice_number: invoice.invoice_number, status: 'verified' } });
 });
 
 // ────────────────────────────────────────────────────────────────────────────

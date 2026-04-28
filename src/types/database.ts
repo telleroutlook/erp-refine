@@ -4498,7 +4498,7 @@ export type Database = {
       }
       sales_invoice_items: {
         Row: {
-          amount: number
+          amount: number | null
           deleted_at: string | null
           discount_rate: number
           id: string
@@ -4511,7 +4511,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
-          amount?: number
+          amount?: number | null
           deleted_at?: string | null
           discount_rate?: number
           id?: string
@@ -4524,7 +4524,7 @@ export type Database = {
           unit_price?: number
         }
         Update: {
-          amount?: number
+          amount?: number | null
           deleted_at?: string | null
           discount_rate?: number
           id?: string
@@ -5903,7 +5903,7 @@ export type Database = {
       }
       supplier_invoice_items: {
         Row: {
-          amount: number
+          amount: number | null
           id: string
           product_id: string
           purchase_order_item_id: string | null
@@ -5914,7 +5914,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
-          amount?: number
+          amount?: number | null
           id?: string
           product_id: string
           purchase_order_item_id?: string | null
@@ -5925,7 +5925,7 @@ export type Database = {
           unit_price?: number
         }
         Update: {
-          amount?: number
+          amount?: number | null
           id?: string
           product_id?: string
           purchase_order_item_id?: string | null

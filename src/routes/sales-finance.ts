@@ -12,7 +12,7 @@ import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 import { findFlow } from '../utils/document-flow';
-import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation } from '../utils/create-from-helpers';
+import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation, validateItemsAgainstSource, validateReceiptAmount } from '../utils/create-from-helpers';
 
 const salesFinance = new Hono<{ Bindings: Env }>();
 salesFinance.use('*', authMiddleware());
@@ -98,6 +98,14 @@ salesFinance.post('/sales-invoices', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, _sourceRef, ...headerFields } = body;
+
+  // Validate quantities against source open items
+  if (_sourceRef?.type && _sourceRef?.id && items?.length) {
+    const flowKey = _sourceRef.type === 'sales_shipment' ? 'sales_shipment' : 'sales_order';
+    const flow = findFlow(flowKey, 'sales_invoice')!;
+    await validateItemsAgainstSource(db, flow, _sourceRef.id, items, user.organizationId, requestId);
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {
@@ -190,6 +198,35 @@ salesFinance.delete('/sales-invoices/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   await performSoftDelete(db, 'sales_invoices', c.req.param('id'), user.organizationId, 'SalesInvoice', requestId);
   return c.json({ data: { success: true } });
+});
+
+// POST issue: draft → issued (triggers invoiced_quantity update on SO items)
+salesFinance.post('/sales-invoices/:id/issue', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+
+  const { data: invoice, error: fetchError } = await db
+    .from('sales_invoices')
+    .select('id, invoice_number, status, organization_id')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchError || !invoice) throw ApiError.notFound('SalesInvoice', id, requestId);
+  if (invoice.status !== 'draft') {
+    throw ApiError.invalidState('SalesInvoice', invoice.status, 'issue', requestId);
+  }
+
+  const { error: updateError } = await db
+    .from('sales_invoices')
+    .update({ status: 'issued' })
+    .eq('id', id)
+    .eq('organization_id', user.organizationId);
+
+  if (updateError) throw ApiError.database(updateError.message, requestId);
+
+  return c.json({ data: { id: invoice.id, invoice_number: invoice.invoice_number, status: 'issued' } });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -462,6 +499,18 @@ salesFinance.post('/customer-receipts', async (c) => {
     if (PERMITTED_RECEIPT.has(k)) insertData[k] = v;
   }
 
+  // Validate receipt amount does not exceed invoice outstanding
+  if (insertData.reference_type === 'sales_invoice' && insertData.reference_id) {
+    await validateReceiptAmount(
+      db,
+      insertData.reference_type as string,
+      insertData.reference_id as string,
+      Number(insertData.amount ?? 0),
+      user.organizationId,
+      requestId
+    );
+  }
+
   const { data: receipt, error: insertError } = await db
     .from('customer_receipts')
     .insert({
@@ -477,34 +526,79 @@ salesFinance.post('/customer-receipts', async (c) => {
 
   // Check if the linked invoice is fully paid
   if (receipt.reference_type === 'sales_invoice' && receipt.reference_id) {
-    // Run sum and invoice fetch in parallel
-    const [sumResult, invoiceResult] = await Promise.all([
+    const [receiptsResult, invoiceResult] = await Promise.all([
       db
         .from('customer_receipts')
-        .select('total:amount.sum()')
+        .select('amount')
         .eq('reference_type', 'sales_invoice')
         .eq('reference_id', receipt.reference_id)
         .eq('organization_id', user.organizationId)
-        .is('deleted_at', null)
-        .single(),
+        .is('deleted_at', null),
       db
         .from('sales_invoices')
-        .select('id, total_amount')
+        .select('id, total_amount, tax_amount')
         .eq('id', receipt.reference_id)
         .eq('organization_id', user.organizationId)
         .single(),
     ]);
 
-    const totalPaid = Number((sumResult.data as any)?.total ?? 0);
+    const totalPaid = (receiptsResult.data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
     const invoice = invoiceResult.data;
+    const invoicePayable = Number(invoice?.total_amount ?? 0) + Number(invoice?.tax_amount ?? 0);
 
-    if (invoice && totalPaid >= (invoice.total_amount ?? 0)) {
+    if (invoice && totalPaid >= invoicePayable) {
       const { error: paidErr } = await db
         .from('sales_invoices')
         .update({ status: 'paid' })
         .eq('id', receipt.reference_id)
         .eq('organization_id', user.organizationId);
       if (paidErr) throw ApiError.database(paidErr.message, requestId);
+    }
+
+    // Auto-update SO payment_status based on total invoiced vs total received
+    const { data: invoiceForSo } = await db
+      .from('sales_invoices')
+      .select('sales_order_id')
+      .eq('id', receipt.reference_id)
+      .single();
+
+    if (invoiceForSo?.sales_order_id) {
+      const soId = invoiceForSo.sales_order_id;
+
+      // Get all issued/paid invoices for this SO
+      const { data: soInvoices } = await db
+        .from('sales_invoices')
+        .select('id, total_amount, tax_amount')
+        .eq('sales_order_id', soId)
+        .eq('organization_id', user.organizationId)
+        .in('status', ['issued', 'paid'])
+        .is('deleted_at', null);
+
+      const totalInvoiced = (soInvoices ?? []).reduce((sum: number, inv: any) => sum + Number(inv.total_amount ?? 0) + Number(inv.tax_amount ?? 0), 0);
+      const invoiceIds = (soInvoices ?? []).map((inv: any) => inv.id);
+
+      let totalReceived = 0;
+      if (invoiceIds.length > 0) {
+        const { data: allReceipts } = await db
+          .from('customer_receipts')
+          .select('amount')
+          .eq('reference_type', 'sales_invoice')
+          .in('reference_id', invoiceIds)
+          .eq('organization_id', user.organizationId)
+          .is('deleted_at', null);
+        totalReceived = (allReceipts ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
+      }
+
+      let paymentStatus: string;
+      if (totalInvoiced > 0 && totalReceived >= totalInvoiced) {
+        paymentStatus = 'paid';
+      } else if (totalReceived > 0) {
+        paymentStatus = 'partial';
+      } else {
+        paymentStatus = 'unpaid';
+      }
+
+      await db.from('sales_orders').update({ payment_status: paymentStatus }).eq('id', soId);
     }
   }
 

@@ -71,7 +71,7 @@ const poToReceipt: DocumentFlowConfig = {
   sourceItemsTable: 'purchase_order_items',
   sourceItemFk: 'purchase_order_id',
   sourceDetailSelect: '*, supplier:suppliers(id,name), items:purchase_order_items(*, product:products(id,name,code,uom))',
-  sourceValidStatuses: ['approved'],
+  sourceValidStatuses: ['approved', 'partially_received'],
   sourceNumberField: 'order_number',
 
   targetType: 'purchase_receipt',
@@ -108,7 +108,7 @@ const poToSupplierInvoice: DocumentFlowConfig = {
   sourceItemsTable: 'purchase_order_items',
   sourceItemFk: 'purchase_order_id',
   sourceDetailSelect: '*, supplier:suppliers(id,name), items:purchase_order_items(*, product:products(id,name,code,uom))',
-  sourceValidStatuses: ['approved'],
+  sourceValidStatuses: ['approved', 'partially_received', 'received'],
   sourceNumberField: 'order_number',
 
   targetType: 'supplier_invoice',
@@ -185,7 +185,7 @@ const soToShipment: DocumentFlowConfig = {
   sourceItemsTable: 'sales_order_items',
   sourceItemFk: 'sales_order_id',
   sourceDetailSelect: '*, customer:customers(id,name), items:sales_order_items(*, product:products(id,name,code,uom))',
-  sourceValidStatuses: ['approved'],
+  sourceValidStatuses: ['approved', 'shipping'],
   sourceNumberField: 'order_number',
 
   targetType: 'sales_shipment',
@@ -222,7 +222,7 @@ const soToSalesInvoice: DocumentFlowConfig = {
   sourceItemsTable: 'sales_order_items',
   sourceItemFk: 'sales_order_id',
   sourceDetailSelect: '*, customer:customers(id,name), items:sales_order_items(*, product:products(id,name,code,uom))',
-  sourceValidStatuses: ['approved'],
+  sourceValidStatuses: ['approved', 'shipping', 'shipped'],
   sourceNumberField: 'order_number',
 
   targetType: 'sales_invoice',
