@@ -512,6 +512,7 @@ for (const dir of backendDirs) {
     for (let i = 0; i < lines.length; i++) {
       const fromMatch = lines[i]!.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
       if (fromMatch) currentTable = fromMatch[1]!;
+      else if (lines[i]!.match(/\.from\(\s*\w+\s*\)/)) currentTable = null;
       if ((lines[i]!.includes(".is('deleted_at'") || lines[i]!.includes('.is("deleted_at"')) && currentTable) {
         if (tableColumns.has(currentTable) && !tablesWithDeletedAt.has(currentTable)) {
           violations.push({ file: relPath, line: i + 1, table: currentTable, column: 'deleted_at', context: 'spurious-filter' });

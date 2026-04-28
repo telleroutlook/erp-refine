@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Table, Divider, Button, Input, InputNumber, Select, Popconfirm, DatePicker } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -39,9 +39,6 @@ interface EditableItemTableProps {
   onChange: (payload: ItemsPayload) => void;
 }
 
-let _tempSeq = 0;
-const nextTempId = () => `__new_${++_tempSeq}`;
-
 export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   items,
   columns,
@@ -51,6 +48,8 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   onChange,
 }) => {
   const { t } = useTranslation();
+  const tempSeqRef = useRef(0);
+  const nextTempId = useCallback(() => `__new_${++tempSeqRef.current}`, []);
   const [edits, setEdits] = useState<Record<string, Record<string, any>>>({});
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
@@ -68,16 +67,14 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
-  const origPushStateRef = useRef(window.history.pushState.bind(window.history));
-
   useEffect(() => {
-    const orig = origPushStateRef.current;
+    const orig = window.history.pushState.bind(window.history);
     window.history.pushState = function (...args) {
       if (isDirtyRef.current && !window.confirm(t('messages.unsavedChanges'))) return;
       return orig.apply(this, args);
     };
     return () => { window.history.pushState = orig; };
-  }, []);
+  }, [t]);
 
   const flatKey = (di: string | string[]) => (Array.isArray(di) ? di.join('.') : di);
   const getNestedValue = (obj: any, path: string | string[]): any => {

@@ -42,7 +42,7 @@ export function useCreateFrom(targetResource: string): UseCreateFromResult {
 
     const controller = new AbortController();
     const token = localStorage.getItem('access_token');
-    const url = `${API_URL}/${targetResource}/create-from/${createFrom}/${sourceId}`;
+    const url = `${API_URL}/${targetResource}/create-from/${encodeURIComponent(createFrom)}/${encodeURIComponent(sourceId)}`;
 
     setIsLoading(true);
     setError(null);

@@ -218,13 +218,13 @@ salesFinance.post('/sales-invoices/:id/issue', async (c) => {
     throw ApiError.invalidState('SalesInvoice', invoice.status, 'issue', requestId);
   }
 
-  const { error: updateError } = await db
-    .from('sales_invoices')
-    .update({ status: 'issued' })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
+  const { data: transitioned, error: updateError } = await atomicStatusTransition(
+    db, 'sales_invoices', id, user.organizationId,
+    'draft',
+    { status: 'issued' }
+  );
+  if (updateError) throw ApiError.database((updateError as any).message, requestId);
+  if (!transitioned) throw ApiError.invalidState('SalesInvoice', invoice.status, 'issue', requestId);
 
   return c.json({ data: { id: invoice.id, invoice_number: invoice.invoice_number, status: 'issued' } });
 });

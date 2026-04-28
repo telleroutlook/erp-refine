@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
-import { applyFilters, resolveEmployeeId, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
+import { applyFilters, resolveEmployeeId, buildSelectWithItemFilter, applyItemFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { createStockTransaction, batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -211,13 +211,14 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
   const immediateItems = items.filter((i: any) => !i.product?.requires_inspection);
   const inspectionItems = items.filter((i: any) => i.product?.requires_inspection);
 
-  // 2. Update status to confirmed
-  const { error: updateError } = await db
-    .from('purchase_receipts')
-    .update({ status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-  if (updateError) throw ApiError.database(updateError.message, requestId);
+  // 2. Atomic status transition to prevent duplicate processing
+  const { data: transitioned, error: updateError } = await atomicStatusTransition(
+    db, 'purchase_receipts', id, user.organizationId,
+    'draft',
+    { status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString() }
+  );
+  if (updateError) throw ApiError.database((updateError as any).message, requestId);
+  if (!transitioned) throw ApiError.invalidState('PurchaseReceipt', receipt.status, 'confirm', requestId);
 
   // 3. Stock-in for items NOT requiring inspection (trigger auto-syncs stock_records)
   if (immediateItems.length > 0) {
@@ -296,9 +297,9 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       const anyReceived = poItems.some((i: any) => Number(i.received_quantity ?? 0) > 0);
 
       if (allReceived) {
-        await db.from('purchase_orders').update({ status: 'received' }).eq('id', receipt.purchase_order_id);
+        await db.from('purchase_orders').update({ status: 'received' }).eq('id', receipt.purchase_order_id).eq('organization_id', user.organizationId);
       } else if (anyReceived) {
-        await db.from('purchase_orders').update({ status: 'partially_received' }).eq('id', receipt.purchase_order_id);
+        await db.from('purchase_orders').update({ status: 'partially_received' }).eq('id', receipt.purchase_order_id).eq('organization_id', user.organizationId);
       }
     }
   }
@@ -508,13 +509,13 @@ procurementReceiving.post('/supplier-invoices/:id/verify', async (c) => {
     throw ApiError.invalidState('SupplierInvoice', invoice.status, 'verify', requestId);
   }
 
-  const { error: updateError } = await db
-    .from('supplier_invoices')
-    .update({ status: 'verified' })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
+  const { data: transitioned, error: updateError } = await atomicStatusTransition(
+    db, 'supplier_invoices', id, user.organizationId,
+    'draft',
+    { status: 'verified' }
+  );
+  if (updateError) throw ApiError.database((updateError as any).message, requestId);
+  if (!transitioned) throw ApiError.invalidState('SupplierInvoice', invoice.status, 'verify', requestId);
 
   return c.json({ data: { id: invoice.id, invoice_number: invoice.invoice_number, status: 'verified' } });
 });

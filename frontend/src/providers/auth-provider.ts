@@ -78,7 +78,7 @@ export const authProvider: AuthProvider = {
       const payload = JSON.parse(atob(padded));
       const nowSec = Math.floor(Date.now() / 1000);
       const EXPIRY_BUFFER_SEC = 60;
-      if (payload.exp && payload.exp < nowSec + EXPIRY_BUFFER_SEC) {
+      if (!payload.exp || payload.exp < nowSec + EXPIRY_BUFFER_SEC) {
         const refreshed = await refreshAccessToken();
         if (refreshed) return { authenticated: true };
         localStorage.removeItem('access_token');

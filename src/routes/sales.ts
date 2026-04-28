@@ -442,13 +442,14 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
     throw ApiError.badRequest('Warehouse is required to confirm a shipment', requestId);
   }
 
-  // 2. Status transition
-  const { error: updateError } = await db
-    .from('sales_shipments')
-    .update({ status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-  if (updateError) throw ApiError.database(updateError.message, requestId);
+  // 2. Atomic status transition to prevent duplicate processing
+  const { data: transitioned, error: updateError } = await atomicStatusTransition(
+    db, 'sales_shipments', id, user.organizationId,
+    'draft',
+    { status: 'confirmed', confirmed_by: user.userId, confirmed_at: new Date().toISOString() }
+  );
+  if (updateError) throw ApiError.database((updateError as any).message, requestId);
+  if (!transitioned) throw ApiError.invalidState('SalesShipment', shipment.status, 'confirm', requestId);
 
   // 3. Stock-out transactions (trigger auto-syncs stock_records)
   const items = (shipment as any).items ?? [];

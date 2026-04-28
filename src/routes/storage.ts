@@ -40,7 +40,9 @@ storage.post('/storage/upload', async (c) => {
 
   const fileId = crypto.randomUUID();
   const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const r2Key = `${user.organizationId}/${entityType}/${entityId}/${fileId}_${safeFileName}`;
+  const safeEntityType = entityType.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
+  const safeEntityId = entityId.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
+  const r2Key = `${user.organizationId}/${safeEntityType}/${safeEntityId}/${fileId}_${safeFileName}`;
 
   await c.env.STORAGE.put(r2Key, file.stream(), {
     httpMetadata: { contentType: file.type },

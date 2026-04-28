@@ -407,7 +407,8 @@ export async function importEntity(
       }
 
       if (allowedFields) {
-        const allowed = new Set([...allowedFields, 'organization_id']);
+        const allowed = new Set(allowedFields);
+        if (orgScoped) allowed.add('organization_id');
         for (const key of Object.keys(record)) {
           if (!allowed.has(key)) delete record[key];
         }

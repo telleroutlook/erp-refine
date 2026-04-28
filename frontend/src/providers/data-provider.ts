@@ -144,8 +144,10 @@ export const dataProvider: DataProvider = {
       const err = await response.json().catch(() => ({ detail: 'Delete failed' }));
       throw new Error(err.detail ?? err.error ?? 'Delete failed');
     }
-    const json = await response.json();
-    return { data: json.data };
+    const json = response.status !== 204
+      ? await response.json().catch(() => ({}))
+      : {};
+    return { data: json.data ?? { id } };
   },
 
   getApiUrl: () => API_URL,

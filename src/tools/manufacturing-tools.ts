@@ -251,11 +251,12 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           await db
             .from('work_order_materials')
             .update({ issued_quantity: mat.required_quantity, status: 'issued' })
-            .eq('id', mat.id);
+            .eq('id', mat.id)
+            .eq('work_order_id', wo.id);
         }
 
         if (wo.status === 'released') {
-          await db.from('work_orders').update({ status: 'in_progress' }).eq('id', wo.id);
+          await db.from('work_orders').update({ status: 'in_progress' }).eq('id', wo.id).eq('organization_id', organizationId);
         }
 
         return { workOrderId: wo.id, workOrderNumber: wo.work_order_number, issuedCount: pendingMaterials.length };

@@ -10,7 +10,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_purchase_orders: tool({
       description: 'List purchase orders with optional filters',
       inputSchema: z.object({
-        status: z.enum(['draft','submitted','approved','partially_received','received','invoiced','closed','cancelled']).optional(),
+        status: z.enum(['draft','submitted','approved','rejected','partially_received','received','invoiced','closed','cancelled']).optional(),
         supplierId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -383,6 +383,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const lineItems = items.map((i, idx) => ({
           purchase_requisition_id: pr.id,
+          organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
           quantity: i.quantity,
@@ -394,7 +395,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const { error: lineErr } = await db.from('purchase_requisition_lines').insert(lineItems);
         if (lineErr) {
-          await db.from('purchase_requisitions').delete().eq('id', pr.id);
+          await db.from('purchase_requisitions').delete().eq('id', pr.id).eq('organization_id', organizationId);
           throw new Error(lineErr.message);
         }
 

@@ -54,6 +54,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     scrollRafRef.current = requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     });
+    return () => cancelAnimationFrame(scrollRafRef.current);
   }, [messages, streamingText, activeTools]);
 
   const stop = useCallback(() => {
