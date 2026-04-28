@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useContext } from 'react';
 import { Layout, Menu, Grid, Drawer, Button, ConfigProvider } from 'antd';
 import {
   LogoutOutlined,
@@ -31,7 +31,7 @@ export const Sider: React.FC = () => {
     setMobileSiderOpen,
   } = useThemedLayoutContext();
 
-  const { menuItems, selectedKey, defaultOpenKeys } = useMenu();
+  const { menuItems, selectedKey } = useMenu();
   const translate = useTranslate();
   const Link = useLink();
   const isExistAuthentication = useIsExistAuthentication();
@@ -49,21 +49,22 @@ export const Sider: React.FC = () => {
     [menuItems],
   );
 
-  const [openKeys, setOpenKeys] = useState<string[]>(() => {
-    if (defaultOpenKeys.length > 0) return [defaultOpenKeys[defaultOpenKeys.length - 1]];
-    return [];
-  });
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
 
+  const prevSelectedKey = useRef(selectedKey);
   useEffect(() => {
     if (siderCollapsed) {
       setOpenKeys([]);
       return;
     }
-    const parentKey = menuItems.find((item) =>
-      item.children.some((child) => child.key === selectedKey),
-    )?.key;
-    if (parentKey) {
-      setOpenKeys([parentKey]);
+    if (prevSelectedKey.current !== selectedKey) {
+      prevSelectedKey.current = selectedKey;
+      const parentKey = menuItems.find((item) =>
+        item.children.some((child) => child.key === selectedKey),
+      )?.key;
+      if (parentKey) {
+        setOpenKeys([parentKey]);
+      }
     }
   }, [selectedKey, siderCollapsed, menuItems]);
 

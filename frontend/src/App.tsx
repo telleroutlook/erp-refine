@@ -21,6 +21,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { NavigationProgress } from './components/layout/NavigationProgress';
 import { erpTheme } from './theme';
 import { LoginPage } from './pages/auth/LoginPage';
+import { WelcomePage } from './pages/Welcome';
 
 // ── Procurement ──
 const PurchaseOrderList = loadable(() => import('./pages/procurement/purchase-orders/list'));
@@ -904,7 +905,7 @@ const App: React.FC = () => {
                   </Authenticated>
                 }
               >
-                <Route index element={<Navigate to="/procurement/purchase-orders" replace />} />
+                <Route index element={<WelcomePage />} />
 
                   {/* Procurement */}
                   <Route path="/procurement/purchase-orders" element={<PurchaseOrderList />} />
