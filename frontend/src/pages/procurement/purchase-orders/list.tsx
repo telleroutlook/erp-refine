@@ -80,3 +80,5 @@ export const PurchaseOrderList: React.FC = () => {
     </List>
   );
 };
+
+export default PurchaseOrderList;
