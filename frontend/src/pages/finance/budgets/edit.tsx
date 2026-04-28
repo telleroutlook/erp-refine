@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Select, InputNumber, Row, Col } from 'antd';
 import { BUDGET_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const BudgetEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'budgets' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'budgets' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -24,9 +24,12 @@ export const BudgetEdit: React.FC = () => {
     { dataIndex: 'variance_amount', title: fl('budget_lines', 'variance_amount'), width: 140, align: 'right', render: (v: any) => <AmountDisplay value={v} currency={record?.currency} /> },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('budgets', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('budgets', 'budget_name')} name="budget_name"><Input /></Form.Item>
@@ -51,7 +54,7 @@ export const BudgetEdit: React.FC = () => {
         </Row>
       </Form>
 
-      <EditableItemTable resource="budget-lines" parentResource="budgets" parentId={record?.id} parentFk="budget_id" items={record?.lines ?? []} columns={lineColumns} title={t('sections.budgetLines')} />
+      <EditableItemTable items={record?.lines ?? []} columns={lineColumns} title={t('sections.budgetLines')} onChange={setItemsPayload} />
     </Edit>
   );
 };

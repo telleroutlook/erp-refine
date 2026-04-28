@@ -207,9 +207,22 @@ function check1a(resources: ResourceDef[], routes: RouteDef[]) {
   }
 
   // Reverse: routes without frontend resources (info only)
+  // Child/line-item routes are embedded in parent document pages — they don't need standalone frontend pages
+  const CHILD_ROUTES = new Set([
+    'approval-rule-steps', 'role-permissions', 'contract-items',
+    'budget-lines', 'voucher-entries', 'inventory-count-lines',
+    'bom-items', 'work-order-materials', 'price-list-lines',
+    'purchase-receipt-items', 'supplier-invoice-items', 'asn-lines',
+    'reconciliation-lines', 'purchase-order-items', 'purchase-requisition-lines',
+    'rfq-lines', 'supplier-quotation-lines', 'quality-standard-items',
+    'quality-inspection-items', 'sales-invoice-items', 'sales-return-items',
+    'sales-order-items', 'sales-shipment-items', 'shipment-tracking-events',
+    'message-feedback', 'workflow-steps', 'dynamic-form-data',
+  ]);
   const resourceNames = new Set(resources.map(r => r.name));
   for (const route of routes) {
     const name = route.path.replace(/^\//, '');
+    if (CHILD_ROUTES.has(name)) continue;
     if (name && !resourceNames.has(name) && route.table && !route.file.includes('admin-audit') && !route.file.includes('auth') && !route.file.includes('chat') && !route.file.includes('schema') && !route.file.includes('storage')) {
       info('1a:route-only', `Backend route '${route.path}' (${route.file}) has no frontend resource page`);
     }

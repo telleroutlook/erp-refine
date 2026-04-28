@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
@@ -6,12 +6,12 @@ import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { StatusTag } from '../../../components/shared/StatusTag';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const ContractEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'contracts' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'contracts' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -32,9 +32,12 @@ export const ContractEdit: React.FC = () => {
     { dataIndex: 'notes', title: fl('contracts', 'notes'), editable: true },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('contracts', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('contracts', 'contract_number')} name="contract_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('contracts', 'contract_type')} name="contract_type"><Select options={translateOptions(CONTRACT_TYPE_OPTIONS, t, 'enums.contractType')} /></Form.Item></Col>
@@ -49,7 +52,7 @@ export const ContractEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="contract-items" parentResource="contracts" parentId={record?.id} parentFk="contract_id" items={record?.items ?? []} columns={itemColumns} title={pt('contracts', 'edit')} productsMap={productsMap} priceField="sale_price" />
+      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={pt('contracts', 'edit')} productsMap={productsMap} priceField="sale_price" onChange={setItemsPayload} />
     </Edit>
   );
 };

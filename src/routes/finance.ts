@@ -8,7 +8,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
-import { atomicCreateWithItems } from '../utils/atomic-helpers';
+import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
 const finance = new Hono<{ Bindings: Env }>();
@@ -179,9 +179,24 @@ finance.put('/vouchers/:id', async (c) => {
   if (fetchErr || !existing) throw ApiError.notFound('Voucher', id, requestId);
   if (existing.status === 'posted') throw ApiError.invalidState('Voucher', 'posted', 'update', requestId);
 
-  const allowed: Record<string, unknown> = {};
   const permitted = ['voucher_date', 'voucher_type', 'notes',
     'approved_by', 'approved_at'];
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'vouchers',
+      itemsTable: 'voucher_entries',
+      headerFk: 'voucher_id',
+      headerPermittedFields: permitted,
+      itemsReturnSelect: '*, account:account_subjects(id,code,name)',
+      headerReturnSelect: 'id',
+      softDeleteItems: false,
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
+  const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -371,9 +386,25 @@ finance.put('/budgets/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const allowed: Record<string, unknown> = {};
   const permitted = ['budget_name', 'budget_year', 'total_amount', 'currency', 'status',
     'approved_by', 'approved_at'];
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'budgets',
+      itemsTable: 'budget_lines',
+      headerFk: 'budget_id',
+      headerPermittedFields: permitted,
+      itemsReturnSelect: '*, cost_center:cost_centers(id,code,name)',
+      headerReturnSelect: 'id',
+      softDeleteItems: true,
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.planned_amount) || 0 },
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
+  const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db

@@ -27,10 +27,137 @@ export interface AtomicCreateInput {
   items: Record<string, unknown>[];
 }
 
-/**
- * Atomically insert a header + items.
- * If items insertion fails, the header is deleted (CASCADE cleans up any partial items).
- */
+// ────────────────────────────────────────────────────────────────────────────
+// Atomic update: header + items diff in one logical transaction
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface AtomicUpdateConfig {
+  headerTable: string;
+  itemsTable: string;
+  headerFk: string;
+  /** Whitelist of header fields the PUT may touch */
+  headerPermittedFields: string[];
+  /** Select expression for returning items after update */
+  itemsReturnSelect: string;
+  /** Select expression for returning header after update */
+  headerReturnSelect: string;
+  autoLineNumber?: boolean;
+  softDeleteItems?: boolean;
+  /** Auto-recalculate a header sum from item fields */
+  autoSum?: { headerField: string; itemAmountExpr: (item: Record<string, unknown>) => number; };
+}
+
+export interface AtomicUpdateInput {
+  header: Record<string, unknown>;
+  items: {
+    upsert: Record<string, unknown>[];
+    delete: string[];
+  };
+}
+
+export async function atomicUpdateWithItems(
+  db: SupabaseClient,
+  config: AtomicUpdateConfig,
+  headerId: string,
+  organizationId: string,
+  input: AtomicUpdateInput,
+  requestId?: string,
+): Promise<{ header: Record<string, unknown>; items: Record<string, unknown>[] }> {
+  const {
+    headerTable, itemsTable, headerFk,
+    headerPermittedFields, itemsReturnSelect, headerReturnSelect,
+    autoLineNumber = false, softDeleteItems = true, autoSum,
+  } = config;
+
+  const ITEM_BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by', headerFk]);
+
+  // Step 1: soft-delete removed items
+  for (const itemId of input.items.delete) {
+    if (softDeleteItems) {
+      const { error } = await db
+        .from(itemsTable)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', itemId)
+        .eq(headerFk, headerId);
+      if (error) throw ApiError.database(error.message, requestId, `Failed to delete ${itemsTable} item ${itemId}`);
+    } else {
+      const { error } = await db.from(itemsTable).delete().eq('id', itemId).eq(headerFk, headerId);
+      if (error) throw ApiError.database(error.message, requestId, `Failed to delete ${itemsTable} item ${itemId}`);
+    }
+  }
+
+  // Step 2: upsert items (id present → update, no id → insert)
+  let lineSeq = 0;
+  for (const item of input.items.upsert) {
+    lineSeq++;
+    const sanitized = Object.fromEntries(
+      Object.entries(item).filter(([k]) => !ITEM_BLOCKED.has(k))
+    );
+    if (autoLineNumber && !sanitized.line_number) {
+      sanitized.line_number = lineSeq;
+    }
+
+    if (item.id) {
+      const { error } = await db
+        .from(itemsTable)
+        .update(sanitized)
+        .eq('id', item.id)
+        .eq(headerFk, headerId);
+      if (error) throw ApiError.database(error.message, requestId, `Failed to update ${itemsTable} item ${item.id}`);
+    } else {
+      sanitized[headerFk] = headerId;
+      const { error } = await db.from(itemsTable).insert(sanitized);
+      if (error) throw ApiError.database(error.message, requestId, `Failed to insert new ${itemsTable} item`);
+    }
+  }
+
+  // Step 3: build header update payload
+  const headerUpdate: Record<string, unknown> = {};
+  for (const k of headerPermittedFields) {
+    if (input.header[k] !== undefined) headerUpdate[k] = input.header[k];
+  }
+
+  // Step 3b: auto-sum from surviving items
+  if (autoSum) {
+    const softDeleteFilter = softDeleteItems;
+    let q = db.from(itemsTable).select('*').eq(headerFk, headerId);
+    if (softDeleteFilter) q = q.is('deleted_at', null);
+    const { data: allItems, error: sumErr } = await q;
+    if (sumErr) throw ApiError.database(sumErr.message, requestId, 'Failed to recalculate totals');
+    const total = (allItems ?? []).reduce(
+      (sum: number, it: Record<string, unknown>) => sum + autoSum.itemAmountExpr(it),
+      0,
+    );
+    headerUpdate[autoSum.headerField] = Number(total.toFixed(2));
+  }
+
+  // Step 4: update header
+  if (Object.keys(headerUpdate).length > 0) {
+    const { error } = await db
+      .from(headerTable)
+      .update(headerUpdate)
+      .eq('id', headerId)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null);
+    if (error) throw ApiError.database(error.message, requestId, `Failed to update ${headerTable}`);
+  }
+
+  // Step 5: return full document
+  const { data: header, error: hErr } = await db
+    .from(headerTable)
+    .select(headerReturnSelect)
+    .eq('id', headerId)
+    .single();
+  if (hErr) throw ApiError.database(hErr.message, requestId);
+
+  let itemsQuery = db.from(itemsTable).select(itemsReturnSelect).eq(headerFk, headerId);
+  if (softDeleteItems) itemsQuery = itemsQuery.is('deleted_at', null);
+  const { data: items, error: iErr } = await itemsQuery;
+  if (iErr) throw ApiError.database(iErr.message, requestId);
+
+  return { header: header as unknown as Record<string, unknown>, items: (items ?? []) as unknown as Record<string, unknown>[] };
+}
+
 export async function atomicCreateWithItems(
   db: SupabaseClient,
   config: AtomicCreateConfig,

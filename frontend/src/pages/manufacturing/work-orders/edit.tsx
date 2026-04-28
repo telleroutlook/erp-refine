@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit, DateField } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { StatusTag } from '../../../components/shared/StatusTag';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
@@ -16,7 +16,7 @@ const WO_MATERIAL_STATUS_OPTIONS = [
 ];
 
 export const WorkOrderEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'work-orders' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'work-orders' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -43,9 +43,13 @@ export const WorkOrderEdit: React.FC = () => {
     { dataIndex: 'notes', title: t('common.notes'), editable: true },
   ];
 
+  const [materialsPayload, setMaterialsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const [productionsPayload, setProductionsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: { materials: materialsPayload, productions: productionsPayload } });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('work_orders', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'work_order_number')} name="work_order_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(WORK_ORDER_STATUS_OPTIONS, t)} /></Form.Item></Col>
@@ -56,8 +60,8 @@ export const WorkOrderEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="work-order-materials" parentResource="work-orders" parentId={record?.id} parentFk="work_order_id" items={record?.materials ?? []} columns={materialColumns} title={t('sections.materialRequirements')} productsMap={productsMap} />
-      <EditableItemTable resource="work-order-productions" parentResource="work-orders" parentId={record?.id} parentFk="work_order_id" items={record?.productions ?? []} columns={productionColumns} title={t('sections.productionReports')} />
+      <EditableItemTable items={record?.materials ?? []} columns={materialColumns} title={t('sections.materialRequirements')} productsMap={productsMap} onChange={setMaterialsPayload} />
+      <EditableItemTable items={record?.productions ?? []} columns={productionColumns} title={t('sections.productionReports')} onChange={setProductionsPayload} />
     </Edit>
   );
 };

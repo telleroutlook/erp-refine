@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit, DateField } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Switch, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { CURRENCY_OPTIONS, PRICE_LIST_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const PriceListEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'price-lists' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'price-lists' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -28,9 +28,12 @@ export const PriceListEdit: React.FC = () => {
     { dataIndex: 'effective_to', title: fl('price_lists', 'expiry_date'), width: 120, editable: true, inputType: 'date', render: (v: any) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-' },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('price_lists', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('price_lists', 'code')} name="code"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('price_lists', 'name')} name="name"><Input /></Form.Item></Col>
@@ -41,7 +44,7 @@ export const PriceListEdit: React.FC = () => {
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(PRICE_LIST_STATUS_OPTIONS, t)} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="price-list-lines" parentResource="price-lists" parentId={record?.id} parentFk="price_list_id" items={record?.lines ?? []} columns={lineColumns} title={pt('price_lists', 'edit')} productsMap={productsMap} />
+      <EditableItemTable items={record?.lines ?? []} columns={lineColumns} title={pt('price_lists', 'edit')} productsMap={productsMap} onChange={setItemsPayload} />
     </Edit>
   );
 };

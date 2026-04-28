@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { SO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const SalesOrderEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'sales-orders' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'sales-orders' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -22,6 +22,8 @@ export const SalesOrderEdit: React.FC = () => {
     (productsData?.data ?? []).forEach((p: any) => m.set(p.id, p));
     return m;
   }, [productsData]);
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
 
   const itemColumns: ColumnConfig[] = [
     { dataIndex: 'line_number', title: fl('sales_order_items', 'line_number'), width: 60 },
@@ -36,7 +38,7 @@ export const SalesOrderEdit: React.FC = () => {
 
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('sales_orders', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'order_number')} name="order_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(SO_STATUS_OPTIONS, t)} /></Form.Item></Col>
@@ -45,7 +47,7 @@ export const SalesOrderEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="sales-order-items" parentResource="sales-orders" parentId={record?.id} parentFk="sales_order_id" items={record?.items ?? []} columns={itemColumns} title={t('sections.orderLines')} productsMap={productsMap} priceField="sale_price" />
+      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={t('sections.orderLines')} productsMap={productsMap} priceField="sale_price" onChange={setItemsPayload} />
     </Edit>
   );
 };

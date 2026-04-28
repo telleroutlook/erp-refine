@@ -7,7 +7,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
-import { atomicCreateWithItems } from '../utils/atomic-helpers';
+import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
 const contracts = new Hono<{ Bindings: Env }>();
@@ -92,9 +92,25 @@ contracts.put('/contracts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const allowed: Record<string, unknown> = {};
   const permitted = ['start_date', 'end_date', 'total_amount', 'currency',
     'payment_terms', 'status', 'notes', 'contract_type'];
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'contracts',
+      itemsTable: 'contract_items',
+      headerFk: 'contract_id',
+      headerPermittedFields: permitted,
+      itemsReturnSelect: '*, product:products(id,name,code)',
+      headerReturnSelect: 'id',
+      softDeleteItems: true,
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
+  const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db

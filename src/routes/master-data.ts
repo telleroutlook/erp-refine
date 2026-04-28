@@ -8,6 +8,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
 import { applyFilters } from '../utils/database';
+import { atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 
 const masterData = new Hono<{ Bindings: Env }>();
@@ -215,8 +216,46 @@ const uomsConfig: CrudConfig = {
 masterData.route('', buildCrudRoutes(uomsConfig));
 
 // ────────────────────────────────────────────────────────────────────────────
-// Price Lists — full CRUD via factory
+// Price Lists — custom PUT with atomic items update, rest via factory
 // ────────────────────────────────────────────────────────────────────────────
+
+masterData.put('/price-lists/:id', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+
+  const permitted = ['code', 'name', 'currency', 'effective_from', 'effective_to', 'is_default', 'status'];
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'price_lists',
+      itemsTable: 'price_list_lines',
+      headerFk: 'price_list_id',
+      headerPermittedFields: permitted,
+      itemsReturnSelect: '*, product:products(id,name,code)',
+      headerReturnSelect: 'id',
+      softDeleteItems: true,
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
+  const allowed: Record<string, unknown> = {};
+  for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
+  const { data, error } = await db
+    .from('price_lists')
+    .update(allowed)
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .select('id')
+    .single();
+
+  if (error) throw ApiError.database(error.message, requestId);
+  if (!data) throw ApiError.notFound('PriceList', id, requestId);
+  return c.json({ data });
+});
 
 const priceListsConfig: CrudConfig = {
   table: 'price_lists',
@@ -228,6 +267,7 @@ const priceListsConfig: CrudConfig = {
   defaultSort: 'code',
   softDelete: true,
   orgScoped: true,
+  disableUpdate: true,
 };
 masterData.route('', buildCrudRoutes(priceListsConfig));
 

@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { INVOICE_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const SupplierInvoiceEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'supplier-invoices' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'supplier-invoices' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -28,9 +28,12 @@ export const SupplierInvoiceEdit: React.FC = () => {
       render: (v: any) => <AmountDisplay value={v} currency={record?.currency} /> },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('supplier_invoices', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('supplier_invoices', 'invoice_number')} name="invoice_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(INVOICE_STATUS_OPTIONS, t)} /></Form.Item></Col>
@@ -40,7 +43,7 @@ export const SupplierInvoiceEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="supplier-invoice-items" parentResource="supplier-invoices" parentId={record?.id} parentFk="supplier_invoice_id" items={record?.items ?? []} columns={itemColumns} title={t('sections.invoiceLines')} productsMap={productsMap} priceField="cost_price" />
+      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={t('sections.invoiceLines')} productsMap={productsMap} priceField="cost_price" onChange={setItemsPayload} />
     </Edit>
   );
 };

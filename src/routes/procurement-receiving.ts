@@ -7,7 +7,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, resolveEmployeeId, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
-import { atomicCreateWithItems } from '../utils/atomic-helpers';
+import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { createStockTransaction, batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
@@ -121,6 +121,20 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json();
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'purchase_receipts',
+      itemsTable: 'purchase_receipt_items',
+      headerFk: 'purchase_receipt_id',
+      headerPermittedFields: ['status', 'notes', 'receipt_date', 'warehouse_id'],
+      itemsReturnSelect: '*, product:products(id,name,code)',
+      headerReturnSelect: 'id',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
 
   const PERMITTED = new Set(['status', 'notes', 'receipt_date', 'warehouse_id']);
   const updateData: Record<string, unknown> = {};
@@ -390,6 +404,20 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json();
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'supplier_invoices',
+      itemsTable: 'supplier_invoice_items',
+      headerFk: 'supplier_invoice_id',
+      headerPermittedFields: ['status', 'notes', 'due_date', 'tax_amount', 'currency'],
+      itemsReturnSelect: '*, product:products(id,name,code)',
+      headerReturnSelect: 'id',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
 
   const PERMITTED = new Set(['status', 'notes', 'due_date', 'tax_amount', 'currency']);
   const updateData: Record<string, unknown> = {};
@@ -683,6 +711,20 @@ procurementReceiving.put('/advance-shipment-notices/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'advance_shipment_notices',
+      itemsTable: 'asn_lines',
+      headerFk: 'asn_id',
+      headerPermittedFields: ['status', 'expected_date', 'remark'],
+      itemsReturnSelect: '*, item:products!item_id(id,name,code)',
+      headerReturnSelect: 'id',
+      softDeleteItems: true,
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
   const PERMITTED = new Set(['status', 'expected_date', 'remark']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
@@ -822,6 +864,20 @@ procurementReceiving.put('/reconciliation-statements/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json();
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'reconciliation_statements',
+      itemsTable: 'reconciliation_lines',
+      headerFk: 'statement_id',
+      headerPermittedFields: ['status', 'notes', 'paid_amount'],
+      itemsReturnSelect: '*, item:products!item_id(id,name,code)',
+      headerReturnSelect: 'id',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.line_amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
 
   const PERMITTED = new Set(['status', 'notes', 'paid_amount']);
   const updateData: Record<string, unknown> = {};

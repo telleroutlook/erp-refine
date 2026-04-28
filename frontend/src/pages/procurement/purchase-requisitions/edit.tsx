@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { REQUISITION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const PurchaseRequisitionEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'purchase-requisitions' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'purchase-requisitions' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -18,6 +18,9 @@ export const PurchaseRequisitionEdit: React.FC = () => {
   const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
   const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
   const productsMap = useMemo(() => { const m = new Map<string, ProductInfo>(); (productsData?.data ?? []).forEach((p: any) => m.set(p.id, p)); return m; }, [productsData]);
+
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
 
   const itemColumns: ColumnConfig[] = [
     { dataIndex: 'line_number', title: fl('purchase_requisition_lines', 'line_number'), width: 60 },
@@ -34,7 +37,7 @@ export const PurchaseRequisitionEdit: React.FC = () => {
 
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('purchase_requisitions', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('purchase_requisitions', 'requisition_number')} name="requisition_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(REQUISITION_STATUS_OPTIONS, t)} /></Form.Item></Col>
@@ -43,7 +46,7 @@ export const PurchaseRequisitionEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="purchase-requisition-lines" parentResource="purchase-requisitions" parentId={record?.id} parentFk="purchase_requisition_id" items={record?.lines ?? []} columns={itemColumns} title={t('sections.requisitionLines')} productsMap={productsMap} priceField="cost_price" />
+      <EditableItemTable items={record?.lines ?? []} columns={itemColumns} title={t('sections.requisitionLines')} onChange={setItemsPayload} productsMap={productsMap} priceField="cost_price" />
     </Edit>
   );
 };

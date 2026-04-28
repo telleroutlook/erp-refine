@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const VoucherEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'vouchers' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'vouchers' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -31,9 +31,12 @@ export const VoucherEdit: React.FC = () => {
     { dataIndex: 'summary', title: fl('voucher_entries', 'summary'), editable: true },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('vouchers', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('vouchers', 'voucher_number')} name="voucher_number"><Input disabled /></Form.Item>
@@ -53,7 +56,7 @@ export const VoucherEdit: React.FC = () => {
         </Row>
       </Form>
 
-      <EditableItemTable resource="voucher-entries" parentResource="vouchers" parentId={record?.id} parentFk="voucher_id" items={record?.entries ?? []} columns={entryColumns} title={t('sections.voucherEntries')} />
+      <EditableItemTable items={record?.entries ?? []} columns={entryColumns} title={t('sections.voucherEntries')} onChange={setItemsPayload} />
     </Edit>
   );
 };

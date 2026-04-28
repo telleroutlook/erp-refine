@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useCreate, useUpdate, useDelete, useInvalidate } from '@refinedev/core';
-import { Table, Divider, Button, Input, InputNumber, Select, Popconfirm, Space, DatePicker, message } from 'antd';
-import { PlusOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
+import { Table, Divider, Button, Input, InputNumber, Select, Popconfirm, DatePicker } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
@@ -14,7 +13,6 @@ export interface ColumnConfig {
   inputType?: 'text' | 'number' | 'select' | 'date';
   selectOptions?: { label: string; value: any }[];
   render?: (value: any, record: any) => React.ReactNode;
-  /** For computed display columns: derive value from current row state */
   computed?: (rowState: Record<string, any>, originalRecord: any) => any;
 }
 
@@ -27,44 +25,35 @@ export interface ProductInfo {
   sale_price?: number;
 }
 
+export interface ItemsPayload {
+  upsert: Record<string, any>[];
+  delete: string[];
+}
+
 interface EditableItemTableProps {
-  resource: string;
-  parentResource: string;
-  parentId: string | undefined;
-  parentFk: string;
   items: any[];
   columns: ColumnConfig[];
   title: string;
-  /** Map of product_id → ProductInfo for auto-fill on product change */
   productsMap?: Map<string, ProductInfo>;
-  /** Which price field to auto-fill when product changes */
   priceField?: 'cost_price' | 'sale_price';
+  onChange: (payload: ItemsPayload) => void;
 }
 
 let _tempSeq = 0;
 const nextTempId = () => `__new_${++_tempSeq}`;
 
 export const EditableItemTable: React.FC<EditableItemTableProps> = ({
-  resource,
-  parentResource,
-  parentId,
-  parentFk,
   items,
   columns,
   title,
   productsMap,
   priceField,
+  onChange,
 }) => {
   const { t } = useTranslation();
   const [edits, setEdits] = useState<Record<string, Record<string, any>>>({});
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
-  const [saving, setSaving] = useState(false);
-
-  const { mutateAsync: createAsync } = useCreate();
-  const { mutateAsync: updateAsync } = useUpdate();
-  const { mutateAsync: deleteAsync } = useDelete();
-  const invalidate = useInvalidate();
 
   const isDirty = Object.keys(edits).length > 0 || newRows.length > 0 || deletedIds.size > 0;
   const isDirtyRef = useRef(isDirty);
@@ -96,7 +85,6 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   };
   const fieldName = (di: string | string[]) => Array.isArray(di) ? di[di.length - 1] : di;
 
-  /** Get the effective value of a field for a row, considering edits */
   const getRowState = (recordId: string, record: any): Record<string, any> => {
     const state: Record<string, any> = {};
     columns.forEach((col) => {
@@ -112,7 +100,6 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     return row?.values ?? {};
   };
 
-  /** Apply side-effects when product_id changes */
   const applyProductSideEffects = (productId: string | undefined): Record<string, any> => {
     if (!productId || !productsMap) return {};
     const product = productsMap.get(productId);
@@ -128,6 +115,55 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     return sideEffects;
   };
 
+  const emitChange = useCallback(
+    (
+      nextEdits: Record<string, Record<string, any>>,
+      nextNewRows: { tempId: string; values: Record<string, any> }[],
+      nextDeletedIds: Set<string>,
+    ) => {
+      const upsert: Record<string, any>[] = [];
+
+      // Existing items with edits
+      for (const [id, changes] of Object.entries(nextEdits)) {
+        if (nextDeletedIds.has(id)) continue;
+        const values: Record<string, any> = { id };
+        columns.forEach((col) => {
+          if (!col.editable) return;
+          const key = flatKey(col.dataIndex);
+          if (key in changes) values[fieldName(col.dataIndex)] = changes[key];
+        });
+        if (Object.keys(values).length > 1) upsert.push(values);
+      }
+
+      // Existing items without edits (pass through as-is for full document save)
+      for (const item of (items ?? [])) {
+        if (nextDeletedIds.has(item.id)) continue;
+        if (nextEdits[item.id]) continue;
+        const values: Record<string, any> = { id: item.id };
+        columns.forEach((col) => {
+          if (!col.editable) return;
+          const key = flatKey(col.dataIndex);
+          values[fieldName(col.dataIndex)] = getNestedValue(item, col.dataIndex);
+        });
+        upsert.push(values);
+      }
+
+      // New rows
+      for (const row of nextNewRows) {
+        const values: Record<string, any> = {};
+        columns.forEach((col) => {
+          if (!col.editable) return;
+          const key = flatKey(col.dataIndex);
+          if (row.values[key] !== undefined) values[fieldName(col.dataIndex)] = row.values[key];
+        });
+        upsert.push(values);
+      }
+
+      onChange({ upsert, delete: Array.from(nextDeletedIds) });
+    },
+    [columns, items, onChange],
+  );
+
   const updateCell = (recordId: string, col: ColumnConfig, value: any) => {
     const key = flatKey(col.dataIndex);
     setEdits((prev) => {
@@ -135,92 +171,67 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       if (key === 'product_id') {
         Object.assign(rowEdits, applyProductSideEffects(value));
       }
-      return { ...prev, [recordId]: rowEdits };
+      const next = { ...prev, [recordId]: rowEdits };
+      emitChange(next, newRows, deletedIds);
+      return next;
     });
   };
 
   const updateNewRowCell = (tempId: string, col: ColumnConfig, value: any) => {
     const key = flatKey(col.dataIndex);
-    setNewRows((prev) =>
-      prev.map((r) => {
+    setNewRows((prev) => {
+      const next = prev.map((r) => {
         if (r.tempId !== tempId) return r;
         const newVals = { ...r.values, [key]: value };
         if (key === 'product_id') {
           Object.assign(newVals, applyProductSideEffects(value));
         }
         return { ...r, values: newVals };
-      })
-    );
+      });
+      emitChange(edits, next, deletedIds);
+      return next;
+    });
   };
 
-  const addRow = () => setNewRows((prev) => [...prev, { tempId: nextTempId(), values: {} }]);
-  const removeNewRow = (tempId: string) => setNewRows((prev) => prev.filter((r) => r.tempId !== tempId));
+  const addRow = () => {
+    setNewRows((prev) => {
+      const next = [...prev, { tempId: nextTempId(), values: {} }];
+      emitChange(edits, next, deletedIds);
+      return next;
+    });
+  };
+
+  const removeNewRow = (tempId: string) => {
+    setNewRows((prev) => {
+      const next = prev.filter((r) => r.tempId !== tempId);
+      emitChange(edits, next, deletedIds);
+      return next;
+    });
+  };
 
   const markDeleted = (id: string) => {
-    setDeletedIds((prev) => new Set(prev).add(id));
-    setEdits((prev) => { const next = { ...prev }; delete next[id]; return next; });
+    setDeletedIds((prev) => {
+      const next = new Set(prev).add(id);
+      setEdits((prevEdits) => {
+        const nextEdits = { ...prevEdits };
+        delete nextEdits[id];
+        emitChange(nextEdits, newRows, next);
+        return nextEdits;
+      });
+      return next;
+    });
   };
 
-  const refresh = useCallback(() => {
-    invalidate({ resource: parentResource, invalidates: ['detail'], id: parentId });
-  }, [invalidate, parentResource, parentId]);
-
-  const saveAll = async () => {
-    if (!parentId) return;
-    setSaving(true);
-    try {
-      const promises: Promise<any>[] = [];
-
-      for (const id of deletedIds) {
-        promises.push(deleteAsync({ resource, id }));
-      }
-
-      for (const [id, changes] of Object.entries(edits)) {
-        if (deletedIds.has(id)) continue;
-        const values: Record<string, any> = {};
-        columns.forEach((col) => {
-          if (!col.editable) return;
-          const key = flatKey(col.dataIndex);
-          if (key in changes) values[fieldName(col.dataIndex)] = changes[key];
-        });
-        if (Object.keys(values).length > 0) {
-          promises.push(updateAsync({ resource, id, values }));
-        }
-      }
-
-      for (const row of newRows) {
-        const values: Record<string, any> = { [parentFk]: parentId };
-        columns.forEach((col) => {
-          if (!col.editable) return;
-          const key = flatKey(col.dataIndex);
-          if (row.values[key] !== undefined) values[fieldName(col.dataIndex)] = row.values[key];
-        });
-        promises.push(createAsync({ resource, values }));
-      }
-
-      await Promise.all(promises);
-      setEdits({});
-      setNewRows([]);
-      setDeletedIds(new Set());
-      refresh();
-      message.success(t('messages.saveSuccess'));
-    } catch {
-      message.error(t('messages.saveFailed'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const renderInput = (col: ColumnConfig, currentVal: any, onChange: (v: any) => void) => {
+  const renderInput = (col: ColumnConfig, currentVal: any, onValueChange: (v: any) => void) => {
     switch (col.inputType) {
       case 'number':
-        return <InputNumber value={currentVal} onChange={onChange} size="small" style={{ width: '100%' }} />;
+        return <InputNumber value={currentVal} onChange={onValueChange} size="small" style={{ width: '100%' }} />;
       case 'select':
-        return <Select value={currentVal} onChange={onChange} options={col.selectOptions} size="small" style={{ width: '100%' }} showSearch optionFilterProp="label" allowClear />;
+        return <Select value={currentVal} onChange={onValueChange} options={col.selectOptions} size="small" style={{ width: '100%' }} showSearch optionFilterProp="label" allowClear />;
       case 'date':
-        return <DatePicker value={currentVal ? dayjs(currentVal) : null} onChange={(d) => onChange(d ? d.format('YYYY-MM-DD') : null)} size="small" style={{ width: '100%' }} />;
+        return <DatePicker value={currentVal ? dayjs(currentVal) : null} onChange={(d) => onValueChange(d ? d.format('YYYY-MM-DD') : null)} size="small" style={{ width: '100%' }} />;
       default:
-        return <Input value={currentVal} onChange={(e) => onChange(e.target.value)} size="small" />;
+        return <Input value={currentVal} onChange={(e) => onValueChange(e.target.value)} size="small" />;
     }
   };
 
@@ -285,20 +296,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
 
   const dataSource = [...existingData, ...newRows.map((r) => ({ id: r.tempId }))];
 
-  if (!parentId) return null;
-
   return (
     <>
-      <Divider>
-        <Space>
-          {title}
-          {isDirty && (
-            <Button type="primary" size="small" icon={<SaveOutlined />} onClick={saveAll} loading={saving}>
-              {t('buttons.save')}
-            </Button>
-          )}
-        </Space>
-      </Divider>
+      <Divider>{title}</Divider>
       <Table dataSource={dataSource} rowKey="id" size="small" pagination={false} columns={tableColumns} scroll={{ x: 'max-content' }}
         footer={() => (
           <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={addRow} block>{t('common.create')}</Button>

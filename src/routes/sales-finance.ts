@@ -7,7 +7,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
-import { atomicCreateWithItems } from '../utils/atomic-helpers';
+import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
@@ -135,6 +135,29 @@ salesFinance.put('/sales-invoices/:id', async (c) => {
 
   // status is intentionally excluded — invoice status must change through workflow endpoints
   const PERMITTED = new Set(['notes', 'due_date', 'tax_amount']);
+
+  if (body.items) {
+    // Atomic update: header + items in one call
+    const result = await atomicUpdateWithItems(
+      db,
+      {
+        headerTable: 'sales_invoices',
+        itemsTable: 'sales_invoice_items',
+        headerFk: 'sales_invoice_id',
+        headerPermittedFields: [...PERMITTED],
+        itemsReturnSelect: '*, product:products(id,name,code)',
+        headerReturnSelect: 'id',
+        autoSum: { headerField: 'total_amount', itemAmountExpr: (item) => Number(item.amount ?? 0) },
+      },
+      id,
+      user.organizationId,
+      { header: body, items: body.items },
+      requestId,
+    );
+    return c.json({ data: result.header });
+  }
+
+  // Header-only update (no items)
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -261,6 +284,29 @@ salesFinance.put('/sales-returns/:id', async (c) => {
   const body = await c.req.json();
 
   const PERMITTED = new Set(['status', 'notes', 'reason', 'warehouse_id']);
+
+  if (body.items) {
+    // Atomic update: header + items in one call
+    const result = await atomicUpdateWithItems(
+      db,
+      {
+        headerTable: 'sales_returns',
+        itemsTable: 'sales_return_items',
+        headerFk: 'sales_return_id',
+        headerPermittedFields: [...PERMITTED],
+        itemsReturnSelect: '*, product:products(id,name,code)',
+        headerReturnSelect: 'id',
+        autoSum: { headerField: 'total_amount', itemAmountExpr: (item) => Number(item.amount ?? 0) },
+      },
+      id,
+      user.organizationId,
+      { header: body, items: body.items },
+      requestId,
+    );
+    return c.json({ data: result.header });
+  }
+
+  // Header-only update (no items)
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;

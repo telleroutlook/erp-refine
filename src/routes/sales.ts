@@ -7,7 +7,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
-import { atomicCreateWithItems } from '../utils/atomic-helpers';
+import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { createStockTransaction, batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 import { findFlow } from '../utils/document-flow';
@@ -107,15 +107,46 @@ sales.post('/sales-orders', async (c) => {
   return c.json({ data: result.header }, 201);
 });
 
-// PUT update
+// PUT update (atomic: header + items when body.items present)
 sales.put('/sales-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const allowed: Record<string, unknown> = {};
   const permitted = ['status', 'notes', 'delivery_date', 'warehouse_id', 'payment_terms',
     'currency', 'customer_id', 'approved_by', 'approved_at'];
+
+  if (body.items) {
+    const { items, ...headerFields } = body;
+    const result = await atomicUpdateWithItems(
+      db,
+      {
+        headerTable: 'sales_orders',
+        itemsTable: 'sales_order_items',
+        headerFk: 'sales_order_id',
+        headerPermittedFields: permitted,
+        itemsReturnSelect: '*, product:products(id,name,code)',
+        headerReturnSelect: 'id',
+        autoLineNumber: true,
+        autoSum: {
+          headerField: 'total_amount',
+          itemAmountExpr: (item) => {
+            const amount = Number(item.amount);
+            if (!isNaN(amount)) return amount;
+            return Number(item.quantity ?? 0) * Number(item.unit_price ?? 0);
+          },
+        },
+      },
+      id,
+      user.organizationId,
+      { header: headerFields, items },
+      requestId,
+    );
+    return c.json({ data: result.header });
+  }
+
+  // Header-only update (no items)
+  const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -315,13 +346,36 @@ sales.post('/sales-shipments', async (c) => {
   return c.json({ data: result.header }, 201);
 });
 
-// PUT update
+// PUT update (atomic: header + items when body.items present)
 sales.put('/sales-shipments/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'shipment_date', 'carrier', 'tracking_number', 'warehouse_id']);
+  const permittedFields = ['status', 'notes', 'shipment_date', 'carrier', 'tracking_number', 'warehouse_id'];
+
+  if (body.items) {
+    const { items, ...headerFields } = body;
+    const result = await atomicUpdateWithItems(
+      db,
+      {
+        headerTable: 'sales_shipments',
+        itemsTable: 'sales_shipment_items',
+        headerFk: 'sales_shipment_id',
+        headerPermittedFields: permittedFields,
+        itemsReturnSelect: '*, product:products(id,name,code)',
+        headerReturnSelect: 'id',
+      },
+      id,
+      user.organizationId,
+      { header: headerFields, items },
+      requestId,
+    );
+    return c.json({ data: result.header });
+  }
+
+  // Header-only update (no items)
+  const PERMITTED = new Set(permittedFields);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;

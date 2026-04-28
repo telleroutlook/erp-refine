@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, Switch, Row, Col } from 'antd';
-import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const QualityStandardEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'quality-standards' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'quality-standards' });
   const record = queryResult?.data?.data as any;
   const { t } = useTranslation();
   const fl = useFieldLabel();
@@ -20,9 +20,12 @@ export const QualityStandardEdit: React.FC = () => {
     { dataIndex: 'sequence_order', title: fl('quality_standard_items', 'sequence_order'), width: 80, align: 'right', editable: true, inputType: 'number' },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('quality_standards', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('quality_standards', 'standard_code')} name="standard_code"><Input disabled /></Form.Item>
@@ -39,7 +42,7 @@ export const QualityStandardEdit: React.FC = () => {
         </Row>
       </Form>
 
-      <EditableItemTable resource="quality-standard-items" parentResource="quality-standards" parentId={record?.id} parentFk="quality_standard_id" items={record?.items ?? []} columns={itemColumns} title={t('sections.inspectionItems')} />
+      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={t('sections.inspectionItems')} onChange={setItemsPayload} />
     </Edit>
   );
 };

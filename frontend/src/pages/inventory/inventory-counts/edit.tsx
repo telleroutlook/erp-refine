@@ -1,15 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { COUNT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
-import { EditableItemTable, type ColumnConfig, type ProductInfo } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const InventoryCountEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'inventory-counts' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'inventory-counts' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -27,9 +27,12 @@ export const InventoryCountEdit: React.FC = () => {
     { dataIndex: 'notes', title: t('common.notes'), editable: true },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('inventory_counts', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('inventory_counts', 'count_number')} name="count_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(COUNT_STATUS_OPTIONS, t)} /></Form.Item></Col>
@@ -37,7 +40,7 @@ export const InventoryCountEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable resource="inventory-count-lines" parentResource="inventory-counts" parentId={record?.id} parentFk="inventory_count_id" items={record?.lines ?? []} columns={lineColumns} title={t('sections.countDetails')} productsMap={productsMap} />
+      <EditableItemTable items={record?.lines ?? []} columns={lineColumns} title={t('sections.countDetails')} productsMap={productsMap} onChange={setItemsPayload} />
     </Edit>
   );
 };

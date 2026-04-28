@@ -7,7 +7,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performHardDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
-import { atomicCreateWithItems } from '../utils/atomic-helpers';
+import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
@@ -91,8 +91,23 @@ manufacturing.put('/bom-headers/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const allowed: Record<string, unknown> = {};
   const permitted = ['notes', 'quantity', 'effective_date', 'is_active', 'version'];
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'bom_headers',
+      itemsTable: 'bom_items',
+      headerFk: 'bom_header_id',
+      headerPermittedFields: permitted,
+      itemsReturnSelect: '*, product:products(id,name,code)',
+      headerReturnSelect: 'id',
+      softDeleteItems: false,
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
+  const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db
@@ -237,9 +252,24 @@ manufacturing.put('/work-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const allowed: Record<string, unknown> = {};
   const permitted = ['status', 'notes', 'planned_quantity', 'warehouse_id',
     'planned_completion_date', 'actual_completion_date', 'start_date'];
+
+  if (body.items) {
+    const updateConfig: AtomicUpdateConfig = {
+      headerTable: 'work_orders',
+      itemsTable: 'work_order_materials',
+      headerFk: 'work_order_id',
+      headerPermittedFields: permitted,
+      itemsReturnSelect: '*, product:products(id,name,code)',
+      headerReturnSelect: 'id',
+      softDeleteItems: false,
+    };
+    const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+    return c.json({ data: result.header });
+  }
+
+  const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
   const { data, error } = await db

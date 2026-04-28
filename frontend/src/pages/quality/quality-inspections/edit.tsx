@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { INSPECTION_STATUS_OPTIONS, INSPECTION_RESULT_OPTIONS, translateOptions } from '../../../constants/options';
-import { EditableItemTable, type ColumnConfig } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const QualityInspectionEdit: React.FC = () => {
-  const { formProps, saveButtonProps, queryResult } = useForm({ resource: 'quality-inspections' });
+  const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'quality-inspections' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -22,9 +22,12 @@ export const QualityInspectionEdit: React.FC = () => {
     { dataIndex: 'notes', title: t('common.notes'), editable: true },
   ];
 
+  const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
+  const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('quality_inspections', 'edit')}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('quality_inspections', 'inspection_number')} name="inspection_number"><Input disabled /></Form.Item>
@@ -50,7 +53,7 @@ export const QualityInspectionEdit: React.FC = () => {
         </Row>
       </Form>
 
-      <EditableItemTable resource="quality-inspection-items" parentResource="quality-inspections" parentId={record?.id} parentFk="quality_inspection_id" items={record?.items ?? []} columns={itemColumns} title={t('qualityInspection.inspectionDetails')} />
+      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={t('qualityInspection.inspectionDetails')} onChange={setItemsPayload} />
     </Edit>
   );
 };
