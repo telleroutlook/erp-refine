@@ -77,7 +77,8 @@ export async function fetchSourceWithOpenQuantities(
     const { data: targetData } = await db
       .from(flow.targetItemsTable)
       .select(`${flow.targetItemSourceItemFk}, quantity`)
-      .in(flow.targetItemSourceItemFk, itemIds);
+      .in(flow.targetItemSourceItemFk, itemIds)
+      .is('deleted_at', null);
 
     const existing = (targetData ?? []) as unknown as Record<string, unknown>[];
     const fulfilledMap = new Map<string, number>();

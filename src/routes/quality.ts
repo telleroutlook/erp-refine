@@ -298,6 +298,7 @@ quality.post('/quality-inspections/:id/complete', async (c) => {
       .from('purchase_receipts')
       .select('warehouse_id')
       .eq('id', qi.reference_id)
+      .eq('organization_id', user.organizationId)
       .single();
 
     if (receipt?.warehouse_id) {

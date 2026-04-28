@@ -597,7 +597,8 @@ procurementReceiving.post('/three-way-match', async (c) => {
       const { data: poItems } = await db
         .from('purchase_order_items')
         .select('id, unit_price')
-        .in('id', poItemIds);
+        .in('id', poItemIds)
+        .is('deleted_at', null);
 
       const priceMap = new Map(
         (poItems ?? []).map((pi: { id: string; unit_price: number }) => [pi.id, pi.unit_price ?? 0])

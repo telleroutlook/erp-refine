@@ -195,7 +195,8 @@ manufacturing.post('/work-orders', async (c) => {
     const { data: bom, error: bomError } = await db
       .from('bom_items')
       .select('product_id, quantity, unit, scrap_rate, sequence')
-      .eq('bom_header_id', body.bom_header_id);
+      .eq('bom_header_id', body.bom_header_id)
+      .limit(500);
 
     if (bomError) throw ApiError.database(`Failed to fetch BOM items: ${bomError.message}`, requestId);
     bomItems = bom ?? [];
@@ -347,7 +348,7 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   // Batch update work_order_materials — one request per row (Supabase lacks multi-row UPDATE)
   const matResults = await Promise.all(
     materialUpdates.map(({ id, newIssuedQty }) =>
-      db.from('work_order_materials').update({ issued_quantity: newIssuedQty }).eq('id', id)
+      db.from('work_order_materials').update({ issued_quantity: newIssuedQty }).eq('id', id).eq('work_order_id', wo.id)
     )
   );
   const matFailed = matResults.filter(r => r.error);
@@ -504,6 +505,7 @@ manufacturing.put('/work-order-productions/:id', async (c) => {
     .from('work_order_productions')
     .update(updateData)
     .eq('id', id)
+    .eq('work_order_id', (prod.work_order as any).id)
     .select('id')
     .single();
   if (error) throw ApiError.database(error.message, requestId);
@@ -525,7 +527,8 @@ manufacturing.delete('/work-order-productions/:id', async (c) => {
   const { error } = await db
     .from('work_order_productions')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('work_order_id', (prod.work_order as any).id);
   if (error) throw ApiError.database(error.message, requestId);
   return c.json({ data: { success: true } });
 });

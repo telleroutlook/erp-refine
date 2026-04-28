@@ -2,15 +2,24 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import rehypeSanitize from 'rehype-sanitize';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import 'highlight.js/styles/github.css';
 
 interface MarkdownMessageProps {
   content: string;
 }
 
+const sanitizeSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    code: [...(defaultSchema.attributes?.code ?? []), ['className']],
+    span: [...(defaultSchema.attributes?.span ?? []), ['className']],
+  },
+};
+
 const REMARK_PLUGINS = [remarkGfm];
-const REHYPE_PLUGINS = [rehypeSanitize, rehypeHighlight];
+const REHYPE_PLUGINS = [rehypeHighlight, [rehypeSanitize, sanitizeSchema]] as any[];
 
 const MD_COMPONENTS = {
   pre: ({ children }: any) => (

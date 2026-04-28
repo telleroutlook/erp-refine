@@ -35,33 +35,33 @@ export const ApprovalRuleList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="rule_name" title={t('menu.approvalRules')} />
-        <Table.Column dataIndex="document_type" title={t('menu.approvalRules')} width={140} />
+        <Table.Column dataIndex="rule_name" title={fl('approval_rules', 'rule_name')} />
+        <Table.Column dataIndex="document_type" title={fl('approval_rules', 'document_type')} width={140} />
         <Table.Column
           dataIndex="min_amount"
-          title={t('menu.approvalRules')}
+          title={fl('approval_rules', 'min_amount')}
           width={120}
           align="right"
           render={(v) => (v != null ? Number(v).toLocaleString() : '-')}
         />
         <Table.Column
           dataIndex="max_amount"
-          title={t('menu.approvalRules')}
+          title={fl('approval_rules', 'max_amount')}
           width={120}
           align="right"
           render={(v) => (v != null ? Number(v).toLocaleString() : '-')}
         />
         <Table.Column
           dataIndex="required_roles"
-          title={t('menu.approvalRules')}
+          title={fl('approval_rules', 'required_roles')}
           render={(v: string[]) =>
             v?.length ? v.map((role) => <Tag key={role}>{role}</Tag>) : '-'
           }
         />
-        <Table.Column dataIndex="sequence_order" title={t('menu.approvalRules')} width={80} align="center" />
+        <Table.Column dataIndex="sequence_order" title={fl('approval_rules', 'sequence_order')} width={80} align="center" />
         <Table.Column
           dataIndex="is_active"
-          title={t('menu.approvalRules')}
+          title={t('common.status')}
           width={100}
           render={(v) => <ActiveStatusTag value={v} />}
         />

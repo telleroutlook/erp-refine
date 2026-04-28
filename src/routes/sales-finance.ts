@@ -548,7 +548,8 @@ salesFinance.post('/customer-receipts', async (c) => {
         .from('sales_invoices')
         .update({ status: 'paid' })
         .eq('id', receipt.reference_id)
-        .eq('organization_id', user.organizationId);
+        .eq('organization_id', user.organizationId)
+        .in('status', ['issued', 'partial']);
       if (paidErr) throw ApiError.database(paidErr.message, requestId);
     }
 

@@ -40,6 +40,8 @@ export interface AtomicUpdateConfig {
   headerReturnSelect: string;
   autoLineNumber?: boolean;
   softDeleteItems?: boolean;
+  /** Whether header table uses soft-delete (default true). Set false for hard-delete tables like vouchers. */
+  softDeleteHeader?: boolean;
   /** Auto-recalculate a header sum from item fields */
   autoSum?: { headerField: string; itemAmountExpr: (item: Record<string, unknown>) => number; };
 }
@@ -63,7 +65,7 @@ export async function atomicUpdateWithItems(
   const {
     headerTable, itemsTable, headerFk,
     headerPermittedFields, itemsReturnSelect, headerReturnSelect,
-    autoLineNumber = false, softDeleteItems = true, autoSum,
+    autoLineNumber = false, softDeleteItems = true, softDeleteHeader = true, autoSum,
   } = config;
 
   const ITEM_BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by', headerFk]);
@@ -127,12 +129,13 @@ export async function atomicUpdateWithItems(
   }
 
   if (Object.keys(headerUpdate).length > 0) {
-    const { error } = await db
+    let q = db
       .from(headerTable)
       .update(headerUpdate)
       .eq('id', headerId)
-      .eq('organization_id', organizationId)
-      .is('deleted_at', null);
+      .eq('organization_id', organizationId);
+    if (softDeleteHeader) q = q.is('deleted_at', null);
+    const { error } = await q;
     if (error) throw ApiError.database(error.message, requestId, `Failed to update ${headerTable}`);
   }
 
@@ -140,6 +143,7 @@ export async function atomicUpdateWithItems(
     .from(headerTable)
     .select(headerReturnSelect)
     .eq('id', headerId)
+    .eq('organization_id', organizationId)
     .single();
   if (hErr) throw ApiError.database(hErr.message, requestId);
 

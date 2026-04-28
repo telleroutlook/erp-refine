@@ -67,13 +67,15 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
+  const nativePushStateRef = useRef(window.history.pushState.bind(window.history));
+
   useEffect(() => {
-    const orig = window.history.pushState.bind(window.history);
+    const native = nativePushStateRef.current;
     window.history.pushState = function (...args) {
       if (isDirtyRef.current && !window.confirm(t('messages.unsavedChanges'))) return;
-      return orig.apply(this, args);
+      return native.apply(this, args);
     };
-    return () => { window.history.pushState = orig; };
+    return () => { window.history.pushState = native; };
   }, [t]);
 
   const flatKey = (di: string | string[]) => (Array.isArray(di) ? di.join('.') : di);
