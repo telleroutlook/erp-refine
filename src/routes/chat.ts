@@ -78,7 +78,7 @@ chat.post('/', async (c) => {
   // Persist user message (fire-and-forget)
   appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'user', body.message);
 
-  const tools = buildToolSet({ db, organizationId: user.organizationId });
+  const tools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId });
 
   const ctx = {
     sessionId,
@@ -123,9 +123,7 @@ chat.post('/stream', async (c) => {
   const sessionId = body.sessionId ?? crypto.randomUUID();
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
-  const tools = buildToolSet({ db, organizationId: user.organizationId });
-
-  // Load recent history for context
+  const tools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId });
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 

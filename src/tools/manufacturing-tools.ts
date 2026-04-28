@@ -4,9 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { assertOwnership } from '../utils/database';
+import { atomicStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createManufacturingTools(db: SupabaseClient, organizationId: string) {
+export function createManufacturingTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     get_work_order: tool({
       description: 'Get work order detail including materials and production records',
@@ -95,12 +95,11 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List material requirements for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
-        await assertOwnership(db, 'work_orders', workOrderId, organizationId, 'Work order');
-
         const { data, error } = await db
           .from('work_order_materials')
           .select('id, required_quantity, issued_quantity, status, notes, product:products(id,name,code)')
-          .eq('work_order_id', workOrderId);
+          .eq('work_order_id', workOrderId)
+          .eq('organization_id', organizationId);
         if (error) throw new Error(error.message);
         return data ?? [];
       },
@@ -110,12 +109,11 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List production records (output entries) for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
-        await assertOwnership(db, 'work_orders', workOrderId, organizationId, 'Work order');
-
         const { data, error } = await db
           .from('work_order_productions')
           .select('id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_by')
           .eq('work_order_id', workOrderId)
+          .eq('organization_id', organizationId)
           .order('production_date', { ascending: false });
         if (error) throw new Error(error.message);
         return data ?? [];
@@ -137,12 +135,11 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         ),
       }),
       execute: async ({ productId, bomHeaderId, plannedQuantity, startDate, plannedCompletionDate, warehouseId, notes, confirmed }) => {
-        await assertOwnership(db, 'bom_headers', bomHeaderId, organizationId, 'BOM');
-
         const { data: bomItems, error: bomErr } = await db
           .from('bom_items')
           .select('product_id, quantity')
-          .eq('bom_header_id', bomHeaderId);
+          .eq('bom_header_id', bomHeaderId)
+          .eq('organization_id', organizationId);
         if (bomErr) throw new Error(bomErr.message);
 
         const materials = (bomItems ?? []).map(bi => ({
@@ -168,29 +165,31 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         });
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
 
-        const { data: wo, error: woErr } = await db
-          .from('work_orders')
-          .insert({
-            organization_id: organizationId,
-            work_order_number: seqData,
-            product_id: productId,
-            bom_header_id: bomHeaderId,
-            planned_quantity: plannedQuantity,
-            completed_quantity: 0,
-            start_date: startDate ?? null,
-            planned_completion_date: plannedCompletionDate ?? null,
-            warehouse_id: warehouseId ?? null,
-            status: 'draft',
-            notes: notes ?? null,
-          })
-          .select('id, work_order_number')
-          .single();
-
-        if (woErr) throw new Error(woErr.message);
+        const wo = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('work_orders').insert({
+              organization_id: organizationId,
+              work_order_number: seqData,
+              product_id: productId,
+              bom_header_id: bomHeaderId,
+              planned_quantity: plannedQuantity,
+              completed_quantity: 0,
+              start_date: startDate ?? null,
+              planned_completion_date: plannedCompletionDate ?? null,
+              warehouse_id: warehouseId ?? null,
+              status: 'draft',
+              notes: notes ?? null,
+            }).select('id, work_order_number').single();
+            return result as { data: { id: string; work_order_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'work_orders', userId, organizationId },
+        ) as { id: string; work_order_number: string };
 
         if (materials.length > 0) {
           const matRows = materials.map(m => ({
             work_order_id: wo.id,
+            organization_id: organizationId,
             product_id: m.productId,
             required_quantity: m.requiredQuantity,
             issued_quantity: 0,
@@ -256,7 +255,10 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         }
 
         if (wo.status === 'released') {
-          await db.from('work_orders').update({ status: 'in_progress' }).eq('id', wo.id).eq('organization_id', organizationId);
+          const { data: updated } = await atomicStatusTransition(
+            db, 'work_orders', wo.id, organizationId, 'released', { status: 'in_progress' }, 'id',
+          );
+          if (!updated) throw new Error('Work order status changed concurrently; please retry');
         }
 
         return { workOrderId: wo.id, workOrderNumber: wo.work_order_number, issuedCount: pendingMaterials.length };
@@ -295,16 +297,12 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           };
         }
 
-        const { error: updateErr } = await db
-          .from('work_orders')
-          .update({
-            status: 'completed',
-            completed_quantity: finalQty,
-            actual_completion_date: new Date().toISOString(),
-          })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'work_orders', id, organizationId, ['released', 'in_progress'],
+          { status: 'completed', completed_quantity: finalQty, actual_completion_date: new Date().toISOString() },
+          'id, work_order_number',
+        );
+        if (!updated) throw new Error('Work order status changed concurrently; please retry');
 
         return { id: wo.id, workOrderNumber: wo.work_order_number, status: 'completed', completedQuantity: finalQty };
       },

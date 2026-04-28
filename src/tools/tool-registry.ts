@@ -24,26 +24,27 @@ export type DomainScope = 'procurement' | 'sales' | 'inventory' | 'finance' | 'q
 export interface ToolRegistryOptions {
   db: SupabaseClient;
   organizationId: string;
+  userId: string;
   domains?: DomainScope[];
 }
 
 /** Build a ToolSet for the Execution Agent based on requested domains */
 export function buildToolSet(options: ToolRegistryOptions): ToolSet {
-  const { db, organizationId, domains = ['all'] } = options;
+  const { db, organizationId, userId, domains = ['all'] } = options;
   const includeAll = domains.includes('all');
   const tools: ToolSet = {};
 
   const include = (d: DomainScope) => includeAll || domains.includes(d);
 
-  if (include('inventory')) Object.assign(tools, createInventoryTools(db, organizationId));
-  if (include('procurement')) Object.assign(tools, createProcurementTools(db, organizationId));
-  if (include('sales')) Object.assign(tools, createSalesTools(db, organizationId));
-  if (include('finance')) Object.assign(tools, createFinanceTools(db, organizationId));
+  if (include('inventory')) Object.assign(tools, createInventoryTools(db, organizationId, userId));
+  if (include('procurement')) Object.assign(tools, createProcurementTools(db, organizationId, userId));
+  if (include('sales')) Object.assign(tools, createSalesTools(db, organizationId, userId));
+  if (include('finance')) Object.assign(tools, createFinanceTools(db, organizationId, userId));
   if (include('master-data')) Object.assign(tools, createMasterDataTools(db, organizationId));
   if (include('reporting')) Object.assign(tools, createReportingTools(db, organizationId));
-  if (include('quality')) Object.assign(tools, createQualityTools(db, organizationId));
-  if (include('manufacturing')) Object.assign(tools, createManufacturingTools(db, organizationId));
-  if (include('contracts')) Object.assign(tools, createContractsTools(db, organizationId));
+  if (include('quality')) Object.assign(tools, createQualityTools(db, organizationId, userId));
+  if (include('manufacturing')) Object.assign(tools, createManufacturingTools(db, organizationId, userId));
+  if (include('contracts')) Object.assign(tools, createContractsTools(db, organizationId, userId));
   if (include('assets')) Object.assign(tools, createAssetsTools(db, organizationId));
   if (include('partners')) Object.assign(tools, createPartnersTools(db, organizationId));
   if (include('schema')) Object.assign(tools, createSchemaTools(db, organizationId));

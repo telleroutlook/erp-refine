@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600&amp;family=Space+Grotesk:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#f7f9fb",
+                      "on-secondary": "#ffffff",
+                      "primary-fixed-dim": "#bec6e0",
+                      "on-primary-fixed": "#131b2e",
+                      "surface-container-highest": "#e0e3e5",
+                      "surface-variant": "#e0e3e5",
+                      "primary": "#000000",
+                      "on-secondary-container": "#54647a",
+                      "tertiary": "#000000",
+                      "action-hover": "#020617",
+                      "on-surface-variant": "#45464d",
+                      "tertiary-container": "#002114",
+                      "surface-container-high": "#e6e8ea",
+                      "warning": "#EAB308",
+                      "on-primary-container": "#7c839b",
+                      "error-container": "#ffdad6",
+                      "surface-border": "#E2E8F0",
+                      "error-dark": "#DC2626",
+                      "on-primary": "#ffffff",
+                      "surface-divider": "#F1F5F9",
+                      "tertiary-fixed": "#85f8c4",
+                      "secondary-fixed": "#d3e4fe",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "success-dark": "#16A34A",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "background": "#f7f9fb",
+                      "inverse-on-surface": "#eff1f3",
+                      "on-tertiary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "surface-container": "#eceef0",
+                      "warning-muted": "#EAB30815",
+                      "on-tertiary-fixed": "#002114",
+                      "on-tertiary-container": "#069669",
+                      "text-muted": "#475569",
+                      "info": "#0EA5E9",
+                      "inverse-surface": "#2d3133",
+                      "on-tertiary-fixed-variant": "#005137",
+                      "on-secondary-fixed": "#0b1c30",
+                      "primary-container": "#131b2e",
+                      "ring-error": "#EF444418",
+                      "tertiary-fixed-dim": "#68dba9",
+                      "secondary-container": "#d0e1fb",
+                      "success": "#22C55E",
+                      "warning-dark": "#CA8A04",
+                      "success-muted": "#22C55E15",
+                      "surface-dim": "#d8dadc",
+                      "outline": "#76777d",
+                      "error": "#EF4444",
+                      "action-ghost-hover": "#F1F5F9",
+                      "surface-default": "#FFFFFF",
+                      "on-error": "#ffffff",
+                      "surface-bright": "#f7f9fb",
+                      "inverse-primary": "#bec6e0",
+                      "secondary": "#505f76",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-background": "#191c1e",
+                      "primary-fixed": "#dae2fd",
+                      "surface-tint": "#565e74",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface": "#191c1e",
+                      "surface-container-low": "#f2f4f6",
+                      "outline-variant": "#c6c6cd",
+                      "error-muted": "#EF444415",
+                      "ring-focus": "#0F172A18"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "2xl": "48px",
+                      "xl": "32px",
+                      "sm": "8px",
+                      "base": "8px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "3xl": "64px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Manrope"],
+                      "h2": ["Plus Jakarta Sans"],
+                      "h3": ["Plus Jakarta Sans"],
+                      "code": ["Space Grotesk"],
+                      "caption": ["Manrope"],
+                      "body": ["Manrope"],
+                      "body-lg": ["Manrope"],
+                      "h4": ["Plus Jakarta Sans"],
+                      "h1": ["Plus Jakarta Sans"],
+                      "display": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "h2": ["24px", {"lineHeight": "1.25", "fontWeight": "600"}],
+                      "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "code": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "caption": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                      "body": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "h4": ["16px", {"lineHeight": "1.35", "fontWeight": "500"}],
+                      "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "display": ["40px", {"lineHeight": "1.15", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface min-h-screen">
+<header class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-['Plus_Jakarta_Sans'] font-bold tracking-tight docked full-width top-0 border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none flex justify-between items-center px-4 py-3 w-full z-50 sticky top-0">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-lg font-extrabold text-slate-900 dark:text-slate-50">Verdana Health</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex flex-col items-end mr-2">
+<span class="font-h4 text-on-surface leading-none">Dr. Verdana</span>
+<span class="font-caption text-text-muted">Administrator</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-fixed overflow-hidden border-2 border-white shadow-sm">
+<img alt="Dr. Verdana" class="w-full h-full object-cover" data-alt="professional medical clinician portrait in clinic setting with warm soft lighting and blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0cmfsfF8-iKxH9LL2o7f9brPgzY883uFe0ZpMZ1wDFqc9dSTIdV-MXMia3Yx9mfozyYv3GJAUxMvb0y4GekShN2t14gPU9Xm5VlfgKDW79R0OqU2DGemHVlbwoNTSk2Y1A31FaWXMbxSxiK7fgNJEw5f9lVecPIxvRpY4z34Tp5TTSr6_zNAuX8BlejFiqf5glM_cN6ckrUJEZNhvq6niAKE3aIMALO2wphr00RdS0HfWG3WGmAksnh1W1dNtgIQi2IbwJb42J8M"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 py-xl pb-32">
+<div class="mb-xl">
+<h2 class="font-display text-display text-on-surface mb-xs">Dashboard</h2>
+<p class="font-body text-body text-text-muted">Welcome back, Dr. Verdana. Here is your overview for today.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<div class="md:col-span-8 space-y-lg">
+<section class="bg-surface-default border border-surface-border rounded-xl p-lg shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
+<div class="flex justify-between items-center mb-lg">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" data-icon="assignment_turned_in">assignment_turned_in</span>
+<h3 class="font-h3 text-h3 text-on-surface">Active Tasks</h3>
+</div>
+<span class="font-caption px-sm py-1 bg-on-tertiary-container/10 text-on-tertiary-container rounded-full tracking-wider uppercase">4 Pending</span>
+</div>
+<div class="space-y-md">
+<div class="flex items-center p-md bg-surface-container-low rounded-lg group hover:bg-surface-container-high transition-colors">
+<div class="flex-1">
+<p class="font-h4 text-h4 text-on-surface">Patient Chart Review - Room 402</p>
+<p class="font-caption text-text-muted">Due in 2 hours • Critical</p>
+</div>
+<button class="p-2 text-on-tertiary-container hover:bg-on-tertiary-container/5 rounded-full">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</button>
+</div>
+<div class="flex items-center p-md bg-surface-container-low rounded-lg group hover:bg-surface-container-high transition-colors">
+<div class="flex-1">
+<p class="font-h4 text-h4 text-on-surface">Weekly Inventory Audit</p>
+<p class="font-caption text-text-muted">Due tomorrow • System Task</p>
+</div>
+<button class="p-2 text-text-muted hover:bg-surface-border rounded-full">
+<span class="material-symbols-outlined" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</button>
+</div>
+<div class="flex items-center p-md bg-surface-container-low rounded-lg group hover:bg-surface-container-high transition-colors">
+<div class="flex-1">
+<p class="font-h4 text-h4 text-on-surface">Approval: Pharmacy Request #882</p>
+<p class="font-caption text-text-muted">Awaiting your signature</p>
+</div>
+<button class="p-2 text-text-muted hover:bg-surface-border rounded-full">
+<span class="material-symbols-outlined" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</button>
+</div>
+</div>
+</section>
+<section class="grid grid-cols-1 sm:grid-cols-2 gap-lg">
+<div class="bg-surface-default border border-surface-border rounded-xl p-lg shadow-sm">
+<div class="flex items-center gap-md mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
+<h3 class="font-h4 text-h4 text-on-surface">Pending Orders</h3>
+</div>
+<div class="text-display font-display text-on-surface mb-sm">12</div>
+<p class="font-body-sm text-text-muted">New pharmaceutical requests awaiting processing.</p>
+<div class="mt-lg pt-md border-t border-surface-divider">
+<a class="text-on-tertiary-container font-h4 text-sm flex items-center gap-xs hover:underline" href="#">
+                                Manage Inventory
+                                <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+<div class="bg-surface-default border border-surface-border rounded-xl p-lg shadow-sm">
+<div class="flex items-center gap-md mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+<h3 class="font-h4 text-h4 text-on-surface">Recent Notifications</h3>
+</div>
+<div class="text-display font-display text-on-surface mb-sm">08</div>
+<p class="font-body-sm text-text-muted">System alerts and internal communications.</p>
+<div class="mt-lg pt-md border-t border-surface-divider">
+<a class="text-on-tertiary-container font-h4 text-sm flex items-center gap-xs hover:underline" href="#">
+                                View All Alerts
+                                <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+</div>
+<div class="md:col-span-4 space-y-lg">
+<section class="bg-primary-container text-white rounded-xl overflow-hidden shadow-md">
+<div class="p-lg bg-[linear-gradient(135deg,rgba(0,0,0,0.1)_0%,transparent_100%)]">
+<h3 class="font-h3 text-h3 mb-md">Clinic Health Metric</h3>
+<div class="flex items-end gap-md mb-lg">
+<div class="text-[48px] font-bold leading-none">94%</div>
+<div class="font-caption text-on-primary-container flex items-center gap-xs mb-1">
+<span class="material-symbols-outlined text-success-dark text-lg" data-icon="trending_up">trending_up</span>
+<span class="text-success-dark font-bold">+2.4%</span>
+</div>
+</div>
+<div class="h-2 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-[94%]"></div>
+</div>
+<p class="mt-md font-body-sm text-on-primary-container">Efficiency target met for patient discharge workflows.</p>
+</div>
+</section>
+<section class="bg-surface-default border border-surface-border rounded-xl p-lg shadow-sm">
+<h3 class="font-h4 text-h4 text-on-surface mb-lg">Staff Availability</h3>
+<div class="space-y-lg">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<div class="flex-1">
+<p class="font-h4 text-sm text-on-surface">Nurse Henderson</p>
+<p class="font-caption text-text-muted">Triage Unit</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-success"></span>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<div class="flex-1">
+<p class="font-h4 text-sm text-on-surface">Dr. Aris</p>
+<p class="font-caption text-text-muted">Surgery Prep</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-warning"></span>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<div class="flex-1">
+<p class="font-h4 text-sm text-on-surface">Sarah Mitchell</p>
+<p class="font-caption text-text-muted">Pharmacy Lab</p>
+</div>
+<span class="w-3 h-3 rounded-full bg-surface-divider"></span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<nav class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50 font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider fixed bottom-0 w-full z-50 border-t border-t border-slate-100 dark:border-slate-800 shadow-[0_-2px_10px_rgba(15,23,42,0.05)] fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-safe pt-2">
+<a class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-xl px-3 py-1.5 active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-slate-600 dark:hover:text-slate-300 active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span>Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-slate-600 dark:hover:text-slate-300 active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Inventory</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-slate-600 dark:hover:text-slate-300 active:scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span>Alerts</span>
+</a>
+</nav>
+</body></html>

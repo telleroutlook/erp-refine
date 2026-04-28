@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inventory Management - Verdana Health ERP</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom font for stock numbers as requested */
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+        .font-fira-code { font-family: 'Fira Code', monospace; }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f7f9fb",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-variant": "#e0e3e5",
+                    "primary": "#000000",
+                    "on-secondary-container": "#54647a",
+                    "tertiary": "#000000",
+                    "action-hover": "#020617",
+                    "on-surface-variant": "#45464d",
+                    "tertiary-container": "#002114",
+                    "surface-container-high": "#e6e8ea",
+                    "warning": "#EAB308",
+                    "on-primary-container": "#7c839b",
+                    "error-container": "#ffdad6",
+                    "surface-border": "#E2E8F0",
+                    "error-dark": "#DC2626",
+                    "on-primary": "#ffffff",
+                    "surface-divider": "#F1F5F9",
+                    "tertiary-fixed": "#85f8c4",
+                    "secondary-fixed": "#d3e4fe",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "success-dark": "#16A34A",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "background": "#f7f9fb",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#eceef0",
+                    "warning-muted": "#EAB30815",
+                    "on-tertiary-fixed": "#002114",
+                    "on-tertiary-container": "#069669",
+                    "text-muted": "#475569",
+                    "info": "#0EA5E9",
+                    "inverse-surface": "#2d3133",
+                    "on-tertiary-fixed-variant": "#005137",
+                    "on-secondary-fixed": "#0b1c30",
+                    "primary-container": "#131b2e",
+                    "ring-error": "#EF444418",
+                    "tertiary-fixed-dim": "#68dba9",
+                    "secondary-container": "#d0e1fb",
+                    "success": "#22C55E",
+                    "warning-dark": "#CA8A04",
+                    "success-muted": "#22C55E15",
+                    "surface-dim": "#d8dadc",
+                    "outline": "#76777d",
+                    "error": "#EF4444",
+                    "action-ghost-hover": "#F1F5F9",
+                    "surface-default": "#FFFFFF",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-primary": "#bec6e0",
+                    "secondary": "#505f76",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-background": "#191c1e",
+                    "primary-fixed": "#dae2fd",
+                    "surface-tint": "#565e74",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "surface-container-low": "#f2f4f6",
+                    "outline-variant": "#c6c6cd",
+                    "error-muted": "#EF444415",
+                    "ring-focus": "#0F172A18"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "2xl": "48px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "base": "8px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "3xl": "64px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Manrope"],
+                    "h2": ["Plus Jakarta Sans"],
+                    "h3": ["Plus Jakarta Sans"],
+                    "code": ["Space Grotesk"],
+                    "caption": ["Manrope"],
+                    "body": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "h4": ["Plus Jakarta Sans"],
+                    "h1": ["Plus Jakarta Sans"],
+                    "display": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "h2": ["24px", {"lineHeight": "1.25", "fontWeight": "600"}],
+                    "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "code": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "caption": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "body": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "h4": ["16px", {"lineHeight": "1.35", "fontWeight": "500"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display": ["40px", {"lineHeight": "1.15", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-4 py-3 w-full z-50 fixed top-0 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none">
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 ease-in-out rounded-full text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-lg font-extrabold text-slate-900 dark:text-slate-50 font-['Plus_Jakarta_Sans'] tracking-tight">Verdana Health</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-500">search</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-surface-border bg-surface-container">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="professional portrait of a medical clinician in a clean white environment with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEIupwaGYkee42fJZvfDd_GuBXUo9cX-D3w7hWlYqreMTEUIHOm23PIEAeKtXMjBBndHRMwJFiWMXW4lPw8xznlaU_4skV10-fYZRt1b_QKAAgrsjxvttIiWrlQ5UrRvMCDoM2tm5fR9HmDmCcRxL1kg4e66FxJ2NNFoeVmPk5EkVhi2-BGYBkH9lPJ5tNtWoO9ywocY2Igly3sFyxFZdmA_9iiQ9pTDB1CdSLK-UKWPsnDjGS1DfIZapjZ13NbZcZfsQJjR2H0y4"/>
+</div>
+</div>
+</header>
+<!-- Sidebar (Desktop) -->
+<aside class="hidden md:flex fixed inset-y-0 left-0 z-[60] w-80 flex-col p-6 bg-white dark:bg-slate-900 h-full rounded-r-lg shadow-lg divide-y divide-slate-100 dark:divide-slate-800 border-r border-surface-border">
+<div class="pb-6">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+</div>
+<div>
+<p class="font-['Plus_Jakarta_Sans'] text-slate-900 dark:text-slate-50 font-bold">Dr. Verdana</p>
+<p class="text-xs text-slate-500">Administrator</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">home</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-emerald-400 font-bold border-r-4 border-slate-900 dark:border-emerald-500 font-['Plus_Jakarta_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory</span>
+                    Inventory Management
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+                    Order Tracking
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">groups</span>
+                    Human Resources
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Financial Reports
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    System Settings
+                </a>
+</nav>
+</div>
+<div class="pt-6">
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-4 px-4">Organization</p>
+<div class="px-4 py-3 bg-surface-container-low rounded-xl border border-surface-border">
+<p class="text-xs font-semibold text-slate-900">Verdana Health ERP</p>
+<p class="text-[10px] text-slate-500">v2.4.0 Stable</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-[72px] pb-[80px] md:pl-80 min-h-screen">
+<div class="max-w-6xl mx-auto px-4 md:px-8 py-8">
+<!-- Page Header & Search -->
+<div class="mb-8 space-y-6">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h2 class="font-h2 text-h2 text-primary tracking-tight">Inventory Management</h2>
+<p class="font-body text-body-sm text-text-muted">Real-time monitoring of clinical supplies and medical assets.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-default border border-surface-border rounded-lg text-body-sm font-medium hover:bg-action-ghost-hover transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-default border border-surface-border rounded-lg text-body-sm font-medium hover:bg-action-ghost-hover transition-colors">
+<span class="material-symbols-outlined text-[18px]">ios_share</span>
+                            Export
+                        </button>
+</div>
+</div>
+<!-- Search Bar Container -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-white border border-surface-border rounded-xl shadow-sm focus:ring-4 focus:ring-ring-focus focus:border-primary outline-none transition-all font-body text-body" placeholder="Search by item name, SKU, or category..." type="text"/>
+</div>
+</div>
+<!-- Inventory List -->
+<div class="bg-white rounded-xl border border-surface-border shadow-sm overflow-hidden">
+<div class="grid grid-cols-12 px-6 py-4 bg-slate-50 border-b border-surface-border text-[11px] font-extrabold uppercase tracking-widest text-slate-500">
+<div class="col-span-5">Item Details</div>
+<div class="col-span-3">Category</div>
+<div class="col-span-2 text-right">Stock Level</div>
+<div class="col-span-2 text-right">Status</div>
+</div>
+<div class="divide-y divide-surface-divider">
+<!-- Item 1 -->
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-slate-50 transition-colors">
+<div class="col-span-5 flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined">vaccines</span>
+</div>
+<div>
+<p class="font-body font-semibold text-slate-900">Saline Solution (500ml)</p>
+<p class="text-[12px] text-slate-400 font-fira-code uppercase">SKU: VH-SAL-001</p>
+</div>
+</div>
+<div class="col-span-3">
+<span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700">Consumables</span>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-fira-code text-body font-semibold">1,240</span>
+</div>
+<div class="col-span-2 flex justify-end">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success-muted text-success-dark text-[11px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                                In Stock
+                            </div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-slate-50 transition-colors">
+<div class="col-span-5 flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined">medical_mask</span>
+</div>
+<div>
+<p class="font-body font-semibold text-slate-900">N95 Protective Masks</p>
+<p class="text-[12px] text-slate-400 font-fira-code uppercase">SKU: VH-MSK-442</p>
+</div>
+</div>
+<div class="col-span-3">
+<span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700">PPE</span>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-fira-code text-body font-semibold">45</span>
+</div>
+<div class="col-span-2 flex justify-end">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning-muted text-warning-dark text-[11px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+                                Low Stock
+                            </div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-slate-50 transition-colors">
+<div class="col-span-5 flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined">pill</span>
+</div>
+<div>
+<p class="font-body font-semibold text-slate-900">Amoxicillin 500mg</p>
+<p class="text-[12px] text-slate-400 font-fira-code uppercase">SKU: VH-MED-129</p>
+</div>
+</div>
+<div class="col-span-3">
+<span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700">Pharmacy</span>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-fira-code text-body font-semibold">890</span>
+</div>
+<div class="col-span-2 flex justify-end">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success-muted text-success-dark text-[11px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                                In Stock
+                            </div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-slate-50 transition-colors">
+<div class="col-span-5 flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+<span class="material-symbols-outlined">stethoscope</span>
+</div>
+<div>
+<p class="font-body font-semibold text-slate-900">Digital Stethoscope</p>
+<p class="text-[12px] text-slate-400 font-fira-code uppercase">SKU: VH-EQU-901</p>
+</div>
+</div>
+<div class="col-span-3">
+<span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">Equipment</span>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-fira-code text-body font-semibold">12</span>
+</div>
+<div class="col-span-2 flex justify-end">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning-muted text-warning-dark text-[11px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+                                Low Stock
+                            </div>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-slate-50 transition-colors">
+<div class="col-span-5 flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+<span class="material-symbols-outlined">bloodtype</span>
+</div>
+<div>
+<p class="font-body font-semibold text-slate-900">Blood Collection Tubes (Red)</p>
+<p class="text-[12px] text-slate-400 font-fira-code uppercase">SKU: VH-LAB-556</p>
+</div>
+</div>
+<div class="col-span-3">
+<span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-orange-50 text-orange-700">Laboratory</span>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-fira-code text-body font-semibold">2,100</span>
+</div>
+<div class="col-span-2 flex justify-end">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success-muted text-success-dark text-[11px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                                In Stock
+                            </div>
+</div>
+</div>
+</div>
+<!-- Pagination footer -->
+<div class="px-6 py-4 bg-slate-50 border-t border-surface-divider flex items-center justify-between">
+<p class="text-caption text-text-muted">Showing <span class="font-bold text-on-surface">1-5</span> of <span class="font-bold text-on-surface">148</span> items</p>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-surface-border bg-white text-caption font-semibold disabled:opacity-50">Previous</button>
+<button class="px-3 py-1.5 rounded-lg border border-surface-border bg-white text-caption font-semibold">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB (Floating Action Button) -->
+<button class="fixed bottom-24 right-6 md:bottom-10 md:right-10 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-safe pt-2 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-2px_10px_rgba(15,23,42,0.05)] z-50">
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Dashboard</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Tasks</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-xl px-3 py-1.5 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Inventory</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Alerts</span>
+</button>
+</nav>
+</body></html>

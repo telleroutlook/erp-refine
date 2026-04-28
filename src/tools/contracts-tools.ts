@@ -4,9 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { assertOwnership } from '../utils/database';
+import { atomicStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createContractsTools(db: SupabaseClient, organizationId: string) {
+export function createContractsTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     list_contracts: tool({
       description: 'List contracts with optional filters by type, status, or party',
@@ -59,12 +59,11 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
       description: 'List contract line items for a specific contract',
       inputSchema: z.object({ contractId: z.string().uuid() }),
       execute: async ({ contractId }) => {
-        await assertOwnership(db, 'contracts', contractId, organizationId, 'Contract', { checkDeleted: true });
-
         const { data, error } = await db
           .from('contract_items')
           .select('id, quantity, unit_price, tax_rate, amount, notes, product:products(id,name,code)')
           .eq('contract_id', contractId)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .order('id');
         if (error) throw new Error(error.message);
@@ -93,12 +92,12 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
           return { preview: true, message: 'Dry-run — set confirmed=true to activate', id: contract.id, contractNumber: contract.contract_number };
         }
 
-        const { error: updateErr } = await db
-          .from('contracts')
-          .update({ status: 'active', activated_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'contracts', id, organizationId, 'draft',
+          { status: 'active', activated_at: new Date().toISOString() },
+          'id, contract_number',
+        );
+        if (!updated) throw new Error('Contract status changed concurrently; please retry');
 
         return { id: contract.id, contractNumber: contract.contract_number, status: 'active' };
       },
@@ -126,12 +125,12 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
           return { preview: true, message: 'Dry-run — set confirmed=true to terminate', id: contract.id, contractNumber: contract.contract_number };
         }
 
-        const { error: updateErr } = await db
-          .from('contracts')
-          .update({ status: 'terminated', terminated_at: new Date().toISOString(), termination_reason: reason ?? null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'contracts', id, organizationId, 'active',
+          { status: 'terminated', terminated_at: new Date().toISOString(), termination_reason: reason ?? null },
+          'id, contract_number',
+        );
+        if (!updated) throw new Error('Contract status changed concurrently; please retry');
 
         return { id: contract.id, contractNumber: contract.contract_number, status: 'terminated' };
       },
@@ -176,31 +175,33 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
 
         const newStartDate = contract.end_date ?? new Date().toISOString().slice(0, 10);
 
-        const { data: newContract, error: createErr } = await db
-          .from('contracts')
-          .insert({
-            organization_id: organizationId,
-            contract_number: seqData,
-            contract_type: contract.contract_type,
-            party_type: contract.party_type,
-            party_id: contract.party_id,
-            start_date: newStartDate,
-            end_date: newEndDate,
-            total_amount: contract.total_amount,
-            currency: contract.currency,
-            description: contract.description,
-            status: 'draft',
-            renewed_from_id: contract.id,
-          })
-          .select('id, contract_number')
-          .single();
-
-        if (createErr) throw new Error(createErr.message);
+        const newContract = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('contracts').insert({
+              organization_id: organizationId,
+              contract_number: seqData,
+              contract_type: contract.contract_type,
+              party_type: contract.party_type,
+              party_id: contract.party_id,
+              start_date: newStartDate,
+              end_date: newEndDate,
+              total_amount: contract.total_amount,
+              currency: contract.currency,
+              description: contract.description,
+              status: 'draft',
+              renewed_from_id: contract.id,
+            }).select('id, contract_number').single();
+            return result as { data: { id: string; contract_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'contracts', resourceId: contract.id, userId, organizationId },
+        ) as { id: string; contract_number: string };
 
         const { data: items } = await db
           .from('contract_items')
           .select('product_id, quantity, unit_price, tax_rate, amount, notes')
           .eq('contract_id', id)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (items && items.length > 0) {

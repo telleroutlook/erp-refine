@@ -4,8 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { atomicStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createFinanceTools(db: SupabaseClient, organizationId: string) {
+export function createFinanceTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     list_vouchers: tool({
       description: 'List accounting vouchers',
@@ -79,6 +80,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
           .from('cost_centers')
           .select('id, code, name, parent_id')
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .order('code');
         if (error) throw new Error(error.message);
         return data ?? [];
@@ -217,22 +219,23 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
         });
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
 
-        const { data: voucher, error: vErr } = await db
-          .from('vouchers')
-          .insert({
-            organization_id: organizationId,
-            voucher_number: seqData,
-            voucher_type: voucherType,
-            voucher_date: voucherDate,
-            total_debit: totalDebit,
-            total_credit: totalCredit,
-            status: 'draft',
-            notes: notes ?? null,
-          })
-          .select('id, voucher_number')
-          .single();
-
-        if (vErr) throw new Error(vErr.message);
+        const voucher = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('vouchers').insert({
+              organization_id: organizationId,
+              voucher_number: seqData,
+              voucher_type: voucherType,
+              voucher_date: voucherDate,
+              total_debit: totalDebit,
+              total_credit: totalCredit,
+              status: 'draft',
+              notes: notes ?? null,
+            }).select('id, voucher_number').single();
+            return result as { data: { id: string; voucher_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'vouchers', userId, organizationId },
+        ) as { id: string; voucher_number: string };
 
         const entryRows = entries.map((e, idx) => ({
           voucher_id: voucher.id,
@@ -274,12 +277,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to void', id: voucher.id, voucherNumber: voucher.voucher_number };
         }
 
-        const { error: updateErr } = await db
-          .from('vouchers')
-          .update({ status: 'voided', voided_at: new Date().toISOString(), void_reason: reason ?? null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'vouchers', id, organizationId, 'posted',
+          { status: 'voided', voided_at: new Date().toISOString(), void_reason: reason ?? null },
+          'id, voucher_number',
+        );
+        if (!updated) throw new Error('Voucher status changed concurrently; please retry');
 
         return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'voided' };
       },
@@ -306,12 +309,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: pr.id, requestNumber: pr.request_number };
         }
 
-        const { error: updateErr } = await db
-          .from('payment_requests')
-          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'payment_requests', id, organizationId, 'draft',
+          { status: 'submitted', submitted_at: new Date().toISOString() },
+          'id, request_number',
+        );
+        if (!updated) throw new Error('Payment request status changed concurrently; please retry');
 
         return { id: pr.id, requestNumber: pr.request_number, status: 'submitted' };
       },
@@ -338,12 +341,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: pr.id, requestNumber: pr.request_number };
         }
 
-        const { error: updateErr } = await db
-          .from('payment_requests')
-          .update({ status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'payment_requests', id, organizationId, 'submitted',
+          { status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString() },
+          'id, request_number',
+        );
+        if (!updated) throw new Error('Payment request status changed concurrently; please retry');
 
         return { id: pr.id, requestNumber: pr.request_number, status: 'approved' };
       },
@@ -373,12 +376,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to post', id: voucher.id, voucherNumber: voucher.voucher_number, totalDebit: voucher.total_debit };
         }
 
-        const { error: updateErr } = await db
-          .from('vouchers')
-          .update({ status: 'posted', posted_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'vouchers', id, organizationId, 'draft',
+          { status: 'posted', posted_at: new Date().toISOString() },
+          'id, voucher_number',
+        );
+        if (!updated) throw new Error('Voucher status changed concurrently; please retry');
 
         return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'posted' };
       },
@@ -406,12 +409,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: pr.id, requestNumber: pr.request_number };
         }
 
-        const { error: updateErr } = await db
-          .from('payment_requests')
-          .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'payment_requests', id, organizationId, 'submitted',
+          { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
+          'id, request_number',
+        );
+        if (!updated) throw new Error('Payment request status changed concurrently; please retry');
 
         return { id: pr.id, requestNumber: pr.request_number, status: 'rejected' };
       },

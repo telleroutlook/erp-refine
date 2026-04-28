@@ -4,8 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { atomicStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createProcurementTools(db: SupabaseClient, organizationId: string) {
+export function createProcurementTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     list_purchase_orders: tool({
       description: 'List purchase orders with optional filters',
@@ -81,7 +82,6 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           };
         }
 
-        // Generate order number
         const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
           p_organization_id: organizationId,
           p_sequence_name: 'purchase_order',
@@ -89,22 +89,23 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
         const orderNumber = seqData;
 
-        const { data: po, error: poErr } = await db
-          .from('purchase_orders')
-          .insert({
-            organization_id: organizationId,
-            supplier_id: supplierId,
-            order_number: orderNumber,
-            order_date: orderDate,
-            currency,
-            total_amount: totalAmount,
-            status: 'draft',
-            notes: notes ?? null,
-          })
-          .select('id, order_number')
-          .single();
-
-        if (poErr) throw new Error(poErr.message);
+        const po = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('purchase_orders').insert({
+              organization_id: organizationId,
+              supplier_id: supplierId,
+              order_number: orderNumber,
+              order_date: orderDate,
+              currency,
+              total_amount: totalAmount,
+              status: 'draft',
+              notes: notes ?? null,
+            }).select('id, order_number').single();
+            return result as { data: { id: string; order_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'purchase_orders', userId, organizationId },
+        ) as { id: string; order_number: string };
 
         const lineItems = items.map((i, idx) => ({
           purchase_order_id: po.id,
@@ -363,23 +364,24 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         });
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
 
-        const { data: pr, error: prErr } = await db
-          .from('purchase_requisitions')
-          .insert({
-            organization_id: organizationId,
-            requisition_number: seqData,
-            department_id: departmentId ?? null,
-            requester_id: requesterId ?? null,
-            request_date: requestDate ?? new Date().toISOString().slice(0, 10),
-            required_date: requiredDate ?? null,
-            total_amount: totalAmount,
-            status: 'draft',
-            notes: notes ?? null,
-          })
-          .select('id, requisition_number')
-          .single();
-
-        if (prErr) throw new Error(prErr.message);
+        const pr = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('purchase_requisitions').insert({
+              organization_id: organizationId,
+              requisition_number: seqData,
+              department_id: departmentId ?? null,
+              requester_id: requesterId ?? null,
+              request_date: requestDate ?? new Date().toISOString().slice(0, 10),
+              required_date: requiredDate ?? null,
+              total_amount: totalAmount,
+              status: 'draft',
+              notes: notes ?? null,
+            }).select('id, requisition_number').single();
+            return result as { data: { id: string; requisition_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'purchase_requisitions', userId, organizationId },
+        ) as { id: string; requisition_number: string };
 
         const lineItems = items.map((i, idx) => ({
           purchase_requisition_id: pr.id,
@@ -424,12 +426,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: po.id, orderNumber: po.order_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_orders')
-          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_orders', id, organizationId, 'draft',
+          { status: 'submitted', submitted_at: new Date().toISOString() },
+          'id, order_number',
+        );
+        if (!updated) throw new Error('Purchase order status changed concurrently; please retry');
 
         return { id: po.id, orderNumber: po.order_number, status: 'submitted' };
       },
@@ -456,12 +458,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: po.id, orderNumber: po.order_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_orders')
-          .update({ status: 'approved', approved_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_orders', id, organizationId, 'submitted',
+          { status: 'approved', approved_at: new Date().toISOString() },
+          'id, order_number',
+        );
+        if (!updated) throw new Error('Purchase order status changed concurrently; please retry');
 
         return { id: po.id, orderNumber: po.order_number, status: 'approved' };
       },
@@ -488,12 +490,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: pr.id, requisitionNumber: pr.requisition_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_requisitions')
-          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_requisitions', id, organizationId, 'draft',
+          { status: 'submitted', submitted_at: new Date().toISOString() },
+          'id, requisition_number',
+        );
+        if (!updated) throw new Error('Purchase requisition status changed concurrently; please retry');
 
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'submitted' };
       },
@@ -520,12 +522,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: pr.id, requisitionNumber: pr.requisition_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_requisitions')
-          .update({ status: 'approved', approved_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_requisitions', id, organizationId, 'submitted',
+          { status: 'approved', approved_at: new Date().toISOString() },
+          'id, requisition_number',
+        );
+        if (!updated) throw new Error('Purchase requisition status changed concurrently; please retry');
 
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'approved' };
       },
@@ -553,12 +555,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: po.id, orderNumber: po.order_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_orders')
-          .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_orders', id, organizationId, 'submitted',
+          { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
+          'id, order_number',
+        );
+        if (!updated) throw new Error('Purchase order status changed concurrently; please retry');
 
         return { id: po.id, orderNumber: po.order_number, status: 'rejected' };
       },
@@ -586,12 +588,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: pr.id, requisitionNumber: pr.requisition_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_requisitions')
-          .update({ status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_requisitions', id, organizationId, 'submitted',
+          { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
+          'id, requisition_number',
+        );
+        if (!updated) throw new Error('Purchase requisition status changed concurrently; please retry');
 
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'rejected' };
       },
@@ -618,12 +620,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to confirm receipt (will add stock)', id: receipt.id, receiptNumber: receipt.receipt_number };
         }
 
-        const { error: updateErr } = await db
-          .from('purchase_receipts')
-          .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'purchase_receipts', id, organizationId, 'draft',
+          { status: 'confirmed', confirmed_at: new Date().toISOString() },
+          'id, receipt_number',
+        );
+        if (!updated) throw new Error('Purchase receipt status changed concurrently; please retry');
 
         return { id: receipt.id, receiptNumber: receipt.receipt_number, status: 'confirmed' };
       },

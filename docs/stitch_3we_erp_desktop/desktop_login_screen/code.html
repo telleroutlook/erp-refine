@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | Verdana Health</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f7f9fb",
+                        "ring-error": "#EF444418",
+                        "on-secondary-container": "#54647a",
+                        "background": "#f7f9fb",
+                        "primary": "#000000",
+                        "action-hover": "#020617",
+                        "error": "#EF4444",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-default": "#FFFFFF",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary-fixed": "#002114",
+                        "tertiary": "#000000",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "tertiary-fixed": "#85f8c4",
+                        "surface-tint": "#565e74",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "error-muted": "#EF444415",
+                        "tertiary-container": "#002114",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-container": "#069669",
+                        "on-primary-fixed": "#131b2e",
+                        "success-dark": "#16A34A",
+                        "surface-variant": "#e0e3e5",
+                        "inverse-surface": "#2d3133",
+                        "outline-variant": "#c6c6cd",
+                        "primary-fixed-dim": "#bec6e0",
+                        "outline": "#76777d",
+                        "surface-container-lowest": "#ffffff",
+                        "info": "#0EA5E9",
+                        "error-dark": "#DC2626",
+                        "surface-container": "#eceef0",
+                        "surface-container-low": "#f2f4f6",
+                        "on-surface-variant": "#45464d",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "warning-muted": "#EAB30815",
+                        "warning": "#EAB308",
+                        "surface-dim": "#d8dadc",
+                        "secondary": "#505f76",
+                        "surface-divider": "#F1F5F9",
+                        "secondary-container": "#d0e1fb",
+                        "ring-focus": "#0F172A18",
+                        "secondary-fixed": "#d3e4fe",
+                        "text-muted": "#475569",
+                        "action-ghost-hover": "#F1F5F9",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "warning-dark": "#CA8A04",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1e",
+                        "surface-border": "#E2E8F0",
+                        "inverse-primary": "#bec6e0",
+                        "success-muted": "#22C55E15",
+                        "primary-container": "#131b2e",
+                        "success": "#22C55E"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "3xl": "64px",
+                        "lg": "24px",
+                        "base": "8px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Plus Jakarta Sans"],
+                        "h3": ["Plus Jakarta Sans"],
+                        "h4": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "h1": ["Plus Jakarta Sans"],
+                        "code": ["Space Grotesk"],
+                        "body-sm": ["Manrope"],
+                        "body": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "caption": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", {"lineHeight": "1.25", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "h4": ["16px", {"lineHeight": "1.35", "fontWeight": "500"}],
+                        "display": ["40px", {"lineHeight": "1.15", "fontWeight": "700"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "code": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .clinical-depth {
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+        }
+        .glow-overlay {
+            background: radial-gradient(circle at top right, rgba(104, 219, 169, 0.08), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(15, 23, 42, 0.03), transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center p-md glow-overlay">
+<main class="w-full max-w-[480px]">
+<!-- Branding Header -->
+<div class="text-center mb-xl">
+<div class="inline-flex items-center justify-center w-14 h-14 bg-primary-container rounded-xl mb-md clinical-depth">
+<span class="material-symbols-outlined text-white text-[32px]" data-icon="medical_services">medical_services</span>
+</div>
+<h1 class="font-h1 text-h1 text-on-primary-fixed mb-xs">Verdana Health</h1>
+<p class="font-body text-on-primary-container">Enterprise Clinical Management ERP</p>
+</div>
+<!-- Login Card -->
+<div class="bg-surface-default border border-surface-border rounded-xl clinical-depth p-xl relative overflow-hidden">
+<!-- Subtle accent strip -->
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<form class="space-y-lg">
+<div class="space-y-xs">
+<label class="font-caption text-caption text-on-secondary-container uppercase tracking-wider" for="email">Professional Email</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-on-primary-fixed transition-colors" data-icon="mail">mail</span>
+<input class="w-full pl-[48px] pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg font-body text-body focus:ring-2 focus:ring-ring-focus focus:border-on-primary-fixed outline-none transition-all" id="email" placeholder="dr.smith@verdanahealth.com" type="email"/>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="font-caption text-caption text-on-secondary-container uppercase tracking-wider" for="password">Access Key</label>
+<a class="font-caption text-caption text-on-primary-fixed font-bold hover:underline" href="#">Reset Passphrase</a>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-on-primary-fixed transition-colors" data-icon="lock">lock</span>
+<input class="w-full pl-[48px] pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg font-body text-body focus:ring-2 focus:ring-ring-focus focus:border-on-primary-fixed outline-none transition-all" id="password" placeholder="••••••••••••" type="password"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-outline hover:text-on-primary-fixed" type="button">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<input class="w-5 h-5 rounded border-outline-variant text-primary-container focus:ring-ring-focus cursor-pointer" id="remember" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-secondary-container cursor-pointer" for="remember">Stay authenticated for this shift</label>
+</div>
+<button class="w-full py-md px-xl bg-primary-container text-white font-h4 text-h4 rounded-lg hover:bg-on-primary-fixed active:scale-[0.98] transition-all flex items-center justify-center gap-sm" type="submit">
+                    Enter Dashboard
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Role-based Quick Login -->
+<div class="mt-2xl">
+<div class="flex items-center gap-md mb-lg">
+<div class="h-[1px] flex-1 bg-surface-divider"></div>
+<span class="font-caption text-caption text-outline uppercase tracking-widest">Select Access Portal</span>
+<div class="h-[1px] flex-1 bg-surface-divider"></div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<button class="flex flex-col items-center gap-xs p-md border border-surface-divider rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-center group">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary-container border border-surface-border clinical-depth group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="stethoscope">stethoscope</span>
+</div>
+<span class="font-caption text-caption font-bold text-on-primary-fixed">Clinician</span>
+</button>
+<button class="flex flex-col items-center gap-xs p-md border border-surface-divider rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-center group">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary-container border border-surface-border clinical-depth group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+</div>
+<span class="font-caption text-caption font-bold text-on-primary-fixed">Administrator</span>
+</button>
+<button class="flex flex-col items-center gap-xs p-md border border-surface-divider rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-center group">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary-container border border-surface-border clinical-depth group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+</div>
+<span class="font-caption text-caption font-bold text-on-primary-fixed">Inventory</span>
+</button>
+<button class="flex flex-col items-center gap-xs p-md border border-surface-divider rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-center group">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary-container border border-surface-border clinical-depth group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<span class="font-caption text-caption font-bold text-on-primary-fixed">Finance</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Info -->
+<div class="mt-xl flex flex-col items-center gap-md">
+<div class="flex items-center gap-xl">
+<a class="font-caption text-caption text-on-secondary-container hover:text-on-primary-fixed transition-colors flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+                    Support Center
+                </a>
+<a class="font-caption text-caption text-on-secondary-container hover:text-on-primary-fixed transition-colors flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="security">security</span>
+                    HIPAA Compliance
+                </a>
+</div>
+<p class="font-caption text-caption text-outline">Verdana Health v4.2.0-stable • © 2024</p>
+</div>
+</main>
+<!-- Side Illustration (Bento Decor) -->
+<div class="hidden xl:flex fixed right-xl bottom-xl top-xl w-1/3 flex-col gap-lg">
+<div class="flex-1 rounded-2xl bg-white border border-surface-border clinical-depth p-xl overflow-hidden relative group">
+<img alt="Clinical Precision" class="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity" data-alt="Close up of high-tech medical laboratory with soft blue lighting and clean surgical instruments in a sterile environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6mpLO12u4_9uvAhFmlVo1-lIwJF6s69sR816j5c6ejBuVFNPLy5jl-qegCJ_RTRStBoVNBoghBL6cDn6QdY800AuS8KsQC1DaiVcnwWFghjxC0w0FutjT-rYGUaTFJHgLDVXDdQ_aZLAWEHs_Z2v_BCW1V7VwhMAeeexo8khKj_UZzrEZncAfGrOp9LC_aX_dch1kMe5DdMa2NjNJTb2WX0ZZlum6KM6JbV7jJTla1l9IrbLI-9_oblcy3OlJe0HnKI04BMcGI9s"/>
+<div class="relative z-10 h-full flex flex-col justify-end">
+<span class="font-caption text-caption text-on-tertiary-container bg-tertiary-fixed-dim/20 px-sm py-xs rounded self-start mb-sm">SYSTEM STATUS</span>
+<h3 class="font-h2 text-h2 text-on-primary-fixed mb-sm">Clinical Intelligence</h3>
+<p class="font-body text-on-secondary-container max-w-sm">Verdana ERP streamlines patient care pathways using predictive analytics and real-time biometric synchronization.</p>
+</div>
+</div>
+<div class="h-1/3 rounded-2xl bg-primary-container clinical-depth p-xl relative overflow-hidden">
+<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+<div class="h-full flex flex-col justify-between">
+<span class="material-symbols-outlined text-white text-[48px]" data-icon="verified_user">verified_user</span>
+<div>
+<h4 class="font-h3 text-h3 text-white mb-xs">Secured with HealthID</h4>
+<p class="font-caption text-caption text-on-primary-container">Multi-factor biometric authentication required for clinical override access.</p>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -4,8 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { atomicStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createSalesTools(db: SupabaseClient, organizationId: string) {
+export function createSalesTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     list_sales_orders: tool({
       description: 'List sales orders with optional filters',
@@ -192,22 +193,23 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
         const orderNumber = seqData;
 
-        const { data: so, error } = await db
-          .from('sales_orders')
-          .insert({
-            organization_id: organizationId,
-            customer_id: customerId,
-            order_number: orderNumber,
-            order_date: orderDate,
-            currency,
-            total_amount: totalAmount,
-            status: 'draft',
-            notes: notes ?? null,
-          })
-          .select('id, order_number')
-          .single();
-
-        if (error) throw new Error(error.message);
+        const so = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('sales_orders').insert({
+              organization_id: organizationId,
+              customer_id: customerId,
+              order_number: orderNumber,
+              order_date: orderDate,
+              currency,
+              total_amount: totalAmount,
+              status: 'draft',
+              notes: notes ?? null,
+            }).select('id, order_number').single();
+            return result as { data: { id: string; order_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'sales_orders', userId, organizationId },
+        ) as { id: string; order_number: string };
 
         const lineItems = items.map((i, idx) => ({
           sales_order_id: so.id,
@@ -249,12 +251,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: so.id, orderNumber: so.order_number };
         }
 
-        const { error: updateErr } = await db
-          .from('sales_orders')
-          .update({ status: 'submitted', submitted_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'sales_orders', id, organizationId, 'draft',
+          { status: 'submitted', submitted_at: new Date().toISOString() },
+          'id, order_number',
+        );
+        if (!updated) throw new Error('Sales order status changed concurrently; please retry');
 
         return { id: so.id, orderNumber: so.order_number, status: 'submitted' };
       },
@@ -281,12 +283,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: so.id, orderNumber: so.order_number };
         }
 
-        const { error: updateErr } = await db
-          .from('sales_orders')
-          .update({ status: 'approved', approved_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'sales_orders', id, organizationId, 'submitted',
+          { status: 'approved', approved_at: new Date().toISOString() },
+          'id, order_number',
+        );
+        if (!updated) throw new Error('Sales order status changed concurrently; please retry');
 
         return { id: so.id, orderNumber: so.order_number, status: 'approved' };
       },
@@ -316,12 +318,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to cancel', id: so.id, orderNumber: so.order_number, currentStatus: so.status };
         }
 
-        const { error: updateErr } = await db
-          .from('sales_orders')
-          .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), cancellation_reason: reason ?? null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'sales_orders', id, organizationId, ['draft', 'submitted', 'approved'],
+          { status: 'cancelled', cancelled_at: new Date().toISOString(), cancellation_reason: reason ?? null },
+          'id, order_number',
+        );
+        if (!updated) throw new Error('Sales order status changed concurrently; please retry');
 
         return { id: so.id, orderNumber: so.order_number, status: 'cancelled' };
       },
@@ -348,12 +350,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to confirm shipment (will deduct stock)', id: shipment.id, shipmentNumber: shipment.shipment_number };
         }
 
-        const { error: updateErr } = await db
-          .from('sales_shipments')
-          .update({ status: 'confirmed', confirmed_at: new Date().toISOString(), confirmed_by: null })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'sales_shipments', id, organizationId, 'draft',
+          { status: 'confirmed', confirmed_at: new Date().toISOString() },
+          'id, shipment_number',
+        );
+        if (!updated) throw new Error('Shipment status changed concurrently; please retry');
 
         return { id: shipment.id, shipmentNumber: shipment.shipment_number, status: 'confirmed' };
       },
@@ -380,12 +382,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string) {
           return { preview: true, message: 'Dry-run — set confirmed=true to receive return (will add stock)', id: ret.id, returnNumber: ret.return_number };
         }
 
-        const { error: updateErr } = await db
-          .from('sales_returns')
-          .update({ status: 'received', received_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'sales_returns', id, organizationId, 'approved',
+          { status: 'received', received_at: new Date().toISOString() },
+          'id, return_number',
+        );
+        if (!updated) throw new Error('Return status changed concurrently; please retry');
 
         return { id: ret.id, returnNumber: ret.return_number, status: 'received' };
       },

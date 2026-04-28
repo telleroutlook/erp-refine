@@ -4,8 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { atomicStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createQualityTools(db: SupabaseClient, organizationId: string) {
+export function createQualityTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     get_quality_inspection: tool({
       description: 'Get quality inspection detail with all inspection items',
@@ -127,26 +128,27 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
         });
         if (seqError || !seqData) throw new Error(seqError?.message ?? 'Sequence unavailable');
 
-        const { data: qi, error: qiErr } = await db
-          .from('quality_inspections')
-          .insert({
-            organization_id: organizationId,
-            inspection_number: seqData,
-            product_id: productId,
-            reference_type: referenceType,
-            reference_id: referenceId,
-            inspector_id: inspectorId ?? null,
-            inspection_date: inspectionDate ?? new Date().toISOString().slice(0, 10),
-            total_quantity: totalQuantity,
-            qualified_quantity: 0,
-            defective_quantity: 0,
-            status: 'draft',
-            notes: notes ?? null,
-          })
-          .select('id, inspection_number')
-          .single();
-
-        if (qiErr) throw new Error(qiErr.message);
+        const qi = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('quality_inspections').insert({
+              organization_id: organizationId,
+              inspection_number: seqData,
+              product_id: productId,
+              reference_type: referenceType,
+              reference_id: referenceId,
+              inspector_id: inspectorId ?? null,
+              inspection_date: inspectionDate ?? new Date().toISOString().slice(0, 10),
+              total_quantity: totalQuantity,
+              qualified_quantity: 0,
+              defective_quantity: 0,
+              status: 'draft',
+              notes: notes ?? null,
+            }).select('id, inspection_number').single();
+            return result as { data: { id: string; inspection_number: string } | null; error: unknown };
+          },
+          { action: 'create', resource: 'quality_inspections', userId, organizationId },
+        ) as { id: string; inspection_number: string };
 
         if (items.length > 0) {
           const checkItems = items.map(i => ({
@@ -198,20 +200,16 @@ export function createQualityTools(db: SupabaseClient, organizationId: string) {
           };
         }
 
-        const updatePayload: Record<string, unknown> = {
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-        };
-        if (result) updatePayload.result = result;
-        if (qualifiedQuantity !== undefined) updatePayload.qualified_quantity = qualifiedQuantity;
-        if (defectiveQuantity !== undefined) updatePayload.defective_quantity = defectiveQuantity;
+        const newFields: Record<string, unknown> = { status: 'completed', completed_at: new Date().toISOString() };
+        if (result) newFields.result = result;
+        if (qualifiedQuantity !== undefined) newFields.qualified_quantity = qualifiedQuantity;
+        if (defectiveQuantity !== undefined) newFields.defective_quantity = defectiveQuantity;
 
-        const { error: updateErr } = await db
-          .from('quality_inspections')
-          .update(updatePayload)
-          .eq('id', id)
-          .eq('organization_id', organizationId);
-        if (updateErr) throw new Error(updateErr.message);
+        const { data: updated } = await atomicStatusTransition(
+          db, 'quality_inspections', id, organizationId, ['draft', 'in_progress'],
+          newFields, 'id, inspection_number',
+        );
+        if (!updated) throw new Error('Inspection status changed concurrently; please retry');
 
         return { id: qi.id, inspectionNumber: qi.inspection_number, status: 'completed', result: result ?? null };
       },

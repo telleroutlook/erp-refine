@@ -4,8 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { executeWithAudit } from '../utils/database';
 
-export function createInventoryTools(db: SupabaseClient, organizationId: string) {
+export function createInventoryTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
     get_stock_levels: tool({
       description: 'Get current stock levels for products, optionally filtered by warehouse or product',
@@ -226,13 +227,19 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string)
           notes: notes ?? null,
         };
 
-        const { data: outTxn, error: outErr } = await db.from('stock_transactions').insert({
-          ...txnBase,
-          warehouse_id: fromWarehouseId,
-          transaction_type: 'out',
-          quantity,
-        }).select('id').single();
-        if (outErr) throw new Error(outErr.message);
+        const outTxn = await executeWithAudit(
+          db,
+          async () => {
+            const result = await db.from('stock_transactions').insert({
+              ...txnBase,
+              warehouse_id: fromWarehouseId,
+              transaction_type: 'out',
+              quantity,
+            }).select('id').single();
+            return result as { data: { id: string } | null; error: unknown };
+          },
+          { action: 'stock_transfer_out', resource: 'stock_transactions', userId, organizationId },
+        ) as { id: string };
 
         const { error: inErr } = await db.from('stock_transactions').insert({
           ...txnBase,
