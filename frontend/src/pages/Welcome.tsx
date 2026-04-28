@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslate } from '@refinedev/core';
 import { Card, Typography, Row, Col } from 'antd';
 import {

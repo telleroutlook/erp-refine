@@ -522,7 +522,6 @@ salesFinance.post('/customer-receipts', async (c) => {
 
   if (insertError) throw ApiError.database(insertError.message, requestId);
 
-  // Check if the linked invoice is fully paid
   if (receipt.reference_type === 'sales_invoice' && receipt.reference_id) {
     const [receiptsResult, invoiceResult] = await Promise.all([
       db
@@ -534,7 +533,7 @@ salesFinance.post('/customer-receipts', async (c) => {
         .is('deleted_at', null),
       db
         .from('sales_invoices')
-        .select('id, total_amount, tax_amount')
+        .select('id, total_amount, tax_amount, sales_order_id')
         .eq('id', receipt.reference_id)
         .eq('organization_id', user.organizationId)
         .single(),
@@ -553,17 +552,9 @@ salesFinance.post('/customer-receipts', async (c) => {
       if (paidErr) throw ApiError.database(paidErr.message, requestId);
     }
 
-    // Auto-update SO payment_status based on total invoiced vs total received
-    const { data: invoiceForSo } = await db
-      .from('sales_invoices')
-      .select('sales_order_id')
-      .eq('id', receipt.reference_id)
-      .single();
+    if (invoice?.sales_order_id) {
+      const soId = invoice.sales_order_id;
 
-    if (invoiceForSo?.sales_order_id) {
-      const soId = invoiceForSo.sales_order_id;
-
-      // Get all issued/paid invoices for this SO
       const { data: soInvoices } = await db
         .from('sales_invoices')
         .select('id, total_amount, tax_amount')
@@ -587,7 +578,7 @@ salesFinance.post('/customer-receipts', async (c) => {
         totalReceived = (allReceipts ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
       }
 
-      let paymentStatus: string;
+      let paymentStatus: 'paid' | 'partial' | 'unpaid';
       if (totalInvoiced > 0 && totalReceived >= totalInvoiced) {
         paymentStatus = 'paid';
       } else if (totalReceived > 0) {

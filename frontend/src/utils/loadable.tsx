@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { Spin, Result, Button } from 'antd';
+import type { ErrorInfo, ReactNode } from 'react';
 
 type Loader = () => Promise<{ default: React.ComponentType<any> }>;
 
@@ -9,26 +10,34 @@ const PAGE_SPINNER = (
   </div>
 );
 
-class LoadableErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
+interface ErrorBoundaryState {
+  error: Error | null;
+}
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+export class PageErrorBoundary extends React.Component<
+  { children: ReactNode },
+  ErrorBoundaryState
+> {
+  state: ErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[PageErrorBoundary]', error, info.componentStack);
   }
 
   render() {
-    if (this.state.hasError) {
+    if (this.state.error) {
       return (
         <Result
           status="error"
           title="Page Error"
-          subTitle="Something went wrong rendering this page."
+          subTitle={this.state.error.message}
           extra={
             <Button type="primary" onClick={() => window.location.reload()}>
-              Retry
+              Reload
             </Button>
           }
         />
@@ -42,11 +51,11 @@ export function loadable(loader: Loader): React.FC {
   const LazyComponent = React.lazy(loader);
 
   const Loadable: React.FC = (props) => (
-    <LoadableErrorBoundary>
+    <PageErrorBoundary>
       <Suspense fallback={PAGE_SPINNER}>
         <LazyComponent {...props} />
       </Suspense>
-    </LoadableErrorBoundary>
+    </PageErrorBoundary>
   );
 
   return Loadable;

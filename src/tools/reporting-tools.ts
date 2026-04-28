@@ -137,7 +137,8 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
             .select('amount', { count: 'exact' })
             .eq('organization_id', organizationId)
             .gte('payment_date', fromDate)
-            .lte('payment_date', toDate),
+            .lte('payment_date', toDate)
+            .limit(5000),
         ]);
 
         const paidRows = paymentRecRes.data ?? [];

@@ -284,7 +284,6 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
     }
   }
 
-  // 5. Auto-progress PO status based on total fulfillment
   if (receipt.purchase_order_id) {
     const { data: poItems } = await db
       .from('purchase_order_items')

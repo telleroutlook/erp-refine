@@ -4,6 +4,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { assertOwnership } from '../utils/database';
 
 export function createManufacturingTools(db: SupabaseClient, organizationId: string) {
   return {
@@ -94,14 +95,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List material requirements for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
-        const { data: wo, error: woErr } = await db
-          .from('work_orders')
-          .select('id')
-          .eq('id', workOrderId)
-          .eq('organization_id', organizationId)
-          .maybeSingle();
-        if (woErr) throw new Error(woErr.message);
-        if (!wo) throw new Error('Work order not found or access denied');
+        await assertOwnership(db, 'work_orders', workOrderId, organizationId, 'Work order');
 
         const { data, error } = await db
           .from('work_order_materials')
@@ -116,14 +110,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List production records (output entries) for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
-        const { data: wo, error: woErr } = await db
-          .from('work_orders')
-          .select('id')
-          .eq('id', workOrderId)
-          .eq('organization_id', organizationId)
-          .maybeSingle();
-        if (woErr) throw new Error(woErr.message);
-        if (!wo) throw new Error('Work order not found or access denied');
+        await assertOwnership(db, 'work_orders', workOrderId, organizationId, 'Work order');
 
         const { data, error } = await db
           .from('work_order_productions')
@@ -150,14 +137,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         ),
       }),
       execute: async ({ productId, bomHeaderId, plannedQuantity, startDate, plannedCompletionDate, warehouseId, notes, confirmed }) => {
-        const { data: bomHeader, error: bhErr } = await db
-          .from('bom_headers')
-          .select('id')
-          .eq('id', bomHeaderId)
-          .eq('organization_id', organizationId)
-          .maybeSingle();
-        if (bhErr) throw new Error(bhErr.message);
-        if (!bomHeader) throw new Error('BOM not found or access denied');
+        await assertOwnership(db, 'bom_headers', bomHeaderId, organizationId, 'BOM');
 
         const { data: bomItems, error: bomErr } = await db
           .from('bom_items')

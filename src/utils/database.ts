@@ -201,3 +201,22 @@ export async function atomicStatusTransition(
   const { data, error } = await q.select(returnSelect).maybeSingle();
   return { data: data as Record<string, unknown> | null, error };
 }
+
+/**
+ * Assert that a record exists and belongs to the given organization.
+ * Throws if not found or access denied — use before querying child tables.
+ */
+export async function assertOwnership(
+  db: SupabaseClient,
+  table: string,
+  id: string,
+  organizationId: string,
+  label: string,
+  opts?: { checkDeleted?: boolean }
+): Promise<void> {
+  let q = db.from(table).select('id').eq('id', id).eq('organization_id', organizationId);
+  if (opts?.checkDeleted) q = q.is('deleted_at', null);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error(`${label} not found or access denied`);
+}

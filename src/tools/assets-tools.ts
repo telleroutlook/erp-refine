@@ -4,6 +4,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { assertOwnership } from '../utils/database';
 
 export function createAssetsTools(db: SupabaseClient, organizationId: string) {
   return {
@@ -64,14 +65,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         limit: z.number().min(1).max(100).default(36),
       }),
       execute: async ({ assetId, limit }) => {
-        const { data: asset, error: aErr } = await db
-          .from('fixed_assets')
-          .select('id')
-          .eq('id', assetId)
-          .eq('organization_id', organizationId)
-          .maybeSingle();
-        if (aErr) throw new Error(aErr.message);
-        if (!asset) throw new Error('Asset not found or access denied');
+        await assertOwnership(db, 'fixed_assets', assetId, organizationId, 'Asset');
 
         const { data, error } = await db
           .from('asset_depreciations')
@@ -92,14 +86,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         limit: z.number().min(1).max(50).default(20),
       }),
       execute: async ({ assetId, limit }) => {
-        const { data: asset, error: aErr } = await db
-          .from('fixed_assets')
-          .select('id')
-          .eq('id', assetId)
-          .eq('organization_id', organizationId)
-          .maybeSingle();
-        if (aErr) throw new Error(aErr.message);
-        if (!asset) throw new Error('Asset not found or access denied');
+        await assertOwnership(db, 'fixed_assets', assetId, organizationId, 'Asset');
 
         const { data, error } = await db
           .from('asset_maintenance_records')
