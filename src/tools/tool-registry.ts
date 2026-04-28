@@ -136,8 +136,6 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_storage_locations', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_product_categories', domain: 'master-data', level: 0, cacheable: true },
   { name: 'get_product', domain: 'master-data', level: 0, cacheable: false },
-  { name: 'list_customers', domain: 'master-data', level: 0, cacheable: true },
-  { name: 'list_suppliers', domain: 'master-data', level: 0, cacheable: true },
   { name: 'list_price_list_lines', domain: 'master-data', level: 0, cacheable: false },
   { name: 'get_product_cost_history', domain: 'master-data', level: 0, cacheable: false },
   // reporting

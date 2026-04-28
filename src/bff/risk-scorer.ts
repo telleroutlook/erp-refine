@@ -10,7 +10,7 @@ export interface RiskScore {
   autoApprove: boolean;
 }
 
-const SENSITIVE_FIELDS = ['password', 'secret', 'key', 'token', 'credit_card', 'ssn', 'bank_account'];
+const SENSITIVE_FIELDS = ['password', 'secret', 'api_key', 'secret_key', 'access_token', 'refresh_token', 'credit_card', 'ssn', 'bank_account'];
 const FINANCIAL_FIELDS = ['amount', 'price', 'cost', 'salary', 'budget', 'total', 'tax'];
 const PERMISSION_FIELDS = ['role', 'permission', 'access', 'admin'];
 

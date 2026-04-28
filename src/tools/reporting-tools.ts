@@ -134,15 +134,15 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
             .eq('ok_to_pay', true)
             .gte('created_at', fromDate).lte('created_at', toDate),
           db.from('payment_records')
-            .select('amount')
+            .select('amount', { count: 'exact' })
             .eq('organization_id', organizationId)
             .gte('payment_date', fromDate)
-            .lte('payment_date', toDate)
-            .limit(5000),
+            .lte('payment_date', toDate),
         ]);
 
         const paidRows = paymentRecRes.data ?? [];
         const paidTotal = paidRows.reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
+        const paidCount = paymentRecRes.count ?? paidRows.length;
 
         return {
           year: currentYear,
@@ -160,7 +160,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
             pending: pendingPayCount.count ?? 0,
             approved: approvedPayCount.count ?? 0,
           },
-          paymentsPaid: { count: paidRows.length, totalAmount: paidTotal },
+          paymentsPaid: { count: paidCount, totalAmount: paidTotal },
         };
       },
     }),

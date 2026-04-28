@@ -147,11 +147,10 @@ function recordMetric(
     tool_name: data.toolName,
     session_id: data.sessionId,
     organization_id: data.organizationId,
-    user_id: data.userId,
     duration_ms: data.durationMs,
     success: data.success,
-    retries: data.attempts - 1,
     error_message: data.error ?? null,
+    cache_hit: false,
   })).then(({ error: e }) => {
     if (e) logger.warn('Failed to record tool metric', e);
   });

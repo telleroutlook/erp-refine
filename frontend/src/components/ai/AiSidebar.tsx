@@ -92,6 +92,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let streamEnded = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -134,9 +135,11 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
               setActiveTools([...toolEventsForMsg]);
             }
           } else if (eventType === 'done' || eventType === 'error') {
+            streamEnded = true;
             break;
           }
         }
+        if (streamEnded) break;
       }
 
       setMessages((prev) => [

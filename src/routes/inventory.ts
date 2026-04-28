@@ -306,7 +306,13 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     throw ApiError.badRequest(`${unfilledLines.length} count line(s) have no counted_quantity. Complete all lines before finalizing.`, requestId);
   }
 
-  // 3. Collect lines with variance and batch-insert a single stock adjustment transaction set
+  // 3. Atomic status transition FIRST: in_progress → completed
+  const { data, error } = await atomicStatusTransition(db, 'inventory_counts', id, user.organizationId,
+    ['in_progress'], { status: 'completed' }, 'id, count_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('InventoryCount', 'unknown', 'complete', requestId);
+
+  // 4. Collect lines with variance and batch-insert stock adjustment transactions
   const stockTxInputs: Parameters<typeof batchCreateStockTransactions>[1] = [];
 
   for (const line of countDoc.lines as Record<string, unknown>[]) {
@@ -326,13 +332,10 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     });
   }
 
-  await batchCreateStockTransactions(db, stockTxInputs, requestId);
+  if (stockTxInputs.length > 0) {
+    await batchCreateStockTransactions(db, stockTxInputs, requestId);
+  }
 
-  // 4. Atomic status transition: in_progress → completed
-  const { data, error } = await atomicStatusTransition(db, 'inventory_counts', id, user.organizationId,
-    ['in_progress'], { status: 'completed' }, 'id, count_number, status');
-  if (error) throw ApiError.database((error as any).message, requestId);
-  if (!data) throw ApiError.invalidState('InventoryCount', 'unknown', 'complete', requestId);
   return c.json({ data });
 });
 

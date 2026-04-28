@@ -94,6 +94,15 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List material requirements for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
+        const { data: wo, error: woErr } = await db
+          .from('work_orders')
+          .select('id')
+          .eq('id', workOrderId)
+          .eq('organization_id', organizationId)
+          .maybeSingle();
+        if (woErr) throw new Error(woErr.message);
+        if (!wo) throw new Error('Work order not found or access denied');
+
         const { data, error } = await db
           .from('work_order_materials')
           .select('id, required_quantity, issued_quantity, status, notes, product:products(id,name,code)')
@@ -107,6 +116,15 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List production records (output entries) for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
+        const { data: wo, error: woErr } = await db
+          .from('work_orders')
+          .select('id')
+          .eq('id', workOrderId)
+          .eq('organization_id', organizationId)
+          .maybeSingle();
+        if (woErr) throw new Error(woErr.message);
+        if (!wo) throw new Error('Work order not found or access denied');
+
         const { data, error } = await db
           .from('work_order_productions')
           .select('id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_by')
@@ -132,6 +150,15 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         ),
       }),
       execute: async ({ productId, bomHeaderId, plannedQuantity, startDate, plannedCompletionDate, warehouseId, notes, confirmed }) => {
+        const { data: bomHeader, error: bhErr } = await db
+          .from('bom_headers')
+          .select('id')
+          .eq('id', bomHeaderId)
+          .eq('organization_id', organizationId)
+          .maybeSingle();
+        if (bhErr) throw new Error(bhErr.message);
+        if (!bomHeader) throw new Error('BOM not found or access denied');
+
         const { data: bomItems, error: bomErr } = await db
           .from('bom_items')
           .select('product_id, quantity')

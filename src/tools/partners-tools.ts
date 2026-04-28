@@ -59,6 +59,7 @@ export function createPartnersTools(db: SupabaseClient, organizationId: string) 
           .from('supplier_contacts')
           .select('id, name, title, email, phone, is_default')
           .eq('supplier_id', supplierId)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (primaryOnly) query = query.eq('is_default', true);
@@ -80,6 +81,7 @@ export function createPartnersTools(db: SupabaseClient, organizationId: string) 
           .from('supplier_certificates')
           .select('id, certificate_type, certificate_number, issued_by, issued_date, expiry_date, status')
           .eq('supplier_id', supplierId)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (activeOnly) query = query.gte('expiry_date', new Date().toISOString().split('T')[0]);

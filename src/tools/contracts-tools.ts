@@ -58,6 +58,16 @@ export function createContractsTools(db: SupabaseClient, organizationId: string)
       description: 'List contract line items for a specific contract',
       inputSchema: z.object({ contractId: z.string().uuid() }),
       execute: async ({ contractId }) => {
+        const { data: contract, error: cErr } = await db
+          .from('contracts')
+          .select('id')
+          .eq('id', contractId)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .maybeSingle();
+        if (cErr) throw new Error(cErr.message);
+        if (!contract) throw new Error('Contract not found or access denied');
+
         const { data, error } = await db
           .from('contract_items')
           .select('id, quantity, unit_price, tax_rate, amount, notes, product:products(id,name,code)')

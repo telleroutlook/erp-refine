@@ -64,6 +64,15 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         limit: z.number().min(1).max(100).default(36),
       }),
       execute: async ({ assetId, limit }) => {
+        const { data: asset, error: aErr } = await db
+          .from('fixed_assets')
+          .select('id')
+          .eq('id', assetId)
+          .eq('organization_id', organizationId)
+          .maybeSingle();
+        if (aErr) throw new Error(aErr.message);
+        if (!asset) throw new Error('Asset not found or access denied');
+
         const { data, error } = await db
           .from('asset_depreciations')
           .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted')
@@ -83,6 +92,15 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         limit: z.number().min(1).max(50).default(20),
       }),
       execute: async ({ assetId, limit }) => {
+        const { data: asset, error: aErr } = await db
+          .from('fixed_assets')
+          .select('id')
+          .eq('id', assetId)
+          .eq('organization_id', organizationId)
+          .maybeSingle();
+        if (aErr) throw new Error(aErr.message);
+        if (!asset) throw new Error('Asset not found or access denied');
+
         const { data, error } = await db
           .from('asset_maintenance_records')
           .select('id, maintenance_type, description, cost, performed_by, performed_at, next_due_at')

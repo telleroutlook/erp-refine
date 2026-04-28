@@ -490,9 +490,9 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       const anyShipped = soItems.some((i: any) => Number(i.shipped_quantity ?? 0) > 0);
 
       if (allShipped) {
-        await db.from('sales_orders').update({ status: 'shipped' }).eq('id', shipment.sales_order_id);
+        await db.from('sales_orders').update({ status: 'shipped' }).eq('id', shipment.sales_order_id).eq('organization_id', user.organizationId);
       } else if (anyShipped) {
-        await db.from('sales_orders').update({ status: 'shipping' }).eq('id', shipment.sales_order_id);
+        await db.from('sales_orders').update({ status: 'shipping' }).eq('id', shipment.sales_order_id).eq('organization_id', user.organizationId);
       }
     }
   }

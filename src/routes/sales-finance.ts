@@ -6,7 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
-import { applyFilters, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
+import { applyFilters, buildSelectWithItemFilter, applyItemFilters, atomicStatusTransition } from '../utils/database';
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { batchCreateStockTransactions } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
@@ -395,7 +395,7 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
 
   if (fetchError || !salesReturn) throw ApiError.notFound('SalesReturn', id, requestId);
 
-  // 2. Validate status is 'approved'
+  // 2. Validate status is 'approved' — but don't rely on this for safety (CAS below)
   if (salesReturn.status !== 'approved') {
     throw ApiError.invalidState('SalesReturn', salesReturn.status, 'receive', requestId);
   }
@@ -405,7 +405,16 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     throw ApiError.badRequest('Warehouse is required to receive a sales return', requestId);
   }
 
-  // 4. Batch-insert all stock-in transactions (trigger updates stock_records per row)
+  // 4. Atomic status transition FIRST: approved → received (prevents duplicate processing)
+  const { data: transitioned, error: transErr } = await atomicStatusTransition(
+    db, 'sales_returns', id, user.organizationId,
+    'approved', { status: 'received' },
+    'id, return_number, status'
+  );
+  if (transErr) throw ApiError.database((transErr as any).message, requestId);
+  if (!transitioned) throw ApiError.invalidState('SalesReturn', 'unknown', 'receive', requestId);
+
+  // 5. Batch-insert all stock-in transactions
   await batchCreateStockTransactions(
     db,
     (salesReturn.items as Record<string, unknown>[]).map((item) => ({
@@ -420,17 +429,6 @@ salesFinance.post('/sales-returns/:id/receive', async (c) => {
     })),
     requestId
   );
-
-  // 4. Update return status to 'received'
-  const { error: updateError } = await db
-    .from('sales_returns')
-    .update({
-      status: 'received',
-    })
-    .eq('id', id)
-    .eq('organization_id', user.organizationId);
-
-  if (updateError) throw ApiError.database(updateError.message, requestId);
 
   return c.json({
     data: { id: salesReturn.id, return_number: salesReturn.return_number, status: 'received' },
@@ -598,7 +596,7 @@ salesFinance.post('/customer-receipts', async (c) => {
         paymentStatus = 'unpaid';
       }
 
-      await db.from('sales_orders').update({ payment_status: paymentStatus }).eq('id', soId);
+      await db.from('sales_orders').update({ payment_status: paymentStatus }).eq('id', soId).eq('organization_id', user.organizationId);
     }
   }
 

@@ -61,7 +61,7 @@ export class IntentAgent extends BaseAgent {
         system: SYSTEM_PROMPT,
         prompt: [
           recentContext ? `Recent conversation context:\n${recentContext}` : null,
-          `Parse this user request into JSON: "${message}"`,
+          `Parse this user request into JSON: ${JSON.stringify(message)}`,
           `Context: organizationId=${ctx.organizationId}, role=${ctx.role}`,
         ].filter(Boolean).join('\n\n'),
         providerOptions: {

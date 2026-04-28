@@ -395,7 +395,14 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     throw ApiError.invalidState('Work Order', wo.status, 'complete (no completed quantity)', requestId);
   }
 
-  // 2. Record finished goods stock-in (trigger updates stock_records)
+  // 2. Atomic status transition FIRST: in_progress → completed (prevents duplicate stock-in)
+  const { data, error } = await atomicStatusTransition(db, 'work_orders', id, user.organizationId,
+    'in_progress', { status: 'completed', actual_completion_date: new Date().toISOString() },
+    'id, work_order_number, status');
+  if (error) throw ApiError.database((error as any).message, requestId);
+  if (!data) throw ApiError.invalidState('Work Order', 'unknown', 'complete', requestId);
+
+  // 3. Record finished goods stock-in (after confirming ownership of the transition)
   await createStockTransaction(db, {
     organizationId: user.organizationId,
     warehouseId: wo.warehouse_id,
@@ -407,12 +414,6 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     createdBy: user.userId,
   }, requestId);
 
-  // 3. Atomic status transition: in_progress → completed
-  const { data, error } = await atomicStatusTransition(db, 'work_orders', id, user.organizationId,
-    'in_progress', { status: 'completed', actual_completion_date: new Date().toISOString() },
-    'id, work_order_number, status');
-  if (error) throw ApiError.database((error as any).message, requestId);
-  if (!data) throw ApiError.invalidState('Work Order', 'unknown', 'complete', requestId);
   return c.json({ data });
 });
 

@@ -182,15 +182,16 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
     }),
 
     list_organizations: tool({
-      description: 'List organizations (tenants) accessible to the current user',
+      description: 'Get the current user\'s organization details',
       inputSchema: z.object({}),
       execute: async () => {
         const { data, error } = await db
           .from('organizations')
           .select('id, name, code, email, phone, plan, status')
-          .order('name');
+          .eq('id', organizationId)
+          .single();
         if (error) throw new Error(error.message);
-        return data ?? [];
+        return data;
       },
     }),
 
@@ -250,48 +251,6 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
       },
     }),
 
-    list_customers: tool({
-      description: 'List customers',
-      inputSchema: z.object({ search: z.string().optional() }),
-      execute: async ({ search }) => {
-        let query = db
-          .from('customers')
-          .select('id, code, name, email, phone, credit_limit, payment_terms')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null);
-
-        if (search) {
-          const s = search.replace(/[%_]/g, '');
-          query = query.or(`name.ilike.%${s}%,code.ilike.%${s}%`);
-        }
-
-        const { data, error } = await query.order('name').limit(50);
-        if (error) throw new Error(error.message);
-        return data ?? [];
-      },
-    }),
-
-    list_suppliers: tool({
-      description: 'List active suppliers',
-      inputSchema: z.object({ search: z.string().optional() }),
-      execute: async ({ search }) => {
-        let query = db
-          .from('suppliers')
-          .select('id, code, name, contact_email, contact_phone, payment_terms')
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null);
-
-        if (search) {
-          const s = search.replace(/[%_]/g, '');
-          query = query.or(`name.ilike.%${s}%,code.ilike.%${s}%`);
-        }
-
-        const { data, error } = await query.order('name').limit(50);
-        if (error) throw new Error(error.message);
-        return data ?? [];
-      },
-    }),
-
     list_price_list_lines: tool({
       description: 'List price list lines (product prices) for a specific price list',
       inputSchema: z.object({
@@ -304,6 +263,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
           .from('price_list_lines')
           .select('id, price_list_id, product_id, unit_price, min_quantity, discount_rate, effective_from, effective_to, created_at')
           .eq('price_list_id', priceListId)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null);
         if (productId) query = query.eq('product_id', productId);
         const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);

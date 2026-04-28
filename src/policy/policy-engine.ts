@@ -43,23 +43,26 @@ export function registerRule(rule: PolicyRule): void {
 export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
   const action = ctx.action.toLowerCase();
 
-  // 1. Check deny keywords — hard block regardless of registered rules
-  for (const kw of DENY_KEYWORDS) {
-    if (action.includes(kw)) {
-      return {
-        decision: 'deny',
-        level: DecisionLevel.D5,
-        reason: `Action contains denied keyword: ${kw}`,
-        requiresConfirmation: false,
-        requiresApproval: false,
-      };
+  // 1. Find matching rule FIRST — registered rules take priority over keyword heuristics
+  const rule = REGISTERED_RULES.find((r) => matchesRule(r, ctx));
+
+  // 2. Check deny keywords — but only for UNREGISTERED actions
+  //    Registered read tools (e.g. list_workflows) must not be blocked by substring matches
+  if (!rule) {
+    for (const kw of DENY_KEYWORDS) {
+      if (action.includes(kw)) {
+        return {
+          decision: 'deny',
+          level: DecisionLevel.D5,
+          reason: `Action contains denied keyword: ${kw}`,
+          requiresConfirmation: false,
+          requiresApproval: false,
+        };
+      }
     }
   }
 
-  // 2. Find matching rule
-  const rule = REGISTERED_RULES.find((r) => matchesRule(r, ctx));
-
-  // 3. No rule found — allow reads, deny writes (per CLAUDE.md specification)
+  // 3. No rule found — allow reads, deny writes
   if (!rule) {
     const WRITE_KEYWORDS = ['create', 'update', 'delete', 'workflow', 'batch', 'approve', 'close', 'submit', 'post', 'void', 'reverse', 'pay', 'receive', 'ship', 'issue', 'confirm', 'reject', 'cancel'];
     const isWrite = WRITE_KEYWORDS.some((kw) => action.includes(kw));

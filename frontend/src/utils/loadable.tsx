@@ -27,7 +27,7 @@ class LoadableErrorBoundary extends React.Component<
           title="Page Error"
           subTitle="Something went wrong rendering this page."
           extra={
-            <Button type="primary" onClick={() => this.setState({ hasError: false })}>
+            <Button type="primary" onClick={() => window.location.reload()}>
               Retry
             </Button>
           }
