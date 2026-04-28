@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Spin } from 'antd';
+import React, { Suspense } from 'react';
+import { Spin, Result, Button } from 'antd';
 
-type ComponentModule = { default: React.ComponentType<any> };
-type Loader = () => Promise<ComponentModule>;
+type Loader = () => Promise<{ default: React.ComponentType<any> }>;
 
 const PAGE_SPINNER = (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
@@ -10,37 +9,45 @@ const PAGE_SPINNER = (
   </div>
 );
 
-export function loadable(loader: Loader): React.FC {
-  let cached: React.ComponentType<any> | null = null;
-  let promise: Promise<ComponentModule> | null = null;
+class LoadableErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
 
-  const Loadable: React.FC = (props) => {
-    const [Component, setComponent] = useState<React.ComponentType<any> | null>(cached);
-    const mounted = useRef(true);
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
 
-    useEffect(() => {
-      mounted.current = true;
-      if (cached) {
-        setComponent(() => cached);
-        return;
-      }
-      if (!promise) {
-        promise = loader();
-      }
-      promise.then((mod) => {
-        cached = mod.default;
-        if (mounted.current) {
-          setComponent(() => mod.default);
-        }
-      });
-      return () => { mounted.current = false; };
-    }, []);
-
-    if (Component) {
-      return <Component {...props} />;
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Result
+          status="error"
+          title="Page Error"
+          subTitle="Something went wrong rendering this page."
+          extra={
+            <Button type="primary" onClick={() => this.setState({ hasError: false })}>
+              Retry
+            </Button>
+          }
+        />
+      );
     }
-    return PAGE_SPINNER;
-  };
+    return this.props.children;
+  }
+}
+
+export function loadable(loader: Loader): React.FC {
+  const LazyComponent = React.lazy(loader);
+
+  const Loadable: React.FC = (props) => (
+    <LoadableErrorBoundary>
+      <Suspense fallback={PAGE_SPINNER}>
+        <LazyComponent {...props} />
+      </Suspense>
+    </LoadableErrorBoundary>
+  );
 
   return Loadable;
 }

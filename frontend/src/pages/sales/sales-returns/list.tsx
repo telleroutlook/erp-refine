@@ -32,7 +32,7 @@ export const SalesReturnList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="return_number" title={fl('sales_returns', 'return_number')} width={160} />
-        <Table.Column dataIndex={['customer', 'name']} title={fl('sales_returns', 'customer_id')} />
+        <Table.Column dataIndex="customer" title={fl('sales_returns', 'customer_id')} render={(v: any) => v?.name ?? '—'} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column dataIndex="return_date" title={fl('sales_returns', 'return_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
