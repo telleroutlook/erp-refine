@@ -8,7 +8,8 @@ import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { orchestrator } from '../orchestrator/orchestrator';
 import { createAuthenticatedClient } from '../utils/supabase';
-import { buildToolSet } from '../tools/tool-registry';
+import { buildToolSet, TOOL_REGISTRY_META } from '../tools/tool-registry';
+import { evaluatePolicy } from '../policy/policy-engine';
 import type { Message } from '../do/chat-agent-do';
 
 const chat = new Hono<{ Bindings: Env }>();
@@ -112,6 +113,56 @@ chat.post('/', async (c) => {
   return c.json({ data: response, sessionId });
 });
 
+/**
+ * Wrap each tool in the ToolSet with a policy pre-check so write tools
+ * (D2/D3) cannot be invoked from the streaming endpoint without policy approval.
+ * Read-only tools (level 0/1) pass through immediately.
+ */
+function wrapToolsWithPolicy(
+  tools: ReturnType<typeof buildToolSet>,
+  user: { userId: string; role: string; organizationId: string },
+): ReturnType<typeof buildToolSet> {
+  const wrapped: ReturnType<typeof buildToolSet> = {};
+  for (const [name, toolDef] of Object.entries(tools)) {
+    const meta = TOOL_REGISTRY_META.find((m) => m.name === name);
+    const level = meta?.level ?? 0;
+    const domain = meta?.domain ?? 'system';
+
+    if (level === 0 || level === 1) {
+      wrapped[name] = toolDef;
+      continue;
+    }
+
+    // D2+ tools: run policy check before delegating to the real execute
+    const originalExecute = (toolDef as unknown as { execute: (args: unknown, opts: unknown) => Promise<unknown> }).execute;
+    wrapped[name] = {
+      ...toolDef,
+      execute: async (args: Record<string, unknown>, opts: unknown) => {
+        const policy = evaluatePolicy({
+          action: name,
+          domain,
+          userId: user.userId,
+          role: user.role,
+          organizationId: user.organizationId,
+          confirmed: args['confirmed'] as boolean | undefined,
+          approved: args['approved'] as boolean | undefined,
+        });
+        if (policy.decision === 'deny') {
+          throw new Error(`Policy denied: ${policy.reason}`);
+        }
+        if (policy.decision === 'require_confirmation') {
+          return { preview: true, message: `Confirmation required: ${policy.reason}. Set confirmed=true to proceed.` };
+        }
+        if (policy.decision === 'require_approval') {
+          return { preview: true, message: `Approval required: ${policy.reason}.` };
+        }
+        return originalExecute(args, opts);
+      },
+    } as typeof toolDef;
+  }
+  return wrapped;
+}
+
 /** POST /api/chat/stream — SSE streaming with conversation history */
 chat.post('/stream', async (c) => {
   const user = c.get('user');
@@ -123,7 +174,8 @@ chat.post('/stream', async (c) => {
   const sessionId = body.sessionId ?? crypto.randomUUID();
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
-  const tools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId });
+  const rawTools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId });
+  const tools = wrapToolsWithPolicy(rawTools, user);
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 

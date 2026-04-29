@@ -426,6 +426,19 @@ export async function importEntity(
 
       if (transform) {
         record = transform(record, ctx);
+
+        // Re-sanitize after transform to prevent injection of system fields
+        const SYSTEM_BLOCKED = new Set(['deleted_at', 'created_at', 'updated_at', 'created_by']);
+        if (allowedFields) {
+          const allowed = new Set(allowedFields);
+          if (orgScoped) allowed.add('organization_id');
+          for (const key of Object.keys(record)) {
+            if (!allowed.has(key)) delete record[key];
+          }
+        }
+        for (const sys of SYSTEM_BLOCKED) {
+          delete record[sys];
+        }
       }
 
       validRecords.push(record);

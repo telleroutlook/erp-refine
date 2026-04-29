@@ -54,12 +54,12 @@ export function validateSchema(jsonSchema: Record<string, unknown>, uiSchema?: R
     }
   }
 
-  // Warn on dangerous field names
-  const dangerousPatterns = ['organization_id', 'deleted_at', 'created_by', '__proto__', 'constructor'];
+  // Reject system/protected field names that must never appear in AI-generated schemas
+  const systemFields = ['organization_id', 'deleted_at', 'created_by', '__proto__', 'constructor'];
   if (properties) {
-    for (const pattern of dangerousPatterns) {
-      if (pattern in properties) {
-        warnings.push(`Field '${pattern}' is a system field and may be rejected`);
+    for (const field of systemFields) {
+      if (field in properties) {
+        errors.push(`Field '${field}' is a protected system field and must not appear in generated schemas`);
       }
     }
   }

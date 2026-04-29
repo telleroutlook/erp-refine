@@ -61,6 +61,8 @@ export class ERPChatAgent {
         const pathParts = url.pathname.split('/');
         const doKey = pathParts[1] ?? 'unknown';
         const [userId = 'unknown', sessionId = 'unknown'] = doKey.includes(':') ? doKey.split(':') : ['unknown', doKey];
+        await this.state.storage.put('summarizing', true);
+        await this.state.storage.put('summarizingAt', Date.now());
         this.state.waitUntil(this.triggerSummarization(userId, sessionId, messages));
       }
 
@@ -88,8 +90,6 @@ export class ERPChatAgent {
 
   private async triggerSummarization(userId: string, sessionId: string, messages: Message[]): Promise<void> {
     try {
-      await this.state.storage.put('summarizing', true);
-      await this.state.storage.put('summarizingAt', Date.now());
       await this.env.EVENT_BUS.send({
         type: 'summarize_session',
         userId,

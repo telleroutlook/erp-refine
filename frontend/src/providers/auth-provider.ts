@@ -98,10 +98,7 @@ export const authProvider: AuthProvider = {
       return { authenticated: false, redirectTo: '/login' };
     }
 
-    const user = localStorage.getItem('user');
-    if (user) return { authenticated: true };
-
-    return { authenticated: false, redirectTo: '/login' };
+    return { authenticated: true };
   },
 
   getIdentity: async () => {

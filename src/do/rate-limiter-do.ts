@@ -1,6 +1,9 @@
 // src/do/rate-limiter-do.ts
 // Rate limiter Durable Object — sliding window counter
 
+const DEFAULT_LIMIT = 100;
+const DEFAULT_PERIOD = 60;
+
 export class RateLimiterDO {
   private readonly state: DurableObjectState;
   private requests: number[] = [];
@@ -14,9 +17,11 @@ export class RateLimiterDO {
       return new Response('Method not allowed', { status: 405 });
     }
 
-    const { limit, period } = await request.json<{ limit: number; period: number }>();
-    const safeLimit = Math.min(Math.max(Number(limit) || 60, 1), 1000);
-    const safePeriod = Math.min(Math.max(Number(period) || 60, 1), 3600);
+    // Read limit and period from URL query params (set by middleware from env bindings).
+    // Never from request body — the DO should not trust caller-supplied policy values.
+    const url = new URL(request.url);
+    const safeLimit = Math.min(Math.max(parseInt(url.searchParams.get('limit') ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT, 1), 1000);
+    const safePeriod = Math.min(Math.max(parseInt(url.searchParams.get('period') ?? String(DEFAULT_PERIOD), 10) || DEFAULT_PERIOD, 1), 3600);
     const now = Date.now();
     const windowMs = safePeriod * 1000;
 

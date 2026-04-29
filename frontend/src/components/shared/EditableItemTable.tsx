@@ -59,6 +59,14 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
 
+  // Keep refs for values read inside the changeSeq effect to avoid stale closures
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const columnsRef = useRef(columns);
+  columnsRef.current = columns;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (isDirtyRef.current) { e.preventDefault(); e.returnValue = ''; }
@@ -66,17 +74,6 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
-
-  const nativePushStateRef = useRef(window.history.pushState.bind(window.history));
-
-  useEffect(() => {
-    const native = nativePushStateRef.current;
-    window.history.pushState = function (...args) {
-      if (isDirtyRef.current && !window.confirm(t('messages.unsavedChanges'))) return;
-      return native.apply(this, args);
-    };
-    return () => { window.history.pushState = native; };
-  }, [t]);
 
   const flatKey = (di: string | string[]) => (Array.isArray(di) ? di.join('.') : di);
   const getNestedValue = (obj: any, path: string | string[]): any => {
@@ -115,15 +112,17 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     return sideEffects;
   };
 
-  // Emit payload to parent after state settles — avoids stale-closure bugs
+  // Emit payload to parent after state settles — use refs to avoid stale closures
   useEffect(() => {
     if (changeSeq === 0) return;
+    const currentItems = itemsRef.current;
+    const currentColumns = columnsRef.current;
     const upsert: Record<string, any>[] = [];
 
     for (const [id, changes] of Object.entries(edits)) {
       if (deletedIds.has(id)) continue;
       const values: Record<string, any> = { id };
-      columns.forEach((col) => {
+      currentColumns.forEach((col) => {
         if (!col.editable) return;
         const key = flatKey(col.dataIndex);
         if (key in changes) values[fieldName(col.dataIndex)] = changes[key];
@@ -131,11 +130,11 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       if (Object.keys(values).length > 1) upsert.push(values);
     }
 
-    for (const item of (items ?? [])) {
+    for (const item of (currentItems ?? [])) {
       if (deletedIds.has(item.id)) continue;
       if (edits[item.id]) continue;
       const values: Record<string, any> = { id: item.id };
-      columns.forEach((col) => {
+      currentColumns.forEach((col) => {
         if (!col.editable) return;
         const key = flatKey(col.dataIndex);
         values[fieldName(col.dataIndex)] = getNestedValue(item, col.dataIndex);
@@ -145,7 +144,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
 
     for (const row of newRows) {
       const values: Record<string, any> = {};
-      columns.forEach((col) => {
+      currentColumns.forEach((col) => {
         if (!col.editable) return;
         const key = flatKey(col.dataIndex);
         if (row.values[key] !== undefined) values[fieldName(col.dataIndex)] = row.values[key];
@@ -153,7 +152,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       upsert.push(values);
     }
 
-    onChange({ upsert, delete: Array.from(deletedIds) });
+    onChangeRef.current({ upsert, delete: Array.from(deletedIds) });
   }, [changeSeq]);
 
   const notifyChange = () => setChangeSeq((s) => s + 1);

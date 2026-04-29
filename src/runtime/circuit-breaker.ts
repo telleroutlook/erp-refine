@@ -14,6 +14,7 @@ export class CircuitBreaker {
   private failures = 0;
   private successes = 0;
   private lastFailureTime = 0;
+  private probeInFlight = false;
 
   private readonly failureThreshold: number;
   private readonly successThreshold: number;
@@ -30,9 +31,16 @@ export class CircuitBreaker {
       if (Date.now() - this.lastFailureTime < this.timeout) {
         throw new Error('Circuit breaker is open');
       }
+      // Prevent concurrent half-open probes across await boundaries
+      if (this.probeInFlight) {
+        throw new Error('Circuit breaker is open');
+      }
       this.state = 'half-open';
       this.successes = 0;
     }
+
+    const isProbe = this.state === 'half-open';
+    if (isProbe) this.probeInFlight = true;
 
     try {
       const result = await fn();
@@ -41,6 +49,8 @@ export class CircuitBreaker {
     } catch (err) {
       this.onFailure();
       throw err;
+    } finally {
+      if (isProbe) this.probeInFlight = false;
     }
   }
 

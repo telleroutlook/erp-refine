@@ -397,14 +397,16 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
       description: 'List tracking events for a sales shipment',
       inputSchema: z.object({
         shipmentId: z.string().uuid(),
+        limit: z.number().min(1).max(200).default(50),
       }),
-      execute: async ({ shipmentId }) => {
+      execute: async ({ shipmentId, limit }) => {
         const { data, error } = await db
           .from('shipment_tracking_events')
           .select('id, shipment_id, event_type, location, notes, occurred_at, created_at')
           .eq('organization_id', organizationId)
           .eq('shipment_id', shipmentId)
-          .order('occurred_at', { ascending: false });
+          .order('occurred_at', { ascending: false })
+          .limit(limit);
         if (error) throw new Error(error.message);
         return data ?? [];
       },

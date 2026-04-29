@@ -198,7 +198,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           }));
           const { error: matErr } = await db.from('work_order_materials').insert(matRows);
           if (matErr) {
-            await db.from('work_orders').delete().eq('id', wo.id);
+            await db.from('work_orders').delete().eq('id', wo.id).eq('organization_id', organizationId);
             throw new Error(matErr.message);
           }
         }
@@ -229,6 +229,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .from('work_order_materials')
           .select('id, product_id, required_quantity, issued_quantity, status')
           .eq('work_order_id', workOrderId)
+          .eq('organization_id', organizationId)
           .eq('status', 'pending');
 
         const pendingMaterials = materials ?? [];
@@ -251,7 +252,8 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
             .from('work_order_materials')
             .update({ issued_quantity: mat.required_quantity, status: 'issued' })
             .eq('id', mat.id)
-            .eq('work_order_id', wo.id);
+            .eq('work_order_id', wo.id)
+            .eq('organization_id', organizationId);
         }
 
         if (wo.status === 'released') {

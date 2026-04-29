@@ -33,7 +33,7 @@ export function errorHandler(err: Error, c: Context): Response {
     type: status === 404 ? ErrorCode.NOT_FOUND : ErrorCode.INTERNAL_ERROR,
     status,
     title: status === 404 ? 'Not Found' : 'Internal Server Error',
-    detail: status === 404 ? err.message : 'An unexpected error occurred.',
+    detail: status === 404 ? 'The requested resource was not found.' : 'An unexpected error occurred.',
     request_id: requestId,
     timestamp: new Date().toISOString(),
     hint: status === 500 ? `Contact support with request_id '${requestId}' for investigation.` : undefined,

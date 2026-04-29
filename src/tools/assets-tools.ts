@@ -71,6 +71,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
           .from('asset_depreciations')
           .select('id, period_year, period_month, depreciation_amount, accumulated_depreciation, book_value_after, posted')
           .eq('asset_id', assetId)
+          .eq('organization_id', organizationId)
           .order('period_year', { ascending: false })
           .order('period_month', { ascending: false })
           .limit(limit);
@@ -92,6 +93,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
           .from('asset_maintenance_records')
           .select('id, maintenance_type, description, cost, performed_by, performed_at, next_due_at')
           .eq('asset_id', assetId)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .order('performed_at', { ascending: false })
           .limit(limit);

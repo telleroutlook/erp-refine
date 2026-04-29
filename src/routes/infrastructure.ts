@@ -59,6 +59,11 @@ const organizationsConfig: CrudConfig = {
   defaultSort: 'name',
   softDelete: false,
   orgScoped: false,
+  // GET handlers are defined above with explicit org-scoping.
+  // Disable all write operations on the factory to prevent unscoped POST/PUT/DELETE.
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
 };
 
 const organizationsRouter = buildCrudRoutes(organizationsConfig);

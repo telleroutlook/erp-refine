@@ -16,10 +16,8 @@ export function rateLimitMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
       const period = parseInt(c.env.RATE_LIMIT_PERIOD ?? '60', 10);
 
       const res = await stub.fetch(
-        new Request('https://internal/check', {
+        new Request(`https://internal/check?limit=${limit}&period=${period}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit, period }),
         })
       );
 

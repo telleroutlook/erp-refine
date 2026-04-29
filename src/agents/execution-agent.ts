@@ -101,12 +101,16 @@ export class ExecutionAgent extends BaseAgent {
     const agentResult = await super.execute(async () => {
       const availableTools = Object.keys(tools).join(', ');
 
+      const effectiveParams = request.approved
+        ? { ...request.parameters, confirmed: true }
+        : request.parameters;
+
       const promptParts = [
         request.historyContext ? `Conversation context:\n${request.historyContext}` : null,
         `Available tools: ${availableTools}`,
         `Action requested: ${request.action}`,
         `Domain: ${request.domain}`,
-        `Parameters: ${JSON.stringify(request.parameters, null, 2)}`,
+        `Parameters: ${JSON.stringify(effectiveParams, null, 2)}`,
         `Organization: ${ctx.organizationId}`,
         '',
         'Call the most relevant tool now.',

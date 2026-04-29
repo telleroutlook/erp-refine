@@ -290,6 +290,7 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
       .from('purchase_order_items')
       .select('quantity, received_quantity')
       .eq('purchase_order_id', receipt.purchase_order_id)
+      .eq('organization_id', user.organizationId)
       .is('deleted_at', null);
 
     if (poItems && poItems.length > 0) {
@@ -570,7 +571,8 @@ procurementReceiving.post('/three-way-match', async (c) => {
       .single(),
     db.from('purchase_receipt_items')
       .select('quantity, purchase_order_item_id')
-      .eq('purchase_receipt_id', purchase_receipt_id),
+      .eq('purchase_receipt_id', purchase_receipt_id)
+      .eq('organization_id', user.organizationId),
     db.from('supplier_invoices')
       .select('id, total_amount')
       .eq('id', supplier_invoice_id)
@@ -598,6 +600,7 @@ procurementReceiving.post('/three-way-match', async (c) => {
         .from('purchase_order_items')
         .select('id, unit_price')
         .in('id', poItemIds)
+        .eq('organization_id', user.organizationId)
         .is('deleted_at', null);
 
       const priceMap = new Map(

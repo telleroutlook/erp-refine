@@ -191,30 +191,32 @@ function snipOldest(layers: ContextLayer[]): number {
 // Stage 3: LLM compress compressible layers
 async function llmCompress(layers: ContextLayer[], env: Env): Promise<number> {
   const glm = createOpenAI({ apiKey: env.AI_API_KEY, baseURL: env.AI_BASE_URL });
-  let freed = 0;
 
-  for (const layer of layers) {
-    if (!layer.compressible || layer.actualTokens < 500) continue;
+  const candidates = layers.filter((l) => l.compressible && l.actualTokens >= 500);
+  if (candidates.length === 0) return 0;
 
-    try {
-      const input = layer.content.slice(0, 3_000 * 3); // rough 3000 token ceiling
-      const { text } = await generateText({
-        model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
-        system: '请将以下内容压缩为简洁的中文摘要，保留关键业务信息，不超过200字。',
-        prompt: input,
-        maxOutputTokens: 300,
-        temperature: 0,
-      });
-      const before = layer.actualTokens;
-      layer.content = text;
-      layer.actualTokens = estimateTokens(text);
-      freed += before - layer.actualTokens;
-    } catch {
-      // best-effort — don't fail the whole pipeline
-    }
-  }
+  const results = await Promise.all(
+    candidates.map(async (layer) => {
+      try {
+        const input = layer.content.slice(0, 3_000 * 3);
+        const { text } = await generateText({
+          model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
+          system: '请将以下内容压缩为简洁的中文摘要，保留关键业务信息，不超过200字。',
+          prompt: input,
+          maxOutputTokens: 300,
+          temperature: 0,
+        });
+        const before = layer.actualTokens;
+        layer.content = text;
+        layer.actualTokens = estimateTokens(text);
+        return before - layer.actualTokens;
+      } catch {
+        return 0;
+      }
+    })
+  );
 
-  return freed;
+  return results.reduce((sum, freed) => sum + freed, 0);
 }
 
 export interface CompactionResult {

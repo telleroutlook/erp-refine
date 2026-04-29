@@ -484,6 +484,7 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
       .from('sales_order_items')
       .select('quantity, shipped_quantity')
       .eq('sales_order_id', shipment.sales_order_id)
+      .eq('organization_id', user.organizationId)
       .is('deleted_at', null);
 
     if (soItems && soItems.length > 0) {

@@ -76,10 +76,11 @@ export async function atomicUpdateWithItems(
         .from(itemsTable)
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', itemId)
-        .eq(headerFk, headerId);
+        .eq(headerFk, headerId)
+        .eq('organization_id', organizationId);
       if (error) throw ApiError.database(error.message, requestId, `Failed to delete ${itemsTable} item ${itemId}`);
     } else {
-      const { error } = await db.from(itemsTable).delete().eq('id', itemId).eq(headerFk, headerId);
+      const { error } = await db.from(itemsTable).delete().eq('id', itemId).eq(headerFk, headerId).eq('organization_id', organizationId);
       if (error) throw ApiError.database(error.message, requestId, `Failed to delete ${itemsTable} item ${itemId}`);
     }
   }
@@ -210,7 +211,11 @@ export async function atomicCreateWithItems(
     if (itemsError) {
       const { error: rollbackError } = await db.from(headerTable).delete().eq('id', headerId);
       if (rollbackError) {
-        console.error(`[atomic] Rollback failed for ${headerTable} id=${headerId}:`, rollbackError.message);
+        throw ApiError.database(
+          itemsError.message,
+          audit?.requestId,
+          `CRITICAL: Failed to create ${itemsTable} AND rollback of ${headerTable} id=${headerId} failed (${rollbackError.message}). Manual cleanup required.`
+        );
       }
       throw ApiError.database(
         itemsError.message,
