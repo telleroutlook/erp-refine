@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -10,8 +9,10 @@ export const DepartmentCreate: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const { formProps, saveButtonProps } = useForm({ resource: 'departments' });
-  const { data: deptData } = useList({ resource: 'departments', pagination: { pageSize: 500 } });
-  const deptOptions = (deptData?.data ?? []).map((d: any) => ({ label: `${d.code} - ${d.name}`, value: d.id }));
+  const { selectProps: deptSelectProps } = useSelect({
+    resource: 'departments',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
 
   return (
     <Create saveButtonProps={saveButtonProps} title={pt('departments', 'create')}>
@@ -29,7 +30,7 @@ export const DepartmentCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('departments', 'parent_id')} name="parent_id">
-              <Select options={deptOptions} showSearch optionFilterProp="label" allowClear  />
+              <Select {...deptSelectProps} showSearch allowClear  />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

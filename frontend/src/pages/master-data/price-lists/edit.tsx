@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit, DateField } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Switch, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { CURRENCY_OPTIONS, PRICE_LIST_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
-import { useFieldLabel, usePageTitle } from '../../../hooks';
+import { useFieldLabel, usePageTitle, useProductSearch } from '../../../hooks';
 
 export const PriceListEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'price-lists' });
@@ -15,12 +14,10 @@ export const PriceListEdit: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const record = queryResult?.data?.data as any;
-  const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
-  const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
-  const productsMap = useMemo(() => { const m = new Map<string, ProductInfo>(); (productsData?.data ?? []).forEach((p: any) => m.set(p.id, p)); return m; }, [productsData]);
+  const { selectProps: productSelectProps, productsMap } = useProductSearch();
 
   const lineColumns: ColumnConfig[] = [
-    { dataIndex: 'product_id', title: fl('price_lists', 'product_id'), editable: true, inputType: 'select', selectOptions: productOptions, render: (_: any, r: any) => r?.product?.name },
+    { dataIndex: 'product_id', title: fl('price_lists', 'product_id'), editable: true, inputType: 'select', selectOptions: productSelectProps.options as any, render: (_: any, r: any) => r?.product?.name },
     { dataIndex: 'unit_price', title: fl('price_lists', 'unit_price'), width: 120, align: 'right', editable: true, inputType: 'number', render: (v: any) => <AmountDisplay value={v} currency={record?.currency} /> },
     { dataIndex: 'min_quantity', title: fl('price_lists', 'min_quantity'), width: 100, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'discount_rate', title: fl('price_list_lines', 'discount_rate'), width: 100, editable: true },

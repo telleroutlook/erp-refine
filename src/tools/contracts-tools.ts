@@ -109,6 +109,7 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
         id: z.string().uuid(),
         reason: z.string().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, reason, confirmed }) => {
         const { data: contract, error } = await db

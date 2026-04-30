@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { useForm, Edit, DateField } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import React, { useState } from 'react';
+import { useForm, Edit, DateField, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { WORK_ORDER_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { StatusTag } from '../../../components/shared/StatusTag';
-import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
-import { useFieldLabel, usePageTitle } from '../../../hooks';
+import { useFieldLabel, usePageTitle, useProductSearch } from '../../../hooks';
 
 const WO_MATERIAL_STATUS_OPTIONS = [
   { label: 'pending', value: 'pending' },
@@ -21,14 +20,11 @@ export const WorkOrderEdit: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const record = queryResult?.data?.data as any;
-  const { data: warehousesData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
-  const warehouseOptions = (warehousesData?.data ?? []).map((w: any) => ({ label: w.name, value: w.id }));
-  const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
-  const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
-  const productsMap = useMemo(() => { const m = new Map<string, ProductInfo>(); (productsData?.data ?? []).forEach((p: any) => m.set(p.id, p)); return m; }, [productsData]);
+  const { selectProps: warehouseSelectProps } = useSelect({ resource: 'warehouses', optionLabel: 'name' });
+  const { selectProps: productSelectProps, productsMap } = useProductSearch();
 
   const materialColumns: ColumnConfig[] = [
-    { dataIndex: 'product_id', title: fl('work_order_materials', 'product_id'), editable: true, inputType: 'select', selectOptions: productOptions, render: (_: any, r: any) => r?.product?.name },
+    { dataIndex: 'product_id', title: fl('work_order_materials', 'product_id'), editable: true, inputType: 'select', selectOptions: productSelectProps.options as any, render: (_: any, r: any) => r?.product?.name },
     { dataIndex: 'required_quantity', title: fl('work_order_materials', 'required_quantity'), width: 100, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'issued_quantity', title: fl('work_order_materials', 'issued_quantity'), width: 100, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'status', title: t('common.status'), width: 100, editable: true, inputType: 'select', selectOptions: WO_MATERIAL_STATUS_OPTIONS, render: (v: any) => <StatusTag status={v} /> },
@@ -54,7 +50,7 @@ export const WorkOrderEdit: React.FC = () => {
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'work_order_number')} name="work_order_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(WORK_ORDER_STATUS_OPTIONS, t)} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'planned_quantity')} name="planned_quantity"><InputNumber style={FULL_WIDTH} min={1} /></Form.Item></Col>
-          <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'warehouse_id')} name="warehouse_id"><Select options={warehouseOptions} showSearch optionFilterProp="label" allowClear /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'warehouse_id')} name="warehouse_id"><Select {...warehouseSelectProps} showSearch allowClear /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'start_date')} name="start_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('work_orders', 'planned_completion_date')} name="planned_completion_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>

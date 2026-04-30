@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, DatePicker, Select, InputNumber, Row, Col, Input } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,7 @@ import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const WorkOrderProductionCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'work-order-productions' });
-  const { data: workOrdersData } = useList({ resource: 'work-orders', pagination: { pageSize: 500 } });
-  const workOrderOptions = (workOrdersData?.data ?? []).map((w: any) => ({ label: `${w.work_order_number} - ${w.product?.name ?? ''}`, value: w.id }));
+  const { selectProps: workOrderSelectProps } = useSelect({ resource: 'work-orders', optionLabel: 'work_order_number' });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -20,7 +18,7 @@ export const WorkOrderProductionCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('work_order_productions', 'work_order_id')} name="work_order_id" rules={[{ required: true }]}>
-              <Select options={workOrderOptions} showSearch optionFilterProp="label" />
+              <Select {...workOrderSelectProps} showSearch />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

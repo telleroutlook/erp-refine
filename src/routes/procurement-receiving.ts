@@ -286,23 +286,10 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
   }
 
   if (receipt.purchase_order_id) {
-    const { data: poItems } = await db
-      .from('purchase_order_items')
-      .select('quantity, received_quantity')
-      .eq('purchase_order_id', receipt.purchase_order_id)
-      .eq('organization_id', user.organizationId)
-      .is('deleted_at', null);
-
-    if (poItems && poItems.length > 0) {
-      const allReceived = poItems.every((i: any) => Number(i.received_quantity ?? 0) >= Number(i.quantity));
-      const anyReceived = poItems.some((i: any) => Number(i.received_quantity ?? 0) > 0);
-
-      if (allReceived) {
-        await db.from('purchase_orders').update({ status: 'received' }).eq('id', receipt.purchase_order_id).eq('organization_id', user.organizationId);
-      } else if (anyReceived) {
-        await db.from('purchase_orders').update({ status: 'partially_received' }).eq('id', receipt.purchase_order_id).eq('organization_id', user.organizationId);
-      }
-    }
+    await db.rpc('update_po_status_from_items', {
+      p_po_id: receipt.purchase_order_id,
+      p_org_id: user.organizationId,
+    });
   }
 
   const confirmedStatus = 'confirmed';

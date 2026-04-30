@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { SERIAL_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,7 @@ import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const SerialNumberEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'serial-numbers' });
-  const { data: warehousesData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
-  const warehouseOptions = (warehousesData?.data ?? []).map((w: any) => ({ label: `${w.code} - ${w.name}`, value: w.id }));
+  const { selectProps: warehouseSelectProps } = useSelect({ resource: 'warehouses', optionLabel: (r: any) => `${r.code} - ${r.name}` });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -30,7 +28,7 @@ export const SerialNumberEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('serial_numbers', 'warehouse_id')} name="warehouse_id">
-              <Select options={warehouseOptions} showSearch optionFilterProp="label" allowClear />
+              <Select {...warehouseSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
         </Row>

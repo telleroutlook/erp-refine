@@ -1,14 +1,15 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const ProfileChangeRequestEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'profile-change-requests' });
-  const { data: suppliersData } = useList({ resource: 'suppliers', pagination: { pageSize: 500 } });
-  const supplierOptions = (suppliersData?.data ?? []).map((s: any) => ({ label: `${s.code} - ${s.name}`, value: s.id }));
+  const { selectProps: supplierSelectProps } = useSelect({
+    resource: 'suppliers',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -29,7 +30,7 @@ export const ProfileChangeRequestEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('profile_change_requests', 'supplier_id')} name="supplier_id">
-              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_supplier')} allowClear />
+              <Select {...supplierSelectProps} showSearch placeholder={t('placeholder.select_supplier')} allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

@@ -175,6 +175,7 @@ export function createQualityTools(db: SupabaseClient, organizationId: string, u
         qualifiedQuantity: z.number().nonnegative().optional(),
         defectiveQuantity: z.number().nonnegative().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, result, qualifiedQuantity, defectiveQuantity, confirmed }) => {
         const { data: qi, error } = await db

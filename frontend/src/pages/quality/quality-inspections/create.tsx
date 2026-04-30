@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { INSPECTION_STATUS_OPTIONS, INSPECTION_REFERENCE_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
@@ -9,8 +9,14 @@ import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const QualityInspectionCreate: React.FC = () => {
   const { formProps, saveButtonProps, form } = useForm({ resource: 'quality-inspections' });
-  const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
-  const { data: employeesData } = useList({ resource: 'employees', pagination: { pageSize: 500 } });
+  const { selectProps: productSelectProps } = useSelect({
+    resource: 'products',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
+  const { selectProps: employeeSelectProps } = useSelect({
+    resource: 'employees',
+    optionLabel: (r: any) => `${r.employee_number ?? r.code} - ${r.name}`,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -28,8 +34,6 @@ export const QualityInspectionCreate: React.FC = () => {
     queryOptions: { enabled: !!referenceResource },
   });
 
-  const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
-  const employeeOptions = (employeesData?.data ?? []).map((e: any) => ({ label: `${e.employee_number ?? e.code} - ${e.name}`, value: e.id }));
   const refDocOptions = (refDocsData?.data ?? []).map((d: any) => ({
     label: d.receipt_number ?? d.work_order_number ?? d.return_number ?? d.id,
     value: d.id,
@@ -41,7 +45,7 @@ export const QualityInspectionCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('quality_inspections', 'product_id')} name="product_id" rules={[{ required: true }]}>
-              <Select options={productOptions} showSearch optionFilterProp="label" />
+              <Select {...productSelectProps} showSearch />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
@@ -56,7 +60,7 @@ export const QualityInspectionCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('quality_inspections', 'inspector_id')} name="inspector_id">
-              <Select options={employeeOptions} showSearch optionFilterProp="label" allowClear />
+              <Select {...employeeSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

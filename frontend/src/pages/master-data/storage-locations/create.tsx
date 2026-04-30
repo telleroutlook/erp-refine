@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -10,8 +9,7 @@ export const StorageLocationCreate: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const { formProps, saveButtonProps } = useForm({ resource: 'storage-locations' });
-  const { data: warehouseData } = useList({ resource: 'warehouses', pagination: { pageSize: 500 } });
-  const warehouseOptions = (warehouseData?.data ?? []).map((w: any) => ({ label: `${w.code} - ${w.name}`, value: w.id }));
+  const { selectProps: warehouseSelectProps } = useSelect({ resource: 'warehouses', optionLabel: (r: any) => `${r.code} - ${r.name}` });
 
   return (
     <Create saveButtonProps={saveButtonProps} title={pt('storage_locations', 'create')}>
@@ -29,7 +27,7 @@ export const StorageLocationCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('storage_locations', 'warehouse_id')} name="warehouse_id" rules={[{ required: true, message: t('validation.requiredSelect', { field: fl('storage_locations', 'warehouse_id') }) }]}>
-              <Select options={warehouseOptions} showSearch optionFilterProp="label"  />
+              <Select {...warehouseSelectProps} showSearch  />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,10 @@ import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const AssetMaintenanceCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'asset-maintenance' });
-  const { data: assetsData } = useList({ resource: 'fixed-assets', pagination: { pageSize: 500 } });
-  const assetOptions = (assetsData?.data ?? []).map((a: any) => ({ label: `${a.asset_number} - ${a.asset_name}`, value: a.id }));
+  const { selectProps: assetSelectProps } = useSelect({
+    resource: 'fixed-assets',
+    optionLabel: (r: any) => `${r.asset_number} - ${r.asset_name}`,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -20,7 +21,7 @@ export const AssetMaintenanceCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('asset_maintenance_records', 'asset_id')} name="asset_id" rules={[{ required: true, message: t('validation.requiredSelect', { field: fl('asset_maintenance_records', 'asset_id') }) }]}>
-              <Select options={assetOptions} showSearch optionFilterProp="label" />
+              <Select {...assetSelectProps} showSearch />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

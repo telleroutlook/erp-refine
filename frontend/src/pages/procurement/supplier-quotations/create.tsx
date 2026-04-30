@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { QUOTATION_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
@@ -12,8 +11,10 @@ export const SupplierQuotationCreate: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
-  const { data: suppliersData } = useList({ resource: 'suppliers', pagination: { pageSize: 500 } });
-  const supplierOptions = (suppliersData?.data ?? []).map((s: any) => ({ label: `${s.code} - ${s.name}`, value: s.id }));
+  const { selectProps: supplierSelectProps } = useSelect({
+    resource: 'suppliers',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
   const statusOpts = translateOptions(QUOTATION_STATUS_OPTIONS.slice(0, 2), t);
 
   return (
@@ -22,7 +23,7 @@ export const SupplierQuotationCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('supplier_quotations', 'supplier_id')} name="supplier_id" rules={[{ required: true, message: t('validation.required_supplier') }]}>
-              <Select options={supplierOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_supplier')} />
+              <Select {...supplierSelectProps} showSearch placeholder={t('placeholder.select_supplier')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

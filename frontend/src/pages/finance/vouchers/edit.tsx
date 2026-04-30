@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
@@ -16,8 +15,10 @@ export const VoucherEdit: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const record = queryResult?.data?.data as any;
-  const { data: accountsData } = useList({ resource: 'account-subjects', pagination: { pageSize: 500 } });
-  const accountOptions = (accountsData?.data ?? []).map((a: any) => ({ label: `${a.code} - ${a.name}`, value: a.id }));
+  const { selectProps: accountSelectProps } = useSelect({
+    resource: 'account-subjects',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
 
   const ENTRY_TYPE_OPTIONS = [
     { label: t('enums.balanceDirection.debit'), value: 'debit' },
@@ -26,7 +27,7 @@ export const VoucherEdit: React.FC = () => {
 
   const entryColumns: ColumnConfig[] = [
     { dataIndex: 'sequence', title: fl('voucher_entries', 'sequence'), width: 60 },
-    { dataIndex: 'account_subject_id', title: fl('voucher_entries', 'account_subject_id'), editable: true, inputType: 'select', selectOptions: accountOptions, render: (_: any, r: any) => r?.account ? `${r.account.code} ${r.account.name}` : r?.account_subject_id },
+    { dataIndex: 'account_subject_id', title: fl('voucher_entries', 'account_subject_id'), editable: true, inputType: 'select', selectOptions: accountSelectProps.options as any, render: (_: any, r: any) => r?.account ? `${r.account.code} ${r.account.name}` : r?.account_subject_id },
     { dataIndex: 'entry_type', title: fl('voucher_entries', 'entry_type'), width: 80, editable: true, inputType: 'select', selectOptions: ENTRY_TYPE_OPTIONS, render: (v: any) => v === 'debit' ? t('enums.balanceDirection.debit') : t('enums.balanceDirection.credit') },
     { dataIndex: 'amount', title: fl('voucher_entries', 'amount'), width: 140, align: 'right', editable: true, inputType: 'number', render: (v: any) => <AmountDisplay value={v} /> },
     { dataIndex: 'summary', title: fl('voucher_entries', 'summary'), editable: true },

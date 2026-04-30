@@ -8,3 +8,4 @@ export { useCreateFrom } from './useCreateFrom';
 export type { CreateFromData, CreateFromSource, UseCreateFromResult } from './useCreateFrom';
 export { useDocumentChain } from './useDocumentChain';
 export type { DocumentChain, ChainNode, ChainEdge } from './useDocumentChain';
+export { useProductSearch } from './useProductSearch';

@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,10 @@ import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const CustomerReceiptCreate: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'customer-receipts' });
-  const { data: customersData } = useList({ resource: 'customers', pagination: { pageSize: 500 } });
-  const customerOptions = (customersData?.data ?? []).map((c: any) => ({ label: `${c.code} - ${c.name}`, value: c.id }));
+  const { selectProps: customerSelectProps } = useSelect({
+    resource: 'customers',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -20,7 +21,7 @@ export const CustomerReceiptCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('customer_receipts', 'customer_id')} name="customer_id" rules={[{ required: true, message: t('validation.required_customer') }]}>
-              <Select options={customerOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_customer')} />
+              <Select {...customerSelectProps} showSearch placeholder={t('placeholder.select_customer')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

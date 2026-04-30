@@ -121,6 +121,7 @@ chat.post('/', async (c) => {
 function wrapToolsWithPolicy(
   tools: ReturnType<typeof buildToolSet>,
   user: { userId: string; role: string; organizationId: string },
+  approvals: string[] = [],
 ): ReturnType<typeof buildToolSet> {
   const wrapped: ReturnType<typeof buildToolSet> = {};
   for (const [name, toolDef] of Object.entries(tools)) {
@@ -145,7 +146,7 @@ function wrapToolsWithPolicy(
           role: user.role,
           organizationId: user.organizationId,
           confirmed: args['confirmed'] as boolean | undefined,
-          approved: args['approved'] as boolean | undefined,
+          approved: (args['approved'] as boolean | undefined) || approvals.includes(name),
         });
         if (policy.decision === 'deny') {
           throw new Error(`Policy denied: ${policy.reason}`);
@@ -154,7 +155,7 @@ function wrapToolsWithPolicy(
           return { preview: true, message: `Confirmation required: ${policy.reason}. Set confirmed=true to proceed.` };
         }
         if (policy.decision === 'require_approval') {
-          return { preview: true, message: `Approval required: ${policy.reason}.` };
+          return { requiresApproval: true, toolName: name, message: `Approval required: ${policy.reason}. Re-send with approvals: ["${name}"] to proceed.` };
         }
         return originalExecute(args, opts);
       },
@@ -166,7 +167,7 @@ function wrapToolsWithPolicy(
 /** POST /api/chat/stream — SSE streaming with conversation history */
 chat.post('/stream', async (c) => {
   const user = c.get('user');
-  const body = await c.req.json<{ message: string; sessionId?: string }>();
+  const body = await c.req.json<{ message: string; sessionId?: string; approvals?: string[] }>();
 
   if (!body.message?.trim()) return c.json({ error: 'Message required' }, 400);
   if (body.message.length > 4000) return c.json({ error: 'Message too long (max 4000 chars)' }, 400);
@@ -175,7 +176,7 @@ chat.post('/stream', async (c) => {
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const rawTools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId });
-  const tools = wrapToolsWithPolicy(rawTools, user);
+  const tools = wrapToolsWithPolicy(rawTools, user, body.approvals ?? []);
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 

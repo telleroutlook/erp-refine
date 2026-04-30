@@ -235,40 +235,50 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
     throw ApiError.badRequest('objectId must be a valid UUID', requestId);
   }
 
-  // BFS both directions
+  // BFS both directions — batch-by-level to minimize DB round trips
   const visitedNodes = new Set<string>();
   const allRelations = new Map<string, { id: string; from_object_type: string; from_object_id: string; to_object_type: string; to_object_id: string; label: string | null }>();
-  const queue: Array<{ type: string; id: string; depth: number }> = [
-    { type: focalType, id: focalId, depth: 0 },
+  let frontier: Array<{ type: string; id: string }> = [
+    { type: focalType, id: focalId },
   ];
+  visitedNodes.add(`${focalType}:${focalId}`);
+  let depth = 0;
 
-  while (queue.length > 0) {
-    if (visitedNodes.size >= MAX_NODES) break;
-    const item = queue.shift()!;
-    const key = `${item.type}:${item.id}`;
-    if (visitedNodes.has(key) || item.depth > MAX_DEPTH) continue;
-    visitedNodes.add(key);
+  while (frontier.length > 0 && depth < MAX_DEPTH && visitedNodes.size < MAX_NODES) {
+    const frontierIds = frontier.map(f => f.id);
 
     const [outRes, inRes] = await Promise.all([
       db.from('document_relations')
         .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
         .eq('organization_id', orgId)
-        .eq('from_object_type', item.type)
-        .eq('from_object_id', item.id),
+        .in('from_object_id', frontierIds),
       db.from('document_relations')
         .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
         .eq('organization_id', orgId)
-        .eq('to_object_type', item.type)
-        .eq('to_object_id', item.id),
+        .in('to_object_id', frontierIds),
     ]);
 
+    const nextFrontier: Array<{ type: string; id: string }> = [];
+
     for (const rel of [...(outRes.data ?? []), ...(inRes.data ?? [])]) {
-      if (!allRelations.has(rel.id)) allRelations.set(rel.id, rel);
+      if (allRelations.has(rel.id)) continue;
+      allRelations.set(rel.id, rel);
+
       const targetKey = `${rel.to_object_type}:${rel.to_object_id}`;
+      if (!visitedNodes.has(targetKey) && visitedNodes.size < MAX_NODES) {
+        visitedNodes.add(targetKey);
+        nextFrontier.push({ type: rel.to_object_type, id: rel.to_object_id });
+      }
+
       const sourceKey = `${rel.from_object_type}:${rel.from_object_id}`;
-      if (!visitedNodes.has(targetKey)) queue.push({ type: rel.to_object_type, id: rel.to_object_id, depth: item.depth + 1 });
-      if (!visitedNodes.has(sourceKey)) queue.push({ type: rel.from_object_type, id: rel.from_object_id, depth: item.depth + 1 });
+      if (!visitedNodes.has(sourceKey) && visitedNodes.size < MAX_NODES) {
+        visitedNodes.add(sourceKey);
+        nextFrontier.push({ type: rel.from_object_type, id: rel.from_object_id });
+      }
     }
+
+    frontier = nextFrontier;
+    depth++;
   }
 
   // Group node IDs by type for batch display data fetching

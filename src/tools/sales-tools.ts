@@ -267,6 +267,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
       inputSchema: z.object({
         id: z.string().uuid(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, confirmed }) => {
         const { data: so, error } = await db
@@ -300,6 +301,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
         id: z.string().uuid(),
         reason: z.string().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, reason, confirmed }) => {
         const { data: so, error } = await db

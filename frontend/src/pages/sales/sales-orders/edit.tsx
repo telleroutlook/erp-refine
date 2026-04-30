@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { SO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
-import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
-import { useFieldLabel, usePageTitle } from '../../../hooks';
+import { useFieldLabel, usePageTitle, useProductSearch } from '../../../hooks';
 
 export const SalesOrderEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'sales-orders' });
@@ -15,19 +14,13 @@ export const SalesOrderEdit: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const record = queryResult?.data?.data as any;
-  const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
-  const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
-  const productsMap = useMemo(() => {
-    const m = new Map<string, ProductInfo>();
-    (productsData?.data ?? []).forEach((p: any) => m.set(p.id, p));
-    return m;
-  }, [productsData]);
+  const { selectProps: productSelectProps, productsMap } = useProductSearch();
   const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
   const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
 
   const itemColumns: ColumnConfig[] = [
     { dataIndex: 'line_number', title: fl('sales_order_items', 'line_number'), width: 60 },
-    { dataIndex: 'product_id', title: fl('sales_order_items', 'product_id'), editable: true, inputType: 'select', selectOptions: productOptions, render: (_: any, r: any) => r?.product?.name },
+    { dataIndex: 'product_id', title: fl('sales_order_items', 'product_id'), editable: true, inputType: 'select', selectOptions: productSelectProps.options as any, render: (_: any, r: any) => r?.product?.name },
     { dataIndex: ['product', 'code'], title: fl('products', 'code'), width: 120 },
     { dataIndex: 'quantity', title: fl('sales_order_items', 'quantity'), width: 80, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'unit_price', title: fl('sales_order_items', 'unit_price'), width: 100, align: 'right', editable: true, inputType: 'number', render: (v: any) => <AmountDisplay value={v} currency={record?.currency} /> },

@@ -478,25 +478,12 @@ sales.post('/sales-shipments/:id/confirm', async (c) => {
     );
   }
 
-  // 4. Auto-progress SO status based on total fulfillment
+  // 4. Auto-progress SO status based on total fulfillment (atomic RPC)
   if (shipment.sales_order_id) {
-    const { data: soItems } = await db
-      .from('sales_order_items')
-      .select('quantity, shipped_quantity')
-      .eq('sales_order_id', shipment.sales_order_id)
-      .eq('organization_id', user.organizationId)
-      .is('deleted_at', null);
-
-    if (soItems && soItems.length > 0) {
-      const allShipped = soItems.every((i: any) => Number(i.shipped_quantity ?? 0) >= Number(i.quantity));
-      const anyShipped = soItems.some((i: any) => Number(i.shipped_quantity ?? 0) > 0);
-
-      if (allShipped) {
-        await db.from('sales_orders').update({ status: 'shipped' }).eq('id', shipment.sales_order_id).eq('organization_id', user.organizationId);
-      } else if (anyShipped) {
-        await db.from('sales_orders').update({ status: 'shipping' }).eq('id', shipment.sales_order_id).eq('organization_id', user.organizationId);
-      }
-    }
+    await db.rpc('update_so_status_from_items', {
+      p_so_id: shipment.sales_order_id,
+      p_org_id: user.organizationId,
+    });
   }
 
   return c.json({

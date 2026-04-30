@@ -442,6 +442,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
       inputSchema: z.object({
         id: z.string().uuid(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, confirmed }) => {
         const { data: po, error } = await db
@@ -506,6 +507,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
       inputSchema: z.object({
         id: z.string().uuid(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, confirmed }) => {
         const { data: pr, error } = await db
@@ -539,6 +541,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         id: z.string().uuid(),
         reason: z.string().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, reason, confirmed }) => {
         const { data: po, error } = await db
@@ -572,6 +575,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         id: z.string().uuid(),
         reason: z.string().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
+        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, reason, confirmed }) => {
         const { data: pr, error } = await db

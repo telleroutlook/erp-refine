@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Create } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { REQUISITION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
@@ -13,8 +12,10 @@ export const PurchaseRequisitionCreate: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const statusOpts = translateOptions(REQUISITION_STATUS_OPTIONS.slice(0, 2), t);
-  const { data: departmentsData } = useList({ resource: 'departments', pagination: { pageSize: 500 } });
-  const departmentOptions = (departmentsData?.data ?? []).map((d: any) => ({ label: d.name, value: d.id }));
+  const { selectProps: departmentSelectProps } = useSelect({
+    resource: 'departments',
+    optionLabel: (r: any) => r.name,
+  });
 
   return (
     <Create saveButtonProps={saveButtonProps} title={pt('purchase_requisitions', 'create')}>
@@ -22,7 +23,7 @@ export const PurchaseRequisitionCreate: React.FC = () => {
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('purchase_requisitions', 'department_id')} name="department_id">
-              <Select options={departmentOptions} showSearch optionFilterProp="label" placeholder={t('placeholder.select_department')} />
+              <Select {...departmentSelectProps} showSearch placeholder={t('placeholder.select_department')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

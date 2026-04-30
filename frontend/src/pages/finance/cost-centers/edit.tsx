@@ -1,16 +1,19 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const CostCenterEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'cost-centers' });
-  const { data: centersData } = useList({ resource: 'cost-centers', pagination: { pageSize: 500 } });
-  const parentOptions = (centersData?.data ?? []).map((c: any) => ({ label: `${c.code} - ${c.name}`, value: c.id }));
-  const { data: employeesData } = useList({ resource: 'employees', pagination: { pageSize: 500 } });
-  const managerOptions = (employeesData?.data ?? []).map((e: any) => ({ label: e.name, value: e.id }));
+  const { selectProps: parentSelectProps } = useSelect({
+    resource: 'cost-centers',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
+  const { selectProps: managerSelectProps } = useSelect({
+    resource: 'employees',
+    optionLabel: (r: any) => r.name,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -31,12 +34,12 @@ export const CostCenterEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('cost_centers', 'parent_id')} name="parent_id">
-              <Select options={parentOptions} showSearch optionFilterProp="label" allowClear />
+              <Select {...parentSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('cost_centers', 'manager_id')} name="manager_id">
-              <Select options={managerOptions} showSearch optionFilterProp="label" allowClear />
+              <Select {...managerSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

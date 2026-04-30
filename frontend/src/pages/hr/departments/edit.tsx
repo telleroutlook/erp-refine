@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Row, Col } from 'antd';
 import { DEPARTMENT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,10 @@ import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const DepartmentEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'departments' });
-  const { data: deptData } = useList({ resource: 'departments', pagination: { pageSize: 500 } });
-  const deptOptions = (deptData?.data ?? []).map((d: any) => ({ label: `${d.code} - ${d.name}`, value: d.id }));
+  const { selectProps: deptSelectProps } = useSelect({
+    resource: 'departments',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -30,7 +31,7 @@ export const DepartmentEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('departments', 'parent_id')} name="parent_id">
-              <Select options={deptOptions} showSearch optionFilterProp="label" allowClear  />
+              <Select {...deptSelectProps} showSearch allowClear  />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

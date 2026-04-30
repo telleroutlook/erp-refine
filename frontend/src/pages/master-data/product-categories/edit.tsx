@@ -1,6 +1,5 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 import { useTranslation } from 'react-i18next';
@@ -10,8 +9,7 @@ export const ProductCategoryEdit: React.FC = () => {
   const fl = useFieldLabel();
   const pt = usePageTitle();
   const { formProps, saveButtonProps } = useForm({ resource: 'product-categories' });
-  const { data: catData } = useList({ resource: 'product-categories', pagination: { pageSize: 500 } });
-  const catOptions = (catData?.data ?? []).map((c: any) => ({ label: `${c.code} - ${c.name}`, value: c.id }));
+  const { selectProps: catSelectProps } = useSelect({ resource: 'product-categories', optionLabel: (r: any) => `${r.code} - ${r.name}` });
 
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('product_categories', 'edit')}>
@@ -29,7 +27,7 @@ export const ProductCategoryEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('product_categories', 'parent_id')} name="parent_id">
-              <Select options={catOptions} showSearch optionFilterProp="label" allowClear  />
+              <Select {...catSelectProps} showSearch allowClear  />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

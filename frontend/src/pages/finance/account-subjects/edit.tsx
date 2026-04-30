@@ -1,14 +1,15 @@
 import React from 'react';
-import { useForm, Edit } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
+import { useForm, Edit, useSelect } from '@refinedev/antd';
 import { Form, Input, Select, Switch, Row, Col } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const AccountSubjectEdit: React.FC = () => {
   const { formProps, saveButtonProps } = useForm({ resource: 'account-subjects' });
-  const { data: accountsData } = useList({ resource: 'account-subjects', pagination: { pageSize: 500 } });
-  const parentOptions = (accountsData?.data ?? []).map((a: any) => ({ label: `${a.code} - ${a.name}`, value: a.id }));
+  const { selectProps: parentSelectProps } = useSelect({
+    resource: 'account-subjects',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+  });
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
@@ -52,7 +53,7 @@ export const AccountSubjectEdit: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('account_subjects', 'parent_id')} name="parent_id">
-              <Select options={parentOptions} showSearch optionFilterProp="label" allowClear />
+              <Select {...parentSelectProps} showSearch allowClear />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

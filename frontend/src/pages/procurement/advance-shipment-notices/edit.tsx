@@ -1,12 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, Edit, useSelect } from '@refinedev/antd';
-import { useList } from '@refinedev/core';
 import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { ASN_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
-import { EditableItemTable, type ColumnConfig, type ProductInfo, type ItemsPayload } from '../../../components/shared/EditableItemTable';
+import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
-import { useFieldLabel, usePageTitle } from '../../../hooks';
+import { useFieldLabel, usePageTitle, useProductSearch } from '../../../hooks';
 
 export const AdvanceShipmentNoticeEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'advance-shipment-notices' });
@@ -16,16 +15,14 @@ export const AdvanceShipmentNoticeEdit: React.FC = () => {
   const record = queryResult?.data?.data as any;
   const { selectProps: supplierProps } = useSelect({ resource: 'suppliers', optionLabel: 'name', optionValue: 'id' });
   const { selectProps: warehouseProps } = useSelect({ resource: 'warehouses', optionLabel: 'name', optionValue: 'id' });
-  const { data: productsData } = useList({ resource: 'products', pagination: { pageSize: 500 } });
-  const productOptions = (productsData?.data ?? []).map((p: any) => ({ label: `${p.code} - ${p.name}`, value: p.id }));
-  const productsMap = useMemo(() => { const m = new Map<string, ProductInfo>(); (productsData?.data ?? []).forEach((p: any) => m.set(p.id, p)); return m; }, [productsData]);
+  const { selectProps: productSelectProps, productsMap } = useProductSearch();
 
   const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
   const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
 
   const itemColumns: ColumnConfig[] = [
     { dataIndex: 'line_number', title: fl('asn_lines', 'line_number'), width: 60 },
-    { dataIndex: 'product_id', title: fl('asn_lines', 'product_id'), editable: true, inputType: 'select', selectOptions: productOptions, render: (_: any, r: any) => r?.product?.name },
+    { dataIndex: 'product_id', title: fl('asn_lines', 'product_id'), editable: true, inputType: 'select', selectOptions: productSelectProps.options as any, render: (_: any, r: any) => r?.product?.name },
     { dataIndex: 'quantity', title: fl('asn_lines', 'quantity'), width: 100, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'lot_no', title: fl('asn_lines', 'lot_no'), width: 140, editable: true },
   ];
