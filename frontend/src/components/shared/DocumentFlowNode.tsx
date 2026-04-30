@@ -76,7 +76,7 @@ function DocumentFlowNodeInner({ data }: NodeProps) {
   const icon = TYPE_ICONS[d.objectType] ?? <FileTextOutlined />;
   const typeLabel = t(`documentTypes.${d.objectType}`, { defaultValue: TYPE_LABELS[d.objectType] ?? d.objectType.replace(/_/g, ' ') });
 
-  const borderColor = d.isFocal ? 'var(--color-sage)' : 'var(--color-border)';
+  const borderColor = d.isFocal ? 'var(--color-sage)' : '#94A3B8';
   const boxShadow = d.isFocal
     ? '0 0 0 2px var(--color-sage), 0 2px 8px rgba(5,150,105,0.15)'
     : '0 1px 4px rgba(0,0,0,0.06)';
@@ -101,7 +101,7 @@ function DocumentFlowNodeInner({ data }: NodeProps) {
           width: 200,
           minHeight: 90,
           background: 'var(--color-surface)',
-          border: `1.5px solid ${borderColor}`,
+          border: `2px solid ${borderColor}`,
           borderRadius: 8,
           boxShadow,
           opacity,

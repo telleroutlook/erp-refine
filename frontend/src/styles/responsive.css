@@ -125,7 +125,7 @@
   height: var(--mobile-tab-bar-height);
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--color-surface, #FFFFFF);
-  border-top: 1px solid var(--color-border-secondary, #E2E8F0);
+  border-top: 1px solid var(--color-border-secondary, #CBD5E1);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
 }
 

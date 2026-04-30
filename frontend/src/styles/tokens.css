@@ -8,7 +8,7 @@
   --color-sage: #059669;
   --color-bg: #F8FAFC;
   --color-surface: #FFFFFF;
-  --color-border: #E2E8F0;
+  --color-border: #CBD5E1;
 
   /* ── Status chip palette ────────────────────────────── */
   --status-gray-bg: #F1F5F9;     --status-gray-text: #475569;
@@ -34,7 +34,7 @@
   --ai-gradient: linear-gradient(135deg, #131B2E 0%, #1E293B 100%);
   --ai-glow: 0 2px 8px rgba(15, 23, 42, 0.25);
   --ai-bg-bubble: #F8FAFC;
-  --ai-border-bubble: #E2E8F0;
+  --ai-border-bubble: #CBD5E1;
   --ai-input-bg: #F8FAFC;
   --ai-drag-bg: rgba(15, 23, 42, 0.08);
   --ai-subtitle-color: rgba(255, 255, 255, 0.6);
@@ -42,16 +42,16 @@
 
   /* ── Markdown rendering ────────────────────────────── */
   --md-code-bg: #F8FAFC;
-  --md-code-border: #E2E8F0;
+  --md-code-border: #CBD5E1;
   --md-code-inline-bg: #F1F5F9;
   --md-code-inline-color: #0F172A;
   --md-blockquote-border: #059669;
   --md-blockquote-bg: #F0FDF4;
   --md-blockquote-text: #334155;
   --md-link-color: #0F172A;
-  --md-table-border: #E2E8F0;
+  --md-table-border: #CBD5E1;
   --md-table-header-bg: #F8FAFC;
-  --md-hr-color: #E2E8F0;
+  --md-hr-color: #CBD5E1;
 
   /* ── Login ─────────────────────────────────────────── */
   --login-card-shadow: 0 20px 60px rgba(15, 23, 42, 0.12), 0 1px 3px rgba(15, 23, 42, 0.08);
@@ -62,7 +62,7 @@
   --content-padding: 24px;
   --mobile-tab-bar-height: 56px;
   --header-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-  --color-border-secondary: #E2E8F0;
+  --color-border-secondary: #CBD5E1;
 
   /* ── Typography ────────────────────────────────────── */
   --font-heading: "Plus Jakarta Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;

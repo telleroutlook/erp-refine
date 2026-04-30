@@ -19,9 +19,9 @@ export const erpTheme: ThemeConfig = {
     colorTextTertiary: '#94A3B8',
     colorTextQuaternary: '#CBD5E1',
 
-    colorBorder: '#E2E8F0',
-    colorBorderSecondary: '#E2E8F0',
-    colorSplit: '#E2E8F0',
+    colorBorder: '#CBD5E1',
+    colorBorderSecondary: '#CBD5E1',
+    colorSplit: '#CBD5E1',
 
     borderRadius: 8,
     borderRadiusLG: 12,
@@ -89,7 +89,7 @@ export const erpTheme: ThemeConfig = {
     Button: {
       borderRadius: 8,
       fontWeight: 500,
-      defaultBorderColor: '#E2E8F0',
+      defaultBorderColor: '#CBD5E1',
       defaultColor: '#0F172A',
     },
     Input: {
@@ -108,7 +108,7 @@ export const erpTheme: ThemeConfig = {
       labelBg: '#F8FAFC',
     },
     Divider: {
-      colorSplit: '#E2E8F0',
+      colorSplit: '#CBD5E1',
     },
     Tag: {
       borderRadiusSM: 4,

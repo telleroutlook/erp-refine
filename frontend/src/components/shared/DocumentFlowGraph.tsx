@@ -45,7 +45,7 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
         source: `${e.fromObjectType}:${e.fromObjectId}`,
         target: `${e.toObjectType}:${e.toObjectId}`,
         type: 'smoothstep',
-        style: { stroke: 'var(--color-border)', strokeWidth: 1.5 },
+        style: { stroke: '#94A3B8', strokeWidth: 2 },
       })),
     [chain.edges]
   );
@@ -131,7 +131,7 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
         elementsSelectable={false}
         proOptions={{ hideAttribution: true }}
       >
-        <Background gap={20} size={1} color="var(--color-border)" />
+        <Background gap={20} size={1} color="#CBD5E1" />
         <Controls showInteractive={false} position="bottom-right" />
       </ReactFlow>
     </div>
