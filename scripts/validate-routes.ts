@@ -275,7 +275,7 @@ const KNOWN_SEQUENCES = new Set([
   'supplier_quotation', 'payment_request', 'payment_record', 'customer_receipt', 'voucher',
   'work_order', 'bom_header', 'quality_inspection', 'contract',
   'sales_return', 'budget', 'inventory_count', 'advance_shipment_notice',
-  'reconciliation_statement', 'quality_standard',
+  'reconciliation_statement', 'quality_standard', 'profile_change_request',
 ]);
 
 for (const { relPath, content, lines } of routeFiles) {
