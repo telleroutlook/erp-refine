@@ -6,6 +6,8 @@ import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, buildNestedCrudRoutes, type CrudConfig } from '../utils/crud-factory';
+import { getDbAndUser } from '../utils/query-helpers';
+import { ApiError } from '../utils/api-error';
 
 const partners = new Hono<{ Bindings: Env }>();
 partners.use('*', authMiddleware());
@@ -185,12 +187,45 @@ const profileChangeRequestsConfig: CrudConfig = {
   resourceName: 'ProfileChangeRequest',
   listSelect: 'id, supplier_id, request_type, change_request_id, status, created_by, created_at, updated_at',
   detailSelect: '*',
-  createReturnSelect: 'id, request_type, status',
+  createReturnSelect: 'id, request_type, status, change_request_id',
   defaultSort: 'created_at',
   softDelete: false,
   orgScoped: true,
+  disableCreate: true,
 };
 
 partners.route('', buildCrudRoutes(profileChangeRequestsConfig));
+
+// Custom POST: auto-generate change_request_id via sequence
+partners.post('/profile-change-requests', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const body = await c.req.json();
+
+  const { data: num, error: seqError } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'profile_change_request',
+  });
+  if (seqError || !num) throw ApiError.database(
+    `Sequence generation failed: ${seqError?.message ?? 'Sequence unavailable'}`, requestId
+  );
+
+  // Only pass known columns (notes not in schema, change_request_id is auto-generated)
+  const allowedFields = new Set(['supplier_id', 'request_type', 'status', 'before_data', 'after_data']);
+  const rest = Object.fromEntries(Object.entries(body).filter(([k]) => allowedFields.has(k)));
+
+  const { data, error } = await db
+    .from('profile_change_requests')
+    .insert({
+      ...rest,
+      change_request_id: num,
+      organization_id: user.organizationId,
+      created_by: user.userId,
+    })
+    .select('id, request_type, status, change_request_id')
+    .single();
+
+  if (error) throw ApiError.database(error.message, requestId);
+  return c.json({ data }, 201);
+});
 
 export default partners;
