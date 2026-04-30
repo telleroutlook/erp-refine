@@ -248,7 +248,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
           quantity,
         });
         if (inErr) {
-          await db.from('stock_transactions').delete().eq('id', outTxn.id);
+          await db.from('stock_transactions').delete().eq('id', outTxn.id).eq('organization_id', organizationId);
           throw new Error(inErr.message);
         }
 

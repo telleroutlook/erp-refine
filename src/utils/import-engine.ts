@@ -135,6 +135,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     returnSelect: 'id',
     requiredFields: ['customer_id', 'address_type'],
     references: { customer_id: 'customers' },
+    allowedFields: ['customer_id', 'address_type', 'contact_name', 'contact_phone', 'address', 'city', 'province', 'postal_code', 'country', 'is_default'],
   },
   suppliers: {
     table: 'suppliers',
@@ -148,6 +149,7 @@ export const ENTITY_CONFIGS: Record<string, EntityImportConfig> = {
     returnSelect: 'id',
     requiredFields: ['supplier_id', 'site_code', 'site_name'],
     references: { supplier_id: 'suppliers' },
+    allowedFields: ['supplier_id', 'site_code', 'site_name', 'address', 'city', 'province', 'postal_code', 'country', 'contact_name', 'contact_phone', 'is_active'],
   },
   warehouses: {
     table: 'warehouses',

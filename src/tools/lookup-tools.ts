@@ -52,12 +52,15 @@ export function createLookupTools(db: SupabaseClient, organizationId: string) {
           quality_inspections: 'inspection_number',
         };
 
-        const { data, error } = await (db.from(table) as any)
+        const NO_SOFT_DELETE = new Set(['vouchers', 'work_orders']);
+        let q = (db.from(table) as any)
           .select('id, status, notes, created_at, ' + (numberColumn[table] ?? 'order_number'))
           .eq('organization_id', organizationId)
-          .eq(numberColumn[table] ?? 'order_number', documentNumber)
-          .is('deleted_at', null)
-          .limit(1);
+          .eq(numberColumn[table] ?? 'order_number', documentNumber);
+        if (!NO_SOFT_DELETE.has(table)) {
+          q = q.is('deleted_at', null);
+        }
+        const { data, error } = await q.limit(1);
 
         if (error) throw new Error(error.message);
         return data?.[0] ?? null;

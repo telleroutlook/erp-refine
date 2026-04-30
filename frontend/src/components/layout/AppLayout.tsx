@@ -94,7 +94,8 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
   });
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? parseInt(stored, 10) : SIDEBAR_DEFAULT;
+    const parsed = stored ? parseInt(stored, 10) : NaN;
+    return isNaN(parsed) ? SIDEBAR_DEFAULT : Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, parsed));
   });
   const [isDragging, setIsDragging] = useState(false);
 

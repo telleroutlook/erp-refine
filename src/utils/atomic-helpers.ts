@@ -209,7 +209,10 @@ export async function atomicCreateWithItems(
       .select(itemsReturnSelect);
 
     if (itemsError) {
-      const { error: rollbackError } = await db.from(headerTable).delete().eq('id', headerId);
+      const orgId = (input.header as Record<string, unknown>)['organization_id'] as string | undefined;
+      let rollbackQuery = db.from(headerTable).delete().eq('id', headerId);
+      if (orgId) rollbackQuery = rollbackQuery.eq('organization_id', orgId);
+      const { error: rollbackError } = await rollbackQuery;
       if (rollbackError) {
         throw ApiError.database(
           itemsError.message,

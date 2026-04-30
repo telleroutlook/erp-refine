@@ -262,7 +262,8 @@ export async function runCompaction(
 
 /** Truncate text to a token budget, returning truncated text and actual token count */
 export function truncateToTokenBudget(text: string, maxTokens: number): { text: string; tokens: number } {
-  if (estimateTokens(text) <= maxTokens) return { text, tokens: estimateTokens(text) };
+  const tokens = estimateTokens(text);
+  if (tokens <= maxTokens) return { text, tokens };
 
   // Binary search approximate char count
   let lo = 0;

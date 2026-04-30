@@ -248,12 +248,13 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           const issueQty = mat.required_quantity - mat.issued_quantity;
           if (issueQty <= 0) continue;
 
-          await db
+          const { error: matUpdateErr } = await db
             .from('work_order_materials')
             .update({ issued_quantity: mat.required_quantity, status: 'issued' })
             .eq('id', mat.id)
             .eq('work_order_id', wo.id)
             .eq('organization_id', organizationId);
+          if (matUpdateErr) throw new Error(`Failed to issue material ${mat.id}: ${matUpdateErr.message}`);
         }
 
         if (wo.status === 'released') {

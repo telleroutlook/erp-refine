@@ -207,6 +207,7 @@ export async function validateReceiptAmount(
       .eq('reference_type', 'sales_invoice')
       .eq('reference_id', referenceId)
       .eq('organization_id', orgId)
+      .neq('status', 'cancelled')
       .is('deleted_at', null),
     db
       .from('sales_invoices')

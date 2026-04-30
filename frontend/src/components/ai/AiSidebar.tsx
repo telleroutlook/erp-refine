@@ -91,6 +91,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       });
 
       if (res.status === 401) {
+        setStreaming(false);
         logout();
         return;
       }

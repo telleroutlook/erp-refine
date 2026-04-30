@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Collapse, Skeleton, Alert, Typography } from 'antd';
 import { ApartmentOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useDocumentChain } from '../../hooks/useDocumentChain';
 
 const DocumentFlowGraph = lazy(() =>
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defaultOpen = true }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { chain, isLoading, error } = useDocumentChain(objectId ? objectType : null, objectId ?? null);
 
@@ -49,11 +51,11 @@ export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defau
   if (isLoading) {
     content = <Skeleton active paragraph={{ rows: 2 }} style={{ padding: '8px 0' }} />;
   } else if (error) {
-    content = <Alert type="warning" message="无法加载凭证流转图" description={error} showIcon style={{ margin: '8px 0' }} />;
+    content = <Alert type="warning" message={t('documentFlow.loadError', '无法加载凭证流转图')} description={error} showIcon style={{ margin: '8px 0' }} />;
   } else if (!hasData) {
     content = (
       <Typography.Text type="secondary" style={{ display: 'block', padding: '16px 0', textAlign: 'center' }}>
-        暂无关联单据
+        {t('documentFlow.noRelated', '暂无关联单据')}
       </Typography.Text>
     );
   } else {
@@ -74,7 +76,7 @@ export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defau
           label: (
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
               <ApartmentOutlined />
-              凭证流转
+              {t('documentFlow.title', '凭证流转')}
             </span>
           ),
           children: content,

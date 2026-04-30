@@ -20,16 +20,19 @@ declare module 'hono' {
   }
 }
 
-// Cache imported key (not the raw JWKS — the actual CryptoKey)
-let cachedKey: KeyLike | null = null;
-let cachedKeyKid: string | null = null;
-let cachedKeyAt = 0;
+// Cache imported keys (supports multiple kids during key rotation)
+const cachedKeys = new Map<string, { key: KeyLike; cachedAt: number }>();
 const JWKS_TTL_MS = 3_600_000; // 1 hour
 
 async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> {
+  if (typeof kid !== 'string' || kid.length > 256) {
+    throw new Error('Invalid kid');
+  }
+
   const now = Date.now();
-  if (cachedKey && cachedKeyKid === kid && (now - cachedKeyAt) < JWKS_TTL_MS) {
-    return cachedKey;
+  const entry = cachedKeys.get(kid);
+  if (entry && (now - entry.cachedAt) < JWKS_TTL_MS) {
+    return entry.key;
   }
 
   const jwksUrl = new URL('/auth/v1/.well-known/jwks.json', supabaseUrl);
@@ -37,13 +40,16 @@ async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> 
   if (!resp.ok) throw new Error(`JWKS fetch failed: ${resp.status}`);
   const jwks = await resp.json() as { keys: Array<Record<string, unknown>> };
 
-  const jwk = jwks.keys.find((k: any) => k.kid === kid);
-  if (!jwk) throw new Error(`JWK with kid '${kid}' not found`);
+  for (const jwk of jwks.keys) {
+    if (typeof jwk.kid === 'string') {
+      const importedKey = (await importJWK(jwk as any, 'ES256')) as KeyLike;
+      cachedKeys.set(jwk.kid, { key: importedKey, cachedAt: now });
+    }
+  }
 
-  cachedKey = (await importJWK(jwk as any, 'ES256')) as KeyLike;
-  cachedKeyKid = kid;
-  cachedKeyAt = now;
-  return cachedKey;
+  const resolved = cachedKeys.get(kid);
+  if (!resolved) throw new Error(`JWK with kid '${kid}' not found`);
+  return resolved.key;
 }
 
 export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {

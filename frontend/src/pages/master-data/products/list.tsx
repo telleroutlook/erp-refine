@@ -36,16 +36,16 @@ export const ProductList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title={t('menu.products')} width={140} />
-        <Table.Column dataIndex="name" title={t('menu.products')} />
+        <Table.Column dataIndex="code" title={fl('products', 'code')} width={140} />
+        <Table.Column dataIndex="name" title={fl('products', 'name')} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}
           width={100}
           render={(v) => <StatusTag status={v} />}
         />
-        <Table.Column dataIndex="uom" title={t('menu.products')} width={80} />
-        <Table.Column dataIndex="description" title={t('menu.products')} ellipsis />
+        <Table.Column dataIndex="uom" title={fl('products', 'uom')} width={80} />
+        <Table.Column dataIndex="description" title={fl('products', 'description')} ellipsis />
         <Table.Column
           title={t('common.actions')}
           width={100}
