@@ -16,7 +16,6 @@ export interface ExecutionRequest {
   domain: string;
   parameters: Record<string, unknown>;
   confirmed?: boolean;
-  approved?: boolean;
   strategy?: AgentStrategy;
   historyContext?: string;
 }
@@ -58,7 +57,6 @@ export class ExecutionAgent extends BaseAgent {
       role: ctx.role,
       organizationId: ctx.organizationId,
       confirmed: request.confirmed,
-      approved: request.approved,
     });
 
     if (policyResult.decision === 'deny') {
@@ -101,9 +99,7 @@ export class ExecutionAgent extends BaseAgent {
     const agentResult = await super.execute(async () => {
       const availableTools = Object.keys(tools).join(', ');
 
-      const effectiveParams = request.approved
-        ? { ...request.parameters, confirmed: true }
-        : request.parameters;
+      const effectiveParams = request.parameters;
 
       const promptParts = [
         request.historyContext ? `Conversation context:\n${request.historyContext}` : null,

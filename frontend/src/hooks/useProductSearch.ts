@@ -8,18 +8,19 @@ interface UseProductSearchResult {
 }
 
 export function useProductSearch(): UseProductSearchResult {
-  const { selectProps, queryResult } = useSelect({
+  const { selectProps, query } = useSelect({
     resource: 'products',
     optionLabel: (r: any) => `${r.code} - ${r.name}`,
+    pagination: { pageSize: 500 },
   });
 
   const productsMap = useMemo(() => {
     const m = new Map<string, ProductInfo>();
-    (queryResult?.data?.data ?? []).forEach((p: any) =>
+    (query?.data?.data ?? []).forEach((p: any) =>
       m.set(p.id, { id: p.id, code: p.code, name: p.name, uom: p.uom, cost_price: p.cost_price, sale_price: p.sale_price })
     );
     return m;
-  }, [queryResult?.data?.data]);
+  }, [query?.data?.data]);
 
   return { selectProps, productsMap };
 }

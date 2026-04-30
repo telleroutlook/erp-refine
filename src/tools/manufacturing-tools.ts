@@ -274,7 +274,6 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         id: z.string().uuid(),
         completedQuantity: z.number().nonnegative().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
-        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, completedQuantity, confirmed }) => {
         const { data: wo, error } = await db

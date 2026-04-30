@@ -19,7 +19,6 @@ export interface OrchestratorRequest {
   executionTools?: ToolSet;
   executionParams?: {
     confirmed?: boolean;
-    approved?: boolean;
   };
 }
 
@@ -129,7 +128,6 @@ export class Orchestrator {
             domain: spec.domain,
             parameters: spec.parameters ?? {},
             confirmed: executionParams.confirmed,
-            approved: executionParams.approved,
             strategy,
             historyContext,
           },

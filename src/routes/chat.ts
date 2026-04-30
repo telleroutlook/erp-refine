@@ -63,7 +63,6 @@ chat.post('/', async (c) => {
     message: string;
     sessionId?: string;
     confirmed?: boolean;
-    approved?: boolean;
   }>();
 
   if (!body.message?.trim()) return c.json({ error: 'Message required' }, 400);
@@ -96,7 +95,7 @@ chat.post('/', async (c) => {
       ctx,
       historyContext,
       executionTools: tools,
-      executionParams: { confirmed: body.confirmed, approved: body.approved },
+      executionParams: { confirmed: body.confirmed },
     },
     c.env,
     db
@@ -146,7 +145,7 @@ function wrapToolsWithPolicy(
           role: user.role,
           organizationId: user.organizationId,
           confirmed: args['confirmed'] as boolean | undefined,
-          approved: (args['approved'] as boolean | undefined) || approvals.includes(name),
+          approved: approvals.includes(name),
         });
         if (policy.decision === 'deny') {
           throw new Error(`Policy denied: ${policy.reason}`);

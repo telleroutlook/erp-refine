@@ -246,15 +246,18 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
 
   while (frontier.length > 0 && depth < MAX_DEPTH && visitedNodes.size < MAX_NODES) {
     const frontierIds = frontier.map(f => f.id);
+    const frontierTypes = [...new Set(frontier.map(f => f.type))];
 
     const [outRes, inRes] = await Promise.all([
       db.from('document_relations')
         .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
         .eq('organization_id', orgId)
+        .in('from_object_type', frontierTypes)
         .in('from_object_id', frontierIds),
       db.from('document_relations')
         .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
         .eq('organization_id', orgId)
+        .in('to_object_type', frontierTypes)
         .in('to_object_id', frontierIds),
     ]);
 

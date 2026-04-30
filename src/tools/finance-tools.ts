@@ -189,7 +189,6 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
         confirmed: z.boolean().default(false).describe(
           'Set to true to execute. Omit or false returns a dry-run preview without writing to the database.'
         ),
-        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ voucherType, voucherDate, entries, notes, confirmed }) => {
         const totalDebit = entries.filter(e => e.entryType === 'debit').reduce((s, e) => s + e.amount, 0);
@@ -263,7 +262,6 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
         id: z.string().uuid(),
         reason: z.string().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
-        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, reason, confirmed }) => {
         const { data: voucher, error } = await db
@@ -327,7 +325,6 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
       inputSchema: z.object({
         id: z.string().uuid(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
-        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, confirmed }) => {
         const { data: pr, error } = await db
@@ -360,7 +357,6 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
       inputSchema: z.object({
         id: z.string().uuid(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
-        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, confirmed }) => {
         const { data: voucher, error } = await db
@@ -397,7 +393,6 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
         id: z.string().uuid(),
         reason: z.string().optional(),
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
-        approved: z.boolean().default(false).describe('System-set when formal approval is granted.'),
       }),
       execute: async ({ id, reason, confirmed }) => {
         const { data: pr, error } = await db

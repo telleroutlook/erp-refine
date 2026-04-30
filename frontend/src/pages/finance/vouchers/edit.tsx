@@ -18,6 +18,7 @@ export const VoucherEdit: React.FC = () => {
   const { selectProps: accountSelectProps } = useSelect({
     resource: 'account-subjects',
     optionLabel: (r: any) => `${r.code} - ${r.name}`,
+    pagination: { pageSize: 500 },
   });
 
   const ENTRY_TYPE_OPTIONS = [
