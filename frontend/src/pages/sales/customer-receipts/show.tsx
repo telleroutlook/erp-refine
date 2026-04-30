@@ -3,6 +3,7 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -16,6 +17,7 @@ export const CustomerReceiptShow: React.FC = () => {
 
   return (
     <Show title={`${pt('customer_receipts', 'show')} ${record?.receipt_number ?? ''}`} isLoading={queryResult.isLoading}>
+      <DocumentFlowPanel objectType="customer_receipt" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('customer_receipts', 'receipt_number')}>{record?.receipt_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

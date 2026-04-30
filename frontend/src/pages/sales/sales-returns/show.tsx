@@ -3,6 +3,7 @@ import { useShow } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -16,6 +17,7 @@ export const SalesReturnShow: React.FC = () => {
 
   return (
     <Show title={`${pt('sales_returns', 'show')} ${record?.return_number ?? ''}`} isLoading={queryResult.isLoading}>
+      <DocumentFlowPanel objectType="sales_return" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_returns', 'return_number')}>{record?.return_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>

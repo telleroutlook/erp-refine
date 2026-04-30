@@ -6,6 +6,7 @@ import { CheckCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { INSPECTION_RESULT_OPTIONS, translateOptions } from '../../../constants/options';
 import { API_URL } from '../../../constants/api';
 
@@ -54,6 +55,7 @@ export const QualityInspectionShow: React.FC = () => {
 
   return (
     <Show title={`${pt('quality_inspections', 'show')} ${record?.inspection_number ?? ''}`} isLoading={queryResult.isLoading} headerButtons={headerButtons}>
+      <DocumentFlowPanel objectType="quality_inspection" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('quality_inspections', 'inspection_number')}>{record?.inspection_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

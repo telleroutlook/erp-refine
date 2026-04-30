@@ -4,6 +4,7 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider, Button, Dropdown, Space } from 'antd';
 import { DownOutlined, CarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -47,6 +48,7 @@ export const SalesOrderShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
+      <DocumentFlowPanel objectType="sales_order" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_orders', 'order_number')}>{record?.order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

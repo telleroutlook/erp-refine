@@ -5,6 +5,7 @@ import { Descriptions, Table, Divider, Button, Space } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
@@ -36,6 +37,7 @@ export const PurchaseRequisitionShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
+      <DocumentFlowPanel objectType="purchase_requisition" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('purchase_requisitions', 'requisition_number')}>{record?.requisition_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

@@ -4,6 +4,7 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider, Button, Space, Popconfirm, message } from 'antd';
 import { FileTextOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 import { API_URL } from '../../../constants/api';
@@ -60,6 +61,7 @@ export const SalesShipmentShow: React.FC = () => {
 
   return (
     <Show title={`${pt('sales_shipments', 'show')} ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading} headerButtons={headerButtons}>
+      <DocumentFlowPanel objectType="sales_shipment" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_shipments', 'shipment_number')}>{record?.shipment_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>

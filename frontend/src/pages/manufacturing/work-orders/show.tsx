@@ -4,6 +4,7 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
 export const WorkOrderShow: React.FC = () => {
@@ -15,6 +16,7 @@ export const WorkOrderShow: React.FC = () => {
 
   return (
     <Show title={pt('work_orders', 'show', { name: record?.work_order_number ?? '' })} isLoading={queryResult.isLoading}>
+      <DocumentFlowPanel objectType="work_order" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('work_orders', 'work_order_number')}>{record?.work_order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>

@@ -5,6 +5,7 @@ import { Descriptions, Table, Divider, Button, Space, Dropdown } from 'antd';
 import { DownOutlined, InboxOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
@@ -47,6 +48,7 @@ export const PurchaseOrderShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
+      <DocumentFlowPanel objectType="purchase_order" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('purchase_orders', 'order_number')}>{record?.order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

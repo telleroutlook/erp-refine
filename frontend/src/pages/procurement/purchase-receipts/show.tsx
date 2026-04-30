@@ -4,6 +4,7 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider, Button, Space, Popconfirm, message } from 'antd';
 import { FileTextOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { StatusTag } from '../../../components/shared/StatusTag';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 import { API_URL } from '../../../constants/api';
@@ -69,6 +70,7 @@ export const PurchaseReceiptShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
+      <DocumentFlowPanel objectType="purchase_receipt" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('purchase_receipts', 'receipt_number')}>{record?.receipt_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>

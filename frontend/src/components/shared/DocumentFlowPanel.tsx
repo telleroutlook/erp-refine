@@ -15,7 +15,7 @@ const TYPE_PATH: Record<string, string> = {
   sales_order: '/sales/sales-orders',
   sales_shipment: '/sales/sales-shipments',
   sales_return: '/sales/sales-returns',
-  supplier_invoice: '/procurement/supplier-invoices',
+  supplier_invoice: '/finance/supplier-invoices',
   sales_invoice: '/finance/sales-invoices',
   payment_request: '/finance/payment-requests',
   payment_record: '/finance/payment-records',
@@ -24,8 +24,8 @@ const TYPE_PATH: Record<string, string> = {
   quality_inspection: '/quality/quality-inspections',
   work_order: '/manufacturing/work-orders',
   budget: '/finance/budgets',
-  contract: '/procurement/contracts',
-  fixed_asset: '/fixed-assets/assets',
+  contract: '/contracts/contracts',
+  fixed_asset: '/assets/fixed-assets',
 };
 
 interface Props {
