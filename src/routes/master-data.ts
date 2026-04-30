@@ -93,7 +93,7 @@ masterData.put('/products/:id', async (c) => {
     safety_stock_days: true, average_daily_consumption: true,
     cost_price: true, sale_price: true,
     min_stock: true, max_stock: true, status: true,
-    default_tax_code: true,
+    default_tax_code: true, is_active: true,
   };
   const body = Object.fromEntries(Object.entries(raw).filter(([k]) => ALLOWED[k]));
 

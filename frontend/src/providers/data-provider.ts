@@ -68,8 +68,11 @@ export const dataProvider: DataProvider = {
           }
 
           // Item-level filters: fields starting with _item_ are passed through as-is
+          // Remove any previously appended variant (eq, _like, _in, etc.) before re-appending
           if (field.startsWith('_item_')) {
-            params.delete(`${field}`); // remove any standard mapping
+            for (const key of [...params.keys()]) {
+              if (key === field || key.startsWith(`${field}_`)) params.delete(key);
+            }
             params.append(field, String(value));
           }
         }

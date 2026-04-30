@@ -17,7 +17,7 @@ export function createPartnersTools(db: SupabaseClient, organizationId: string) 
             *,
             sites:supplier_sites(id,site_name,site_code,address,city,country,is_default),
             bank_accounts:supplier_bank_accounts(id,bank_name,account_number,account_name,currency,is_default),
-            contacts:supplier_contacts(id,contact_name,title,email,phone,is_default)
+            contacts:supplier_contacts(id,name,title,email,phone,is_default)
           `)
           .eq('id', id)
           .eq('organization_id', organizationId)

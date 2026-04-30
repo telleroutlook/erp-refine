@@ -222,7 +222,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
 
         const { error: lineErr } = await db.from('sales_order_items').insert(lineItems);
         if (lineErr) {
-          await db.from('sales_orders').delete().eq('id', so.id);
+          await db.from('sales_orders').delete().eq('id', so.id).eq('organization_id', organizationId);
           throw new Error(lineErr.message);
         }
 

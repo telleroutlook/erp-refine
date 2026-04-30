@@ -202,12 +202,20 @@ manufacturing.post('/work-orders', async (c) => {
     bomItems = bom ?? [];
   }
 
-  // Insert work order header
+  // Insert work order header — only permitted fields accepted
+  const PERMITTED_WO = new Set([
+    'bom_header_id', 'product_id', 'planned_quantity', 'warehouse_id',
+    'start_date', 'planned_completion_date', 'priority', 'notes',
+  ]);
   const { items: _discardedItems, ...headerFields } = body;
+  const safeHeader: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(headerFields)) {
+    if (PERMITTED_WO.has(k)) safeHeader[k] = v;
+  }
   const { data: wo, error: woError } = await db
     .from('work_orders')
     .insert({
-      ...headerFields,
+      ...safeHeader,
       work_order_number: num,
       status: 'draft',
       organization_id: user.organizationId,

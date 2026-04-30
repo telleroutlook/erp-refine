@@ -225,6 +225,15 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
   const focalId = c.req.param('objectId');
   const orgId = user.organizationId;
   const MAX_DEPTH = 8;
+  const MAX_NODES = 100;
+
+  if (!DOC_TABLE[focalType]) {
+    throw ApiError.badRequest(`Unknown document type: ${focalType}`, requestId);
+  }
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(focalId)) {
+    throw ApiError.badRequest('objectId must be a valid UUID', requestId);
+  }
 
   // BFS both directions
   const visitedNodes = new Set<string>();
@@ -234,6 +243,7 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
   ];
 
   while (queue.length > 0) {
+    if (visitedNodes.size >= MAX_NODES) break;
     const item = queue.shift()!;
     const key = `${item.type}:${item.id}`;
     if (visitedNodes.has(key) || item.depth > MAX_DEPTH) continue;

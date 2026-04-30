@@ -11,7 +11,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
     list_fixed_assets: tool({
       description: 'List fixed assets with optional filters',
       inputSchema: z.object({
-        status: z.enum(['active','disposed','idle','under_maintenance']).optional(),
+        status: z.enum(['active','disposed','under_maintenance']).optional(),
         category: z.string().optional(),
         search: z.string().optional().describe('Search by asset number or name'),
         limit: z.number().min(1).max(100).default(20),

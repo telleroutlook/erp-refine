@@ -10,6 +10,7 @@ import {
   ThunderboltOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useLogout } from '@refinedev/core';
 import { MarkdownMessage } from './MarkdownMessage';
 
 const { Text } = Typography;
@@ -39,6 +40,7 @@ interface AiSidebarProps {
 export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   const { token } = theme.useToken();
   const { t } = useTranslation();
+  const { mutate: logout } = useLogout();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -88,6 +90,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
         signal: controller.signal,
       });
 
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
       const reader = res.body.getReader();

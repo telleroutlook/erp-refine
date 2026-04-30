@@ -9,6 +9,7 @@ import { BaseAgent, type AgentContext } from './base-agent';
 import type { RequirementSpec } from './intent-agent';
 import type { Env } from '../types/env';
 import { stripJsonFences } from '../utils/json-helpers';
+import { withKeyRotation, getApiKeys } from '../runtime/key-rotator';
 
 const FieldDefSchema = z.object({
   name: z.string(),
@@ -64,16 +65,14 @@ export class SchemaArchitectAgent extends BaseAgent {
     ctx: AgentContext,
     env: Env
   ): Promise<SchemaOutput> {
-    const glm = createOpenAI({
-      apiKey: env.AI_API_KEY,
-      baseURL: env.AI_BASE_URL,
-    });
-
     const result = await this.execute(async () => {
-      const { text } = await generateText({
-        model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
-        system: SYSTEM_PROMPT,
-        prompt: `Generate a UI Schema for this requirement:\n${JSON.stringify(spec, null, 2)}`,
+      const { text } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
+        const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
+        return generateText({
+          model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
+          system: SYSTEM_PROMPT,
+          prompt: `Generate a UI Schema for this requirement:\n${JSON.stringify(spec, null, 2)}`,
+        });
       });
       const cleaned = stripJsonFences(text);
       const parsed = JSON.parse(cleaned);

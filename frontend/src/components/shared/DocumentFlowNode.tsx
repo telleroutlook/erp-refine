@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { useTranslation } from 'react-i18next';
 import {
   FileTextOutlined,
   ShoppingCartOutlined,
@@ -70,9 +71,10 @@ export type DocumentFlowNodeData = {
 };
 
 function DocumentFlowNodeInner({ data }: NodeProps) {
+  const { t, i18n } = useTranslation();
   const d = data as unknown as DocumentFlowNodeData;
   const icon = TYPE_ICONS[d.objectType] ?? <FileTextOutlined />;
-  const typeLabel = TYPE_LABELS[d.objectType] ?? d.objectType;
+  const typeLabel = t(`documentTypes.${d.objectType}`, { defaultValue: TYPE_LABELS[d.objectType] ?? d.objectType.replace(/_/g, ' ') });
 
   const borderColor = d.isFocal ? 'var(--color-sage)' : 'var(--color-border)';
   const boxShadow = d.isFocal
@@ -82,7 +84,7 @@ function DocumentFlowNodeInner({ data }: NodeProps) {
 
   const formattedAmount =
     d.amount != null
-      ? new Intl.NumberFormat('zh-CN', { style: 'decimal', maximumFractionDigits: 2 }).format(d.amount)
+      ? new Intl.NumberFormat(i18n.language, { style: 'decimal', maximumFractionDigits: 2 }).format(d.amount)
       : null;
 
   return (

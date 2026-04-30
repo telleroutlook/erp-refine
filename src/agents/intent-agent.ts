@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { BaseAgent, type AgentContext } from './base-agent';
 import type { Env } from '../types/env';
 import { stripJsonFences } from '../utils/json-helpers';
+import { withKeyRotation, getApiKeys } from '../runtime/key-rotator';
 
 const RequirementSpecSchema = z.object({
   intent: z.string().describe('Primary action the user wants to accomplish'),
@@ -50,23 +51,21 @@ export class IntentAgent extends BaseAgent {
     env: Env,
     recentContext?: string
   ): Promise<RequirementSpec> {
-    const glm = createOpenAI({
-      apiKey: env.AI_API_KEY,
-      baseURL: env.AI_BASE_URL,
-    });
-
     const result = await this.execute(async () => {
-      const { text } = await generateText({
-        model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
-        system: SYSTEM_PROMPT,
-        prompt: [
-          recentContext ? `Recent conversation context:\n${recentContext}` : null,
-          `Parse this user request into JSON: ${JSON.stringify(message)}`,
-          `Context: organizationId=${ctx.organizationId}, role=${ctx.role}`,
-        ].filter(Boolean).join('\n\n'),
-        providerOptions: {
-          openai: { response_format: { type: 'json_object' } },
-        },
+      const { text } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
+        const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
+        return generateText({
+          model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
+          system: SYSTEM_PROMPT,
+          prompt: [
+            recentContext ? `Recent conversation context:\n${recentContext}` : null,
+            `Parse this user request into JSON: ${JSON.stringify(message)}`,
+            `Context: organizationId=${ctx.organizationId}, role=${ctx.role}`,
+          ].filter(Boolean).join('\n\n'),
+          providerOptions: {
+            openai: { response_format: { type: 'json_object' } },
+          },
+        });
       });
 
       // Strip markdown code fences if present

@@ -6,6 +6,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import type { Env } from '../types/env';
 import { createServiceClient } from '../utils/supabase';
 import { createLogger } from '../utils/logger';
+import { withKeyRotation, getApiKeys } from '../runtime/key-rotator';
 import type { Message } from '../do/chat-agent-do';
 
 const logger = createLogger('info', { module: 'event-consumer' });
@@ -64,18 +65,19 @@ async function handleSummarizeSession(job: SummarizeSessionJob, env: Env): Promi
   const { sessionId, userId, recentMessages } = job;
   logger.info('summarize.start', { sessionId, userId, messageCount: recentMessages.length });
 
-  const glm = createOpenAI({ apiKey: env.AI_API_KEY, baseURL: env.AI_BASE_URL });
-
   const transcript = recentMessages
     .map((m) => `${m.role === 'user' ? '用户' : 'AI'}: ${m.content}`)
     .join('\n');
 
-  const { text: summary } = await generateText({
-    model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
-    system: '你是一个对话摘要助手。将下面的对话记录压缩为简洁的中文摘要，保留关键业务信息（查询内容、操作结果、重要数字、决策）。摘要不超过300字。',
-    prompt: transcript,
-    maxOutputTokens: 400,
-    temperature: 0,
+  const { text: summary } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
+    const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
+    return generateText({
+      model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
+      system: '你是一个对话摘要助手。将下面的对话记录压缩为简洁的中文摘要，保留关键业务信息（查询内容、操作结果、重要数字、决策）。摘要不超过300字。',
+      prompt: transcript,
+      maxOutputTokens: 400,
+      temperature: 0,
+    });
   });
 
   const doKey = `${userId}:${sessionId}`;

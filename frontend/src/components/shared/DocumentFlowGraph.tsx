@@ -87,6 +87,31 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
     runLayout();
   }, [chain]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Update dim state when hover changes — separate from layout to avoid re-running ELK
+  useEffect(() => {
+    setNodes((prev) =>
+      prev.map((n) => ({
+        ...n,
+        data: {
+          ...n.data,
+          isDimmed: highlightedNodeIds.size > 0 && !highlightedNodeIds.has(n.id),
+        },
+      }))
+    );
+  }, [highlightedNodeIds, setNodes]);
+
+  useEffect(() => {
+    setEdges((prev) =>
+      prev.map((e) => ({
+        ...e,
+        style: {
+          ...e.style,
+          opacity: highlightedEdgeIds.size > 0 && !highlightedEdgeIds.has(e.id) ? 0.15 : 1,
+        },
+      }))
+    );
+  }, [highlightedEdgeIds, setEdges]);
+
   return (
     <div style={{ width: '100%', height: 300 }}>
       <ReactFlow

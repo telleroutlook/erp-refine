@@ -119,7 +119,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const { error: lineErr } = await db.from('purchase_order_items').insert(lineItems);
         if (lineErr) {
-          await db.from('purchase_orders').delete().eq('id', po.id);
+          await db.from('purchase_orders').delete().eq('id', po.id).eq('organization_id', organizationId);
           throw new Error(lineErr.message);
         }
 

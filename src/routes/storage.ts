@@ -39,6 +39,14 @@ storage.post('/storage/upload', async (c) => {
   }
 
   const fileId = crypto.randomUUID();
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+  if (file.size > MAX_FILE_SIZE) {
+    throw new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail: `File size exceeds maximum allowed size of 100 MB.`,
+      requestId,
+    });
+  }
   const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const safeEntityType = entityType.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
   const safeEntityId = entityId.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
