@@ -9,6 +9,7 @@ import type { Locale } from 'antd/es/locale';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import '@refinedev/antd/dist/reset.css';
+import '@xyflow/react/dist/style.css';
 import './styles/tokens.css';
 import './styles/responsive.css';
 import './i18n/i18n';

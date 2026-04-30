@@ -6,3 +6,5 @@ export { useMobileLayout } from './useMobileLayout';
 export type { MobilePanel } from './useMobileLayout';
 export { useCreateFrom } from './useCreateFrom';
 export type { CreateFromData, CreateFromSource, UseCreateFromResult } from './useCreateFrom';
+export { useDocumentChain } from './useDocumentChain';
+export type { DocumentChain, ChainNode, ChainEdge } from './useDocumentChain';

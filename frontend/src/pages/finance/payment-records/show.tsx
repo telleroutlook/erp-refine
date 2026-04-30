@@ -5,6 +5,7 @@ import { Descriptions } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useFieldLabel } from '../../../hooks';
 
 export const PaymentRecordShow: React.FC = () => {
@@ -15,6 +16,7 @@ export const PaymentRecordShow: React.FC = () => {
 
   return (
     <Show title={`${t('menu.paymentRecords')} ${record?.payment_number ?? ''}`} isLoading={queryResult.isLoading}>
+      <DocumentFlowPanel objectType="payment_record" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('payment_records', 'payment_number')}>{record?.payment_number}</Descriptions.Item>
         <Descriptions.Item label={fl('payment_records', 'payment_date')}>

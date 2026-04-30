@@ -5,6 +5,7 @@ import { Descriptions, Table, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useFieldLabel } from '../../../hooks';
 
 export const VoucherShow: React.FC = () => {
@@ -15,6 +16,7 @@ export const VoucherShow: React.FC = () => {
 
   return (
     <Show title={`${t('menu.vouchers')} ${record?.voucher_number ?? ''}`} isLoading={queryResult.isLoading}>
+      <DocumentFlowPanel objectType="voucher" objectId={record?.id} defaultOpen={true} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('vouchers', 'voucher_number')}>{record?.voucher_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>

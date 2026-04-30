@@ -158,6 +158,163 @@ system.post('/notifications/read-all', async (c) => {
 // Document Relations — cross-entity linking (e.g. PO → Receipt → Invoice)
 // ────────────────────────────────────────────────────────────────────────────
 
+// Document type metadata for BFS chain display data enrichment
+const DOC_TABLE: Record<string, string> = {
+  purchase_requisition: 'purchase_requisitions',
+  purchase_order: 'purchase_orders',
+  purchase_receipt: 'purchase_receipts',
+  sales_order: 'sales_orders',
+  sales_shipment: 'sales_shipments',
+  sales_return: 'sales_returns',
+  supplier_invoice: 'supplier_invoices',
+  sales_invoice: 'sales_invoices',
+  payment_request: 'payment_requests',
+  payment_record: 'payment_records',
+  customer_receipt: 'customer_receipts',
+  voucher: 'vouchers',
+  quality_inspection: 'quality_inspections',
+  work_order: 'work_orders',
+  budget: 'budgets',
+  contract: 'contracts',
+  fixed_asset: 'fixed_assets',
+};
+const DOC_NUMBER_FIELD: Record<string, string> = {
+  purchase_requisition: 'requisition_number',
+  purchase_order: 'order_number',
+  purchase_receipt: 'receipt_number',
+  sales_order: 'order_number',
+  sales_shipment: 'shipment_number',
+  sales_return: 'return_number',
+  supplier_invoice: 'invoice_number',
+  sales_invoice: 'invoice_number',
+  payment_request: 'request_number',
+  payment_record: 'payment_number',
+  customer_receipt: 'receipt_number',
+  voucher: 'voucher_number',
+  quality_inspection: 'inspection_number',
+  work_order: 'work_order_number',
+  budget: 'budget_name',
+  contract: 'contract_number',
+  fixed_asset: 'asset_code',
+};
+const DOC_AMOUNT_FIELD: Record<string, string | null> = {
+  purchase_requisition: null,
+  purchase_order: 'total_amount',
+  purchase_receipt: null,
+  sales_order: 'total_amount',
+  sales_shipment: null,
+  sales_return: 'total_amount',
+  supplier_invoice: 'total_amount',
+  sales_invoice: 'total_amount',
+  payment_request: 'amount',
+  payment_record: 'amount',
+  customer_receipt: 'amount',
+  voucher: 'total_debit',
+  quality_inspection: null,
+  work_order: null,
+  budget: 'total_amount',
+  contract: 'total_amount',
+  fixed_asset: null,
+};
+
+// GET /document-relations/chain/:objectType/:objectId
+// BFS traversal in both directions to build the full document chain graph.
+system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const focalType = c.req.param('objectType');
+  const focalId = c.req.param('objectId');
+  const orgId = user.organizationId;
+  const MAX_DEPTH = 8;
+
+  // BFS both directions
+  const visitedNodes = new Set<string>();
+  const allRelations = new Map<string, { id: string; from_object_type: string; from_object_id: string; to_object_type: string; to_object_id: string; label: string | null }>();
+  const queue: Array<{ type: string; id: string; depth: number }> = [
+    { type: focalType, id: focalId, depth: 0 },
+  ];
+
+  while (queue.length > 0) {
+    const item = queue.shift()!;
+    const key = `${item.type}:${item.id}`;
+    if (visitedNodes.has(key) || item.depth > MAX_DEPTH) continue;
+    visitedNodes.add(key);
+
+    const [outRes, inRes] = await Promise.all([
+      db.from('document_relations')
+        .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
+        .eq('organization_id', orgId)
+        .eq('from_object_type', item.type)
+        .eq('from_object_id', item.id),
+      db.from('document_relations')
+        .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
+        .eq('organization_id', orgId)
+        .eq('to_object_type', item.type)
+        .eq('to_object_id', item.id),
+    ]);
+
+    for (const rel of [...(outRes.data ?? []), ...(inRes.data ?? [])]) {
+      if (!allRelations.has(rel.id)) allRelations.set(rel.id, rel);
+      const targetKey = `${rel.to_object_type}:${rel.to_object_id}`;
+      const sourceKey = `${rel.from_object_type}:${rel.from_object_id}`;
+      if (!visitedNodes.has(targetKey)) queue.push({ type: rel.to_object_type, id: rel.to_object_id, depth: item.depth + 1 });
+      if (!visitedNodes.has(sourceKey)) queue.push({ type: rel.from_object_type, id: rel.from_object_id, depth: item.depth + 1 });
+    }
+  }
+
+  // Group node IDs by type for batch display data fetching
+  const typeGroups = new Map<string, string[]>();
+  for (const key of visitedNodes) {
+    const colonIdx = key.indexOf(':');
+    const type = key.slice(0, colonIdx);
+    const id = key.slice(colonIdx + 1);
+    if (!typeGroups.has(type)) typeGroups.set(type, []);
+    typeGroups.get(type)!.push(id);
+  }
+
+  // Parallel batch fetch display data per document type
+  const displayData = new Map<string, { label: string; date: string | null; amount: number | null; status: string | null }>();
+  await Promise.all([...typeGroups.entries()].map(async ([type, ids]) => {
+    const table = DOC_TABLE[type];
+    const numberField = DOC_NUMBER_FIELD[type];
+    const amountField = DOC_AMOUNT_FIELD[type] ?? null;
+    if (!table || !numberField) return;
+
+    const selectFields = ['id', numberField, 'status', 'created_at', amountField]
+      .filter((f): f is string => f !== null)
+      .join(', ');
+
+    const { data, error } = await db.from(table as any).select(selectFields).in('id', ids).eq('organization_id', orgId);
+    if (error) return;
+    for (const row of (data ?? []) as unknown as Array<Record<string, unknown>>) {
+      displayData.set(`${type}:${row.id}`, {
+        label: String(row[numberField] ?? row.id),
+        date: (row.created_at as string | null) ?? null,
+        amount: amountField ? ((row[amountField] as number | null) ?? null) : null,
+        status: (row.status as string | null) ?? null,
+      });
+    }
+  }));
+
+  const nodes = [...visitedNodes].map(key => {
+    const colonIdx = key.indexOf(':');
+    const type = key.slice(0, colonIdx);
+    const id = key.slice(colonIdx + 1);
+    const display = displayData.get(key) ?? { label: id, date: null, amount: null, status: null };
+    return { id: key, objectType: type, objectId: id, isFocal: (type === focalType && id === focalId), ...display };
+  });
+
+  const edges = [...allRelations.values()].map(r => ({
+    id: r.id,
+    fromObjectType: r.from_object_type,
+    fromObjectId: r.from_object_id,
+    toObjectType: r.to_object_type,
+    toObjectId: r.to_object_id,
+    label: r.label ?? `${r.from_object_type} → ${r.to_object_type}`,
+  }));
+
+  return c.json({ data: { nodes, edges } });
+});
+
 const documentRelationsConfig: CrudConfig = {
   table: 'document_relations',
   path: '/document-relations',

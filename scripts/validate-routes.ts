@@ -272,7 +272,7 @@ let check4eCount = 0;
 const KNOWN_SEQUENCES = new Set([
   'purchase_order', 'sales_order', 'purchase_receipt', 'sales_shipment',
   'supplier_invoice', 'sales_invoice', 'purchase_requisition', 'rfq',
-  'supplier_quotation', 'payment_request', 'customer_receipt', 'voucher',
+  'supplier_quotation', 'payment_request', 'payment_record', 'customer_receipt', 'voucher',
   'work_order', 'bom_header', 'quality_inspection', 'contract',
   'sales_return', 'budget', 'inventory_count', 'advance_shipment_notice',
   'reconciliation_statement', 'quality_standard',

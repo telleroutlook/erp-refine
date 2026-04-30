@@ -6,6 +6,7 @@ import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { VOUCHER_STATUS_OPTIONS, VOUCHER_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
 
@@ -36,6 +37,7 @@ export const VoucherEdit: React.FC = () => {
 
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('vouchers', 'edit')}>
+      <DocumentFlowPanel objectType="voucher" objectId={record?.id} />
       <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}>

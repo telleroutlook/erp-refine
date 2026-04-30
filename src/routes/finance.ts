@@ -10,6 +10,7 @@ import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } 
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
+import { createDocumentRelation } from '../utils/create-from-helpers';
 
 const finance = new Hono<{ Bindings: Env }>();
 finance.use('*', authMiddleware());
@@ -429,8 +430,44 @@ finance.delete('/budgets/:id', async (c) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// Payment Records — full CRUD via factory
+// Payment Records — custom POST (auto-sequence + document relation), factory for rest
 // ────────────────────────────────────────────────────────────────────────────
+
+const PAYMENT_RECORD_PERMITTED_CREATE = new Set([
+  'payment_date', 'payment_type', 'payment_method', 'partner_type', 'partner_id',
+  'amount', 'currency', 'reference_type', 'reference_id', 'voucher_id', 'notes',
+]);
+
+finance.post('/payment-records', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const body = await c.req.json();
+
+  const { data: seqData, error: seqError } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'payment_record',
+  });
+  if (seqError || !seqData) throw ApiError.database(`Failed to generate payment number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
+
+  const insertData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if (PAYMENT_RECORD_PERMITTED_CREATE.has(k)) insertData[k] = v;
+  }
+
+  const { data, error } = await db
+    .from('payment_records')
+    .insert({ ...insertData, payment_number: seqData, organization_id: user.organizationId, status: 'draft' })
+    .select('id, payment_number, payment_type')
+    .single();
+
+  if (error) throw ApiError.database(error.message, requestId);
+
+  // Record document relation when linked to a voucher
+  if (body.voucher_id && data?.id) {
+    await createDocumentRelation(db, user.organizationId, 'payment_record', data.id, 'voucher', body.voucher_id, 'payment_record → voucher');
+  }
+
+  return c.json({ data }, 201);
+});
 
 const paymentRecordsConfig: CrudConfig = {
   table: 'payment_records',
@@ -442,6 +479,7 @@ const paymentRecordsConfig: CrudConfig = {
   defaultSort: 'created_at',
   softDelete: false,
   orgScoped: true,
+  disableCreate: true,
 };
 finance.route('', buildCrudRoutes(paymentRecordsConfig));
 

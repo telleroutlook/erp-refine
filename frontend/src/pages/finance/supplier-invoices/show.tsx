@@ -4,6 +4,7 @@ import { Show, DateField } from '@refinedev/antd';
 import { Descriptions, Table, Divider } from 'antd';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
+import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel } from '../../../hooks';
 
@@ -15,6 +16,7 @@ export const SupplierInvoiceShow: React.FC = () => {
 
   return (
     <Show title={`${t('menu.supplierInvoices')} ${record?.invoice_number ?? ''}`} isLoading={queryResult.isLoading}>
+      <DocumentFlowPanel objectType="supplier_invoice" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('supplier_invoices', 'invoice_number')}>{record?.invoice_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
