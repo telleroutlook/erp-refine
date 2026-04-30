@@ -121,23 +121,25 @@ supabase/migrations/      # SQL 迁移文件（唯一 schema 权威）
 
 ## 部署与生产验证
 
+**⚠️ 铁律：每次修改前端代码后，必须重新 `npm run build` 再 `wrangler deploy`，否则生产只更新了 Worker 代码，前端静态资源不会刷新。**
+
 ```bash
 # 1. 类型检查
 npx tsc --noEmit
 
-# 2. 全量一致性验证（4 个验证器）
+# 2. 全量一致性验证（5 个验证器）
 npm run validate
 
 # 3. 跑测试
 npx vitest run
 
-# 4. 构建前端
+# 4. 构建前端（每次必须，不可跳过）
 cd frontend && npm run build && cd ..
 
-# 5. 部署 Worker（含前端静态资源）
+# 5. 部署 Worker（含前端静态资源）—— 必须在 build 之后立即执行
 npx wrangler deploy
 
-# 5. 生产冒烟测试（用 curl 验证关键 API）
+# 6. 生产冒烟测试（用 curl 验证关键 API）
 TOKEN=$(curl -s 'https://erp.3we.org/api/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"admin@erp.demo","password":"Admin2026!"}' \
