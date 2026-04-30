@@ -588,7 +588,7 @@ salesFinance.post('/customer-receipts', async (c) => {
         paymentStatus = 'unpaid';
       }
 
-      await db.from('sales_orders').update({ payment_status: paymentStatus }).eq('id', soId).eq('organization_id', user.organizationId);
+      await db.from('sales_orders').update({ payment_status: paymentStatus }).eq('id', soId).eq('organization_id', user.organizationId).is('deleted_at', null);
     }
   }
 

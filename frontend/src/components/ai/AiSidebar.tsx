@@ -173,7 +173,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       setActiveTools([]);
       abortRef.current = null;
     }
-  }, [streaming, t]);
+  }, [streaming, t, logout]);
 
   const clear = useCallback(() => {
     stop();

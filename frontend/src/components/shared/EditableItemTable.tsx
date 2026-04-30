@@ -66,6 +66,12 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   columnsRef.current = columns;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const editsRef = useRef(edits);
+  editsRef.current = edits;
+  const newRowsRef = useRef(newRows);
+  newRowsRef.current = newRows;
+  const deletedIdsRef = useRef(deletedIds);
+  deletedIdsRef.current = deletedIds;
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -117,10 +123,13 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     if (changeSeq === 0) return;
     const currentItems = itemsRef.current;
     const currentColumns = columnsRef.current;
+    const currentEdits = editsRef.current;
+    const currentNewRows = newRowsRef.current;
+    const currentDeletedIds = deletedIdsRef.current;
     const upsert: Record<string, any>[] = [];
 
-    for (const [id, changes] of Object.entries(edits)) {
-      if (deletedIds.has(id)) continue;
+    for (const [id, changes] of Object.entries(currentEdits)) {
+      if (currentDeletedIds.has(id)) continue;
       const values: Record<string, any> = { id };
       currentColumns.forEach((col) => {
         if (!col.editable) return;
@@ -131,8 +140,8 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     }
 
     for (const item of (currentItems ?? [])) {
-      if (deletedIds.has(item.id)) continue;
-      if (edits[item.id]) continue;
+      if (currentDeletedIds.has(item.id)) continue;
+      if (currentEdits[item.id]) continue;
       const values: Record<string, any> = { id: item.id };
       currentColumns.forEach((col) => {
         if (!col.editable) return;
@@ -142,7 +151,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       upsert.push(values);
     }
 
-    for (const row of newRows) {
+    for (const row of currentNewRows) {
       const values: Record<string, any> = {};
       currentColumns.forEach((col) => {
         if (!col.editable) return;
@@ -152,7 +161,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       upsert.push(values);
     }
 
-    onChangeRef.current({ upsert, delete: Array.from(deletedIds) });
+    onChangeRef.current({ upsert, delete: Array.from(currentDeletedIds) });
   }, [changeSeq]);
 
   const notifyChange = () => setChangeSeq((s) => s + 1);

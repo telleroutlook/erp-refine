@@ -368,26 +368,6 @@ export async function importEntity(
   // --- Pre-fetch sequence numbers in batch ---
   const needsSequence = sequenceField && sequenceName;
   let sequenceNumbers: string[] = [];
-  if (needsSequence && !dryRun) {
-    const countNeeding = records.filter(r => !r[sequenceField!]).length;
-    if (countNeeding > 0) {
-      const { data: seqData, error: seqError } = await ctx.db.rpc('get_next_sequence_batch', {
-        p_organization_id: ctx.organizationId,
-        p_sequence_name: sequenceName,
-        p_count: countNeeding,
-      });
-      if (seqError || !seqData) {
-        return {
-          entity,
-          imported: 0,
-          skipped: records.length,
-          errors: [{ row: 0, field: sequenceField, message: seqError?.message ?? 'Batch sequence generation failed' }],
-          dryRun,
-        };
-      }
-      sequenceNumbers = seqData as string[];
-    }
-  }
   let seqIdx = 0;
 
   // --- Validate and prepare all records ---
@@ -422,10 +402,6 @@ export async function importEntity(
         record.organization_id = ctx.organizationId;
       }
 
-      if (needsSequence && !record[sequenceField!]) {
-        record[sequenceField!] = sequenceNumbers[seqIdx++];
-      }
-
       if (transform) {
         record = transform(record, ctx);
 
@@ -452,7 +428,7 @@ export async function importEntity(
         hint: err.hint,
       });
       if (onError === 'abort') {
-        return { entity, imported, skipped: records.length - imported, errors, dryRun };
+        return { entity, imported, skipped: records.length - imported - errors.length, errors, dryRun };
       }
       skipped++;
     }
@@ -460,6 +436,33 @@ export async function importEntity(
 
   if (dryRun) {
     return { entity, imported: validRecords.length, skipped, errors, dryRun };
+  }
+
+  // Allocate sequence numbers only for validated records that need them
+  if (needsSequence && !dryRun) {
+    const countNeeding = validRecords.filter(r => !r[sequenceField!]).length;
+    if (countNeeding > 0) {
+      const { data: seqData, error: seqError } = await ctx.db.rpc('get_next_sequence_batch', {
+        p_organization_id: ctx.organizationId,
+        p_sequence_name: sequenceName,
+        p_count: countNeeding,
+      });
+      if (seqError || !seqData) {
+        return {
+          entity,
+          imported: 0,
+          skipped: records.length,
+          errors: [{ row: 0, field: sequenceField, message: seqError?.message ?? 'Batch sequence generation failed' }],
+          dryRun,
+        };
+      }
+      sequenceNumbers = seqData as string[];
+      for (const rec of validRecords) {
+        if (!rec[sequenceField!]) {
+          rec[sequenceField!] = sequenceNumbers[seqIdx++];
+        }
+      }
+    }
   }
 
   if (validRecords.length === 0) {

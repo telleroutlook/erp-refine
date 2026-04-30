@@ -120,6 +120,7 @@ chat.post('/', async (c) => {
 function wrapToolsWithPolicy(
   tools: ReturnType<typeof buildToolSet>,
   user: { userId: string; role: string; organizationId: string },
+  requestConfirmed?: boolean,
 ): ReturnType<typeof buildToolSet> {
   const wrapped: ReturnType<typeof buildToolSet> = {};
   for (const [name, toolDef] of Object.entries(tools)) {
@@ -143,7 +144,7 @@ function wrapToolsWithPolicy(
           userId: user.userId,
           role: user.role,
           organizationId: user.organizationId,
-          confirmed: args['confirmed'] as boolean | undefined,
+          confirmed: requestConfirmed,
         });
         if (policy.decision === 'deny') {
           throw new Error(`Policy denied: ${policy.reason}`);
@@ -164,7 +165,7 @@ function wrapToolsWithPolicy(
 /** POST /api/chat/stream — SSE streaming with conversation history */
 chat.post('/stream', async (c) => {
   const user = c.get('user');
-  const body = await c.req.json<{ message: string; sessionId?: string }>();
+  const body = await c.req.json<{ message: string; sessionId?: string; confirmed?: boolean }>();
 
   if (!body.message?.trim()) return c.json({ error: 'Message required' }, 400);
   if (body.message.length > 4000) return c.json({ error: 'Message too long (max 4000 chars)' }, 400);
@@ -173,7 +174,7 @@ chat.post('/stream', async (c) => {
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const rawTools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId });
-  const tools = wrapToolsWithPolicy(rawTools, user);
+  const tools = wrapToolsWithPolicy(rawTools, user, body.confirmed);
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 

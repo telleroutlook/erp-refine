@@ -130,7 +130,10 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
       const rawBody = await c.req.json();
       const body = createSchema ? validateBody(createSchema, rawBody, requestId) : rawBody;
 
-      const insertData: Record<string, unknown> = { ...body };
+      const BLOCKED_CREATE_FIELDS = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'updated_at', 'created_by']);
+      const insertData: Record<string, unknown> = Object.fromEntries(
+        Object.entries(body).filter(([k]) => !BLOCKED_CREATE_FIELDS.has(k))
+      );
       if (orgScoped) insertData.organization_id = user.organizationId;
       if (createDefaults) Object.assign(insertData, createDefaults(user));
 

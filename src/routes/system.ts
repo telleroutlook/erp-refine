@@ -235,6 +235,18 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
     throw ApiError.badRequest('objectId must be a valid UUID', requestId);
   }
 
+  // Verify focal document belongs to caller's org
+  const focalTable = DOC_TABLE[focalType];
+  const { data: focalCheck, error: focalErr } = await db
+    .from(focalTable as any)
+    .select('id')
+    .eq('id', focalId)
+    .eq('organization_id', orgId)
+    .maybeSingle();
+  if (focalErr || !focalCheck) {
+    throw ApiError.notFound(focalType, focalId, requestId);
+  }
+
   // BFS both directions — batch-by-level to minimize DB round trips
   const visitedNodes = new Set<string>();
   const allRelations = new Map<string, { id: string; from_object_type: string; from_object_id: string; to_object_type: string; to_object_id: string; label: string | null }>();

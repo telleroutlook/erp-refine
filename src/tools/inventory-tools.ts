@@ -241,19 +241,30 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
           { action: 'stock_transfer_out', resource: 'stock_transactions', userId, organizationId },
         ) as { id: string };
 
-        await executeWithAudit(
-          db,
-          async () => {
-            const result = await db.from('stock_transactions').insert({
-              ...txnBase,
-              warehouse_id: toWarehouseId,
-              transaction_type: 'in',
-              quantity,
-            }).select('id').single();
-            return result as { data: { id: string } | null; error: unknown };
-          },
-          { action: 'stock_transfer_in', resource: 'stock_transactions', userId, organizationId },
-        );
+        try {
+          await executeWithAudit(
+            db,
+            async () => {
+              const result = await db.from('stock_transactions').insert({
+                ...txnBase,
+                warehouse_id: toWarehouseId,
+                transaction_type: 'in',
+                quantity,
+              }).select('id').single();
+              return result as { data: { id: string } | null; error: unknown };
+            },
+            { action: 'stock_transfer_in', resource: 'stock_transactions', userId, organizationId },
+          );
+        } catch (inErr) {
+          await db.from('stock_transactions').insert({
+            ...txnBase,
+            warehouse_id: fromWarehouseId,
+            transaction_type: 'in',
+            quantity,
+            notes: `Reversal of failed transfer (out txn: ${outTxn.id})`,
+          });
+          throw inErr;
+        }
 
         return { success: true, productId, fromWarehouseId, toWarehouseId, quantity };
       },

@@ -559,7 +559,8 @@ procurementReceiving.post('/three-way-match', async (c) => {
       .single(),
     db.from('purchase_receipt_items')
       .select('quantity, purchase_order_item_id')
-      .eq('purchase_receipt_id', purchase_receipt_id),
+      .eq('purchase_receipt_id', purchase_receipt_id)
+      .eq('organization_id', user.organizationId),
     db.from('supplier_invoices')
       .select('id, total_amount')
       .eq('id', supplier_invoice_id)
@@ -622,6 +623,10 @@ procurementReceiving.post('/three-way-match', async (c) => {
   }
 
   // 5. Insert match result
+  // NOTE: quantity_variance = |PO amount - receipt amount| (monetary, not unit qty)
+  // price_variance = |PO amount - invoice amount| (monetary)
+  const receiptAmountVariance = Math.abs(poAmount - receiptAmount);
+  const invoiceAmountVariance = Math.abs(poAmount - invoiceAmount);
   const { data: matchResult, error: insertErr } = await db
     .from('three_way_match_results')
     .insert({
@@ -629,8 +634,8 @@ procurementReceiving.post('/three-way-match', async (c) => {
       purchase_order_id,
       purchase_receipt_id,
       supplier_invoice_id,
-      quantity_variance: Math.abs(poAmount - receiptAmount),
-      price_variance: Math.abs(poAmount - invoiceAmount),
+      quantity_variance: receiptAmountVariance,
+      price_variance: invoiceAmountVariance,
       amount_variance: variance,
       match_status: matchStatus,
       matched_at: new Date().toISOString(),

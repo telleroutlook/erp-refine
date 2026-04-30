@@ -121,12 +121,17 @@ export function allocateBudget(
     layers.set(id, Math.min(base + bonus, usableBudget));
   }
 
+  const totalAllocated = [...layers.values()].reduce((s, v) => s + v, 0);
+  const ratio = totalAllocated / usableBudget;
+  const pressure: 'low' | 'medium' | 'high' =
+    ratio > 0.95 ? 'high' : ratio > 0.8 ? 'medium' : 'low';
+
   return {
     totalBudget: CONTEXT_WINDOW,
     outputReserve: OUTPUT_RESERVE,
     usableBudget,
     layers,
-    pressure: 'low',
+    pressure,
   };
 }
 
@@ -160,9 +165,9 @@ function budgetCap(layers: ContextLayer[]): number {
     for (const line of lines) {
       const lineTokens = estimateTokens(line);
       if (lineTokens > CAP) {
-        const truncated = line.slice(0, CAP * 4); // rough char-to-token ratio
+        const { text: truncated } = truncateToTokenBudget(line, CAP);
         freed += lineTokens - estimateTokens(truncated);
-        capped.push(truncated + '…');
+        capped.push(truncated);
       } else {
         capped.push(line);
       }

@@ -1667,5 +1667,24 @@
     "select": "选择{{field}}",
     "input": "输入{{field}}",
     "example": "如：{{example}}"
+  },
+  "documentTypes": {
+    "purchase_requisition": "采购申请",
+    "purchase_order": "采购订单",
+    "purchase_receipt": "采购收货",
+    "sales_order": "销售订单",
+    "sales_shipment": "销售发货",
+    "sales_return": "销售退货",
+    "supplier_invoice": "供应商发票",
+    "sales_invoice": "客户发票",
+    "payment_request": "付款申请",
+    "payment_record": "付款记录",
+    "customer_receipt": "客户收款",
+    "voucher": "会计凭证",
+    "quality_inspection": "质量检验",
+    "work_order": "生产工单",
+    "budget": "预算",
+    "contract": "合同",
+    "fixed_asset": "固定资产"
   }
 }

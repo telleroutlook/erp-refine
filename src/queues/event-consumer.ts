@@ -93,13 +93,21 @@ async function handleSummarizeSession(job: SummarizeSessionJob, env: Env): Promi
 }
 
 async function processEvent(event: ERPEvent, db: ReturnType<typeof createServiceClient>): Promise<void> {
+  const SEVERITY_MAP: Record<string, 'info' | 'warning' | 'critical'> = {
+    'stock.low_warning': 'warning',
+    'purchase_order.overdue': 'warning',
+    'payment.failed': 'critical',
+    'invoice.overdue': 'warning',
+  };
+  const severity = SEVERITY_MAP[event.type] ?? 'info';
+
   const { error } = await db.from('business_events').insert({
     organization_id: event.organizationId,
     event_type: event.type,
     entity_type: event.resourceType,
     entity_id: event.resourceId,
     payload: event.payload,
-    severity: 'info',
+    severity,
   });
   if (error) throw new Error(`Failed to persist event: ${error.message}`);
 

@@ -38,26 +38,6 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
   fixed_asset: <BankOutlined />,
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  purchase_requisition: '采购申请',
-  purchase_order: '采购订单',
-  purchase_receipt: '采购收货',
-  sales_order: '销售订单',
-  sales_shipment: '销售发货',
-  sales_return: '销售退货',
-  supplier_invoice: '供应商发票',
-  sales_invoice: '客户发票',
-  payment_request: '付款申请',
-  payment_record: '付款记录',
-  customer_receipt: '客户收款',
-  voucher: '会计凭证',
-  quality_inspection: '质量检验',
-  work_order: '生产工单',
-  budget: '预算',
-  contract: '合同',
-  fixed_asset: '固定资产',
-};
-
 export type DocumentFlowNodeData = {
   objectType: string;
   objectId: string;
@@ -74,7 +54,7 @@ function DocumentFlowNodeInner({ data }: NodeProps) {
   const { t, i18n } = useTranslation();
   const d = data as unknown as DocumentFlowNodeData;
   const icon = TYPE_ICONS[d.objectType] ?? <FileTextOutlined />;
-  const typeLabel = t(`documentTypes.${d.objectType}`, { defaultValue: TYPE_LABELS[d.objectType] ?? d.objectType.replace(/_/g, ' ') });
+  const typeLabel = t(`documentTypes.${d.objectType}`, { defaultValue: d.objectType.replace(/_/g, ' ') });
 
   const borderColor = d.isFocal ? 'var(--color-sage)' : '#94A3B8';
   const boxShadow = d.isFocal

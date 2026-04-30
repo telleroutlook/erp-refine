@@ -3,7 +3,7 @@
 // Supports both HS256 (legacy JWT secret) and ES256 (JWKS) verification
 
 import type { Context, MiddlewareHandler, Next } from 'hono';
-import { jwtVerify, importJWK, type JWTVerifyResult, type KeyLike } from 'jose';
+import { jwtVerify, importJWK, decodeProtectedHeader, type JWTVerifyResult, type KeyLike } from 'jose';
 import type { Env } from '../types/env';
 
 export interface UserContext {
@@ -63,8 +63,7 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
 
     let result: JWTVerifyResult;
     try {
-      const headerB64 = token.split('.')[0] ?? '';
-      const header = JSON.parse(atob(headerB64));
+      const header = decodeProtectedHeader(token);
       const supabaseUrl = c.env.SUPABASE_URL;
 
       if (header.kid && supabaseUrl) {

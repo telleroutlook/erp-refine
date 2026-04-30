@@ -138,9 +138,10 @@ storage.delete('/storage/:id', async (c) => {
 
   const { error: deleteError } = await db
     .from('document_attachments')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null);
 
   if (deleteError) throw ApiError.database(deleteError.message, requestId);
 

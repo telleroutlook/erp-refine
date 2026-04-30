@@ -1667,5 +1667,24 @@
     "select": "Select {{field}}",
     "input": "Enter {{field}}",
     "example": "e.g., {{example}}"
+  },
+  "documentTypes": {
+    "purchase_requisition": "Purchase Requisition",
+    "purchase_order": "Purchase Order",
+    "purchase_receipt": "Purchase Receipt",
+    "sales_order": "Sales Order",
+    "sales_shipment": "Sales Shipment",
+    "sales_return": "Sales Return",
+    "supplier_invoice": "Supplier Invoice",
+    "sales_invoice": "Sales Invoice",
+    "payment_request": "Payment Request",
+    "payment_record": "Payment Record",
+    "customer_receipt": "Customer Receipt",
+    "voucher": "Voucher",
+    "quality_inspection": "Quality Inspection",
+    "work_order": "Work Order",
+    "budget": "Budget",
+    "contract": "Contract",
+    "fixed_asset": "Fixed Asset"
   }
 }

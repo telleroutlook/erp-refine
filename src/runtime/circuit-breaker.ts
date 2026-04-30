@@ -31,12 +31,15 @@ export class CircuitBreaker {
       if (Date.now() - this.lastFailureTime < this.timeout) {
         throw new Error('Circuit breaker is open');
       }
-      // Prevent concurrent half-open probes across await boundaries
       if (this.probeInFlight) {
         throw new Error('Circuit breaker is open');
       }
       this.state = 'half-open';
       this.successes = 0;
+    }
+
+    if (this.state === 'half-open' && this.probeInFlight) {
+      throw new Error('Circuit breaker is open');
     }
 
     const isProbe = this.state === 'half-open';

@@ -151,7 +151,7 @@ adminAudit.get('/failed-login-attempts', async (c) => {
     .from('employees')
     .select('email')
     .eq('organization_id', user.organizationId)
-    .limit(1000);
+    .not('email', 'is', null);
   const emails = (employees ?? []).map((e: any) => e.email).filter(Boolean);
 
   if (emails.length === 0) {
@@ -177,7 +177,7 @@ adminAudit.get('/failed-login-attempts/:id', async (c) => {
     .from('employees')
     .select('email')
     .eq('organization_id', user.organizationId)
-    .limit(1000);
+    .not('email', 'is', null);
   const emails = (employees ?? []).map((e: any) => e.email).filter(Boolean);
 
   const { data, error } = await db

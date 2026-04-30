@@ -266,7 +266,7 @@ inventory.route('', buildCrudRoutes({
   table: 'inventory_count_lines',
   path: '/inventory-count-lines',
   resourceName: 'InventoryCountLine',
-  listSelect: '*, product:products(id,name,code)',
+  listSelect: 'id, inventory_count_id, product_id, system_quantity, counted_quantity, variance_quantity, notes, created_at, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
   createReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity, notes',
   orgScoped: false,

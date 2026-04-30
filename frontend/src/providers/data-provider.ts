@@ -45,6 +45,13 @@ export const dataProvider: DataProvider = {
       for (const filter of filters) {
         if ('field' in filter) {
           const { field, operator, value } = filter;
+
+          // Item-level filters: passed through as-is, bypass operator mapping
+          if (field.startsWith('_item_')) {
+            params.append(field, String(value));
+            continue;
+          }
+
           if (operator === 'eq' || operator === undefined) {
             params.append(field, String(value));
           } else if (operator === 'ne') {
@@ -65,15 +72,6 @@ export const dataProvider: DataProvider = {
             params.append(`${field}_gt`, String(value));
           } else if (operator === 'lt') {
             params.append(`${field}_lt`, String(value));
-          }
-
-          // Item-level filters: fields starting with _item_ are passed through as-is
-          // Remove any previously appended variant (eq, _like, _in, etc.) before re-appending
-          if (field.startsWith('_item_')) {
-            for (const key of [...params.keys()]) {
-              if (key === field || key.startsWith(`${field}_`)) params.delete(key);
-            }
-            params.append(field, String(value));
           }
         }
       }

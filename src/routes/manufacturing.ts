@@ -236,8 +236,7 @@ manufacturing.post('/work-orders', async (c) => {
   if (bomItems.length > 0) {
     const invalidScrap = bomItems.find((item: any) => (item.scrap_rate || 0) >= 1);
     if (invalidScrap) {
-      const { error: rollbackErr } = await db.from('work_orders').delete().eq('id', wo.id);
-      if (rollbackErr) console.error('[manufacturing] Failed to rollback WO:', rollbackErr.message);
+      await db.from('work_orders').delete().eq('id', wo.id).eq('organization_id', user.organizationId);
       throw ApiError.validation('Scrap rate must be less than 100%', [{ field: 'scrap_rate', message: 'must be less than 1.0', code: 'invalid_value' }], requestId);
     }
     const materials = bomItems.map((item: any) => ({
@@ -253,8 +252,7 @@ manufacturing.post('/work-orders', async (c) => {
       .insert(materials);
 
     if (matError) {
-      // Rollback: delete work order
-      await db.from('work_orders').delete().eq('id', wo.id);
+      await db.from('work_orders').delete().eq('id', wo.id).eq('organization_id', user.organizationId);
       throw ApiError.database(`Failed to create work order materials: ${matError.message}`, requestId);
     }
   }
@@ -452,10 +450,11 @@ manufacturing.get('/work-order-productions', async (c) => {
   let query = db
     .from('work_order_productions')
     .select(
-      'id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_at, work_order:work_orders!inner(id, work_order_number, organization_id)',
+      'id, work_order_id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_at, work_order:work_orders!inner(id, work_order_number, organization_id, deleted_at)',
       { count: 'exact' }
     )
-    .eq('work_order.organization_id', user.organizationId);
+    .eq('work_order.organization_id', user.organizationId)
+    .is('work_order.deleted_at', null);
   query = applyFilters(query, filters);
 
   const { data, count, error } = await query
