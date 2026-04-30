@@ -48,7 +48,6 @@ export const SalesOrderShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
-      <DocumentFlowPanel objectType="sales_order" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_orders', 'order_number')}>{record?.order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
@@ -88,6 +87,7 @@ export const SalesOrderShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="sales_order" objectId={record?.id} />
     </Show>
   );
 };

@@ -16,7 +16,6 @@ export const SupplierInvoiceShow: React.FC = () => {
 
   return (
     <Show title={`${t('menu.supplierInvoices')} ${record?.invoice_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <DocumentFlowPanel objectType="supplier_invoice" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('supplier_invoices', 'invoice_number')}>{record?.invoice_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
@@ -47,6 +46,7 @@ export const SupplierInvoiceShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="supplier_invoice" objectId={record?.id} />
     </Show>
   );
 };

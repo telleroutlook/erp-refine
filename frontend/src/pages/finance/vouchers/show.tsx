@@ -16,7 +16,6 @@ export const VoucherShow: React.FC = () => {
 
   return (
     <Show title={`${t('menu.vouchers')} ${record?.voucher_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <DocumentFlowPanel objectType="voucher" objectId={record?.id} defaultOpen={true} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('vouchers', 'voucher_number')}>{record?.voucher_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
@@ -53,6 +52,7 @@ export const VoucherShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="voucher" objectId={record?.id} defaultOpen={true} />
     </Show>
   );
 };

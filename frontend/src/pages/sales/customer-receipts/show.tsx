@@ -17,7 +17,6 @@ export const CustomerReceiptShow: React.FC = () => {
 
   return (
     <Show title={`${pt('customer_receipts', 'show')} ${record?.receipt_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <DocumentFlowPanel objectType="customer_receipt" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('customer_receipts', 'receipt_number')}>{record?.receipt_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
@@ -37,6 +36,7 @@ export const CustomerReceiptShow: React.FC = () => {
           <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>
         )}
       </Descriptions>
+      <DocumentFlowPanel objectType="customer_receipt" objectId={record?.id} />
     </Show>
   );
 };

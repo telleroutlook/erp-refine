@@ -45,10 +45,7 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
         source: `${e.fromObjectType}:${e.fromObjectId}`,
         target: `${e.toObjectType}:${e.toObjectId}`,
         type: 'smoothstep',
-        label: e.label,
         style: { stroke: 'var(--color-border)', strokeWidth: 1.5 },
-        labelStyle: { fill: 'var(--color-slate)', fontSize: 10, fontWeight: 400 },
-        labelBgStyle: { fill: 'var(--color-surface)', fillOpacity: 0.85 },
       })),
     [chain.edges]
   );

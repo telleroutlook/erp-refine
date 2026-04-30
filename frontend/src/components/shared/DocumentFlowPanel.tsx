@@ -34,7 +34,7 @@ interface Props {
   defaultOpen?: boolean;
 }
 
-export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defaultOpen = false }) => {
+export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defaultOpen = true }) => {
   const navigate = useNavigate();
   const { chain, isLoading, error } = useDocumentChain(objectId ? objectType : null, objectId ?? null);
 
@@ -67,7 +67,7 @@ export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defau
   return (
     <Collapse
       defaultActiveKey={defaultOpen ? ['flow'] : []}
-      style={{ marginBottom: 16 }}
+      style={{ marginTop: 16 }}
       items={[
         {
           key: 'flow',

@@ -55,7 +55,6 @@ export const QualityInspectionShow: React.FC = () => {
 
   return (
     <Show title={`${pt('quality_inspections', 'show')} ${record?.inspection_number ?? ''}`} isLoading={queryResult.isLoading} headerButtons={headerButtons}>
-      <DocumentFlowPanel objectType="quality_inspection" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('quality_inspections', 'inspection_number')}>{record?.inspection_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
@@ -118,6 +117,7 @@ export const QualityInspectionShow: React.FC = () => {
           </Space>
         </Form>
       </Modal>
+      <DocumentFlowPanel objectType="quality_inspection" objectId={record?.id} />
     </Show>
   );
 };

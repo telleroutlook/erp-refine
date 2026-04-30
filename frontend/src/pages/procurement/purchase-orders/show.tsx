@@ -48,7 +48,6 @@ export const PurchaseOrderShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
-      <DocumentFlowPanel objectType="purchase_order" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('purchase_orders', 'order_number')}>{record?.order_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
@@ -86,6 +85,7 @@ export const PurchaseOrderShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="purchase_order" objectId={record?.id} />
     </Show>
   );
 };

@@ -16,7 +16,6 @@ export const PaymentRecordShow: React.FC = () => {
 
   return (
     <Show title={`${t('menu.paymentRecords')} ${record?.payment_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <DocumentFlowPanel objectType="payment_record" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('payment_records', 'payment_number')}>{record?.payment_number}</Descriptions.Item>
         <Descriptions.Item label={fl('payment_records', 'payment_date')}>
@@ -36,6 +35,7 @@ export const PaymentRecordShow: React.FC = () => {
         </Descriptions.Item>
         {record?.notes && <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>
+      <DocumentFlowPanel objectType="payment_record" objectId={record?.id} />
     </Show>
   );
 };

@@ -70,7 +70,6 @@ export const PurchaseReceiptShow: React.FC = () => {
       isLoading={queryResult.isLoading}
       headerButtons={headerButtons}
     >
-      <DocumentFlowPanel objectType="purchase_receipt" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('purchase_receipts', 'receipt_number')}>{record?.receipt_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
@@ -95,6 +94,7 @@ export const PurchaseReceiptShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="purchase_receipt" objectId={record?.id} />
     </Show>
   );
 };

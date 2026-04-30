@@ -61,7 +61,6 @@ export const SalesShipmentShow: React.FC = () => {
 
   return (
     <Show title={`${pt('sales_shipments', 'show')} ${record?.shipment_number ?? ''}`} isLoading={queryResult.isLoading} headerButtons={headerButtons}>
-      <DocumentFlowPanel objectType="sales_shipment" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_shipments', 'shipment_number')}>{record?.shipment_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
@@ -85,6 +84,7 @@ export const SalesShipmentShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="sales_shipment" objectId={record?.id} />
     </Show>
   );
 };

@@ -17,7 +17,6 @@ export const SalesReturnShow: React.FC = () => {
 
   return (
     <Show title={`${pt('sales_returns', 'show')} ${record?.return_number ?? ''}`} isLoading={queryResult.isLoading}>
-      <DocumentFlowPanel objectType="sales_return" objectId={record?.id} />
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('sales_returns', 'return_number')}>{record?.return_number}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}><StatusTag status={record?.status} /></Descriptions.Item>
@@ -45,6 +44,7 @@ export const SalesReturnShow: React.FC = () => {
           />
         </>
       )}
+      <DocumentFlowPanel objectType="sales_return" objectId={record?.id} />
     </Show>
   );
 };
