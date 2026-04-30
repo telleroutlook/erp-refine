@@ -68,7 +68,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
     list_sales_invoices: tool({
       description: 'List sales invoices (AR invoices)',
       inputSchema: z.object({
-        status: z.enum(['draft','sent','paid','overdue','cancelled']).optional(),
+        status: z.enum(['draft','issued','paid','overdue','voided','cancelled']).optional(),
         customerId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

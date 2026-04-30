@@ -11,8 +11,8 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
     list_contracts: tool({
       description: 'List contracts with optional filters by type, status, or party',
       inputSchema: z.object({
-        status: z.enum(['draft','active','expired','terminated','closed']).optional(),
-        contractType: z.enum(['purchase','sales','service','lease','other']).optional(),
+        status: z.enum(['draft','active','expired','terminated','cancelled','completed']).optional(),
+        contractType: z.enum(['sales','procurement','service','framework']).optional(),
         search: z.string().optional().describe('Search by contract number or description'),
         limit: z.number().min(1).max(100).default(20),
       }),

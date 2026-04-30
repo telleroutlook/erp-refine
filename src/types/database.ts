@@ -707,6 +707,7 @@ export type Database = {
           bom_number: string
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           effective_date: string | null
           id: string
           is_active: boolean
@@ -721,6 +722,7 @@ export type Database = {
           bom_number: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           effective_date?: string | null
           id?: string
           is_active?: boolean
@@ -735,6 +737,7 @@ export type Database = {
           bom_number?: string
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           effective_date?: string | null
           id?: string
           is_active?: boolean
@@ -1728,6 +1731,7 @@ export type Database = {
       document_attachments: {
         Row: {
           created_at: string
+          deleted_at: string | null
           entity_id: string
           entity_type: string
           file_name: string
@@ -1740,6 +1744,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           entity_id: string
           entity_type: string
           file_name: string
@@ -1752,6 +1757,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           entity_id?: string
           entity_type?: string
           file_name?: string
@@ -6159,7 +6165,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           quotation_number: string | null
-          rfq_id: string
+          rfq_id: string | null
           status: string
           supplier_id: string
           updated_at: string
@@ -6173,7 +6179,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           quotation_number?: string | null
-          rfq_id: string
+          rfq_id?: string | null
           status?: string
           supplier_id: string
           updated_at?: string
@@ -6187,7 +6193,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           quotation_number?: string | null
-          rfq_id?: string
+          rfq_id?: string | null
           status?: string
           supplier_id?: string
           updated_at?: string
@@ -6797,6 +6803,7 @@ export type Database = {
           approved_by: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           id: string
           notes: string | null
           organization_id: string
@@ -6818,6 +6825,7 @@ export type Database = {
           approved_by?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           id?: string
           notes?: string | null
           organization_id: string
@@ -6839,6 +6847,7 @@ export type Database = {
           approved_by?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           id?: string
           notes?: string | null
           organization_id?: string
@@ -7029,6 +7038,7 @@ export type Database = {
           completed_quantity: number
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           id: string
           notes: string | null
           organization_id: string
@@ -7048,6 +7058,7 @@ export type Database = {
           completed_quantity?: number
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           id?: string
           notes?: string | null
           organization_id: string
@@ -7067,6 +7078,7 @@ export type Database = {
           completed_quantity?: number
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           id?: string
           notes?: string | null
           organization_id?: string
@@ -7602,6 +7614,14 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       unaccent: { Args: { "": string }; Returns: string }
+      update_po_status_from_items: {
+        Args: { p_org_id: string; p_po_id: string }
+        Returns: string
+      }
+      update_so_status_from_items: {
+        Args: { p_org_id: string; p_so_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

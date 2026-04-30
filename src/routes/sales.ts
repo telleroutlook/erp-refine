@@ -114,7 +114,7 @@ sales.put('/sales-orders/:id', async (c) => {
   const body = await c.req.json();
 
   const permitted = ['status', 'notes', 'delivery_date', 'warehouse_id', 'payment_terms',
-    'currency', 'customer_id', 'approved_by', 'approved_at'];
+    'currency', 'customer_id'];
 
   if (body.items) {
     const { items, ...headerFields } = body;
@@ -147,6 +147,10 @@ sales.put('/sales-orders/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
+  if (Object.keys(allowed).length === 0) {
+    return c.json({ data: { id } });
+  }
 
   const { data, error } = await db
     .from('sales_orders')

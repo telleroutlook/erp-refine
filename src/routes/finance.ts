@@ -66,7 +66,8 @@ finance.get('/vouchers', async (c) => {
   let query = db
     .from('vouchers')
     .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null);
   query = applyFilters(query, filters);
   query = applyItemFilters(query, itemJoin, itemFilters);
 
@@ -88,6 +89,7 @@ finance.get('/vouchers/:id', async (c) => {
     .select('*, entries:voucher_entries(*, account:account_subjects(id,code,name))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Voucher', id, requestId);

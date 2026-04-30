@@ -56,7 +56,7 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
   return async (c: Context<{ Bindings: Env }>, next: Next) => {
     const authHeader = c.req.header('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return c.json({ error: 'Missing or invalid Authorization header' }, 401);
+      return c.json({ type: 'UNAUTHORIZED', status: 401, title: 'Unauthorized', detail: 'Missing or invalid Authorization header', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 401);
     }
 
     const token = authHeader.slice(7);
@@ -80,10 +80,10 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
           issuer: new URL('/auth/v1', c.env.SUPABASE_URL).toString(),
         });
       } else {
-        return c.json({ error: 'Invalid or expired token' }, 401);
+        return c.json({ type: 'UNAUTHORIZED', status: 401, title: 'Unauthorized', detail: 'Invalid or expired token', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 401);
       }
     } catch {
-      return c.json({ error: 'Invalid or expired token' }, 401);
+      return c.json({ type: 'UNAUTHORIZED', status: 401, title: 'Unauthorized', detail: 'Invalid or expired token', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 401);
     }
 
     const { payload } = result;
@@ -96,7 +96,7 @@ export function authMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
     };
 
     if (!user.userId || !user.organizationId) {
-      return c.json({ error: 'Invalid token claims' }, 401);
+      return c.json({ type: 'UNAUTHORIZED', status: 401, title: 'Unauthorized', detail: 'Invalid token claims: missing userId or organizationId', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 401);
     }
 
     c.set('user', user);
@@ -108,7 +108,7 @@ export function requireRole(...roles: string[]): MiddlewareHandler<{ Bindings: E
   return async (c: Context<{ Bindings: Env }>, next: Next) => {
     const user = c.get('user') as UserContext;
     if (!roles.includes(user.role)) {
-      return c.json({ error: 'Insufficient permissions' }, 403);
+      return c.json({ type: 'FORBIDDEN', status: 403, title: 'Forbidden', detail: 'Insufficient permissions', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 403);
     }
     await next();
   };
@@ -120,7 +120,7 @@ export function writeMethodGuard(): MiddlewareHandler<{ Bindings: Env }> {
     if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
       const user = c.get('user') as UserContext;
       if (user.role === 'viewer') {
-        return c.json({ error: 'Viewers cannot perform write operations' }, 403);
+        return c.json({ type: 'FORBIDDEN', status: 403, title: 'Forbidden', detail: 'Viewers cannot perform write operations', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 403);
       }
     }
     await next();

@@ -64,11 +64,12 @@ function buildTestDb() {
 
 describe('SQL Schema Validation', () => {
   let db: ReturnType<typeof buildTestDb> | null = null;
+  let dbBuildError: unknown = null;
 
   try {
     db = buildTestDb();
-  } catch {
-    // If DB build fails, skip these tests
+  } catch (e) {
+    dbBuildError = e;
   }
 
   it('migration files should be numbered sequentially', () => {
@@ -81,7 +82,7 @@ describe('SQL Schema Validation', () => {
   });
 
   it('purchase_orders should use order_number not po_no', () => {
-    if (!db) return;
+    if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
     try {
       const tableInfo = db.pragma('table_info(purchase_orders)') as Array<{ name: string }>;
       const columns = tableInfo.map((c) => c.name);
@@ -93,7 +94,7 @@ describe('SQL Schema Validation', () => {
   });
 
   it('sales_invoices should use invoice_number not invoice_no', () => {
-    if (!db) return;
+    if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
     try {
       const tableInfo = db.pragma('table_info(sales_invoices)') as Array<{ name: string }>;
       const columns = tableInfo.map((c) => c.name);
@@ -105,7 +106,7 @@ describe('SQL Schema Validation', () => {
   });
 
   it('payment_requests should have ok_to_pay boolean column', () => {
-    if (!db) return;
+    if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
     try {
       const tableInfo = db.pragma('table_info(payment_requests)') as Array<{ name: string; type: string }>;
       const columns = tableInfo.map((c) => c.name);
@@ -123,7 +124,7 @@ describe('SQL Schema Validation', () => {
       'warehouses', 'stock_records',
     ];
 
-    if (!db) return;
+    if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
 
     for (const table of businessTables) {
       try {

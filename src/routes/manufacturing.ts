@@ -28,7 +28,8 @@ manufacturing.get('/bom-headers', async (c) => {
   let query = db
     .from('bom_headers')
     .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null);
   query = applyFilters(query, filters);
   query = applyItemFilters(query, itemJoin, itemFilters);
 
@@ -49,6 +50,7 @@ manufacturing.get('/bom-headers/:id', async (c) => {
     .select('*, product:products(id,name,code), items:bom_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('BOM', id, requestId);
@@ -115,6 +117,7 @@ manufacturing.put('/bom-headers/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -142,7 +145,8 @@ manufacturing.get('/work-orders', async (c) => {
   let query = db
     .from('work_orders')
     .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
-    .eq('organization_id', user.organizationId);
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null);
   query = applyFilters(query, filters);
   query = applyItemFilters(query, itemJoin, itemFilters);
 
@@ -163,6 +167,7 @@ manufacturing.get('/work-orders/:id', async (c) => {
     .select('*, product:products(id,name,code), bom:bom_headers(id,bom_number), materials:work_order_materials(*, product:products(id,name,code)), productions:work_order_productions(*)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error) throw ApiError.notFound('Work Order', id, requestId);
@@ -287,6 +292,7 @@ manufacturing.put('/work-orders/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .select('id')
     .single();
 
@@ -413,6 +419,9 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
   if (!data) throw ApiError.invalidState('Work Order', 'unknown', 'complete', requestId);
 
   // 3. Record finished goods stock-in (after confirming ownership of the transition)
+  if (!wo.warehouse_id) {
+    throw ApiError.validation('Work order must have a warehouse assigned before completion.', [], requestId);
+  }
   await createStockTransaction(db, {
     organizationId: user.organizationId,
     warehouseId: wo.warehouse_id,
@@ -498,7 +507,7 @@ manufacturing.put('/work-order-productions/:id', async (c) => {
 
   const { data: prod, error: prodErr } = await db
     .from('work_order_productions')
-    .select('id, work_order:work_orders!inner(id, organization_id)')
+    .select('id, qualified_quantity, work_order:work_orders!inner(id, organization_id)')
     .eq('id', id)
     .eq('work_order.organization_id', user.organizationId)
     .single();
@@ -518,6 +527,20 @@ manufacturing.put('/work-order-productions/:id', async (c) => {
     .select('id')
     .single();
   if (error) throw ApiError.database(error.message, requestId);
+
+  if ('qualified_quantity' in updateData) {
+    const oldQty = Number(prod.qualified_quantity) || 0;
+    const newQty = Number(updateData.qualified_quantity) || 0;
+    const delta = newQty - oldQty;
+    if (delta !== 0) {
+      const { error: rpcErr } = await db.rpc('increment_completed_qty', {
+        p_work_order_id: (prod.work_order as any).id,
+        p_delta: delta,
+      });
+      if (rpcErr) throw ApiError.database(rpcErr.message, requestId);
+    }
+  }
+
   return c.json({ data });
 });
 
@@ -527,7 +550,7 @@ manufacturing.delete('/work-order-productions/:id', async (c) => {
 
   const { data: prod, error: prodErr } = await db
     .from('work_order_productions')
-    .select('id, work_order:work_orders!inner(id, organization_id)')
+    .select('id, qualified_quantity, work_order:work_orders!inner(id, organization_id)')
     .eq('id', id)
     .eq('work_order.organization_id', user.organizationId)
     .single();
@@ -539,6 +562,16 @@ manufacturing.delete('/work-order-productions/:id', async (c) => {
     .eq('id', id)
     .eq('work_order_id', (prod.work_order as any).id);
   if (error) throw ApiError.database(error.message, requestId);
+
+  const qty = Number(prod.qualified_quantity) || 0;
+  if (qty > 0) {
+    const { error: rpcErr } = await db.rpc('increment_completed_qty', {
+      p_work_order_id: (prod.work_order as any).id,
+      p_delta: -qty,
+    });
+    if (rpcErr) throw ApiError.database(rpcErr.message, requestId);
+  }
+
   return c.json({ data: { success: true } });
 });
 

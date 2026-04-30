@@ -97,6 +97,7 @@ storage.get('/storage/download/:id', async (c) => {
     .select('id, file_name, file_path, mime_type')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (error || !attachment) throw ApiError.notFound('DocumentAttachment', id, requestId);

@@ -205,14 +205,22 @@ for (const { relPath, content, lines } of routeFiles) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
 
+    // Reset table context on new handler/function boundary
+    if (/^\s*(const |let |var |function |return |async |export )/.test(line) &&
+        !line.includes('.from(') && !line.trim().startsWith('.')) {
+      const fromMatch = line.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
+      const headerMatch = line.match(/headerTable:\s*'(\w+)'/);
+      if (!fromMatch && !headerMatch) currentTable = null;
+    }
+
     // Track table context
     const fromMatch = line.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
     if (fromMatch) currentTable = fromMatch[1]!;
     const headerMatch = line.match(/headerTable:\s*'(\w+)'/);
     if (headerMatch) currentTable = headerMatch[1]!;
 
-    // Match status: 'value' patterns
-    const statusMatch = line.match(/status:\s*['"]([a-z_]+)['"]/);
+    // Match bare status: 'value' patterns (not payment_status, match_status, etc.)
+    const statusMatch = line.match(/(?<![a-z_])status:\s*['"]([a-z_]+)['"]/);
     if (statusMatch && currentTable) {
       const value = statusMatch[1]!;
       check4cCount++;
@@ -246,6 +254,15 @@ for (const { relPath, content, lines } of routeFiles) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
+
+    // Reset table context on new handler/function boundary
+    if (/^\s*(const |let |var |function |return |async |export )/.test(line) &&
+        !line.includes('.from(') && !line.trim().startsWith('.')) {
+      const fromMatch = line.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
+      const headerMatch = line.match(/headerTable:\s*'(\w+)'/);
+      if (!fromMatch && !headerMatch) currentTable = null;
+    }
+
     const fromMatch = line.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
     if (fromMatch) currentTable = fromMatch[1]!;
     const headerMatch = line.match(/headerTable:\s*'(\w+)'/);

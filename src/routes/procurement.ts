@@ -134,7 +134,7 @@ procurement.put('/purchase-orders/:id', async (c) => {
       itemsTable: 'purchase_order_items',
       headerFk: 'purchase_order_id',
       headerPermittedFields: ['status', 'notes', 'expected_date', 'warehouse_id', 'payment_terms',
-        'currency', 'supplier_id', 'approved_by', 'approved_at'],
+        'currency', 'supplier_id'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       autoLineNumber: true,
@@ -147,8 +147,12 @@ procurement.put('/purchase-orders/:id', async (c) => {
 
   const allowed: Record<string, unknown> = {};
   const permitted = ['status', 'notes', 'expected_date', 'warehouse_id', 'payment_terms',
-    'currency', 'supplier_id', 'approved_by', 'approved_at'];
+    'currency', 'supplier_id'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
+
+  if (Object.keys(allowed).length === 0) {
+    return c.json({ data: { id } });
+  }
 
   const { data, error } = await db
     .from('purchase_orders')

@@ -11,7 +11,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_purchase_orders: tool({
       description: 'List purchase orders with optional filters',
       inputSchema: z.object({
-        status: z.enum(['draft','submitted','approved','rejected','partially_received','received','invoiced','closed','cancelled']).optional(),
+        status: z.enum(['draft','submitted','approved','rejected','in_transit','partially_received','received','closed','cancelled']).optional(),
         supplierId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -190,7 +190,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_rfq_headers: tool({
       description: 'List request-for-quotation (RFQ) headers',
       inputSchema: z.object({
-        status: z.enum(['draft','sent','closed','cancelled']).optional(),
+        status: z.enum(['draft','issued','closed','cancelled']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
       execute: async ({ status, limit }) => {
@@ -213,7 +213,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
       inputSchema: z.object({
         rfqId: z.string().uuid().optional(),
         supplierId: z.string().uuid().optional(),
-        status: z.enum(['draft','submitted','accepted','rejected']).optional(),
+        status: z.enum(['received','evaluated','selected','rejected']).optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
       execute: async ({ rfqId, supplierId, status, limit }) => {
@@ -282,7 +282,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_advance_shipment_notices: tool({
       description: 'List advance shipment notices (ASN) from suppliers',
       inputSchema: z.object({
-        status: z.enum(['draft', 'in_transit', 'received', 'cancelled']).optional(),
+        status: z.enum(['open', 'received', 'cancelled']).optional(),
         supplierId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -305,7 +305,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_reconciliation_statements: tool({
       description: 'List supplier reconciliation statements for AP reconciliation',
       inputSchema: z.object({
-        status: z.enum(['draft', 'confirmed', 'disputed', 'closed']).optional(),
+        status: z.enum(['draft', 'confirmed', 'closed', 'cancelled']).optional(),
         supplierId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
