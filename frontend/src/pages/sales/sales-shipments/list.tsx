@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
 import { Table, Button, Space } from 'antd';
-import { EyeOutlined, EditOutlined } from '@ant-design/icons';
+import { EyeOutlined, EditOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { BulkActionBar } from '../../../components/shared/BulkActionBar';
 import { SHIPMENT_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useFieldLabel } from '../../../hooks';
 
 export const SalesShipmentList: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
-  const { show, edit } = useNavigation();
+  const { show, edit, push } = useNavigation();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
   const { tableProps, setFilters } = useTable({
     resource: 'sales-shipments',
@@ -29,7 +31,28 @@ export const SalesShipmentList: React.FC = () => {
   return (
     <List title={t('menu.salesShipments')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
-      <Table {...tableProps} rowKey="id" size="small">
+      <BulkActionBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        actions={[
+          {
+            key: 'createInvoice',
+            label: t('buttons.createSalesInvoice'),
+            icon: <FileTextOutlined />,
+            onClick: () => push(`/finance/sales-invoices/create?createFrom=sales-shipment&sourceId=${selectedRowKeys[0]}`),
+          },
+        ]}
+      />
+      <Table
+        {...tableProps}
+        rowKey="id"
+        size="small"
+        rowSelection={{
+          type: 'checkbox',
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys as string[]),
+        }}
+      >
         <Table.Column dataIndex="shipment_number" title={fl('sales_shipments', 'shipment_number')} width={160} />
         <Table.Column dataIndex={['sales_order', 'order_number']} title={fl('sales_shipments', 'sales_order_id')} width={160} />
         <Table.Column dataIndex={['sales_order', 'customer', 'name']} title={fl('sales_orders', 'customer_id')} />

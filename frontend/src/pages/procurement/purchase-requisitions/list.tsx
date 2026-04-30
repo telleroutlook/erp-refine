@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
 import { Table, Button, Space } from 'antd';
-import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { EyeOutlined, EditOutlined, PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { BulkActionBar } from '../../../components/shared/BulkActionBar';
 import { REQUISITION_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useFieldLabel } from '../../../hooks';
 
 export const PurchaseRequisitionList: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
-  const { show, edit, create } = useNavigation();
+  const { show, edit, create, push } = useNavigation();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
   const { tableProps, setFilters } = useTable({
     resource: 'purchase-requisitions',
@@ -38,7 +40,28 @@ export const PurchaseRequisitionList: React.FC = () => {
       }
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
-      <Table {...tableProps} rowKey="id" size="small">
+      <BulkActionBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        actions={[
+          {
+            key: 'createPO',
+            label: t('buttons.createPurchaseOrder'),
+            icon: <ShoppingCartOutlined />,
+            onClick: () => push(`/procurement/purchase-orders/create?createFrom=purchase-requisition&sourceId=${selectedRowKeys[0]}`),
+          },
+        ]}
+      />
+      <Table
+        {...tableProps}
+        rowKey="id"
+        size="small"
+        rowSelection={{
+          type: 'checkbox',
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys as string[]),
+        }}
+      >
         <Table.Column dataIndex="requisition_number" title={fl('purchase_requisitions', 'requisition_number')} width={160} />
         <Table.Column
           dataIndex={['department', 'name']}

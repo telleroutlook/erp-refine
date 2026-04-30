@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTable, List, DateField } from '@refinedev/antd';
-import { Table, Button, Space } from 'antd';
-import { EyeOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Dropdown } from 'antd';
+import { EyeOutlined, EditOutlined, PlusOutlined, InboxOutlined, FileTextOutlined, DownOutlined } from '@ant-design/icons';
 import { useNavigation } from '@refinedev/core';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
+import { BulkActionBar } from '../../../components/shared/BulkActionBar';
 import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { useFieldLabel } from '../../../hooks';
 
 export const PurchaseOrderList: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
-  const { show, edit, create } = useNavigation();
+  const { show, edit, create, push } = useNavigation();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
 
   const { tableProps, setFilters } = useTable({
     resource: 'purchase-orders',
@@ -31,6 +33,21 @@ export const PurchaseOrderList: React.FC = () => {
     { type: 'itemProduct', field: '_item_product_id', label: t('filters.itemProduct'), placeholder: t('filters.itemProductPlaceholder') },
   ];
 
+  const bulkDropdownItems = [
+    {
+      key: 'createReceipt',
+      label: t('buttons.createPurchaseReceipt'),
+      icon: <InboxOutlined />,
+      onClick: () => push(`/procurement/purchase-receipts/create?createFrom=purchase-order&sourceId=${selectedRowKeys[0]}`),
+    },
+    {
+      key: 'createInvoice',
+      label: t('buttons.createSupplierInvoice'),
+      icon: <FileTextOutlined />,
+      onClick: () => push(`/finance/supplier-invoices/create?createFrom=purchase-order&sourceId=${selectedRowKeys[0]}`),
+    },
+  ];
+
   return (
     <List
       title={t('menu.purchaseOrders')}
@@ -41,7 +58,29 @@ export const PurchaseOrderList: React.FC = () => {
       }
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
-      <Table {...tableProps} rowKey="id" size="small">
+      <BulkActionBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        actions={[
+          {
+            key: 'createFrom',
+            label: t('buttons.createFromSource'),
+            icon: <DownOutlined />,
+            onClick: () => {},
+          },
+        ]}
+        dropdownActions={bulkDropdownItems}
+      />
+      <Table
+        {...tableProps}
+        rowKey="id"
+        size="small"
+        rowSelection={{
+          type: 'checkbox',
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys as string[]),
+        }}
+      >
         <Table.Column dataIndex="order_number" title={fl('purchase_orders', 'order_number')} width={160} />
         <Table.Column
           dataIndex={['supplier', 'name']}

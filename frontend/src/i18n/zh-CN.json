@@ -280,7 +280,9 @@
     "createFromSource": "参考创建",
     "confirmReceipt": "确认收货",
     "confirmShipment": "确认发货",
-    "completeInspection": "完成检验"
+    "completeInspection": "完成检验",
+    "clearSelection": "清除选择",
+    "selectedCount": "已选 {{count}} 条"
   },
   "common": {
     "loading": "加载中...",

@@ -280,7 +280,9 @@
     "createFromSource": "Reference Create",
     "confirmReceipt": "Confirm Receipt",
     "confirmShipment": "Confirm Shipment",
-    "completeInspection": "Complete Inspection"
+    "completeInspection": "Complete Inspection",
+    "clearSelection": "Clear Selection",
+    "selectedCount": "{{count}} selected"
   },
   "common": {
     "loading": "Loading...",
