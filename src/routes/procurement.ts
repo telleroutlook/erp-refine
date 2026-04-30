@@ -522,7 +522,7 @@ procurement.put('/rfq-headers/:id', async (c) => {
       headerTable: 'rfq_headers',
       itemsTable: 'rfq_lines',
       headerFk: 'rfq_id',
-      headerPermittedFields: ['status', 'notes', 'due_date', 'rfq_number'],
+      headerPermittedFields: ['status', 'notes', 'due_date'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       autoLineNumber: true,
@@ -532,7 +532,7 @@ procurement.put('/rfq-headers/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes', 'due_date', 'rfq_number']);
+  const PERMITTED = new Set(['status', 'notes', 'due_date']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;

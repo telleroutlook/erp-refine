@@ -100,7 +100,8 @@ export async function atomicUpdateWithItems(
         .from(itemsTable)
         .update(sanitized)
         .eq('id', item.id)
-        .eq(headerFk, headerId);
+        .eq(headerFk, headerId)
+        .eq('organization_id', organizationId);
       if (softDeleteItems) q = q.is('deleted_at', null);
       const { error } = await q;
       if (error) throw ApiError.database(error.message, requestId, `Failed to update ${itemsTable} item ${item.id}`);

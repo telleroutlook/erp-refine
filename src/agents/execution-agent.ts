@@ -16,6 +16,7 @@ export interface ExecutionRequest {
   domain: string;
   parameters: Record<string, unknown>;
   confirmed?: boolean;
+  approved?: boolean;
   strategy?: AgentStrategy;
   historyContext?: string;
 }
@@ -57,6 +58,7 @@ export class ExecutionAgent extends BaseAgent {
       role: ctx.role,
       organizationId: ctx.organizationId,
       confirmed: request.confirmed,
+      approved: request.approved,
     });
 
     if (policyResult.decision === 'deny') {

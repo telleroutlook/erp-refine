@@ -128,6 +128,7 @@ partners.route('', buildNestedCrudRoutes({
   childReturnSelect: 'id, site_name',
   defaultSort: 'site_name',
   softDelete: true,
+  createExtras: (user) => ({ organization_id: user.organizationId }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -144,6 +145,7 @@ partners.route('', buildNestedCrudRoutes({
   childReturnSelect: 'id, bank_name, account_number',
   defaultSort: 'bank_name',
   softDelete: true,
+  createExtras: (user) => ({ organization_id: user.organizationId }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -160,6 +162,7 @@ partners.route('', buildNestedCrudRoutes({
   childReturnSelect: 'id, name, email',
   defaultSort: 'is_default',
   softDelete: true,
+  createExtras: (user) => ({ organization_id: user.organizationId }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -176,6 +179,7 @@ partners.route('', buildNestedCrudRoutes({
   childReturnSelect: 'id, certificate_type, certificate_number',
   defaultSort: 'expiry_date',
   softDelete: true,
+  createExtras: (user) => ({ organization_id: user.organizationId }),
 }));
 
 // ---------------------------------------------------------------------------

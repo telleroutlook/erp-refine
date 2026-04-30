@@ -18,7 +18,8 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
         let query = db
           .from('vouchers')
           .select('id, voucher_number, voucher_date, notes, total_debit, total_credit, status')
-          .eq('organization_id', organizationId);
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
 
         if (status) query = query.eq('status', status);
 
@@ -269,6 +270,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           .select('id, voucher_number, status')
           .eq('id', id)
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .single();
         if (error || !voucher) throw new Error('Voucher not found');
         if (voucher.status !== 'posted') throw new Error(`Cannot void voucher in status '${voucher.status}'`);
@@ -364,6 +366,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           .select('id, voucher_number, status, total_debit, total_credit')
           .eq('id', id)
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .single();
         if (error || !voucher) throw new Error('Voucher not found');
         if (voucher.status !== 'draft') throw new Error(`Cannot post voucher in status '${voucher.status}'`);

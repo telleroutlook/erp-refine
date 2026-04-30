@@ -153,6 +153,7 @@ export function createQualityTools(db: SupabaseClient, organizationId: string, u
         if (items.length > 0) {
           const checkItems = items.map(i => ({
             quality_inspection_id: qi.id,
+            organization_id: organizationId,
             check_item: i.checkItem,
             check_standard: i.checkStandard ?? null,
           }));

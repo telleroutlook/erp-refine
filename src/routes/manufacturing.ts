@@ -327,6 +327,10 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
     throw ApiError.invalidState('Work Order', wo.status, 'issue-materials', requestId);
   }
 
+  if (!wo.warehouse_id) {
+    throw ApiError.validation('Work order must have a warehouse assigned before issuing materials.', [], requestId);
+  }
+
   const materials = (wo.materials ?? []) as any[];
   const issuedMaterials: string[] = [];
 
@@ -411,6 +415,11 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     throw ApiError.invalidState('Work Order', wo.status, 'complete (no completed quantity)', requestId);
   }
 
+  // Guard: must have a warehouse assigned before completion
+  if (!wo.warehouse_id) {
+    throw ApiError.validation('Work order must have a warehouse assigned before completion.', [], requestId);
+  }
+
   // 2. Atomic status transition FIRST: in_progress → completed (prevents duplicate stock-in)
   const { data, error } = await atomicStatusTransition(db, 'work_orders', id, user.organizationId,
     'in_progress', { status: 'completed', actual_completion_date: new Date().toISOString() },
@@ -419,9 +428,6 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
   if (!data) throw ApiError.invalidState('Work Order', 'unknown', 'complete', requestId);
 
   // 3. Record finished goods stock-in (after confirming ownership of the transition)
-  if (!wo.warehouse_id) {
-    throw ApiError.validation('Work order must have a warehouse assigned before completion.', [], requestId);
-  }
   await createStockTransaction(db, {
     organizationId: user.organizationId,
     warehouseId: wo.warehouse_id,

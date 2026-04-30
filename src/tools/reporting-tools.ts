@@ -114,16 +114,16 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         const [draftCount, postedCount, approvedCount, voidedCount,
                pendingPayCount, approvedPayCount, paymentRecRes] = await Promise.all([
           db.from('vouchers').select('*', { count: 'exact', head: true })
-            .eq('organization_id', organizationId).eq('status', 'draft')
+            .eq('organization_id', organizationId).is('deleted_at', null).eq('status', 'draft')
             .gte('voucher_date', fromDate).lte('voucher_date', toDate),
           db.from('vouchers').select('*', { count: 'exact', head: true })
-            .eq('organization_id', organizationId).eq('status', 'posted')
+            .eq('organization_id', organizationId).is('deleted_at', null).eq('status', 'posted')
             .gte('voucher_date', fromDate).lte('voucher_date', toDate),
           db.from('vouchers').select('*', { count: 'exact', head: true })
-            .eq('organization_id', organizationId).eq('status', 'approved')
+            .eq('organization_id', organizationId).is('deleted_at', null).eq('status', 'approved')
             .gte('voucher_date', fromDate).lte('voucher_date', toDate),
           db.from('vouchers').select('*', { count: 'exact', head: true })
-            .eq('organization_id', organizationId).eq('status', 'voided')
+            .eq('organization_id', organizationId).is('deleted_at', null).eq('status', 'voided')
             .gte('voucher_date', fromDate).lte('voucher_date', toDate),
           db.from('payment_requests').select('*', { count: 'exact', head: true })
             .eq('organization_id', organizationId).is('deleted_at', null)

@@ -58,6 +58,10 @@ function toDbRow(tx: StockTransactionInput): Record<string, unknown> {
     quantity: tx.qty,
     reference_type: tx.referenceType,
     reference_id: tx.referenceId,
+    lot_number: tx.lotNumber ?? null,
+    serial_number: tx.serialNumber ?? null,
+    storage_location_id: tx.storageLocationId ?? null,
+    cost_price: tx.costPrice ?? null,
     notes: tx.notes,
     created_by: tx.createdBy,
   };

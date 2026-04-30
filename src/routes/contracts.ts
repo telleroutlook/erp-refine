@@ -174,7 +174,7 @@ contracts.post('/contracts/:id/renew', async (c) => {
 
   const { data: original, error: fetchError } = await db
     .from('contracts')
-    .select('*, items:contract_items(product_id, quantity, unit_price, tax_rate, notes)')
+    .select('*, items:contract_items(product_id, quantity, unit_price, tax_rate, notes, deleted_at)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -214,7 +214,7 @@ contracts.post('/contracts/:id/renew', async (c) => {
       created_by: user.userId,
       renewed_from_id: original.id,
     },
-    items: original.items ?? [],
+    items: (original.items ?? []).filter((i: any) => !i.deleted_at),
   });
 
   return c.json({ data: result.header }, 201);

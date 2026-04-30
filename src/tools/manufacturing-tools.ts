@@ -22,6 +22,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           `)
           .eq('id', id)
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .single();
         if (error) throw new Error(error.message);
         return data;
@@ -39,7 +40,8 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         let query = db
           .from('bom_headers')
           .select('id, bom_number, product:products(id,name,code), effective_date, is_active, version')
-          .eq('organization_id', organizationId);
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
 
         if (productId) query = query.eq('product_id', productId);
         if (search) {
@@ -65,6 +67,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           `)
           .eq('id', id)
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .single();
         if (error) throw new Error(error.message);
         return data;
@@ -81,7 +84,8 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         let query = db
           .from('work_orders')
           .select('id, work_order_number, status, start_date, planned_completion_date, planned_quantity, completed_quantity, product:products(id,name,code)')
-          .eq('organization_id', organizationId);
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
 
         if (status) query = query.eq('status', status);
 
@@ -219,6 +223,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .select('id, work_order_number, status')
           .eq('id', workOrderId)
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .single();
         if (error || !wo) throw new Error('Work order not found');
         if (!['released', 'in_progress'].includes(wo.status)) {
@@ -281,6 +286,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .select('id, work_order_number, status, planned_quantity, completed_quantity')
           .eq('id', id)
           .eq('organization_id', organizationId)
+          .is('deleted_at', null)
           .single();
         if (error || !wo) throw new Error('Work order not found');
         if (!['released', 'in_progress'].includes(wo.status)) {

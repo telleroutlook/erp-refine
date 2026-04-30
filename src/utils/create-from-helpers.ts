@@ -78,6 +78,7 @@ export async function fetchSourceWithOpenQuantities(
       .from(flow.targetItemsTable)
       .select(`${flow.targetItemSourceItemFk}, quantity`)
       .in(flow.targetItemSourceItemFk, itemIds)
+      .eq('organization_id', orgId)
       .is('deleted_at', null);
 
     const existing = (targetData ?? []) as unknown as Record<string, unknown>[];

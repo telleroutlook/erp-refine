@@ -131,6 +131,7 @@ storage.delete('/storage/:id', async (c) => {
     .select('id, file_path')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (fetchError || !attachment) throw ApiError.notFound('DocumentAttachment', id, requestId);

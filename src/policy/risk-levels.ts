@@ -26,6 +26,7 @@ export const WRITE_TRIGGER_KEYWORDS = [
   'create', 'insert', 'update', 'delete', 'archive', 'close',
   'submit', 'approve', 'reject', 'confirm', 'cancel',
   'post', 'void', 'reverse', 'pay', 'receive', 'ship',
+  'transfer', 'activate', 'terminate', 'renew', 'complete', 'issue',
 ] as const;
 
 /** Keywords that trigger deny by default */

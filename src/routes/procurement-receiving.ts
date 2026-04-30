@@ -555,15 +555,16 @@ procurementReceiving.post('/three-way-match', async (c) => {
       .select('id, total_amount')
       .eq('id', purchase_order_id)
       .eq('organization_id', user.organizationId)
+      .is('deleted_at', null)
       .single(),
     db.from('purchase_receipt_items')
       .select('quantity, purchase_order_item_id')
-      .eq('purchase_receipt_id', purchase_receipt_id)
-      .eq('organization_id', user.organizationId),
+      .eq('purchase_receipt_id', purchase_receipt_id),
     db.from('supplier_invoices')
       .select('id, total_amount')
       .eq('id', supplier_invoice_id)
       .eq('organization_id', user.organizationId)
+      .is('deleted_at', null)
       .single(),
   ]);
 
