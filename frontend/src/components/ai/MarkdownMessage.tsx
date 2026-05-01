@@ -108,7 +108,7 @@ const MD_COMPONENTS = {
   hr: () => <hr style={{ border: 'none', borderTop: '1px solid var(--md-hr-color)', margin: '12px 0' }} />,
 };
 
-export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => {
+export const MarkdownMessage: React.FC<MarkdownMessageProps> = React.memo(({ content }) => {
   return (
     <div>
       <ReactMarkdown
@@ -120,4 +120,4 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
       </ReactMarkdown>
     </div>
   );
-};
+});

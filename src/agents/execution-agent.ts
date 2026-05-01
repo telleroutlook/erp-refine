@@ -8,6 +8,7 @@ import { BaseAgent, type AgentContext } from './base-agent';
 import type { Env } from '../types/env';
 import type { ToolSet } from 'ai';
 import { evaluatePolicy } from '../policy/policy-engine';
+import { TOOL_REGISTRY_META } from '../tools/tool-registry';
 import type { AgentStrategy } from '../orchestrator/intent-router';
 import { executeWithRecovery } from '../lib/recovery';
 import { withKeyRotation, getApiKeys } from '../runtime/key-rotator';
@@ -89,6 +90,19 @@ export class ExecutionAgent extends BaseAgent {
     }
 
     // Policy allows — execute
+    // Filter tools: only provide the target action's tool + read-only (level 0/1) tools
+    const actionMeta = TOOL_REGISTRY_META.find(m => m.name === request.action);
+    const allowedToolNames = new Set(
+      TOOL_REGISTRY_META
+        .filter(m => m.level <= 1 || m.name === request.action)
+        .map(m => m.name)
+    );
+    const filteredTools: ToolSet = {};
+    for (const [name, t] of Object.entries(tools)) {
+      if (allowedToolNames.has(name)) filteredTools[name] = t;
+    }
+    const effectiveTools = Object.keys(filteredTools).length > 0 ? filteredTools : tools;
+
     const apiKeys = getApiKeys(env);
 
     const strategy = request.strategy;
@@ -97,7 +111,7 @@ export class ExecutionAgent extends BaseAgent {
       : BASE_SYSTEM_PROMPT;
 
     const agentResult = await super.execute(async () => {
-      const availableTools = Object.keys(tools).join(', ');
+      const availableTools = Object.keys(effectiveTools).join(', ');
 
       const effectiveParams = request.parameters;
 
@@ -123,7 +137,7 @@ export class ExecutionAgent extends BaseAgent {
               model: glm.chat(params.primaryModel),
               system: params.systemPrompt,
               prompt: params.prompt,
-              tools,
+              tools: effectiveTools,
               stopWhen: stepCountIs(strategy?.stepLimit ?? 5),
               temperature: params.temperature,
               maxOutputTokens: params.maxTokens,

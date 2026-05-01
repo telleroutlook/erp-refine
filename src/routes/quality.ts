@@ -210,7 +210,7 @@ quality.put('/quality-inspections/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permitted = ['status', 'notes', 'result', 'qualified_quantity', 'defective_quantity',
+  const permitted = ['notes', 'result', 'qualified_quantity', 'defective_quantity',
     'inspector_id', 'inspection_date', 'total_quantity'];
 
   if (body.items) {

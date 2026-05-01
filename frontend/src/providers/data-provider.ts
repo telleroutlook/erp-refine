@@ -45,6 +45,7 @@ export const dataProvider: DataProvider = {
       for (const filter of filters) {
         if ('field' in filter) {
           const { field, operator, value } = filter;
+          if (value === undefined || value === null || value === '') continue;
 
           // Item-level filters: passed through as-is, bypass operator mapping
           if (field.startsWith('_item_')) {

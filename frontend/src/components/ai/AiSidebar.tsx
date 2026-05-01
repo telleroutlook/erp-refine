@@ -62,6 +62,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     return () => cancelAnimationFrame(scrollRafRef.current);
   }, [messages, streamingText, activeTools]);
 
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
   const handleScroll = useCallback(() => {
     const el = messagesContainerRef.current;
     if (!el) return;

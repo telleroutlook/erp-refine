@@ -403,8 +403,7 @@ finance.put('/budgets/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permitted = ['budget_name', 'budget_year', 'total_amount', 'currency', 'status',
-    'approved_by', 'approved_at'];
+  const permitted = ['budget_name', 'budget_year', 'total_amount', 'currency'];
 
   if (body.items) {
     const updateConfig: AtomicUpdateConfig = {

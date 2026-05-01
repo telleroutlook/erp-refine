@@ -220,7 +220,7 @@ inventory.put('/inventory-counts/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permitted = ['status', 'notes', 'count_date', 'warehouse_id'];
+  const permitted = ['notes', 'count_date', 'warehouse_id'];
 
   if (body.items) {
     const updateConfig: AtomicUpdateConfig = {

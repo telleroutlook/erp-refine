@@ -13,12 +13,12 @@ export function errorHandler(err: Error, c: Context): Response {
 
   // If it's our typed ApiError, return the structured problem directly
   if (err instanceof ApiError) {
-    err.problem.request_id = requestId;
-    logger.warn(`[${requestId}] ${err.problem.type}: ${err.problem.detail}`, {
-      status: err.problem.status,
-      errors: err.problem.errors,
+    const problem = { ...err.problem, request_id: requestId };
+    logger.warn(`[${requestId}] ${problem.type}: ${problem.detail}`, {
+      status: problem.status,
+      errors: problem.errors,
     });
-    return c.json(err.problem, err.problem.status as any) as unknown as Response;
+    return c.json(problem, problem.status as any) as unknown as Response;
   }
 
   // Unknown error — log full stack, return generic problem

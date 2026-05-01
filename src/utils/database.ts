@@ -193,7 +193,8 @@ export async function atomicStatusTransition(
     .from(table)
     .update(newFields)
     .eq('id', id)
-    .eq('organization_id', organizationId);
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null);
   if (Array.isArray(expectedStatus)) {
     q = q.in('status', expectedStatus);
   } else {

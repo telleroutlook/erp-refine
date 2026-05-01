@@ -92,7 +92,8 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
         let query = db
           .from('serial_numbers')
           .select('id, serial_number, status, product:products(id,name,code), warehouse:warehouses(id,name,code)')
-          .eq('organization_id', organizationId);
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
 
         if (productId) query = query.eq('product_id', productId);
         if (status) query = query.eq('status', status);

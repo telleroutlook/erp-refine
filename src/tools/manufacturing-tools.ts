@@ -110,7 +110,8 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         const { data, error } = await db
           .from('work_order_materials')
           .select('id, required_quantity, issued_quantity, status, notes, product:products(id,name,code)')
-          .eq('work_order_id', workOrderId);
+          .eq('work_order_id', workOrderId)
+          .eq('organization_id', organizationId);
         if (error) throw new Error(error.message);
         return data ?? [];
       },
@@ -132,6 +133,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .from('work_order_productions')
           .select('id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_by')
           .eq('work_order_id', workOrderId)
+          .eq('organization_id', organizationId)
           .order('production_date', { ascending: false });
         if (error) throw new Error(error.message);
         return data ?? [];

@@ -185,7 +185,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
 
       const doUpdate = async () => {
         const BLOCKED_FIELDS = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'updated_at', 'created_by']);
-        const sanitized = updateSchema ? body : Object.fromEntries(Object.entries(body).filter(([k]) => !BLOCKED_FIELDS.has(k)));
+        const sanitized = Object.fromEntries(Object.entries(body).filter(([k]) => !BLOCKED_FIELDS.has(k)));
         let q = db.from(table).update(sanitized).eq('id', id);
         if (orgScoped) q = q.eq('organization_id', user.organizationId);
         if (softDelete) q = q.is('deleted_at', null);
