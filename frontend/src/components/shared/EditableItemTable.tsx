@@ -54,6 +54,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [changeSeq, setChangeSeq] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isDirty = Object.keys(edits).length > 0 || newRows.length > 0 || deletedIds.size > 0;
   const isDirtyRef = useRef(isDirty);
@@ -78,7 +79,10 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       if (isDirtyRef.current) { e.preventDefault(); e.returnValue = ''; }
     };
     window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
+    return () => {
+      window.removeEventListener('beforeunload', handler);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   const flatKey = (di: string | string[]) => (Array.isArray(di) ? di.join('.') : di);
@@ -164,7 +168,10 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     onChangeRef.current({ upsert, delete: Array.from(currentDeletedIds) });
   }, [changeSeq]);
 
-  const notifyChange = () => setChangeSeq((s) => s + 1);
+  const notifyChange = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setChangeSeq((s) => s + 1), 150);
+  };
 
   const updateCell = (recordId: string, col: ColumnConfig, value: any) => {
     const key = flatKey(col.dataIndex);

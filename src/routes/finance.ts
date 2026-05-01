@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
+import { userRateLimitMiddleware } from '../middleware/rate-limit';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
@@ -15,6 +16,7 @@ import { payment_records } from '../schema/columns';
 
 const finance = new Hono<{ Bindings: Env }>();
 finance.use('*', authMiddleware());
+finance.use('*', userRateLimitMiddleware());
 finance.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -413,7 +415,7 @@ finance.put('/budgets/:id', async (c) => {
       itemsReturnSelect: '*, cost_center:cost_centers(id,code,name)',
       headerReturnSelect: 'id',
       softDeleteItems: true,
-      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.planned_amount) || 0 },
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.planned_amount) || 0, sumExpr: 'COALESCE(planned_amount, 0)' },
     };
     const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
     return c.json({ data: result.header });

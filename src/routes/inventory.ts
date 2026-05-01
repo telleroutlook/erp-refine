@@ -4,6 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
+import { userRateLimitMiddleware } from '../middleware/rate-limit';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
@@ -13,6 +14,7 @@ import { ApiError } from '../utils/api-error';
 
 const inventory = new Hono<{ Bindings: Env }>();
 inventory.use('*', authMiddleware());
+inventory.use('*', userRateLimitMiddleware());
 inventory.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────

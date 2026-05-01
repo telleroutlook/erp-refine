@@ -940,7 +940,7 @@ procurementReceiving.put('/reconciliation-statements/:id', async (c) => {
       headerPermittedFields: ['notes', 'paid_amount'],
       itemsReturnSelect: '*, item:products!item_id(id,name,code)',
       headerReturnSelect: 'id',
-      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.line_amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.line_amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0), sumExpr: 'COALESCE(line_amount, quantity * unit_price, 0)' },
     };
     const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
     return c.json({ data: result.header });

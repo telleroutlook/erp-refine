@@ -4,6 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
+import { userRateLimitMiddleware } from '../middleware/rate-limit';
 import { buildCrudRoutes, type CrudConfig, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, resolveEmployeeId, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
@@ -14,6 +15,7 @@ import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelati
 
 const procurement = new Hono<{ Bindings: Env }>();
 procurement.use('*', authMiddleware());
+procurement.use('*', userRateLimitMiddleware());
 procurement.use('*', writeMethodGuard());
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -671,7 +673,7 @@ procurement.put('/supplier-quotations/:id', async (c) => {
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       softDeleteItems: true,
-      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.total_price) || (Number(it.qty_offered) || 0) * (Number(it.unit_price) || 0) },
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.total_price) || (Number(it.qty_offered) || 0) * (Number(it.unit_price) || 0), sumExpr: 'COALESCE(total_price, qty_offered * unit_price, 0)' },
     };
     const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
     return c.json({ data: result.header });
