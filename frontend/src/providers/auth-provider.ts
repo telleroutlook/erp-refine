@@ -21,7 +21,13 @@ async function refreshAccessToken(): Promise<boolean> {
         const { data } = await res.json();
         localStorage.setItem('access_token', data.session.accessToken);
         localStorage.setItem('refresh_token', data.session.refreshToken);
-        if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+        const meRes = await fetch(`${API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${data.session.accessToken}` },
+        });
+        if (meRes.ok) {
+          const { data: user } = await meRes.json();
+          localStorage.setItem('user', JSON.stringify(user));
+        }
         return true;
       }
       return false;

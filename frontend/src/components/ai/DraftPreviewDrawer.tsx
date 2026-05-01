@@ -98,8 +98,14 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
       }
       if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
         return (
-          <Form.Item key={key} name={key} label={label}>
-            <Input />
+          <Form.Item
+            key={key}
+            name={key}
+            label={label}
+            getValueProps={(v) => ({ value: v ? dayjs(v) : null })}
+            normalize={(v) => v?.format('YYYY-MM-DD') ?? null}
+          >
+            <DatePicker style={{ width: '100%' }} />
           </Form.Item>
         );
       }

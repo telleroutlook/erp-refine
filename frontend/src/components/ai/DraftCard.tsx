@@ -48,7 +48,7 @@ export const DraftCard: React.FC<DraftCardProps> = ({ data, onClick }) => {
         cursor: 'pointer',
         background: token.colorBgElevated,
       }}
-      bodyStyle={{ padding: '10px 12px' }}
+      styles={{ body: { padding: '10px 12px' } }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ flex: 1, minWidth: 0 }}>

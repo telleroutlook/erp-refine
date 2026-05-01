@@ -332,6 +332,7 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
     .select('id, status, warehouse_id, organization_id')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -377,6 +378,7 @@ manufacturing.post('/work-orders/:id/complete', async (c) => {
     .select('id, status, product_id, warehouse_id, completed_quantity')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (woError || !wo) throw ApiError.notFound('Work Order', id, requestId);
@@ -452,6 +454,7 @@ manufacturing.post('/work-order-productions', async (c) => {
     .select('id')
     .eq('id', body.work_order_id)
     .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
     .single();
   if (woErr || !wo) throw ApiError.notFound('WorkOrder', body.work_order_id, requestId);
 

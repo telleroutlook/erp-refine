@@ -21,7 +21,7 @@ function getFormatter(currency: string, locale: string): Intl.NumberFormat | nul
   return fmt;
 }
 
-export const AmountDisplay: React.FC<AmountDisplayProps> = React.memo(({ value, currency = 'USD' }) => {
+export const AmountDisplay: React.FC<AmountDisplayProps> = React.memo(({ value, currency = 'CNY' }) => {
   const { i18n } = useTranslation();
   const num = Number(value);
   if (isNaN(num)) return <span>—</span>;

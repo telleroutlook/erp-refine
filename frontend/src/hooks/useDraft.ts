@@ -3,6 +3,7 @@
 
 import { useState, useCallback } from 'react';
 import { useNotification, useInvalidate } from '@refinedev/core';
+import { API_URL } from '../constants/api';
 
 export interface DraftSummary {
   title: string;
@@ -61,7 +62,7 @@ export function useDraft(draftId: string | null) {
   const fetchDraft = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/drafts/${id}`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/drafts/${id}`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { data } = await res.json();
       setDraft(data);
@@ -78,7 +79,7 @@ export function useDraft(draftId: string | null) {
     if (!draftId) return null;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/drafts/${draftId}/commit`, {
+      const res = await fetch(`${API_URL}/drafts/${draftId}/commit`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ content: contentOverride }),
@@ -104,7 +105,7 @@ export function useDraft(draftId: string | null) {
     if (!draftId) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/drafts/${draftId}/discard`, {
+      const res = await fetch(`${API_URL}/drafts/${draftId}/discard`, {
         method: 'POST',
         headers: getAuthHeaders(),
       });
@@ -121,7 +122,7 @@ export function useDraft(draftId: string | null) {
   const renew = useCallback(async () => {
     if (!draftId) return;
     try {
-      const res = await fetch(`/api/drafts/${draftId}/renew`, {
+      const res = await fetch(`${API_URL}/drafts/${draftId}/renew`, {
         method: 'POST',
         headers: getAuthHeaders(),
       });
@@ -137,7 +138,7 @@ export function useDraft(draftId: string | null) {
   const update = useCallback(async (content: Record<string, unknown>) => {
     if (!draftId) return;
     try {
-      const res = await fetch(`/api/drafts/${draftId}`, {
+      const res = await fetch(`${API_URL}/drafts/${draftId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ content }),

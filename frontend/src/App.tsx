@@ -12,7 +12,6 @@ import '@refinedev/antd/dist/reset.css';
 import '@xyflow/react/dist/style.css';
 import './styles/tokens.css';
 import './styles/responsive.css';
-import './i18n/i18n';
 import i18n from './i18n/i18n';
 
 import { dataProvider } from './providers/data-provider';

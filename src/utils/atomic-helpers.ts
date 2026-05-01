@@ -188,14 +188,14 @@ export async function atomicCreateWithItems(
   const result = rpcResult as { header: Record<string, unknown>; items: Record<string, unknown>[] };
 
   if (audit) {
-    db.from('business_events').insert({
+    await db.from('business_events').insert({
       organization_id: audit.organizationId,
       event_type: audit.action,
       entity_type: audit.resource,
       entity_id: String(result.header.id ?? ''),
       payload: { actor_id: audit.userId, request_id: audit.requestId },
       severity: 'info',
-    }).then(() => {});
+    });
   }
 
   return { header: result.header, items: result.items ?? [] };
