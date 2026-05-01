@@ -68,10 +68,19 @@ quality.get('/quality-standards/:id', async (c) => {
   return c.json({ data });
 });
 
+const PERMITTED_QUALITY_STANDARD = new Set([
+  'standard_code', 'standard_name', 'description', 'is_active',
+]);
+
 quality.post('/quality-standards', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
-  const { items, ...headerFields } = body;
+  const { items, ...rawFields } = body;
+
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_QUALITY_STANDARD.has(k)) headerFields[k] = v;
+  }
 
   const result = await atomicCreateWithItems(db, {
     headerTable: 'quality_standards',
@@ -83,7 +92,6 @@ quality.post('/quality-standards', async (c) => {
     header: {
       ...headerFields,
       organization_id: user.organizationId,
-      created_by: user.userId,
     },
     items: items ?? [],
   });
@@ -173,10 +181,21 @@ quality.get('/quality-inspections/:id', async (c) => {
   return c.json({ data });
 });
 
+const PERMITTED_QUALITY_INSPECTION = new Set([
+  'inspection_date', 'reference_type', 'reference_id', 'product_id',
+  'total_quantity', 'qualified_quantity', 'defective_quantity',
+  'result', 'notes', 'inspector_id', 'warehouse_id',
+]);
+
 quality.post('/quality-inspections', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
-  const { items, ...headerFields } = body;
+  const { items, ...rawFields } = body;
+
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_QUALITY_INSPECTION.has(k)) headerFields[k] = v;
+  }
 
   // Auto-generate inspection_number
   const { data: num, error: seqError } = await db.rpc('get_next_sequence', {

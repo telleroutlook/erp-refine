@@ -56,10 +56,20 @@ contracts.get('/contracts/:id', async (c) => {
   return c.json({ data });
 });
 
+const PERMITTED_CONTRACT = new Set([
+  'party_type', 'party_id', 'contract_type', 'start_date', 'end_date',
+  'total_amount', 'currency', 'payment_terms', 'notes',
+]);
+
 contracts.post('/contracts', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
-  const { items, ...headerFields } = body;
+  const { items, ...rawFields } = body;
+
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_CONTRACT.has(k)) headerFields[k] = v;
+  }
 
   // Auto-generate contract_number
   const { data: num, error: seqError } = await db.rpc('get_next_sequence', {

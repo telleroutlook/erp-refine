@@ -43,16 +43,24 @@ export async function confirmSalesShipment(params: ConfirmShipmentParams): Promi
 
   const items = (shipment as any).items ?? [];
   if (items.length > 0) {
-    await batchCreateStockTransactions(db, items.map((item: any) => ({
-      organizationId,
-      warehouseId: shipment.warehouse_id!,
-      productId: item.product_id,
-      transactionType: 'out' as const,
-      qty: Number(item.quantity),
-      referenceType: 'sales_shipment',
-      referenceId: shipment.id,
-      createdBy: userId,
-    })), requestId);
+    try {
+      await batchCreateStockTransactions(db, items.map((item: any) => ({
+        organizationId,
+        warehouseId: shipment.warehouse_id!,
+        productId: item.product_id,
+        transactionType: 'out' as const,
+        qty: Number(item.quantity),
+        referenceType: 'sales_shipment',
+        referenceId: shipment.id,
+        createdBy: userId,
+      })), requestId);
+    } catch (stockErr) {
+      await db.from('sales_shipments')
+        .update({ status: 'draft', confirmed_by: null, confirmed_at: null })
+        .eq('id', id)
+        .eq('organization_id', organizationId);
+      throw stockErr;
+    }
 
     await Promise.all(
       items
@@ -115,17 +123,25 @@ export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Prom
 
   const items = (receipt as any).items ?? [];
   if (items.length > 0) {
-    await batchCreateStockTransactions(db, items.map((item: any) => ({
-      organizationId,
-      warehouseId: receipt.warehouse_id!,
-      productId: item.product_id,
-      transactionType: 'in' as const,
-      qty: Number(item.quantity),
-      referenceType: 'purchase_receipt',
-      referenceId: receipt.id,
-      lotNumber: item.lot_number ?? undefined,
-      createdBy: userId,
-    })), requestId);
+    try {
+      await batchCreateStockTransactions(db, items.map((item: any) => ({
+        organizationId,
+        warehouseId: receipt.warehouse_id!,
+        productId: item.product_id,
+        transactionType: 'in' as const,
+        qty: Number(item.quantity),
+        referenceType: 'purchase_receipt',
+        referenceId: receipt.id,
+        lotNumber: item.lot_number ?? undefined,
+        createdBy: userId,
+      })), requestId);
+    } catch (stockErr) {
+      await db.from('purchase_receipts')
+        .update({ status: 'draft', confirmed_by: null, confirmed_at: null })
+        .eq('id', id)
+        .eq('organization_id', organizationId);
+      throw stockErr;
+    }
 
     await Promise.all(
       items

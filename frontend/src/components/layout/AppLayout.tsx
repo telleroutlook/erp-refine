@@ -251,21 +251,20 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
         </Tooltip>
       </div>
 
-      {!collapsed && (
-        <div ref={sidebarRef} style={{
-          width: sidebarWidth,
-          flexShrink: 0,
-          borderLeft: `1px solid ${token.colorBorderSecondary}`,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          transition,
-        }}>
-          <Suspense fallback={AI_FALLBACK}>
-            <AiSidebar />
-          </Suspense>
-        </div>
-      )}
+      <div ref={sidebarRef} style={{
+        width: collapsed ? 0 : sidebarWidth,
+        flexShrink: 0,
+        borderLeft: collapsed ? 'none' : `1px solid ${token.colorBorderSecondary}`,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        transition,
+        visibility: collapsed ? 'hidden' : 'visible',
+      }}>
+        <Suspense fallback={AI_FALLBACK}>
+          <AiSidebar />
+        </Suspense>
+      </div>
     </div>
   );
 };

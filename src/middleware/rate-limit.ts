@@ -7,7 +7,13 @@ import type { Env } from '../types/env';
 export function rateLimitMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
   return async (c, next) => {
     const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
-    const key = `ratelimit:${ip}`;
+    const authHeader = c.req.header('Authorization');
+    const tokenSuffix = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(-16)
+      : undefined;
+    const key = tokenSuffix
+      ? `ratelimit:token:${tokenSuffix}`
+      : `ratelimit:ip:${ip}`;
 
     try {
       const id = c.env.RATE_LIMITER_DO.idFromName(key);

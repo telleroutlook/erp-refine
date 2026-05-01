@@ -63,6 +63,11 @@ sales.get('/sales-orders/:id', async (c) => {
   return c.json({ data });
 });
 
+const PERMITTED_SO_CREATE = new Set([
+  'customer_id', 'order_date', 'delivery_date', 'warehouse_id',
+  'payment_terms', 'currency', 'notes', 'total_amount',
+]);
+
 // POST create (atomic: header + items)
 sales.post('/sales-orders', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
@@ -75,7 +80,12 @@ sales.post('/sales-orders', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate SO number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, ...headerFields } = body;
+  const { items, ...rawFields } = body;
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_SO_CREATE.has(k)) headerFields[k] = v;
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {

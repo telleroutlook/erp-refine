@@ -257,13 +257,22 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
             { action: 'stock_transfer_in', resource: 'stock_transactions', userId, organizationId },
           );
         } catch (inErr) {
-          await db.from('stock_transactions').insert({
-            ...txnBase,
-            warehouse_id: fromWarehouseId,
-            transaction_type: 'in',
-            quantity,
-            notes: `Reversal of failed transfer (out txn: ${outTxn.id})`,
-          });
+          try {
+            await db.from('stock_transactions').insert({
+              ...txnBase,
+              warehouse_id: fromWarehouseId,
+              transaction_type: 'in',
+              quantity,
+              notes: `Reversal of failed transfer (out txn: ${outTxn.id})`,
+            });
+          } catch (reversalErr) {
+            console.error('[transfer_stock] CRITICAL: reversal failed, ledger inconsistent', {
+              outTxnId: outTxn.id, productId, fromWarehouseId, quantity, reversalErr,
+            });
+            throw new Error(
+              `Stock transfer partially failed and reversal also failed. OUT txn ${outTxn.id} is orphaned. Manual intervention required.`
+            );
+          }
           throw inErr;
         }
 
