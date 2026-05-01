@@ -523,73 +523,11 @@ salesFinance.post('/customer-receipts', async (c) => {
   if (insertError) throw ApiError.database(insertError.message, requestId);
 
   if (receipt.reference_type === 'sales_invoice' && receipt.reference_id) {
-    const [receiptsResult, invoiceResult] = await Promise.all([
-      db
-        .from('customer_receipts')
-        .select('amount')
-        .eq('reference_type', 'sales_invoice')
-        .eq('reference_id', receipt.reference_id)
-        .eq('organization_id', user.organizationId)
-        .is('deleted_at', null),
-      db
-        .from('sales_invoices')
-        .select('id, total_amount, tax_amount, sales_order_id')
-        .eq('id', receipt.reference_id)
-        .eq('organization_id', user.organizationId)
-        .single(),
-    ]);
-
-    const totalPaid = (receiptsResult.data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
-    const invoice = invoiceResult.data;
-    const invoicePayable = Number(invoice?.total_amount ?? 0) + Number(invoice?.tax_amount ?? 0);
-
-    if (invoice && totalPaid >= invoicePayable) {
-      const { error: paidErr } = await db
-        .from('sales_invoices')
-        .update({ status: 'paid' })
-        .eq('id', receipt.reference_id)
-        .eq('organization_id', user.organizationId)
-        .in('status', ['issued', 'partial']);
-      if (paidErr) throw ApiError.database(paidErr.message, requestId);
-    }
-
-    if (invoice?.sales_order_id) {
-      const soId = invoice.sales_order_id;
-
-      const { data: soInvoices } = await db
-        .from('sales_invoices')
-        .select('id, total_amount, tax_amount')
-        .eq('sales_order_id', soId)
-        .eq('organization_id', user.organizationId)
-        .in('status', ['issued', 'paid'])
-        .is('deleted_at', null);
-
-      const totalInvoiced = (soInvoices ?? []).reduce((sum: number, inv: any) => sum + Number(inv.total_amount ?? 0) + Number(inv.tax_amount ?? 0), 0);
-      const invoiceIds = (soInvoices ?? []).map((inv: any) => inv.id);
-
-      let totalReceived = 0;
-      if (invoiceIds.length > 0) {
-        const { data: allReceipts } = await db
-          .from('customer_receipts')
-          .select('amount')
-          .eq('reference_type', 'sales_invoice')
-          .in('reference_id', invoiceIds)
-          .eq('organization_id', user.organizationId)
-          .is('deleted_at', null);
-        totalReceived = (allReceipts ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
-      }
-
-      let paymentStatus: 'paid' | 'partial' | 'unpaid';
-      if (totalInvoiced > 0 && totalReceived >= totalInvoiced) {
-        paymentStatus = 'paid';
-      } else if (totalReceived > 0) {
-        paymentStatus = 'partial';
-      } else {
-        paymentStatus = 'unpaid';
-      }
-
-      await db.from('sales_orders').update({ payment_status: paymentStatus }).eq('id', soId).eq('organization_id', user.organizationId).is('deleted_at', null);
-    }
+    const { error: rpcErr } = await db.rpc('update_invoice_payment_status', {
+      p_invoice_id: receipt.reference_id,
+      p_organization_id: user.organizationId,
+    });
+    if (rpcErr) throw ApiError.database(rpcErr.message, requestId);
   }
 
   return c.json({ data: receipt }, 201);

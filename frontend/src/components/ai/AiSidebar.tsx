@@ -15,6 +15,7 @@ import { MarkdownMessage } from './MarkdownMessage';
 import { DraftCard } from './DraftCard';
 import { DraftPreviewDrawer } from './DraftPreviewDrawer';
 import type { DraftCardData } from '../../hooks/useDraft';
+import { getAccessToken } from '../../providers/token';
 
 const { Text } = Typography;
 
@@ -92,7 +93,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     setStreamingText('');
     setActiveTools([]);
 
-    const accessToken = localStorage.getItem('access_token');
+    const accessToken = getAccessToken();
     const controller = new AbortController();
     abortRef.current = controller;
 

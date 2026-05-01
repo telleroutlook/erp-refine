@@ -4,6 +4,7 @@
 import { useState, useCallback } from 'react';
 import { useNotification, useInvalidate } from '@refinedev/core';
 import { API_URL } from '../constants/api';
+import { getAuthHeaders } from '../providers/token';
 
 export interface DraftSummary {
   title: string;
@@ -46,11 +47,6 @@ export interface CommitResult {
   recordId: string | null;
   resourceType: string;
   actionType: string;
-}
-
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('access_token');
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
 
 export function useDraft(draftId: string | null) {

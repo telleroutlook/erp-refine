@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL } from '../constants/api';
+import { getAccessToken } from '../providers/token';
 
 export interface CreateFromSource {
   id: string;
@@ -41,7 +42,7 @@ export function useCreateFrom(targetResource: string): UseCreateFromResult {
     if (!createFrom || !sourceId) return;
 
     const controller = new AbortController();
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     const url = `${API_URL}/${targetResource}/create-from/${encodeURIComponent(createFrom)}/${encodeURIComponent(sourceId)}`;
 
     setIsLoading(true);

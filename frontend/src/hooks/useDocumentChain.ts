@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../constants/api';
+import { getAccessToken } from '../providers/token';
 
 export interface ChainNode {
   id: string;
@@ -34,7 +35,7 @@ export function useDocumentChain(objectType: string | null, objectId: string | n
   useEffect(() => {
     if (!objectType || !objectId) return;
     const controller = new AbortController();
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
 
     setIsLoading(true);
     setError(null);

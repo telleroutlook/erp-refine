@@ -247,41 +247,49 @@ procurementReceiving.post('/purchase-receipts/:id/confirm', async (c) => {
     );
   }
 
-  // 4. Auto-create quality inspections for items requiring inspection
+  // 4. Auto-create quality inspections for items requiring inspection (batch)
   let inspectionsCreated = 0;
   if (inspectionItems.length > 0) {
     const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
-    for (const item of inspectionItems) {
-      const { data: seqData } = await db.rpc('get_next_sequence', {
-        p_organization_id: user.organizationId,
-        p_sequence_name: 'quality_inspection',
-      });
+    const today = new Date().toISOString().split('T')[0];
 
-      const { data: qi } = await db.from('quality_inspections').insert({
-        inspection_number: seqData,
+    const { data: seqBatch } = await db.rpc('get_next_sequence_batch', {
+      p_organization_id: user.organizationId,
+      p_sequence_name: 'quality_inspection',
+      p_count: inspectionItems.length,
+    });
+
+    const qiRows = inspectionItems.map((item: any, idx: number) => ({
+      inspection_number: (seqBatch as string[])[idx],
+      organization_id: user.organizationId,
+      product_id: item.product_id,
+      reference_type: 'purchase_receipt' as const,
+      reference_id: receipt.id,
+      purchase_receipt_item_id: item.id,
+      total_quantity: Number(item.quantity),
+      qualified_quantity: 0,
+      defective_quantity: 0,
+      inspection_date: today,
+      status: 'draft' as const,
+      result: 'pending' as const,
+      created_by: empId,
+    }));
+
+    const { data: qiResults } = await db.from('quality_inspections').insert(qiRows).select('id');
+
+    if (qiResults && qiResults.length > 0) {
+      const relRows = qiResults.map((qi: any) => ({
         organization_id: user.organizationId,
-        product_id: item.product_id,
-        reference_type: 'purchase_receipt',
-        reference_id: receipt.id,
-        purchase_receipt_item_id: item.id,
-        total_quantity: Number(item.quantity),
-        qualified_quantity: 0,
-        defective_quantity: 0,
-        inspection_date: new Date().toISOString().split('T')[0],
-        status: 'draft',
-        result: 'pending',
-        created_by: empId,
-      }).select('id, inspection_number').single();
-
-      if (qi) {
-        await createDocumentRelation(
-          db, user.organizationId,
-          'purchase_receipt', receipt.id,
-          'quality_inspection', qi.id,
-          'receipt_to_inspection'
-        );
-        inspectionsCreated++;
-      }
+        from_object_type: 'purchase_receipt',
+        from_object_id: receipt.id,
+        to_object_type: 'quality_inspection',
+        to_object_id: qi.id,
+        relation_type: 'derived_from',
+        label: 'receipt_to_inspection',
+        metadata: {},
+      }));
+      await db.from('document_relations').insert(relRows);
+      inspectionsCreated = qiResults.length;
     }
   }
 

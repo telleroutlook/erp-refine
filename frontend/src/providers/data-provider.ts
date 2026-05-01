@@ -3,6 +3,7 @@
 
 import { type DataProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
+import { getAuthHeaders } from './token';
 
 class HttpError extends Error {
   status: number;
@@ -29,11 +30,7 @@ function resolveUrl(resource: string): string {
 }
 
 function getHeaders(): Record<string, string> {
-  const token = localStorage.getItem('access_token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+  return getAuthHeaders();
 }
 
 export const dataProvider: DataProvider = {

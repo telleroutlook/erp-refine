@@ -3,6 +3,7 @@ import { useOne } from '@refinedev/core';
 import { Spin, Result, message, theme } from 'antd';
 import { DynamicFormRenderer } from '../../components/dynamic-form/DynamicFormRenderer';
 import { useTranslation } from 'react-i18next';
+import { getAccessToken } from '../../providers/token';
 
 interface DynamicFormPageProps {
   schemaId: string;
@@ -30,7 +31,7 @@ export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) =>
   const handleSubmit = async (formData: Record<string, unknown>) => {
     setSubmitting(true);
     try {
-      const accessToken = localStorage.getItem('access_token');
+      const accessToken = getAccessToken();
       const res = await fetch('/api/dynamic-data', {
         method: 'POST',
         headers: {

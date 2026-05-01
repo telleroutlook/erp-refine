@@ -3,6 +3,7 @@
 
 import type { AuthProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
+import { getAccessToken, setAccessToken, removeAccessToken } from './token';
 
 let _refreshPromise: Promise<boolean> | null = null;
 
@@ -19,7 +20,7 @@ async function refreshAccessToken(): Promise<boolean> {
       });
       if (res.ok) {
         const { data } = await res.json();
-        localStorage.setItem('access_token', data.session.accessToken);
+        setAccessToken(data.session.accessToken);
         localStorage.setItem('refresh_token', data.session.refreshToken);
         const meRes = await fetch(`${API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${data.session.accessToken}` },
@@ -55,7 +56,7 @@ export const authProvider: AuthProvider = {
     if (!data?.session?.accessToken) {
       return { success: false, error: { message: 'Unexpected response format', name: 'LoginError' } };
     }
-    localStorage.setItem('access_token', data.session.accessToken);
+    setAccessToken(data.session.accessToken);
     localStorage.setItem('refresh_token', data.session.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -63,7 +64,7 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (token) {
       await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
@@ -72,14 +73,14 @@ export const authProvider: AuthProvider = {
         console.warn('Logout request failed:', err);
       });
     }
-    localStorage.removeItem('access_token');
+    removeAccessToken();
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     return { success: true, redirectTo: '/login' };
   },
 
   check: async () => {
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (!token) return { authenticated: false, redirectTo: '/login' };
 
     // Check JWT expiry from the exp claim
@@ -94,14 +95,14 @@ export const authProvider: AuthProvider = {
       if (!payload.exp || payload.exp < nowSec + EXPIRY_BUFFER_SEC) {
         const refreshed = await refreshAccessToken();
         if (refreshed) return { authenticated: true };
-        localStorage.removeItem('access_token');
+        removeAccessToken();
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
         return { authenticated: false, redirectTo: '/login' };
       }
     } catch {
       // Malformed token — treat as unauthenticated
-      localStorage.removeItem('access_token');
+      removeAccessToken();
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
       return { authenticated: false, redirectTo: '/login' };
