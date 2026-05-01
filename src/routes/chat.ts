@@ -12,6 +12,8 @@ import { buildToolSet, TOOL_REGISTRY_META } from '../tools/tool-registry';
 import { evaluatePolicy } from '../policy/policy-engine';
 import type { Message } from '../do/chat-agent-do';
 import { estimateTokens, classifyComplexity, allocateBudget, truncateToTokenBudget } from '../lib/context/budget';
+import { saveDraft, buildDraftSummary, inferActionType, inferResourceType } from '../utils/draft-helpers';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 const chat = new Hono<{ Bindings: Env }>();
 
@@ -118,11 +120,12 @@ chat.post('/', async (c) => {
  * Wrap each tool in the ToolSet with a policy pre-check so write tools
  * (D2/D3) cannot be invoked from the streaming endpoint without policy approval.
  * Read-only tools (level 0/1) pass through immediately.
+ * D2 tools: execute dry-run → save as draft → return draft card data.
  */
 function wrapToolsWithPolicy(
   tools: ReturnType<typeof buildToolSet>,
   user: { userId: string; role: string; organizationId: string },
-  requestConfirmed?: boolean,
+  opts: { db: SupabaseClient; sessionId: string; requestConfirmed?: boolean },
 ): ReturnType<typeof buildToolSet> {
   const wrapped: ReturnType<typeof buildToolSet> = {};
   for (const [name, toolDef] of Object.entries(tools)) {
@@ -139,25 +142,54 @@ function wrapToolsWithPolicy(
     const originalExecute = (toolDef as unknown as { execute: (args: unknown, opts: unknown) => Promise<unknown> }).execute;
     wrapped[name] = {
       ...toolDef,
-      execute: async (args: Record<string, unknown>, opts: unknown) => {
+      execute: async (args: Record<string, unknown>, execOpts: unknown) => {
         const policy = evaluatePolicy({
           action: name,
           domain,
           userId: user.userId,
           role: user.role,
           organizationId: user.organizationId,
-          confirmed: requestConfirmed,
+          confirmed: opts.requestConfirmed,
         });
         if (policy.decision === 'deny') {
           throw new Error(`Policy denied: ${policy.reason}`);
         }
         if (policy.decision === 'require_confirmation') {
-          return { preview: true, message: `Confirmation required: ${policy.reason}. Set confirmed=true to proceed.` };
+          // Execute dry-run to get preview data
+          const previewResult = await originalExecute({ ...args, confirmed: false }, execOpts);
+          const previewObj = (previewResult && typeof previewResult === 'object') ? previewResult as Record<string, unknown> : {};
+
+          // Save as draft
+          const actionType = inferActionType(name);
+          const resourceType = inferResourceType(name);
+          const summary = buildDraftSummary(name, previewObj, args);
+          const draft = await saveDraft({
+            db: opts.db,
+            organizationId: user.organizationId,
+            userId: user.userId,
+            sessionId: opts.sessionId,
+            toolName: name,
+            toolArgs: args,
+            actionType,
+            resourceType,
+            targetId: (args.id as string) ?? undefined,
+            content: previewObj,
+            originalContent: previewObj.original ? previewObj.original as Record<string, unknown> : undefined,
+            summary,
+          });
+
+          return {
+            ...previewObj,
+            draft_id: draft.id,
+            _draft_card: draft.summary,
+            _draft_action_type: draft.action_type,
+            _draft_resource_type: draft.resource_type,
+          };
         }
         if (policy.decision === 'require_approval') {
           return { requiresApproval: true, toolName: name, message: `Approval required: ${policy.reason}. This action requires formal approval and cannot be self-approved.` };
         }
-        return originalExecute(args, opts);
+        return originalExecute(args, execOpts);
       },
     } as typeof toolDef;
   }
@@ -176,7 +208,7 @@ chat.post('/stream', async (c) => {
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
   const rawTools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId, waitUntil: (p) => c.executionCtx.waitUntil(p as Promise<unknown>) });
-  const tools = wrapToolsWithPolicy(rawTools, user, body.confirmed);
+  const tools = wrapToolsWithPolicy(rawTools, user, { db, sessionId, requestConfirmed: body.confirmed });
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 
@@ -267,8 +299,21 @@ chat.post('/stream', async (c) => {
             const tc = chunk as { type: 'tool-call'; toolName: string; toolCallId: string };
             enqueue('tool', { type: 'tool_start', name: tc.toolName, callId: tc.toolCallId });
           } else if (chunk.type === 'tool-result') {
-            const tr = chunk as { type: 'tool-result'; toolName: string; toolCallId: string };
+            const tr = chunk as { type: 'tool-result'; toolName: string; toolCallId: string; result?: unknown };
             enqueue('tool', { type: 'tool_end', name: tr.toolName, callId: tr.toolCallId });
+            // Emit draft card if tool result contains draft metadata
+            if (tr.result && typeof tr.result === 'object') {
+              const toolResult = tr.result as Record<string, unknown>;
+              if (toolResult._draft_card && toolResult.draft_id) {
+                enqueue('draft', {
+                  type: 'draft_card',
+                  draft_id: toolResult.draft_id,
+                  action_type: toolResult._draft_action_type ?? 'create',
+                  resource_type: toolResult._draft_resource_type ?? 'unknown',
+                  summary: toolResult._draft_card,
+                });
+              }
+            }
           } else if (chunk.type === 'start-step') {
             enqueue('step', { type: 'step_start' });
           } else if (chunk.type === 'finish-step') {

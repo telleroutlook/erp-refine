@@ -12,6 +12,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useLogout } from '@refinedev/core';
 import { MarkdownMessage } from './MarkdownMessage';
+import { DraftCard } from './DraftCard';
+import { DraftPreviewDrawer } from './DraftPreviewDrawer';
+import type { DraftCardData } from '../../hooks/useDraft';
 
 const { Text } = Typography;
 
@@ -27,6 +30,7 @@ interface Message {
   content: string;
   timestamp: Date;
   toolEvents?: ToolEvent[];
+  draftCards?: DraftCardData[];
 }
 
 function toolLabel(name: string, t: (key: string, opts?: Record<string, unknown>) => string) {
@@ -46,6 +50,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   const [streaming, setStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [activeTools, setActiveTools] = useState<ToolEvent[]>([]);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const sessionId = useRef(crypto.randomUUID());
@@ -93,6 +98,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
 
     let accText = '';
     const toolEventsForMsg: ToolEvent[] = [];
+    const draftCardsForMsg: DraftCardData[] = [];
 
     try {
       const res = await fetch('/api/chat/stream', {
@@ -157,6 +163,8 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
               if (idx !== -1) toolEventsForMsg[idx] = { ...toolEventsForMsg[idx], status: 'done' };
               setActiveTools([...toolEventsForMsg]);
             }
+          } else if (eventType === 'draft' && payload.type === 'draft_card') {
+            draftCardsForMsg.push(payload as unknown as DraftCardData);
           } else if (eventType === 'done' || eventType === 'error') {
             streamEnded = true;
             break;
@@ -173,6 +181,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
           content: accText || `(${t('ai.networkError')})`,
           timestamp: new Date(),
           toolEvents: toolEventsForMsg.length > 0 ? [...toolEventsForMsg] : undefined,
+          draftCards: draftCardsForMsg.length > 0 ? [...draftCardsForMsg] : undefined,
         },
       ]);
     } catch (err: unknown) {
@@ -298,6 +307,13 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
                 )}
               </div>
             </div>
+            {msg.draftCards && msg.draftCards.length > 0 && (
+              <div style={{ paddingLeft: 4, maxWidth: '90%' }}>
+                {msg.draftCards.map((card) => (
+                  <DraftCard key={card.draft_id} data={card} onClick={() => setActiveDraftId(card.draft_id)} />
+                ))}
+              </div>
+            )}
           </div>
         ))}
 
@@ -391,6 +407,13 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
           />
         )}
       </div>
+
+      {/* Draft Preview Drawer */}
+      <DraftPreviewDrawer
+        draftId={activeDraftId}
+        open={!!activeDraftId}
+        onClose={() => setActiveDraftId(null)}
+      />
     </div>
   );
 };

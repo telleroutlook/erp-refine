@@ -329,6 +329,86 @@ export type Database = {
           },
         ]
       }
+      ai_drafts: {
+        Row: {
+          action_type: string
+          committed_at: string | null
+          committed_record_id: string | null
+          content: Json
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          discarded_at: string | null
+          expires_at: string
+          id: string
+          organization_id: string
+          original_content: Json | null
+          renewed_count: number
+          resource_type: string
+          session_id: string
+          status: string
+          summary: Json
+          target_id: string | null
+          tool_args: Json
+          tool_name: string
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          committed_at?: string | null
+          committed_record_id?: string | null
+          content: Json
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          discarded_at?: string | null
+          expires_at?: string
+          id?: string
+          organization_id: string
+          original_content?: Json | null
+          renewed_count?: number
+          resource_type: string
+          session_id: string
+          status?: string
+          summary?: Json
+          target_id?: string | null
+          tool_args?: Json
+          tool_name: string
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          committed_at?: string | null
+          committed_record_id?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          discarded_at?: string | null
+          expires_at?: string
+          id?: string
+          organization_id?: string
+          original_content?: Json | null
+          renewed_count?: number
+          resource_type?: string
+          session_id?: string
+          status?: string
+          summary?: Json
+          target_id?: string | null
+          tool_args?: Json
+          tool_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_drafts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_records: {
         Row: {
           comments: string | null
@@ -7487,6 +7567,20 @@ export type Database = {
         Args: { table_name: string }
         Returns: undefined
       }
+      atomic_create_with_items: {
+        Args: {
+          p_auto_line_number?: boolean
+          p_header_data: Json
+          p_header_fk: string
+          p_header_return_select?: string
+          p_header_table: string
+          p_items_data: Json
+          p_items_return_select?: string
+          p_items_table: string
+        }
+        Returns: Json
+      }
+      cleanup_expired_drafts: { Args: never; Returns: number }
       debug_exec_command: {
         Args: { command_params?: string; command_text: string }
         Returns: string
@@ -7552,6 +7646,15 @@ export type Database = {
         Args: { p_qty: number; p_soi_id: string }
         Returns: undefined
       }
+      issue_work_order_materials: {
+        Args: {
+          p_created_by: string
+          p_organization_id: string
+          p_warehouse_id: string
+          p_work_order_id: string
+        }
+        Returns: Json
+      }
       link_employee_to_auth: {
         Args: {
           p_auth_email: string
@@ -7560,6 +7663,7 @@ export type Database = {
         }
         Returns: string
       }
+      purge_old_drafts: { Args: never; Returns: number }
       rpc_inventory_valuation: {
         Args: { p_org_id: string; p_warehouse_id?: string }
         Returns: {

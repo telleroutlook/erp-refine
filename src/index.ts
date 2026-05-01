@@ -30,6 +30,7 @@ import assetsRoutes from './routes/assets';
 import systemRoutes from './routes/system';
 import adminAuditRoutes from './routes/admin-audit';
 import storageRoutes from './routes/storage';
+import draftRoutes from './routes/drafts';
 
 // Policy rules (register on startup)
 import './policy/rules/procurement-rules';
@@ -136,6 +137,7 @@ app.get('/api/openapi.json', (c) => {
 // --- API Routes ---
 app.route('/api/auth', authRoutes);
 app.route('/api/chat', chatRoutes);
+app.route('/api/drafts', draftRoutes);
 app.route('/api/schema', schemaRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/admin', adminAuditRoutes);
@@ -170,5 +172,13 @@ export default {
   // Queue consumer
   async queue(batch: MessageBatch<ERPEvent>, env: Env): Promise<void> {
     await handleQueueBatch(batch, env);
+  },
+
+  // Cron trigger — cleanup expired AI drafts every 6 hours
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+    const { createServiceClient } = await import('./utils/supabase');
+    const db = createServiceClient(env);
+    await db.rpc('cleanup_expired_drafts');
+    await db.rpc('purge_old_drafts');
   },
 };
