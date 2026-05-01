@@ -113,7 +113,7 @@ sales.put('/sales-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permitted = ['status', 'notes', 'delivery_date', 'warehouse_id', 'payment_terms',
+  const permitted = ['notes', 'delivery_date', 'warehouse_id', 'payment_terms',
     'currency', 'customer_id'];
 
   if (body.items) {
@@ -362,7 +362,7 @@ sales.put('/sales-shipments/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permittedFields = ['status', 'notes', 'shipment_date', 'carrier', 'tracking_number', 'warehouse_id'];
+  const permittedFields = ['notes', 'shipment_date', 'carrier', 'tracking_number', 'warehouse_id'];
 
   if (body.items) {
     const { items, ...headerFields } = body;

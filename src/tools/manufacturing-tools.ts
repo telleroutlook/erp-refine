@@ -102,8 +102,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         const { data, error } = await db
           .from('work_order_materials')
           .select('id, required_quantity, issued_quantity, status, notes, product:products(id,name,code)')
-          .eq('work_order_id', workOrderId)
-          .eq('organization_id', organizationId);
+          .eq('work_order_id', workOrderId);
         if (error) throw new Error(error.message);
         return data ?? [];
       },
@@ -117,7 +116,6 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .from('work_order_productions')
           .select('id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_by')
           .eq('work_order_id', workOrderId)
-          .eq('organization_id', organizationId)
           .order('production_date', { ascending: false });
         if (error) throw new Error(error.message);
         return data ?? [];
@@ -142,8 +140,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         const { data: bomItems, error: bomErr } = await db
           .from('bom_items')
           .select('product_id, quantity')
-          .eq('bom_header_id', bomHeaderId)
-          .eq('organization_id', organizationId);
+          .eq('bom_header_id', bomHeaderId);
         if (bomErr) throw new Error(bomErr.message);
 
         const materials = (bomItems ?? []).map(bi => ({
@@ -193,7 +190,6 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         if (materials.length > 0) {
           const matRows = materials.map(m => ({
             work_order_id: wo.id,
-            organization_id: organizationId,
             product_id: m.productId,
             required_quantity: m.requiredQuantity,
             issued_quantity: 0,
@@ -234,7 +230,6 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .from('work_order_materials')
           .select('id, product_id, required_quantity, issued_quantity, status')
           .eq('work_order_id', workOrderId)
-          .eq('organization_id', organizationId)
           .eq('status', 'pending');
 
         const pendingMaterials = materials ?? [];
@@ -257,8 +252,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
             .from('work_order_materials')
             .update({ issued_quantity: mat.required_quantity, status: 'issued' })
             .eq('id', mat.id)
-            .eq('work_order_id', wo.id)
-            .eq('organization_id', organizationId);
+            .eq('work_order_id', wo.id);
           if (matUpdateErr) throw new Error(`Failed to issue material ${mat.id}: ${matUpdateErr.message}`);
         }
 

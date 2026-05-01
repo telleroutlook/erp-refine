@@ -59,11 +59,19 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
       description: 'List contract line items for a specific contract',
       inputSchema: z.object({ contractId: z.string().uuid() }),
       execute: async ({ contractId }) => {
+        const { data: contract } = await db
+          .from('contracts')
+          .select('id')
+          .eq('id', contractId)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null)
+          .single();
+        if (!contract) throw new Error('Contract not found or access denied');
+
         const { data, error } = await db
           .from('contract_items')
           .select('id, quantity, unit_price, tax_rate, amount, notes, product:products(id,name,code)')
           .eq('contract_id', contractId)
-          .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .order('id');
         if (error) throw new Error(error.message);
@@ -201,14 +209,12 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
           .from('contract_items')
           .select('product_id, quantity, unit_price, tax_rate, amount, notes')
           .eq('contract_id', id)
-          .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (items && items.length > 0) {
           const newItems = items.map(item => ({
             ...item,
             contract_id: newContract.id,
-            organization_id: organizationId,
           }));
           const { error: itemsErr } = await db.from('contract_items').insert(newItems);
           if (itemsErr) {

@@ -265,7 +265,7 @@ manufacturing.put('/work-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permitted = ['status', 'notes', 'planned_quantity', 'completed_quantity', 'warehouse_id',
+  const permitted = ['notes', 'planned_quantity', 'completed_quantity', 'warehouse_id',
     'planned_completion_date', 'actual_completion_date', 'start_date'];
 
   if (body.items) {

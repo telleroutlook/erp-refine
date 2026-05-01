@@ -134,15 +134,14 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
             .eq('ok_to_pay', true)
             .gte('created_at', fromDate).lte('created_at', toDate),
           db.from('payment_records')
-            .select('amount.sum(), id.count()', { count: 'exact', head: false })
+            .select('amount', { count: 'exact' })
             .eq('organization_id', organizationId)
             .gte('payment_date', fromDate)
-            .lte('payment_date', toDate)
-            .single(),
+            .lte('payment_date', toDate),
         ]);
 
-        const paidTotal = Number((paymentRecRes.data as any)?.amount?.sum ?? 0);
-        const paidCount = Number((paymentRecRes.data as any)?.id?.count ?? 0);
+        const paidTotal = (paymentRecRes.data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount ?? 0), 0);
+        const paidCount = paymentRecRes.count ?? 0;
 
         return {
           year: currentYear,

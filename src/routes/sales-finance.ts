@@ -318,7 +318,7 @@ salesFinance.put('/sales-returns/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const PERMITTED = new Set(['status', 'notes', 'reason', 'warehouse_id']);
+  const PERMITTED = new Set(['notes', 'reason', 'warehouse_id']);
 
   if (body.items) {
     const result = await atomicUpdateWithItems(

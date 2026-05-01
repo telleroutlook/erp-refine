@@ -133,7 +133,7 @@ procurement.put('/purchase-orders/:id', async (c) => {
       headerTable: 'purchase_orders',
       itemsTable: 'purchase_order_items',
       headerFk: 'purchase_order_id',
-      headerPermittedFields: ['status', 'notes', 'expected_date', 'warehouse_id', 'payment_terms',
+      headerPermittedFields: ['notes', 'expected_date', 'warehouse_id', 'payment_terms',
         'currency', 'supplier_id'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
@@ -146,7 +146,7 @@ procurement.put('/purchase-orders/:id', async (c) => {
   }
 
   const allowed: Record<string, unknown> = {};
-  const permitted = ['status', 'notes', 'expected_date', 'warehouse_id', 'payment_terms',
+  const permitted = ['notes', 'expected_date', 'warehouse_id', 'payment_terms',
     'currency', 'supplier_id'];
   for (const k of permitted) if (body[k] !== undefined) allowed[k] = body[k];
 
@@ -336,7 +336,7 @@ procurement.put('/purchase-requisitions/:id', async (c) => {
       headerTable: 'purchase_requisitions',
       itemsTable: 'purchase_requisition_lines',
       headerFk: 'purchase_requisition_id',
-      headerPermittedFields: ['status', 'notes'],
+      headerPermittedFields: ['notes'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       autoLineNumber: true,
@@ -347,7 +347,7 @@ procurement.put('/purchase-requisitions/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes']);
+  const PERMITTED = new Set(['notes']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -522,7 +522,7 @@ procurement.put('/rfq-headers/:id', async (c) => {
       headerTable: 'rfq_headers',
       itemsTable: 'rfq_lines',
       headerFk: 'rfq_id',
-      headerPermittedFields: ['status', 'notes', 'due_date'],
+      headerPermittedFields: ['notes', 'due_date'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       autoLineNumber: true,
@@ -532,7 +532,7 @@ procurement.put('/rfq-headers/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes', 'due_date']);
+  const PERMITTED = new Set(['notes', 'due_date']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -667,7 +667,7 @@ procurement.put('/supplier-quotations/:id', async (c) => {
       headerTable: 'supplier_quotations',
       itemsTable: 'supplier_quotation_lines',
       headerFk: 'quotation_id',
-      headerPermittedFields: ['status', 'notes', 'validity_date', 'total_amount', 'currency'],
+      headerPermittedFields: ['notes', 'validity_date', 'total_amount', 'currency'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       softDeleteItems: true,
@@ -677,7 +677,7 @@ procurement.put('/supplier-quotations/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes', 'validity_date', 'total_amount', 'currency']);
+  const PERMITTED = new Set(['notes', 'validity_date', 'total_amount', 'currency']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;

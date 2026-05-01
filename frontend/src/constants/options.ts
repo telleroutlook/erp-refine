@@ -138,7 +138,10 @@ export const QUOTATION_STATUS_OPTIONS = [
 
 export const VOUCHER_STATUS_OPTIONS = [
   { value: 'draft' },
+  { value: 'approved' },
   { value: 'posted' },
+  { value: 'voided' },
+  { value: 'cancelled' },
 ];
 
 export const BUDGET_STATUS_OPTIONS = [
@@ -214,6 +217,7 @@ export const PRICE_LIST_STATUS_OPTIONS = [
 export const CUSTOMER_RECEIPT_STATUS_OPTIONS = [
   { value: 'draft' },
   { value: 'confirmed' },
+  { value: 'reconciled' },
   { value: 'cancelled' },
 ];
 
@@ -221,6 +225,7 @@ export const RESERVATION_STATUS_OPTIONS = [
   { value: 'active' },
   { value: 'released' },
   { value: 'expired' },
+  { value: 'consumed' },
   { value: 'cancelled' },
 ];
 
@@ -238,8 +243,7 @@ export const PRODUCT_STATUS_OPTIONS = [
 ];
 
 export const ASN_STATUS_OPTIONS = [
-  { value: 'draft' },
-  { value: 'in_transit' },
+  { value: 'open' },
   { value: 'received' },
   { value: 'cancelled' },
 ];
@@ -259,8 +263,7 @@ export const TRANSACTION_TYPE_OPTIONS = [
 ];
 
 export const IMPORT_STATUS_OPTIONS = [
-  { value: 'pending' },
-  { value: 'in_progress' },
+  { value: 'processing' },
   { value: 'completed' },
   { value: 'failed' },
 ];

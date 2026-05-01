@@ -80,6 +80,7 @@ contracts.post('/contracts', async (c) => {
       contract_number: num,
       organization_id: user.organizationId,
       created_by: user.userId,
+      status: 'draft',
     },
     items: items ?? [],
   });

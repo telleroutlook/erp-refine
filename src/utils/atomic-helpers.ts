@@ -76,11 +76,10 @@ export async function atomicUpdateWithItems(
         .from(itemsTable)
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', itemId)
-        .eq(headerFk, headerId)
-        .eq('organization_id', organizationId);
+        .eq(headerFk, headerId);
       if (error) throw ApiError.database(error.message, requestId, `Failed to delete ${itemsTable} item ${itemId}`);
     } else {
-      const { error } = await db.from(itemsTable).delete().eq('id', itemId).eq(headerFk, headerId).eq('organization_id', organizationId);
+      const { error } = await db.from(itemsTable).delete().eq('id', itemId).eq(headerFk, headerId);
       if (error) throw ApiError.database(error.message, requestId, `Failed to delete ${itemsTable} item ${itemId}`);
     }
   }
@@ -100,14 +99,12 @@ export async function atomicUpdateWithItems(
         .from(itemsTable)
         .update(sanitized)
         .eq('id', item.id)
-        .eq(headerFk, headerId)
-        .eq('organization_id', organizationId);
+        .eq(headerFk, headerId);
       if (softDeleteItems) q = q.is('deleted_at', null);
       const { error } = await q;
       if (error) throw ApiError.database(error.message, requestId, `Failed to update ${itemsTable} item ${item.id}`);
     } else {
       sanitized[headerFk] = headerId;
-      sanitized['organization_id'] = organizationId;
       const { error } = await db.from(itemsTable).insert(sanitized);
       if (error) throw ApiError.database(error.message, requestId, `Failed to insert new ${itemsTable} item`);
     }
