@@ -4,6 +4,7 @@ import { Spin, Result, message, theme } from 'antd';
 import { DynamicFormRenderer } from '../../components/dynamic-form/DynamicFormRenderer';
 import { useTranslation } from 'react-i18next';
 import { getAccessToken } from '../../providers/token';
+import { API_URL } from '../../constants/api';
 
 interface DynamicFormPageProps {
   schemaId: string;
@@ -32,7 +33,7 @@ export const DynamicFormPage: React.FC<DynamicFormPageProps> = ({ schemaId }) =>
     setSubmitting(true);
     try {
       const accessToken = getAccessToken();
-      const res = await fetch('/api/dynamic-data', {
+      const res = await fetch(`${API_URL}/dynamic-data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

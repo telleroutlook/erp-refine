@@ -101,6 +101,7 @@ function extractBackendSelects(dirs: string[]): SelectRef[] {
       const crudTableRe = /(?:^|\s)table:\s*'(\w+)'/;
       const childTableRe = /childTable:\s*'(\w+)'/;
       const selectFieldRe = /(listSelect|detailSelect|createReturnSelect|childListSelect|childDetailSelect|childReturnSelect|headerReturnSelect|itemsReturnSelect):\s*'([^']+)'/;
+      const selectFieldMultiLineRe = /(listSelect|detailSelect|createReturnSelect|childListSelect|childDetailSelect|childReturnSelect|headerReturnSelect|itemsReturnSelect):\s*$/;
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]!;
@@ -116,7 +117,17 @@ function extractBackendSelects(dirs: string[]): SelectRef[] {
         const chMatch = line.match(childTableRe);
         if (chMatch) { currentTable = chMatch[1]!; }
 
-        const selectMatch = line.match(selectFieldRe);
+        let selectMatch = line.match(selectFieldRe);
+        if (!selectMatch && i + 1 < lines.length) {
+          const multiMatch = line.match(selectFieldMultiLineRe);
+          if (multiMatch) {
+            const nextLine = lines[i + 1]!.trim();
+            const valueMatch = nextLine.match(/^'([^']+)'/);
+            if (valueMatch) {
+              selectMatch = [line, multiMatch[1]!, valueMatch[1]!] as unknown as RegExpMatchArray;
+            }
+          }
+        }
         if (selectMatch && currentTable) {
           const selectStr = selectMatch[2]!;
           if (selectStr === '*') continue;

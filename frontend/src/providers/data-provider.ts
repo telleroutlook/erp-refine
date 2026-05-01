@@ -112,6 +112,7 @@ export const dataProvider: DataProvider = {
       throw new HttpError(err.detail ?? err.error ?? `HTTP ${response.status}`, response.status);
     }
     const json = await response.json();
+    if (!json.data) throw new HttpError('Unexpected response: missing data', response.status);
     return { data: json.data };
   },
 
@@ -128,6 +129,7 @@ export const dataProvider: DataProvider = {
     }
 
     const json = await response.json();
+    if (!json.data) throw new HttpError('Unexpected response: missing data', response.status);
     return { data: json.data };
   },
 
@@ -144,6 +146,7 @@ export const dataProvider: DataProvider = {
     }
 
     const json = await response.json();
+    if (!json.data) throw new HttpError('Unexpected response: missing data', response.status);
     return { data: json.data };
   },
 

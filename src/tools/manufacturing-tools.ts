@@ -249,6 +249,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           .from('work_order_materials')
           .select('id, product_id, required_quantity, issued_quantity, status')
           .eq('work_order_id', workOrderId)
+          .eq('organization_id', organizationId)
           .eq('status', 'pending');
 
         const pendingMaterials = materials ?? [];
@@ -271,7 +272,8 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
             .from('work_order_materials')
             .update({ issued_quantity: mat.required_quantity, status: 'issued' })
             .eq('id', mat.id)
-            .eq('work_order_id', wo.id);
+            .eq('work_order_id', wo.id)
+            .eq('organization_id', organizationId);
           if (matUpdateErr) throw new Error(`Failed to issue material ${mat.id}: ${matUpdateErr.message}`);
         }
 

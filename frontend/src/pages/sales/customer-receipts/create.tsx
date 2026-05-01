@@ -43,7 +43,7 @@ export const CustomerReceiptCreate: React.FC = () => {
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('customer_receipts', 'payment_method')} name="payment_method">
               <Select
-                options={translateOptions(PAYMENT_METHOD_OPTIONS, t)}
+                options={translateOptions(PAYMENT_METHOD_OPTIONS, t, 'enums.paymentMethod')}
                 placeholder={t('placeholder.select_payment_method')}
               />
             </Form.Item>

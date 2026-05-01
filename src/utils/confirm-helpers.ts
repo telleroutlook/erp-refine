@@ -4,6 +4,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { atomicStatusTransition } from './database';
 import { batchCreateStockTransactions } from './stock-helpers';
+import { ApiError } from './api-error';
+import { ErrorCode } from '../types/errors';
 
 export interface ConfirmShipmentParams {
   db: SupabaseClient;
@@ -30,9 +32,9 @@ export async function confirmSalesShipment(params: ConfirmShipmentParams): Promi
     .is('deleted_at', null)
     .single();
 
-  if (error || !shipment) throw new Error('Sales shipment not found');
-  if (shipment.status !== 'draft') throw new Error(`Cannot confirm shipment in status '${shipment.status}'`);
-  if (!shipment.warehouse_id) throw new Error('Warehouse is required to confirm a shipment');
+  if (error || !shipment) throw new ApiError({ code: ErrorCode.NOT_FOUND, detail: 'Sales shipment not found', requestId: requestId ?? '' });
+  if (shipment.status !== 'draft') throw new ApiError({ code: ErrorCode.INVALID_STATE, detail: `Cannot confirm shipment in status '${shipment.status}'`, requestId: requestId ?? '' });
+  if (!shipment.warehouse_id) throw new ApiError({ code: ErrorCode.VALIDATION_ERROR, detail: 'Warehouse is required to confirm a shipment', requestId: requestId ?? '' });
 
   const { data: transitioned } = await atomicStatusTransition(
     db, 'sales_shipments', id, organizationId, 'draft',
@@ -54,6 +56,17 @@ export async function confirmSalesShipment(params: ConfirmShipmentParams): Promi
         referenceId: shipment.id,
         createdBy: userId,
       })), requestId);
+
+      await Promise.all(
+        items
+          .filter((item: any) => item.sales_order_item_id)
+          .map((item: any) =>
+            db.rpc('increment_so_shipped_qty', {
+              p_soi_id: item.sales_order_item_id,
+              p_qty: Number(item.quantity),
+            })
+          )
+      );
     } catch (stockErr) {
       await db.from('sales_shipments')
         .update({ status: 'draft', confirmed_by: null, confirmed_at: null })
@@ -61,17 +74,6 @@ export async function confirmSalesShipment(params: ConfirmShipmentParams): Promi
         .eq('organization_id', organizationId);
       throw stockErr;
     }
-
-    await Promise.all(
-      items
-        .filter((item: any) => item.sales_order_item_id)
-        .map((item: any) =>
-          db.rpc('increment_so_shipped_qty', {
-            p_soi_id: item.sales_order_item_id,
-            p_qty: Number(item.quantity),
-          })
-        )
-    );
   }
 
   if (shipment.sales_order_id) {
@@ -110,9 +112,9 @@ export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Prom
     .is('deleted_at', null)
     .single();
 
-  if (error || !receipt) throw new Error('Purchase receipt not found');
-  if (receipt.status !== 'draft') throw new Error(`Cannot confirm receipt in status '${receipt.status}'`);
-  if (!receipt.warehouse_id) throw new Error('Warehouse is required to confirm a receipt');
+  if (error || !receipt) throw new ApiError({ code: ErrorCode.NOT_FOUND, detail: 'Purchase receipt not found', requestId: requestId ?? '' });
+  if (receipt.status !== 'draft') throw new ApiError({ code: ErrorCode.INVALID_STATE, detail: `Cannot confirm receipt in status '${receipt.status}'`, requestId: requestId ?? '' });
+  if (!receipt.warehouse_id) throw new ApiError({ code: ErrorCode.VALIDATION_ERROR, detail: 'Warehouse is required to confirm a receipt', requestId: requestId ?? '' });
 
   const { data: transitioned } = await atomicStatusTransition(
     db, 'purchase_receipts', id, organizationId, 'draft',
@@ -135,6 +137,17 @@ export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Prom
         lotNumber: item.lot_number ?? undefined,
         createdBy: userId,
       })), requestId);
+
+      await Promise.all(
+        items
+          .filter((item: any) => item.purchase_order_item_id)
+          .map((item: any) =>
+            db.rpc('increment_po_received_qty', {
+              p_poi_id: item.purchase_order_item_id,
+              p_qty: Number(item.quantity),
+            })
+          )
+      );
     } catch (stockErr) {
       await db.from('purchase_receipts')
         .update({ status: 'draft', confirmed_by: null, confirmed_at: null })
@@ -142,17 +155,6 @@ export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Prom
         .eq('organization_id', organizationId);
       throw stockErr;
     }
-
-    await Promise.all(
-      items
-        .filter((item: any) => item.purchase_order_item_id)
-        .map((item: any) =>
-          db.rpc('increment_po_received_qty', {
-            p_poi_id: item.purchase_order_item_id,
-            p_qty: Number(item.quantity),
-          })
-        )
-    );
   }
 
   if (receipt.purchase_order_id) {

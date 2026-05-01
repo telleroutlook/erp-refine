@@ -63,7 +63,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
 
         if (parentId) query = query.eq('parent_id', parentId);
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.or(`code.ilike.%${s}%,name.ilike.%${s}%`);
         }
 

@@ -312,7 +312,7 @@ export function createReportingTools(db: SupabaseClient, organizationId: string)
         if (warehouseId) query = query.eq('warehouse_id', warehouseId);
         if (stockStatus) query = query.eq('stock_status', stockStatus);
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.or(`product_name.ilike.%${s}%,product_code.ilike.%${s}%`);
         }
         const { data, error } = await query.order('product_name').limit(limit);

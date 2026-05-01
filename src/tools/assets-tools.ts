@@ -26,7 +26,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         if (status) query = query.eq('status', status);
         if (category) query = query.eq('category', category);
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.or(`asset_number.ilike.%${s}%,asset_name.ilike.%${s}%`);
         }
 

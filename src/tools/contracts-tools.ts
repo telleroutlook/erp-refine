@@ -26,7 +26,7 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
         if (status) query = query.eq('status', status);
         if (contractType) query = query.eq('contract_type', contractType);
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.or(`contract_number.ilike.%${s}%,description.ilike.%${s}%`);
         }
 

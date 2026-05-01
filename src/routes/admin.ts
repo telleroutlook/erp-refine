@@ -234,6 +234,15 @@ admin.post('/import/:entity', async (c) => {
     });
   }
 
+  const MAX_IMPORT_RECORDS = 5000;
+  if (records.length > MAX_IMPORT_RECORDS) {
+    throw new ApiError({
+      code: ErrorCode.VALIDATION_ERROR,
+      detail: `Maximum ${MAX_IMPORT_RECORDS} records per import request. Received ${records.length}.`,
+      requestId,
+    });
+  }
+
   const options: ImportOptions = {
     upsert: body.options?.upsert ?? false,
     dryRun: body.options?.dry_run ?? false,

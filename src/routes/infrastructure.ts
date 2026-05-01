@@ -7,6 +7,8 @@ import { authMiddleware, writeMethodGuard, requireRole } from '../middleware/aut
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser } from '../utils/query-helpers';
 import { organizations, exchange_rates, number_sequences } from '../schema/columns';
+import { ApiError } from '../utils/api-error';
+import { ErrorCode } from '../types/errors';
 
 const infrastructure = new Hono<{ Bindings: Env }>();
 infrastructure.use('*', authMiddleware());
@@ -31,7 +33,7 @@ infrastructure.get('/organizations', async (c) => {
     .from('organizations')
     .select('id, name, code, email, phone, plan, status, tax_number, created_at')
     .eq('id', user.organizationId);
-  if (error) throw error;
+  if (error) throw new ApiError({ code: ErrorCode.DATABASE_ERROR, detail: error.message, requestId: c.get('requestId') });
   return c.json({ data, total: data?.length ?? 0 });
 });
 
@@ -46,7 +48,7 @@ infrastructure.get('/organizations/:id', async (c) => {
     .select('*')
     .eq('id', id)
     .single();
-  if (error) throw error;
+  if (error) throw new ApiError({ code: ErrorCode.DATABASE_ERROR, detail: error.message, requestId: c.get('requestId') });
   return c.json({ data });
 });
 

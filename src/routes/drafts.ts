@@ -16,7 +16,9 @@ drafts.use('*', writeMethodGuard());
 // GET /api/drafts — list pending drafts for current user
 drafts.get('/', async (c) => {
   const { db, user } = getDbAndUser(c);
-  const status = c.req.query('status') ?? 'pending';
+  const VALID_STATUSES = ['pending', 'committed', 'discarded', 'expired'] as const;
+  const rawStatus = c.req.query('status') ?? 'pending';
+  const status = (VALID_STATUSES as readonly string[]).includes(rawStatus) ? rawStatus : 'pending';
   const sessionId = c.req.query('session_id');
 
   let query = db

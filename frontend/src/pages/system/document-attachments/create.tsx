@@ -21,7 +21,7 @@ export const DocumentAttachmentCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('document_attachments', 'relation_type')} name="entity_type" rules={[{ required: true, message: t('validation.required', { field: fl('document_attachments', 'relation_type') }) }]}>
+            <Form.Item label={fl('document_attachments', 'entity_type')} name="entity_type" rules={[{ required: true, message: t('validation.required', { field: fl('document_attachments', 'entity_type') }) }]}>
               <Input />
             </Form.Item>
           </Col>

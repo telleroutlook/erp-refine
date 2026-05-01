@@ -60,7 +60,7 @@ export function createQualityTools(db: SupabaseClient, organizationId: string, u
           .is('deleted_at', null);
 
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.or(`code.ilike.%${s}%,name.ilike.%${s}%`);
         }
 

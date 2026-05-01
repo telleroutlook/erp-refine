@@ -113,7 +113,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
           .is('deleted_at', null);
 
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.ilike('name', `%${s}%`);
         }
 
@@ -157,7 +157,7 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
           .select('id, uom_code, uom_name, uom_type, base_uom_id, conversion_factor');
 
         if (search) {
-          const s = search.replace(/[%_]/g, '');
+          const s = search.replace(/[%_,().]/g, '');
           query = query.or(`uom_code.ilike.%${s}%,uom_name.ilike.%${s}%`);
         }
 
