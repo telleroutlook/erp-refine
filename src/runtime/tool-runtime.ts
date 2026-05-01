@@ -35,11 +35,12 @@ export interface ToolResult<T = unknown> {
 const breakers = new Map<string, CircuitBreaker>();
 const CACHE_TTL_SECONDS = 300; // 5 minutes for D0 tool results
 
-function getBreaker(toolName: string): CircuitBreaker {
-  if (!breakers.has(toolName)) {
-    breakers.set(toolName, new CircuitBreaker({ failureThreshold: 3, timeout: 60_000 }));
+function getBreaker(toolName: string, organizationId: string): CircuitBreaker {
+  const key = `${toolName}:${organizationId}`;
+  if (!breakers.has(key)) {
+    breakers.set(key, new CircuitBreaker({ failureThreshold: 3, timeout: 60_000 }));
   }
-  return breakers.get(toolName)!;
+  return breakers.get(key)!;
 }
 
 async function withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
@@ -86,7 +87,7 @@ export async function executeTool<T>(
     }
   }
 
-  const breaker = getBreaker(toolName);
+  const breaker = getBreaker(toolName, organizationId);
   const start = Date.now();
   let attempts = 0;
 

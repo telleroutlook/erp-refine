@@ -96,6 +96,7 @@ chat.post('/', async (c) => {
       historyContext,
       executionTools: tools,
       executionParams: { confirmed: body.confirmed },
+      waitUntil: (p) => c.executionCtx.waitUntil(p),
     },
     c.env,
     db

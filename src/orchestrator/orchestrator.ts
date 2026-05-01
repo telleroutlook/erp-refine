@@ -21,6 +21,7 @@ export interface OrchestratorRequest {
     confirmed?: boolean;
     approved?: boolean;
   };
+  waitUntil?: (p: Promise<unknown>) => void;
 }
 
 export interface OrchestratorResponse {
@@ -41,7 +42,7 @@ export class Orchestrator {
     env: Env,
     db?: SupabaseClient
   ): Promise<OrchestratorResponse> {
-    const { message, ctx, historyContext, executionTools = {}, executionParams = {} } = req;
+    const { message, ctx, historyContext, executionTools = {}, executionParams = {}, waitUntil } = req;
 
     const trace = new TraceContext(ctx.userId, ctx.organizationId, ctx.sessionId, message);
     let success = false;
@@ -151,7 +152,8 @@ export class Orchestrator {
       };
     } finally {
       if (db) {
-        trace.flush(db, success).catch(() => {});
+        const flush = trace.flush(db, success).catch(() => {});
+        if (waitUntil) waitUntil(flush);
       }
     }
   }

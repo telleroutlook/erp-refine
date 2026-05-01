@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ApiError } from './api-error';
-import { executeWithAudit, type AuditContext } from './database';
+import { type AuditContext } from './database';
 
 export interface AtomicCreateConfig {
   /** Header table (e.g. 'purchase_orders') */
@@ -169,65 +169,34 @@ export async function atomicCreateWithItems(
     Object.entries(header).filter(([k]) => !HEADER_BLOCKED.has(k))
   );
 
-  const insertHeader = async () => {
-    const result = await db.from(headerTable).insert(sanitizedHeader).select(headerReturnSelect).single();
-    return result as { data: Record<string, unknown> | null; error: { message: string } | null };
-  };
+  // Use Postgres RPC for true transactional atomicity
+  const { data: rpcResult, error: rpcError } = await db.rpc('atomic_create_with_items', {
+    p_header_table: headerTable,
+    p_items_table: itemsTable,
+    p_header_fk: headerFk,
+    p_header_data: sanitizedHeader,
+    p_items_data: items,
+    p_header_return_select: headerReturnSelect,
+    p_items_return_select: itemsReturnSelect,
+    p_auto_line_number: config.autoLineNumber ?? false,
+  });
 
-  let headerData: Record<string, unknown>;
+  if (rpcError) {
+    throw ApiError.database(rpcError.message, audit?.requestId, `Failed to create ${headerTable} with items atomically.`);
+  }
+
+  const result = rpcResult as { header: Record<string, unknown>; items: Record<string, unknown>[] };
+
   if (audit) {
-    headerData = await executeWithAudit(db, insertHeader, audit);
-  } else {
-    const { data, error } = await insertHeader();
-    if (error) {
-      throw ApiError.database(error.message, undefined, `Failed to create ${headerTable} header.`);
-    }
-    if (!data) {
-      throw ApiError.database(`No data returned when creating ${headerTable} header.`, undefined);
-    }
-    headerData = data;
+    db.from('business_events').insert({
+      organization_id: audit.organizationId,
+      event_type: audit.action,
+      entity_type: audit.resource,
+      entity_id: String(result.header.id ?? ''),
+      payload: { actor_id: audit.userId, request_id: audit.requestId },
+      severity: 'info',
+    }).then(() => {});
   }
 
-  const headerId = headerData.id;
-
-  if (items.length > 0) {
-    const itemsWithFk = items.map((item, idx) => {
-      const row: Record<string, unknown> = {
-        ...item,
-        [headerFk]: headerId,
-      };
-      if (config.autoLineNumber) {
-        row.line_number = item.line_number ?? idx + 1;
-      }
-      return row;
-    });
-
-    const { data: itemsData, error: itemsError } = await db
-      .from(itemsTable)
-      .insert(itemsWithFk)
-      .select(itemsReturnSelect);
-
-    if (itemsError) {
-      const orgId = (input.header as Record<string, unknown>)['organization_id'] as string | undefined;
-      let rollbackQuery = db.from(headerTable).delete().eq('id', headerId);
-      if (orgId) rollbackQuery = rollbackQuery.eq('organization_id', orgId);
-      const { error: rollbackError } = await rollbackQuery;
-      if (rollbackError) {
-        throw ApiError.database(
-          itemsError.message,
-          audit?.requestId,
-          `CRITICAL: Failed to create ${itemsTable} AND rollback of ${headerTable} id=${headerId} failed (${rollbackError.message}). Manual cleanup required.`
-        );
-      }
-      throw ApiError.database(
-        itemsError.message,
-        audit?.requestId,
-        `Failed to create ${itemsTable}. The ${headerTable} was rolled back. Check item data validity.`
-      );
-    }
-
-    return { header: headerData, items: (itemsData as unknown as Record<string, unknown>[]) ?? [] };
-  }
-
-  return { header: headerData, items: [] };
+  return { header: result.header, items: result.items ?? [] };
 }

@@ -23,6 +23,7 @@ declare module 'hono' {
 // Cache imported keys (supports multiple kids during key rotation)
 const cachedKeys = new Map<string, { key: KeyLike; cachedAt: number }>();
 const JWKS_TTL_MS = 3_600_000; // 1 hour
+const JWKS_MAX_ENTRIES = 20;
 
 async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> {
   if (typeof kid !== 'string' || kid.length > 256) {
@@ -44,6 +45,14 @@ async function getVerifyKey(supabaseUrl: string, kid: string): Promise<KeyLike> 
     if (typeof jwk.kid === 'string') {
       const importedKey = (await importJWK(jwk as any, 'ES256')) as KeyLike;
       cachedKeys.set(jwk.kid, { key: importedKey, cachedAt: now });
+    }
+  }
+
+  // Evict oldest entries if cache exceeds max size
+  if (cachedKeys.size > JWKS_MAX_ENTRIES) {
+    const sorted = [...cachedKeys.entries()].sort((a, b) => a[1].cachedAt - b[1].cachedAt);
+    while (cachedKeys.size > JWKS_MAX_ENTRIES) {
+      cachedKeys.delete(sorted.shift()![0]);
     }
   }
 

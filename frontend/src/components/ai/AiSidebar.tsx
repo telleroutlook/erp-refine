@@ -49,15 +49,25 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const sessionId = useRef(crypto.randomUUID());
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const userScrolledUpRef = useRef(false);
 
   const scrollRafRef = useRef(0);
   useEffect(() => {
+    if (userScrolledUpRef.current) return;
     cancelAnimationFrame(scrollRafRef.current);
     scrollRafRef.current = requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     });
     return () => cancelAnimationFrame(scrollRafRef.current);
   }, [messages, streamingText, activeTools]);
+
+  const handleScroll = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    userScrolledUpRef.current = distanceFromBottom > 60;
+  }, []);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -66,6 +76,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || streaming) return;
+    userScrolledUpRef.current = false;
     setInput('');
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text, timestamp: new Date() }]);
     setStreaming(true);
@@ -227,7 +238,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       </div>
 
       {/* Messages */}
-      <div style={{
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        style={{
         flex: 1,
         overflowY: 'auto',
         padding: '12px 12px 4px',
