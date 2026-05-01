@@ -7,6 +7,8 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 
+const RUN_INTEGRATION = !!process.env.RUN_INTEGRATION;
+
 const BASE_URL = process.env.PROD_URL ?? 'https://erp.3we.org';
 const TEST_EMAIL = process.env.TEST_EMAIL ?? 'admin@erp.demo';
 const TEST_PASSWORD = process.env.TEST_PASSWORD ?? 'Admin2026!';
@@ -147,14 +149,14 @@ const RESOURCES: ResourceDef[] = [
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Auth', () => {
+describe.skipIf(!RUN_INTEGRATION)('Auth', () => {
   it('POST /api/auth/login returns accessToken at data.session.accessToken', async () => {
     const token = await login();
     expect(token).toMatch(/^ey/); // JWT starts with "ey"
   });
 });
 
-describe('API Integration — list (👁️ list) + show (👁️ detail) + edit (✏️)', () => {
+describe.skipIf(!RUN_INTEGRATION)('API Integration — list (👁️ list) + show (👁️ detail) + edit (✏️)', () => {
   let token: string;
 
   beforeAll(async () => {

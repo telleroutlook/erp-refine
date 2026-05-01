@@ -10,6 +10,7 @@ interface UseProductSearchResult {
 
 export function useProductSearch(): UseProductSearchResult {
   const cacheRef = useRef(new Map<string, ProductInfo>());
+  const snapshotRef = useRef<Map<string, ProductInfo>>(new Map());
 
   const { selectProps, query } = useSelect({
     resource: 'products',
@@ -24,15 +25,20 @@ export function useProductSearch(): UseProductSearchResult {
 
   const productsMap = useMemo(() => {
     const items = query?.data?.data ?? [];
+    let added = false;
     for (const p of items as any[]) {
       if (p.id && !cacheRef.current.has(p.id)) {
         cacheRef.current.set(p.id, {
           id: p.id, code: p.code, name: p.name,
           uom: p.uom, cost_price: p.cost_price, sale_price: p.sale_price,
         });
+        added = true;
       }
     }
-    return new Map(cacheRef.current);
+    if (added || snapshotRef.current.size === 0) {
+      snapshotRef.current = new Map(cacheRef.current);
+    }
+    return snapshotRef.current;
   }, [query?.data?.data]);
 
   return { selectProps, productsMap };

@@ -62,30 +62,21 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
       height: NODE_HEIGHT,
       data: {
         ...n,
-        isDimmed: highlightedNodeIds.size > 0 && !highlightedNodeIds.has(n.id),
+        isDimmed: false,
         onClick: onNodeClick,
       } satisfies DocumentFlowNodeData,
     }));
 
-    const styledEdges = rfEdges.map((e) => ({
-      ...e,
-      style: {
-        ...e.style,
-        opacity: highlightedEdgeIds.size > 0 && !highlightedEdgeIds.has(e.id) ? 0.15 : 1,
-      },
-    }));
-
-    applyElkLayout(rfNodes, styledEdges, ELK_OPTIONS).then((result) => {
+    applyElkLayout(rfNodes, rfEdges, ELK_OPTIONS).then((result) => {
       setNodes(result.nodes);
       setEdges(result.edges);
       requestAnimationFrame(() => fitView({ padding: 0.2, duration: 300 }));
     });
-  }, [chain, rfEdges, highlightedNodeIds, highlightedEdgeIds, onNodeClick, setNodes, setEdges, fitView]);
+  }, [chain, rfEdges, onNodeClick, setNodes, setEdges, fitView]);
 
-  // Re-layout when chain data changes
   useEffect(() => {
     runLayout();
-  }, [chain]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [runLayout]);
 
   // Update dim state when hover changes — separate from layout to avoid re-running ELK
   useEffect(() => {
