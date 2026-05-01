@@ -86,21 +86,22 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
   // --- GET list ---
   router.get(path, async (c) => {
     const { db, user } = getDbAndUser(c);
-    const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, defaultSort);
+    const { page, pageSize, sorts } = parseRefineQuery(c, defaultSort);
     const filters = parseRefineFilters(c);
 
     let query = db.from(table).select(listSelect, { count: 'exact' });
     if (orgScoped) query = query.eq('organization_id', user.organizationId);
     if (softDelete) query = query.is('deleted_at', null);
     query = applyFilters(query, filters);
-    query = query
-      .order(sortField, { ascending: sortOrder === 'asc' })
-      .range((page - 1) * pageSize, page * pageSize - 1);
+    for (const s of sorts) {
+      query = query.order(s.field, { ascending: s.order === 'asc' });
+    }
+    query = query.range((page - 1) * pageSize, page * pageSize - 1);
 
     const { data, count, error } = await query;
     if (error) {
       console.error(`[crud-factory] ${resourceName} list error:`, error.message);
-      throw ApiError.database('Query failed', c.get('requestId') as string, `Failed to list ${resourceName}. Check sort field '${sortField}' exists.`);
+      throw ApiError.database('Query failed', c.get('requestId') as string, `Failed to list ${resourceName}. Check sort field '${sorts[0]?.field}' exists.`);
     }
     return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
   });
@@ -329,7 +330,7 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
   router.get(base, async (c) => {
     const { db, user, requestId } = getDbAndUser(c);
     const parentId = c.req.param(parentParam)!;
-    const { page, pageSize, sortField, sortOrder } = parseRefineQuery(c, defaultSort);
+    const { page, pageSize, sorts } = parseRefineQuery(c, defaultSort);
     await assertParentOwned(db, parentId, user.organizationId, requestId);
 
     let query = db
@@ -337,9 +338,10 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
       .select(childListSelect, { count: 'exact' })
       .eq(parentFk, parentId);
     if (softDelete) query = query.is('deleted_at', null);
-    query = query
-      .order(sortField, { ascending: sortOrder === 'asc' })
-      .range((page - 1) * pageSize, page * pageSize - 1);
+    for (const s of sorts) {
+      query = query.order(s.field, { ascending: s.order === 'asc' });
+    }
+    query = query.range((page - 1) * pageSize, page * pageSize - 1);
 
     const { data, count, error } = await query;
     if (error) throw ApiError.database(error.message, requestId);

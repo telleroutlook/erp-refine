@@ -46,9 +46,9 @@ export const dataProvider: DataProvider = {
       _limit: String(pageSize),
     });
 
-    if (sorters?.[0]) {
-      params.set('_sort', sorters[0].field);
-      params.set('_order', sorters[0].order);
+    if (sorters && sorters.length > 0) {
+      params.set('_sort', sorters.map(s => s.field).join(','));
+      params.set('_order', sorters.map(s => s.order).join(','));
     } else {
       params.set('_sort', 'created_at');
       params.set('_order', 'desc');

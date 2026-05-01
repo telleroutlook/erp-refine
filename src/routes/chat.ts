@@ -11,6 +11,7 @@ import { createAuthenticatedClient } from '../utils/supabase';
 import { buildToolSet, TOOL_REGISTRY_META } from '../tools/tool-registry';
 import { evaluatePolicy } from '../policy/policy-engine';
 import type { Message } from '../do/chat-agent-do';
+import { estimateTokens, classifyComplexity, allocateBudget, truncateToTokenBudget } from '../lib/context/budget';
 
 const chat = new Hono<{ Bindings: Env }>();
 
@@ -190,13 +191,56 @@ chat.post('/stream', async (c) => {
   }
   historyMessages.push({ role: 'user', content: body.message });
 
+  // ─── Token budget: cap history to prevent context overflow ─────────────────
+  const complexity = classifyComplexity(body.message, historyMsgs.length > 0);
+  const budget = allocateBudget(complexity, ['system_prompt', 'recent_messages', 'tool_descriptions']);
+  const messageBudget = budget.layers.get('recent_messages') ?? 12_000;
+
+  let compactedMessages = historyMessages;
+  let budgetFreed = 0;
+  const budgetStages: string[] = [];
+
+  const totalHistoryTokens = historyMessages.slice(0, -1)
+    .reduce((sum, m) => sum + estimateTokens(m.content), 0);
+
+  if (totalHistoryTokens > messageBudget) {
+    const currentMsg = historyMessages[historyMessages.length - 1];
+    let working = historyMessages.slice(0, -1);
+
+    // Stage 1: cap each message to 800 tokens
+    const CAP = 800;
+    working = working.map(m => {
+      const tokens = estimateTokens(m.content);
+      if (tokens > CAP) {
+        const { text } = truncateToTokenBudget(m.content, CAP);
+        budgetFreed += tokens - estimateTokens(text);
+        return { ...m, content: text };
+      }
+      return m;
+    });
+    if (budgetFreed > 0) budgetStages.push('budgetCap');
+
+    // Stage 2: remove oldest 20% if still over budget (keep at least 4)
+    const afterCapTokens = working.reduce((sum, m) => sum + estimateTokens(m.content), 0);
+    if (afterCapTokens > messageBudget && working.length > 4) {
+      const toRemove = Math.max(1, Math.floor(working.length * 0.2));
+      const removedTokens = working.slice(0, toRemove)
+        .reduce((sum, m) => sum + estimateTokens(m.content), 0);
+      working = working.slice(toRemove);
+      budgetFreed += removedTokens;
+      budgetStages.push('snipOldest');
+    }
+
+    compactedMessages = [...working, currentMsg!];
+  }
+
   // Persist user message
   appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'user', body.message);
 
   const { fullStream } = streamText({
     model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
     system: systemPrompt,
-    messages: historyMessages,
+    messages: compactedMessages,
     tools,
     stopWhen: stepCountIs(5),
   });
@@ -253,6 +297,9 @@ chat.post('/stream', async (c) => {
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no',
+      'X-Token-Budget-Complexity': complexity,
+      'X-Token-Budget-Freed': String(budgetFreed),
+      'X-Token-Budget-Stages': budgetStages.join(',') || 'none',
     },
   });
 });

@@ -8,7 +8,7 @@ import { buildCrudRoutes, performHardDelete, performSoftDelete } from '../utils/
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
-import { batchCreateStockTransactions, createStockTransaction } from '../utils/stock-helpers';
+import { createStockTransaction } from '../utils/stock-helpers';
 import { ApiError } from '../utils/api-error';
 
 const manufacturing = new Hono<{ Bindings: Env }>();
@@ -326,10 +326,10 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
 
-  // 1. Get work order with materials, validate status
+  // Validate work order exists, belongs to org, has correct status and warehouse
   const { data: wo, error: woError } = await db
     .from('work_orders')
-    .select('id, status, warehouse_id, organization_id, materials:work_order_materials(id, product_id, required_quantity, issued_quantity)')
+    .select('id, status, warehouse_id, organization_id')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .single();
@@ -344,67 +344,25 @@ manufacturing.post('/work-orders/:id/issue-materials', async (c) => {
     throw ApiError.validation('Work order must have a warehouse assigned before issuing materials.', [], requestId);
   }
 
-  const materials = (wo.materials ?? []) as any[];
-  const issuedMaterials: string[] = [];
+  // Atomic RPC: locks WO row, issues all materials, updates stock, transitions status
+  const { data: result, error: rpcError } = await db.rpc('issue_work_order_materials', {
+    p_work_order_id: id,
+    p_organization_id: user.organizationId,
+    p_warehouse_id: wo.warehouse_id,
+    p_created_by: user.userId,
+  });
 
-  // 2. Build batch arrays — compute issue quantities up-front
-  const stockTxInputs: Parameters<typeof batchCreateStockTransactions>[1] = [];
-  const materialUpdates: Array<{ id: string; newIssuedQty: number }> = [];
-
-  for (const mat of materials as Record<string, unknown>[]) {
-    const issueQty = (mat.required_quantity as number) - (mat.issued_quantity as number);
-    if (issueQty <= 0) continue;
-
-    stockTxInputs.push({
-      organizationId: user.organizationId,
-      warehouseId: wo.warehouse_id,
-      productId: mat.product_id as string,
-      transactionType: 'out',
-      qty: issueQty,
-      referenceType: 'production',
-      referenceId: wo.id,
-      createdBy: user.userId,
-    });
-
-    materialUpdates.push({
-      id: mat.id as string,
-      newIssuedQty: (mat.issued_quantity as number) + issueQty,
-    });
-
-    issuedMaterials.push(mat.id as string);
+  if (rpcError) {
+    if (rpcError.message.includes('Insufficient stock') || rpcError.message.includes('stock_records_quantity_check')) {
+      throw ApiError.validation('Insufficient stock to issue materials. Please check warehouse inventory.', [], requestId);
+    }
+    if (rpcError.message.includes('Invalid work order status')) {
+      throw ApiError.invalidState('Work Order', wo.status, 'issue-materials', requestId);
+    }
+    throw ApiError.database(rpcError.message, requestId);
   }
 
-  // Single batch insert for all stock transactions
-  await batchCreateStockTransactions(db, stockTxInputs, requestId);
-
-  // Batch update work_order_materials — one request per row (Supabase lacks multi-row UPDATE)
-  const matResults = await Promise.all(
-    materialUpdates.map(({ id, newIssuedQty }) =>
-      db.from('work_order_materials').update({ issued_quantity: newIssuedQty }).eq('id', id).eq('work_order_id', wo.id)
-    )
-  );
-  const matFailed = matResults.filter(r => r.error);
-  if (matFailed.length > 0) {
-    const reversals: typeof stockTxInputs = stockTxInputs.map(tx => ({ ...tx, qty: tx.qty, transactionType: tx.transactionType === 'out' ? 'in' as const : 'out' as const, notes: `Reversal: material update failed` }));
-    await batchCreateStockTransactions(db, reversals, requestId).catch((err) => {
-      console.error('[issue-materials] CRITICAL: stock reversal failed after material update error', {
-        workOrderId: wo.id, error: String(err),
-      });
-    });
-    throw ApiError.database(matFailed[0]!.error!.message, requestId);
-  }
-
-  // 3. Update work order status to 'in_progress' if not already
-  if (wo.status !== 'in_progress') {
-    const { error: statusErr } = await db
-      .from('work_orders')
-      .update({ status: 'in_progress' })
-      .eq('id', wo.id)
-      .eq('organization_id', user.organizationId);
-    if (statusErr) throw ApiError.database(statusErr.message, requestId);
-  }
-
-  return c.json({ data: { success: true, issued_material_ids: issuedMaterials } });
+  return c.json({ data: result ?? { success: true, issued_material_ids: [] } });
 });
 
 // ─── POST /work-orders/:id/complete ─────────────────────────────────────────

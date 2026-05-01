@@ -8,22 +8,42 @@ import type { UserContext } from '../middleware/auth';
 import type { FilterParam } from './database';
 import { createAuthenticatedClient } from './supabase';
 
+export interface SortSpec {
+  field: string;
+  order: 'asc' | 'desc';
+}
+
 export interface RefineQuery {
   page: number;
   pageSize: number;
+  sorts: SortSpec[];
   sortField: string;
   sortOrder: 'asc' | 'desc';
 }
 
+const FIELD_PATTERN = /^[a-z][a-z0-9_]*$/;
+const MAX_SORTS = 3;
+
 /** Parse Refine-compatible query parameters from the request */
 export function parseRefineQuery(c: Context, defaultSort = 'created_at'): RefineQuery {
   const rawSort = c.req.query('_sort') ?? defaultSort;
-  const sortField = /^[a-z][a-z0-9_]*$/.test(rawSort) ? rawSort : defaultSort;
+  const rawOrder = c.req.query('_order') ?? 'desc';
+
+  const fields = rawSort.split(',').map(f => f.trim()).filter(f => FIELD_PATTERN.test(f)).slice(0, MAX_SORTS);
+  const orders = rawOrder.split(',').map(o => o.trim() === 'asc' ? 'asc' as const : 'desc' as const);
+
+  while (orders.length < fields.length) orders.push('desc');
+
+  const sorts: SortSpec[] = fields.length > 0
+    ? fields.map((f, i) => ({ field: f, order: orders[i]! }))
+    : [{ field: defaultSort, order: 'desc' as const }];
+
   return {
     page: Math.max(parseInt(c.req.query('_page') ?? '1', 10) || 1, 1),
     pageSize: Math.min(Math.max(parseInt(c.req.query('_limit') ?? '20', 10) || 20, 1), 100),
-    sortField,
-    sortOrder: (c.req.query('_order') ?? 'desc') === 'asc' ? 'asc' as const : 'desc' as const,
+    sorts,
+    sortField: sorts[0]!.field,
+    sortOrder: sorts[0]!.order,
   };
 }
 
