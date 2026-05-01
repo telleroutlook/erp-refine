@@ -4,9 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atomicStatusTransition, executeWithAudit } from '../utils/database';
+import { auditedStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createManufacturingTools(db: SupabaseClient, organizationId: string, userId: string) {
+export function createManufacturingTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
   return {
     get_work_order: tool({
       description: 'Get work order detail including materials and production records',
@@ -278,10 +278,11 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         }
 
         if (wo.status === 'released') {
-          const { data: updated } = await atomicStatusTransition(
-            db, 'work_orders', wo.id, organizationId, 'released', { status: 'in_progress' }, 'id',
-          );
-          if (!updated) throw new Error('Work order status changed concurrently; please retry');
+          await auditedStatusTransition({
+            db, table: 'work_orders', id: wo.id, organizationId, userId,
+            expectedStatus: 'released', newFields: { status: 'in_progress' },
+            action: 'issue_materials_work_order', returnSelect: 'id', waitUntil,
+          });
         }
 
         return { workOrderId: wo.id, workOrderNumber: wo.work_order_number, issuedCount: pendingMaterials.length };
@@ -321,12 +322,12 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'work_orders', id, organizationId, ['released', 'in_progress'],
-          { status: 'completed', completed_quantity: finalQty, actual_completion_date: new Date().toISOString() },
-          'id, work_order_number',
-        );
-        if (!updated) throw new Error('Work order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'work_orders', id, organizationId, userId,
+          expectedStatus: ['released', 'in_progress'],
+          newFields: { status: 'completed', completed_quantity: finalQty, actual_completion_date: new Date().toISOString() },
+          action: 'complete_work_order', returnSelect: 'id, work_order_number', waitUntil,
+        });
 
         return { id: wo.id, workOrderNumber: wo.work_order_number, status: 'completed', completedQuantity: finalQty };
       },

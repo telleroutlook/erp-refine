@@ -104,6 +104,7 @@ const employeesConfig: CrudConfig = {
   defaultSort: 'name',
   softDelete: false,
   orgScoped: true,
+  audit: true,
 };
 
 const employeesRouter = buildCrudRoutes(employeesConfig);

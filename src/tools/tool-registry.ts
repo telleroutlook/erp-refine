@@ -40,12 +40,12 @@ export function buildToolSet(options: ToolRegistryOptions): ToolSet {
   if (include('inventory')) Object.assign(tools, createInventoryTools(db, organizationId, userId));
   if (include('procurement')) Object.assign(tools, createProcurementTools(db, organizationId, userId, waitUntil));
   if (include('sales')) Object.assign(tools, createSalesTools(db, organizationId, userId, waitUntil));
-  if (include('finance')) Object.assign(tools, createFinanceTools(db, organizationId, userId));
+  if (include('finance')) Object.assign(tools, createFinanceTools(db, organizationId, userId, waitUntil));
   if (include('master-data')) Object.assign(tools, createMasterDataTools(db, organizationId));
   if (include('reporting')) Object.assign(tools, createReportingTools(db, organizationId));
-  if (include('quality')) Object.assign(tools, createQualityTools(db, organizationId, userId));
-  if (include('manufacturing')) Object.assign(tools, createManufacturingTools(db, organizationId, userId));
-  if (include('contracts')) Object.assign(tools, createContractsTools(db, organizationId, userId));
+  if (include('quality')) Object.assign(tools, createQualityTools(db, organizationId, userId, waitUntil));
+  if (include('manufacturing')) Object.assign(tools, createManufacturingTools(db, organizationId, userId, waitUntil));
+  if (include('contracts')) Object.assign(tools, createContractsTools(db, organizationId, userId, waitUntil));
   if (include('assets')) Object.assign(tools, createAssetsTools(db, organizationId));
   if (include('partners')) Object.assign(tools, createPartnersTools(db, organizationId));
   if (include('schema')) Object.assign(tools, createSchemaTools(db, organizationId));

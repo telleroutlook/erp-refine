@@ -4,9 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atomicStatusTransition, executeWithAudit } from '../utils/database';
+import { auditedStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createContractsTools(db: SupabaseClient, organizationId: string, userId: string) {
+export function createContractsTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
   return {
     list_contracts: tool({
       description: 'List contracts with optional filters by type, status, or party',
@@ -100,12 +100,12 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
           return { preview: true, message: 'Dry-run — set confirmed=true to activate', id: contract.id, contractNumber: contract.contract_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'contracts', id, organizationId, 'draft',
-          { status: 'active', activated_at: new Date().toISOString() },
-          'id, contract_number',
-        );
-        if (!updated) throw new Error('Contract status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'contracts', id, organizationId, userId,
+          expectedStatus: 'draft',
+          newFields: { status: 'active', activated_at: new Date().toISOString() },
+          action: 'activate_contract', returnSelect: 'id, contract_number', waitUntil,
+        });
 
         return { id: contract.id, contractNumber: contract.contract_number, status: 'active' };
       },
@@ -133,12 +133,12 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
           return { preview: true, message: 'Dry-run — set confirmed=true to terminate', id: contract.id, contractNumber: contract.contract_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'contracts', id, organizationId, 'active',
-          { status: 'terminated', terminated_at: new Date().toISOString(), termination_reason: reason ?? null },
-          'id, contract_number',
-        );
-        if (!updated) throw new Error('Contract status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'contracts', id, organizationId, userId,
+          expectedStatus: 'active',
+          newFields: { status: 'terminated', terminated_at: new Date().toISOString(), termination_reason: reason ?? null },
+          action: 'terminate_contract', returnSelect: 'id, contract_number', waitUntil,
+        });
 
         return { id: contract.id, contractNumber: contract.contract_number, status: 'terminated' };
       },

@@ -60,11 +60,11 @@ function extractBackendStatuses(): StatusAssignment[] {
       const lines = content.split('\n');
       const relPath = relative(ROOT, fullPath);
 
-      // Track current table from .from('table')
+      // Track current table from .from('table') or table: 'table'
       let currentTable: string | null = null;
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]!;
-        const fromMatch = line.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
+        const fromMatch = line.match(/\.from\(\s*['"](\w+)['"]\s*\)/) || line.match(/\btable:\s*['"](\w+)['"]/);
         if (fromMatch) currentTable = fromMatch[1]!;
 
         // Reset on new statement

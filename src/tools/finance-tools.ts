@@ -4,9 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atomicStatusTransition, executeWithAudit } from '../utils/database';
+import { auditedStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createFinanceTools(db: SupabaseClient, organizationId: string, userId: string) {
+export function createFinanceTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
   return {
     list_vouchers: tool({
       description: 'List accounting vouchers',
@@ -279,12 +279,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           return { preview: true, message: 'Dry-run — set confirmed=true to void', id: voucher.id, voucherNumber: voucher.voucher_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'vouchers', id, organizationId, 'posted',
-          { status: 'voided', voided_at: new Date().toISOString(), void_reason: reason ?? null },
-          'id, voucher_number',
-        );
-        if (!updated) throw new Error('Voucher status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'vouchers', id, organizationId, userId,
+          expectedStatus: 'posted',
+          newFields: { status: 'voided', voided_at: new Date().toISOString(), void_reason: reason ?? null },
+          action: 'void_voucher', returnSelect: 'id, voucher_number', waitUntil,
+        });
 
         return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'voided' };
       },
@@ -311,12 +311,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: pr.id, requestNumber: pr.request_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'payment_requests', id, organizationId, 'draft',
-          { status: 'submitted', submitted_at: new Date().toISOString() },
-          'id, request_number',
-        );
-        if (!updated) throw new Error('Payment request status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'payment_requests', id, organizationId, userId,
+          expectedStatus: 'draft',
+          newFields: { status: 'submitted', submitted_at: new Date().toISOString() },
+          action: 'submit_payment_request', returnSelect: 'id, request_number', waitUntil,
+        });
 
         return { id: pr.id, requestNumber: pr.request_number, status: 'submitted' };
       },
@@ -343,12 +343,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: pr.id, requestNumber: pr.request_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'payment_requests', id, organizationId, 'submitted',
-          { status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString() },
-          'id, request_number',
-        );
-        if (!updated) throw new Error('Payment request status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'payment_requests', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'approved', ok_to_pay: true, approved_at: new Date().toISOString() },
+          action: 'approve_payment_request', returnSelect: 'id, request_number', waitUntil,
+        });
 
         return { id: pr.id, requestNumber: pr.request_number, status: 'approved' };
       },
@@ -379,12 +379,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           return { preview: true, message: 'Dry-run — set confirmed=true to post', id: voucher.id, voucherNumber: voucher.voucher_number, totalDebit: voucher.total_debit };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'vouchers', id, organizationId, 'draft',
-          { status: 'posted', posted_at: new Date().toISOString() },
-          'id, voucher_number',
-        );
-        if (!updated) throw new Error('Voucher status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'vouchers', id, organizationId, userId,
+          expectedStatus: 'draft',
+          newFields: { status: 'posted', posted_at: new Date().toISOString() },
+          action: 'post_voucher', returnSelect: 'id, voucher_number', waitUntil,
+        });
 
         return { id: voucher.id, voucherNumber: voucher.voucher_number, status: 'posted' };
       },
@@ -412,12 +412,12 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
           return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: pr.id, requestNumber: pr.request_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'payment_requests', id, organizationId, 'submitted',
-          { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
-          'id, request_number',
-        );
-        if (!updated) throw new Error('Payment request status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'payment_requests', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
+          action: 'reject_payment_request', returnSelect: 'id, request_number', waitUntil,
+        });
 
         return { id: pr.id, requestNumber: pr.request_number, status: 'rejected' };
       },

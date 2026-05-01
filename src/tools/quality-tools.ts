@@ -4,9 +4,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atomicStatusTransition, executeWithAudit } from '../utils/database';
+import { auditedStatusTransition, executeWithAudit } from '../utils/database';
 
-export function createQualityTools(db: SupabaseClient, organizationId: string, userId: string) {
+export function createQualityTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
   return {
     get_quality_inspection: tool({
       description: 'Get quality inspection detail with all inspection items',
@@ -205,11 +205,11 @@ export function createQualityTools(db: SupabaseClient, organizationId: string, u
         if (qualifiedQuantity !== undefined) newFields.qualified_quantity = qualifiedQuantity;
         if (defectiveQuantity !== undefined) newFields.defective_quantity = defectiveQuantity;
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'quality_inspections', id, organizationId, ['draft', 'in_progress'],
-          newFields, 'id, inspection_number',
-        );
-        if (!updated) throw new Error('Inspection status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'quality_inspections', id, organizationId, userId,
+          expectedStatus: ['draft', 'in_progress'], newFields,
+          action: 'complete_quality_inspection', returnSelect: 'id, inspection_number', waitUntil,
+        });
 
         return { id: qi.id, inspectionNumber: qi.inspection_number, status: 'completed', result: result ?? null };
       },

@@ -103,6 +103,7 @@ const rolesConfig: CrudConfig = {
   defaultSort: 'name',
   softDelete: false,
   orgScoped: true,
+  audit: true,
 };
 admin.route('', buildCrudRoutes(rolesConfig));
 
@@ -120,6 +121,7 @@ const rolePermissionsConfig: CrudConfig = {
   softDelete: false,
   orgScoped: false,
   parentOwnership: { parentFk: 'role_id', parentTable: 'roles' },
+  audit: true,
 };
 admin.route('', buildCrudRoutes(rolePermissionsConfig));
 
@@ -136,6 +138,7 @@ const userRolesConfig: CrudConfig = {
   defaultSort: 'assigned_at',
   softDelete: false,
   orgScoped: true,
+  audit: true,
 };
 admin.route('', buildCrudRoutes(userRolesConfig));
 

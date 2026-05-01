@@ -204,6 +204,39 @@ export async function atomicStatusTransition(
   return { data: data as Record<string, unknown> | null, error };
 }
 
+export interface AuditedTransitionParams {
+  db: SupabaseClient;
+  table: string;
+  id: string;
+  organizationId: string;
+  userId: string;
+  expectedStatus: string | string[];
+  newFields: Record<string, unknown>;
+  action: string;
+  returnSelect?: string;
+  waitUntil?: (promise: PromiseLike<unknown>) => void;
+}
+
+/**
+ * atomicStatusTransition + audit trail (business_events).
+ * Use this in AI tools where every status change must be recorded.
+ */
+export async function auditedStatusTransition(
+  params: AuditedTransitionParams
+): Promise<Record<string, unknown>> {
+  const { db, table, id, organizationId, userId, expectedStatus, newFields, action, returnSelect = 'id, status', waitUntil } = params;
+
+  return executeWithAudit(
+    db,
+    async () => {
+      const { data, error } = await atomicStatusTransition(db, table, id, organizationId, expectedStatus, newFields, returnSelect);
+      return { data, error };
+    },
+    { userId, organizationId, action, resource: table, resourceId: id },
+    waitUntil,
+  );
+}
+
 /**
  * Assert that a record exists and belongs to the given organization.
  * Throws if not found or access denied — use before querying child tables.

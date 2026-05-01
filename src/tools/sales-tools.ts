@@ -4,8 +4,8 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atomicStatusTransition, executeWithAudit } from '../utils/database';
-import { confirmSalesShipment } from '../utils/confirm-helpers';
+import { auditedStatusTransition, executeWithAudit } from '../utils/database';
+import { confirmSalesShipment, confirmSalesReturn } from '../utils/confirm-helpers';
 
 export function createSalesTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
   return {
@@ -252,12 +252,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: so.id, orderNumber: so.order_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'sales_orders', id, organizationId, 'draft',
-          { status: 'submitted', submitted_at: new Date().toISOString() },
-          'id, order_number',
-        );
-        if (!updated) throw new Error('Sales order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'sales_orders', id, organizationId, userId,
+          expectedStatus: 'draft',
+          newFields: { status: 'submitted', submitted_at: new Date().toISOString() },
+          action: 'submit_sales_order', returnSelect: 'id, order_number', waitUntil,
+        });
 
         return { id: so.id, orderNumber: so.order_number, status: 'submitted' };
       },
@@ -284,12 +284,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: so.id, orderNumber: so.order_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'sales_orders', id, organizationId, 'submitted',
-          { status: 'approved', approved_at: new Date().toISOString() },
-          'id, order_number',
-        );
-        if (!updated) throw new Error('Sales order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'sales_orders', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'approved', approved_at: new Date().toISOString() },
+          action: 'approve_sales_order', returnSelect: 'id, order_number', waitUntil,
+        });
 
         return { id: so.id, orderNumber: so.order_number, status: 'approved' };
       },
@@ -319,12 +319,12 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
           return { preview: true, message: 'Dry-run — set confirmed=true to cancel', id: so.id, orderNumber: so.order_number, currentStatus: so.status };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'sales_orders', id, organizationId, ['draft', 'submitted', 'approved'],
-          { status: 'cancelled', cancelled_at: new Date().toISOString(), cancellation_reason: reason ?? null },
-          'id, order_number',
-        );
-        if (!updated) throw new Error('Sales order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'sales_orders', id, organizationId, userId,
+          expectedStatus: ['draft', 'submitted', 'approved'],
+          newFields: { status: 'cancelled', cancelled_at: new Date().toISOString(), cancellation_reason: reason ?? null },
+          action: 'cancel_sales_order', returnSelect: 'id, order_number', waitUntil,
+        });
 
         return { id: so.id, orderNumber: so.order_number, status: 'cancelled' };
       },
@@ -361,28 +361,21 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
       }),
       execute: async ({ id, confirmed }) => {
-        const { data: ret, error } = await db
-          .from('sales_returns')
-          .select('id, return_number, status')
-          .eq('id', id)
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-          .single();
-        if (error || !ret) throw new Error('Sales return not found');
-        if (ret.status !== 'approved') throw new Error(`Cannot receive return in status '${ret.status}'`);
-
         if (!confirmed) {
+          const { data: ret, error } = await db
+            .from('sales_returns')
+            .select('id, return_number, status')
+            .eq('id', id)
+            .eq('organization_id', organizationId)
+            .is('deleted_at', null)
+            .single();
+          if (error || !ret) throw new Error('Sales return not found');
+          if (ret.status !== 'approved') throw new Error(`Cannot receive return in status '${ret.status}'`);
           return { preview: true, message: 'Dry-run — set confirmed=true to receive return (will add stock)', id: ret.id, returnNumber: ret.return_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'sales_returns', id, organizationId, 'approved',
-          { status: 'received', received_at: new Date().toISOString() },
-          'id, return_number',
-        );
-        if (!updated) throw new Error('Return status changed concurrently; please retry');
-
-        return { id: ret.id, returnNumber: ret.return_number, status: 'received' };
+        const result = await confirmSalesReturn({ db, id, organizationId, userId });
+        return { id: result.id, returnNumber: result.returnNumber, status: result.status, stockTransactionsCreated: result.stockTransactionsCreated };
       },
     }),
 

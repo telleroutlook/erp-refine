@@ -4,7 +4,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atomicStatusTransition, executeWithAudit } from '../utils/database';
+import { auditedStatusTransition, executeWithAudit } from '../utils/database';
 import { confirmPurchaseReceipt } from '../utils/confirm-helpers';
 
 export function createProcurementTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
@@ -427,12 +427,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: po.id, orderNumber: po.order_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_orders', id, organizationId, 'draft',
-          { status: 'submitted', submitted_at: new Date().toISOString() },
-          'id, order_number',
-        );
-        if (!updated) throw new Error('Purchase order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'purchase_orders', id, organizationId, userId,
+          expectedStatus: 'draft',
+          newFields: { status: 'submitted', submitted_at: new Date().toISOString() },
+          action: 'submit_purchase_order', returnSelect: 'id, order_number', waitUntil,
+        });
 
         return { id: po.id, orderNumber: po.order_number, status: 'submitted' };
       },
@@ -459,12 +459,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: po.id, orderNumber: po.order_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_orders', id, organizationId, 'submitted',
-          { status: 'approved', approved_at: new Date().toISOString() },
-          'id, order_number',
-        );
-        if (!updated) throw new Error('Purchase order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'purchase_orders', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'approved', approved_at: new Date().toISOString() },
+          action: 'approve_purchase_order', returnSelect: 'id, order_number', waitUntil,
+        });
 
         return { id: po.id, orderNumber: po.order_number, status: 'approved' };
       },
@@ -491,12 +491,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to submit', id: pr.id, requisitionNumber: pr.requisition_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_requisitions', id, organizationId, 'draft',
-          { status: 'submitted', submitted_at: new Date().toISOString() },
-          'id, requisition_number',
-        );
-        if (!updated) throw new Error('Purchase requisition status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'purchase_requisitions', id, organizationId, userId,
+          expectedStatus: 'draft',
+          newFields: { status: 'submitted', submitted_at: new Date().toISOString() },
+          action: 'submit_purchase_requisition', returnSelect: 'id, requisition_number', waitUntil,
+        });
 
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'submitted' };
       },
@@ -523,12 +523,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to approve', id: pr.id, requisitionNumber: pr.requisition_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_requisitions', id, organizationId, 'submitted',
-          { status: 'approved', approved_at: new Date().toISOString() },
-          'id, requisition_number',
-        );
-        if (!updated) throw new Error('Purchase requisition status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'purchase_requisitions', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'approved', approved_at: new Date().toISOString() },
+          action: 'approve_purchase_requisition', returnSelect: 'id, requisition_number', waitUntil,
+        });
 
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'approved' };
       },
@@ -556,12 +556,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: po.id, orderNumber: po.order_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_orders', id, organizationId, 'submitted',
-          { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
-          'id, order_number',
-        );
-        if (!updated) throw new Error('Purchase order status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'purchase_orders', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
+          action: 'reject_purchase_order', returnSelect: 'id, order_number', waitUntil,
+        });
 
         return { id: po.id, orderNumber: po.order_number, status: 'rejected' };
       },
@@ -589,12 +589,12 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
           return { preview: true, message: 'Dry-run — set confirmed=true to reject', id: pr.id, requisitionNumber: pr.requisition_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_requisitions', id, organizationId, 'submitted',
-          { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
-          'id, requisition_number',
-        );
-        if (!updated) throw new Error('Purchase requisition status changed concurrently; please retry');
+        const updated = await auditedStatusTransition({
+          db, table: 'purchase_requisitions', id, organizationId, userId,
+          expectedStatus: 'submitted',
+          newFields: { status: 'rejected', rejected_at: new Date().toISOString(), rejection_reason: reason ?? null },
+          action: 'reject_purchase_requisition', returnSelect: 'id, requisition_number', waitUntil,
+        });
 
         return { id: pr.id, requisitionNumber: pr.requisition_number, status: 'rejected' };
       },
