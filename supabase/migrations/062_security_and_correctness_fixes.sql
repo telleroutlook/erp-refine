@@ -2,10 +2,10 @@
 
 -- 1. CRITICAL: exec_query allows arbitrary SQL execution by any authenticated user
 -- Revoke access from public and restrict to service_role only
-REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.exec_query(TEXT) TO service_role;
+REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT, TEXT) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT, TEXT) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT, TEXT) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.exec_query(TEXT, TEXT) TO service_role;
 
 -- 2. CRITICAL: update_po_status_from_items references non-existent organization_id on purchase_order_items
 -- The parent filter (purchase_order_id = p_po_id) already guarantees org isolation

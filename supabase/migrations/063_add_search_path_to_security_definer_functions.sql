@@ -1,13 +1,6 @@
--- Fix exec_query security: migration 062 used wrong function signature (TEXT, TEXT) instead of (TEXT)
--- Also add SET search_path = public to SECURITY DEFINER functions
+-- Add SET search_path = public to SECURITY DEFINER functions (exec_query security already applied in 062)
 
--- 1. Lock down exec_query(TEXT) — the actual function signature
-REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.exec_query(TEXT) TO service_role;
-
--- 2. Recreate update_po_status_from_items with SET search_path = public
+-- 1. Recreate update_po_status_from_items with SET search_path = public
 CREATE OR REPLACE FUNCTION update_po_status_from_items(
   p_po_id UUID,
   p_org_id UUID
@@ -55,7 +48,7 @@ BEGIN
 END;
 $$;
 
--- 3. Recreate update_so_status_from_items with SET search_path = public
+-- 2. Recreate update_so_status_from_items with SET search_path = public
 CREATE OR REPLACE FUNCTION update_so_status_from_items(
   p_so_id UUID,
   p_org_id UUID
