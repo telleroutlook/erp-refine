@@ -27,7 +27,7 @@ export const SupplierQuotationCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={t('common.status')} name="status" initialValue="draft">
+            <Form.Item label={t('common.status')} name="status" initialValue="received">
               <Select options={statusOpts} />
             </Form.Item>
           </Col>

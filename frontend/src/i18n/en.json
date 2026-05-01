@@ -1129,6 +1129,7 @@
       "accumulated_depreciation": "Accumulated Depreciation"
     },
     "asset_depreciations": {
+      "accumulated_depreciation": "Accumulated Depreciation",
       "depreciation_amount": "Depreciation Amount",
       "book_value_after": "Net Book Value",
       "period_year": "Fiscal Year",

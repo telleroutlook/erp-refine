@@ -36,7 +36,19 @@ export const EmployeeCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('employees', 'position')} name="position">
-              <Input />
+              <Select
+                options={[
+                  { value: 'admin', label: t('enums.position.admin') },
+                  { value: 'manager', label: t('enums.position.manager') },
+                  { value: 'sales', label: t('enums.position.sales') },
+                  { value: 'purchasing', label: t('enums.position.purchasing') },
+                  { value: 'inventory', label: t('enums.position.inventory') },
+                  { value: 'finance', label: t('enums.position.finance') },
+                  { value: 'production', label: t('enums.position.production') },
+                  { value: 'user', label: t('enums.position.user') },
+                ]}
+                allowClear
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

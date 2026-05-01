@@ -31,7 +31,6 @@ export class RateLimiterDO {
     this.requests = this.requests.filter((t) => now - t < windowMs);
 
     if (this.requests.length >= safeLimit) {
-      await this.state.storage.put('requests', this.requests);
       return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
         status: 429,
         headers: { 'Content-Type': 'application/json' },

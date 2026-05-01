@@ -29,7 +29,7 @@ for (const tool of tools) {
     // D2+ tools must have explicit policy rule
     const hasRule = allRules.includes(tool.name) || allRules.includes(tool.name.replace(/_/g, '-'));
     if (!hasRule) {
-      console.warn(`⚠️  D${tool.level} tool '${tool.name}' (${tool.domain}) has no explicit policy rule`);
+      console.error(`❌ D${tool.level} tool '${tool.name}' (${tool.domain}) has no explicit policy rule`);
       errors++;
     }
   }

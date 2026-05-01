@@ -50,11 +50,15 @@ export function useDocumentChain(objectType: string | null, objectId: string | n
       }
     )
       .then(r => (r.ok ? r.json() : r.json().then((e: any) => Promise.reject(e.detail ?? 'Failed'))))
-      .then((json: any) => setChain(json.data))
+      .then((json: any) => {
+        if (!controller.signal.aborted) setChain(json.data);
+      })
       .catch((err: unknown) => {
         if ((err as Error)?.name !== 'AbortError') setError(String(err));
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
 
     return () => controller.abort();
   }, [objectType, objectId]);

@@ -26,7 +26,7 @@ export const ProductCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('products', 'unit')} name="uom">
+            <Form.Item label={fl('products', 'uom')} name="uom">
               <Input  />
             </Form.Item>
           </Col>

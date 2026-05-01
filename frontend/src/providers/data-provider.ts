@@ -40,15 +40,19 @@ export const dataProvider: DataProvider = {
   getList: async ({ resource, pagination, filters, sorters }) => {
     const page = pagination?.current ?? 1;
     const pageSize = pagination?.pageSize ?? 20;
-    const sortField = sorters?.[0]?.field ?? 'created_at';
-    const sortOrder = sorters?.[0]?.order ?? 'desc';
 
     const params = new URLSearchParams({
       _page: String(page),
       _limit: String(pageSize),
-      _sort: sortField,
-      _order: sortOrder,
     });
+
+    if (sorters?.[0]) {
+      params.set('_sort', sorters[0].field);
+      params.set('_order', sorters[0].order);
+    } else {
+      params.set('_sort', 'created_at');
+      params.set('_order', 'desc');
+    }
 
     // Append filters — map Refine operators to query params
     if (filters) {

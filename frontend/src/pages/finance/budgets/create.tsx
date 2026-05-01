@@ -28,6 +28,7 @@ export const BudgetCreate: React.FC = () => {
                   { value: 'annual', label: t('enums.budgetType.annual') },
                   { value: 'quarterly', label: t('enums.budgetType.quarterly') },
                   { value: 'monthly', label: t('enums.budgetType.monthly') },
+                  { value: 'project', label: t('enums.budgetType.project') },
                 ]}
               />
             </Form.Item>

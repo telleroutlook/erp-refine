@@ -34,7 +34,14 @@ export const InventoryReservationCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('inventory_reservations', 'reference_type')} name="reference_type" rules={[{ required: true }]}>
-              <Input placeholder="sales_order, work_order" />
+              <Select
+                options={[
+                  { value: 'sales_order', label: t('enums.referenceType.sales_order') },
+                  { value: 'work_order', label: t('enums.referenceType.work_order') },
+                  { value: 'transfer_order', label: t('enums.referenceType.transfer_order') },
+                  { value: 'purchase_order', label: t('enums.referenceType.purchase_order') },
+                ]}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

@@ -1129,6 +1129,7 @@
       "accumulated_depreciation": "累计折旧"
     },
     "asset_depreciations": {
+      "accumulated_depreciation": "累计折旧",
       "depreciation_amount": "折旧金额",
       "book_value_after": "折旧后净值",
       "period_year": "年度",

@@ -101,7 +101,7 @@ export class ExecutionAgent extends BaseAgent {
     for (const [name, t] of Object.entries(tools)) {
       if (allowedToolNames.has(name)) filteredTools[name] = t;
     }
-    const effectiveTools = Object.keys(filteredTools).length > 0 ? filteredTools : tools;
+    const effectiveTools = Object.keys(filteredTools).length > 0 ? filteredTools : {};
 
     const apiKeys = getApiKeys(env);
 
@@ -109,6 +109,8 @@ export class ExecutionAgent extends BaseAgent {
     const systemPrompt = strategy?.promptSuffix
       ? `${BASE_SYSTEM_PROMPT}\n\n${strategy.promptSuffix}`
       : BASE_SYSTEM_PROMPT;
+
+    const resolvedLevel = actionMeta ? `D${actionMeta.level}` : 'D0';
 
     const agentResult = await super.execute(async () => {
       const availableTools = Object.keys(effectiveTools).join(', ');
@@ -157,7 +159,7 @@ export class ExecutionAgent extends BaseAgent {
       );
 
       return { text: recoveryResult.text, toolResults: [], recoverySteps: recoveryResult.recoverySteps };
-    }, ctx);
+    }, ctx, undefined, resolvedLevel);
 
     if (!agentResult.success) {
       return { success: false, error: agentResult.error };

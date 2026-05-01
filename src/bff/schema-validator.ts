@@ -59,6 +59,17 @@ export function validateSchema(jsonSchema: Record<string, unknown>, uiSchema?: R
   if (properties) {
     validatePropertiesRecursive(properties, systemFields, errors, '');
   }
+  // Also check allOf/anyOf/oneOf at root level
+  for (const keyword of ['allOf', 'anyOf', 'oneOf'] as const) {
+    const arr = jsonSchema[keyword] as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(arr)) {
+      for (const sub of arr) {
+        if (sub['properties']) {
+          validatePropertiesRecursive(sub['properties'] as Record<string, unknown>, systemFields, errors, '');
+        }
+      }
+    }
+  }
 
   return { valid: errors.length === 0, errors, warnings };
 }
@@ -77,9 +88,27 @@ function validatePropertiesRecursive(
   }
   for (const [fieldName, fieldDef] of Object.entries(properties)) {
     const def = fieldDef as Record<string, unknown> | undefined;
-    if (def && typeof def === 'object' && def['properties']) {
-      const nested = def['properties'] as Record<string, unknown>;
-      validatePropertiesRecursive(nested, systemFields, errors, path ? `${path}.${fieldName}` : fieldName);
+    if (def && typeof def === 'object') {
+      if (def['properties']) {
+        const nested = def['properties'] as Record<string, unknown>;
+        validatePropertiesRecursive(nested, systemFields, errors, path ? `${path}.${fieldName}` : fieldName);
+      }
+      for (const keyword of ['allOf', 'anyOf', 'oneOf'] as const) {
+        const arr = def[keyword] as Array<Record<string, unknown>> | undefined;
+        if (Array.isArray(arr)) {
+          for (const sub of arr) {
+            if (sub['properties']) {
+              validatePropertiesRecursive(sub['properties'] as Record<string, unknown>, systemFields, errors, path ? `${path}.${fieldName}` : fieldName);
+            }
+          }
+        }
+      }
+      if (def['items'] && typeof def['items'] === 'object') {
+        const items = def['items'] as Record<string, unknown>;
+        if (items['properties']) {
+          validatePropertiesRecursive(items['properties'] as Record<string, unknown>, systemFields, errors, path ? `${path}.${fieldName}[]` : `${fieldName}[]`);
+        }
+      }
     }
   }
 }

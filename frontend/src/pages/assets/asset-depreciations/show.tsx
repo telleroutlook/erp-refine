@@ -21,7 +21,7 @@ export const AssetDepreciationShow: React.FC = () => {
         <Descriptions.Item label={fl('asset_depreciations', 'depreciation_amount')}>
           <AmountDisplay value={record?.depreciation_amount} />
         </Descriptions.Item>
-        <Descriptions.Item label={fl('fixed_assets', 'accumulated_depreciation')}>
+        <Descriptions.Item label={fl('asset_depreciations', 'accumulated_depreciation')}>
           <AmountDisplay value={record?.accumulated_depreciation} />
         </Descriptions.Item>
         <Descriptions.Item label={fl('asset_depreciations', 'book_value_after')}>

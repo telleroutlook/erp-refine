@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm, Create, useSelect } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
+import { PAYMENT_METHOD_OPTIONS, translateOptions } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle } from '../../../hooks';
@@ -42,11 +43,7 @@ export const CustomerReceiptCreate: React.FC = () => {
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('customer_receipts', 'payment_method')} name="payment_method">
               <Select
-                options={[
-                  { value: 'bank_transfer', label: t('status.bank_transfer') },
-                  { value: 'cash', label: t('status.cash') },
-                  { value: 'check', label: t('status.check') },
-                ]}
+                options={translateOptions(PAYMENT_METHOD_OPTIONS, t)}
                 placeholder={t('placeholder.select_payment_method')}
               />
             </Form.Item>

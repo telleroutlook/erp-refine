@@ -44,7 +44,7 @@ export const AssetDepreciationList: React.FC = () => {
         />
         <Table.Column
           dataIndex="accumulated_depreciation"
-          title={fl('fixed_assets', 'accumulated_depreciation')}
+          title={fl('asset_depreciations', 'accumulated_depreciation')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}

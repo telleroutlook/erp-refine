@@ -41,24 +41,24 @@ export const ContractList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="contract_number" title={t('menu.contracts')} width={160} />
-        <Table.Column dataIndex="contract_type" title={t('menu.contracts')} />
-        <Table.Column dataIndex="party_type" title={t('menu.contracts')} />
+        <Table.Column dataIndex="contract_number" title={fl('contracts', 'contract_number')} width={160} />
+        <Table.Column dataIndex="contract_type" title={fl('contracts', 'contract_type')} />
+        <Table.Column dataIndex="party_type" title={fl('contracts', 'party_type')} />
         <Table.Column
           dataIndex="start_date"
-          title={t('menu.contracts')}
+          title={fl('contracts', 'start_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="end_date"
-          title={t('menu.contracts')}
+          title={fl('contracts', 'end_date')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
           dataIndex="total_amount"
-          title={t('menu.contracts')}
+          title={fl('contracts', 'total_amount')}
           width={140}
           align="right"
           render={(v) => <AmountDisplay value={v} />}

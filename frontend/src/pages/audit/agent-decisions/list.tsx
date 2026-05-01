@@ -29,11 +29,11 @@ export const AgentDecisionList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="agent_id" title="Agent" width={140} />
-        <Table.Column dataIndex="risk_level" title={t('menu.agentDecisions')} width={100} render={(v) => <Tag color={RISK_COLORS[v] ?? 'default'}>{v}</Tag>} />
-        <Table.Column dataIndex="approval_status" title={t('menu.agentDecisions')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="execution_status" title={t('menu.agentDecisions')} width={120} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="confidence" title={t('menu.agentDecisions')} width={80} align="right" render={(v) => v != null ? `${(v * 100).toFixed(0)}%` : '—'} />
-        <Table.Column dataIndex="created_at" title={t('menu.agentDecisions')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="risk_level" title={fl('agent_decisions', 'risk_level')} width={100} render={(v) => <Tag color={RISK_COLORS[v] ?? 'default'}>{v}</Tag>} />
+        <Table.Column dataIndex="approval_status" title={fl('agent_decisions', 'approval_status')} width={120} render={(s) => <StatusTag status={s} />} />
+        <Table.Column dataIndex="execution_status" title={fl('agent_decisions', 'execution_status')} width={120} render={(s) => <StatusTag status={s} />} />
+        <Table.Column dataIndex="confidence" title={fl('agent_decisions', 'confidence')} width={80} align="right" render={(v) => v != null ? `${(v * 100).toFixed(0)}%` : '—'} />
+        <Table.Column dataIndex="created_at" title={fl('agent_decisions', 'created_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('agent-decisions', r.id)} />} />
       </Table>
     </List>

@@ -201,7 +201,6 @@ manufacturing.post('/work-orders', async (c) => {
       .from('bom_items')
       .select('product_id, quantity, unit, scrap_rate, sequence')
       .eq('bom_header_id', body.bom_header_id)
-      .eq('organization_id', user.organizationId)
       .limit(500);
 
     if (bomError) throw ApiError.database(`Failed to fetch BOM items: ${bomError.message}`, requestId);

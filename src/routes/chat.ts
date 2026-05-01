@@ -179,10 +179,16 @@ chat.post('/stream', async (c) => {
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 
-  const systemPrompt = [
-    `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise. Respond in the same language as the user's message.`,
-    historyContext || null,
-  ].filter(Boolean).join('\n\n');
+  const systemPrompt = `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise. Respond in the same language as the user's message.`;
+
+  // Build messages array with history as prior turns (not in system prompt)
+  const historyMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  if (historyMsgs.length > 0) {
+    for (const m of historyMsgs) {
+      historyMessages.push({ role: m.role, content: m.content });
+    }
+  }
+  historyMessages.push({ role: 'user', content: body.message });
 
   // Persist user message
   appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'user', body.message);
@@ -190,7 +196,7 @@ chat.post('/stream', async (c) => {
   const { fullStream } = streamText({
     model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
     system: systemPrompt,
-    messages: [{ role: 'user', content: body.message }],
+    messages: historyMessages,
     tools,
     stopWhen: stepCountIs(5),
   });

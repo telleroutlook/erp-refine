@@ -32,7 +32,8 @@ export abstract class BaseAgent {
   async execute<T>(
     fn: () => Promise<T>,
     ctx: AgentContext,
-    db?: SupabaseClient
+    db?: SupabaseClient,
+    riskLevel: string = 'D0'
   ): Promise<AgentResult<T>> {
     const start = Date.now();
     const traceId = ctx.traceId ?? crypto.randomUUID();
@@ -48,7 +49,7 @@ export abstract class BaseAgent {
       this.logger.info('agent.success', { agent: this.name, sessionId: ctx.sessionId, traceId, durationMs });
 
       if (db) {
-        decisionId = await this.recordDecision(db, ctx, traceId, 'success', undefined, durationMs);
+        decisionId = await this.recordDecision(db, ctx, traceId, 'success', undefined, durationMs, riskLevel);
       }
 
       return { success: true, data, durationMs, decisionId };
@@ -60,7 +61,7 @@ export abstract class BaseAgent {
       this.logger.error('agent.error', { agent: this.name, sessionId: ctx.sessionId, traceId, error, durationMs });
 
       if (db) {
-        decisionId = await this.recordDecision(db, ctx, traceId, 'error', error, durationMs);
+        decisionId = await this.recordDecision(db, ctx, traceId, 'error', error, durationMs, riskLevel);
       }
 
       return { success: false, error, durationMs, decisionId };
@@ -73,14 +74,15 @@ export abstract class BaseAgent {
     traceId: string,
     status: 'success' | 'error',
     error: string | undefined,
-    durationMs: number
+    durationMs: number,
+    riskLevel: string = 'D0'
   ): Promise<string | undefined> {
     try {
       const { data } = await db.from('agent_decisions').insert({
         organization_id: ctx.organizationId,
         session_id: ctx.sessionId,
         agent_id: this.name,
-        risk_level: 'D0',
+        risk_level: riskLevel,
         execution_status: status === 'success' ? 'success' : 'failed',
         error_message: error ?? null,
         reasoning_summary: { traceId, userId: ctx.userId, durationMs },

@@ -32,11 +32,13 @@ export const ExchangeRateCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('exchange_rates', 'type')} name="rate_type">
+            <Form.Item label={fl('exchange_rates', 'rate_type')} name="rate_type">
               <Select
                 options={[
                   { value: 'spot', label: t('enums.rateType.spot') },
                   { value: 'average', label: t('enums.rateType.average') },
+                  { value: 'budget', label: t('enums.rateType.budget') },
+                  { value: 'closing', label: t('enums.rateType.closing') },
                 ]}
               />
             </Form.Item>

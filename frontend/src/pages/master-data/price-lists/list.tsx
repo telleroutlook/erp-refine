@@ -37,24 +37,24 @@ export const PriceListList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title={t('menu.priceLists')} width={120} />
-        <Table.Column dataIndex="name" title={t('menu.priceLists')} />
-        <Table.Column dataIndex="currency" title={t('menu.priceLists')} />
+        <Table.Column dataIndex="code" title={fl('price_lists', 'code')} width={120} />
+        <Table.Column dataIndex="name" title={fl('price_lists', 'name')} />
+        <Table.Column dataIndex="currency" title={fl('price_lists', 'currency')} />
         <Table.Column
           dataIndex="effective_from"
-          title={t('menu.priceLists')}
+          title={fl('price_lists', 'effective_from')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
           dataIndex="effective_to"
-          title={t('menu.priceLists')}
+          title={fl('price_lists', 'effective_to')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
           dataIndex="is_default"
-          title={t('menu.priceLists')}
+          title={fl('price_lists', 'is_default')}
           width={80}
           render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
         />

@@ -17,13 +17,17 @@ export interface SchemaRecord {
   status: 'draft' | 'active' | 'archived';
   version: number;
   risk_score: number;
+  risk_level: string | null;
   created_at: string;
   updated_at: string;
   expires_at: string | null;
+  activated_at: string | null;
+  archived_at: string | null;
+  created_by: string | null;
   trace_id: string | null;
 }
 
-const SCHEMA_COLUMNS = 'id, organization_id, name, slug, description, json_schema, ui_schema, status, version, risk_score, created_at, updated_at, expires_at, trace_id';
+const SCHEMA_COLUMNS = 'id, organization_id, name, slug, description, json_schema, ui_schema, status, version, risk_score, risk_level, created_at, updated_at, expires_at, activated_at, archived_at, created_by, trace_id';
 
 const DRAFT_TTL_HOURS = 72;
 

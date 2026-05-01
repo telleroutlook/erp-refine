@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useCallback } from 'react';
 import { Collapse, Skeleton, Alert, Typography } from 'antd';
 import { ApartmentOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -40,10 +40,10 @@ export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defau
   const navigate = useNavigate();
   const { chain, isLoading, error } = useDocumentChain(objectId ? objectType : null, objectId ?? null);
 
-  const handleNodeClick = (type: string, id: string) => {
+  const handleNodeClick = useCallback((type: string, id: string) => {
     const prefix = TYPE_PATH[type];
     if (prefix) navigate(`${prefix}/${id}`);
-  };
+  }, [navigate]);
 
   const hasData = chain && (chain.nodes.length > 1 || chain.edges.length > 0);
 

@@ -46,6 +46,9 @@ export const authProvider: AuthProvider = {
     }
 
     const { data } = await response.json();
+    if (!data?.session?.accessToken) {
+      return { success: false, error: { message: 'Unexpected response format', name: 'LoginError' } };
+    }
     localStorage.setItem('access_token', data.session.accessToken);
     localStorage.setItem('refresh_token', data.session.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));

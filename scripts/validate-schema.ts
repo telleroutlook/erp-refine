@@ -444,6 +444,8 @@ const backendDirs = [
   join(ROOT, 'src/routes'),
   join(ROOT, 'src/tools'),
   join(ROOT, 'src/utils'),
+  join(ROOT, 'src/bff'),
+  join(ROOT, 'src/agents'),
 ];
 const selects = extractBackendSelects(backendDirs);
 
