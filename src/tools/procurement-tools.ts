@@ -5,9 +5,9 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { atomicStatusTransition, executeWithAudit } from '../utils/database';
-import { batchCreateStockTransactions } from '../utils/stock-helpers';
+import { confirmPurchaseReceipt } from '../utils/confirm-helpers';
 
-export function createProcurementTools(db: SupabaseClient, organizationId: string, userId: string) {
+export function createProcurementTools(db: SupabaseClient, organizationId: string, userId: string, waitUntil?: (promise: PromiseLike<unknown>) => void) {
   return {
     list_purchase_orders: tool({
       description: 'List purchase orders with optional filters',
@@ -106,6 +106,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
             return result as { data: { id: string; order_number: string } | null; error: unknown };
           },
           { action: 'create', resource: 'purchase_orders', userId, organizationId },
+          waitUntil,
         ) as { id: string; order_number: string };
 
         const lineItems = items.map((i, idx) => ({
@@ -382,6 +383,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
             return result as { data: { id: string; requisition_number: string } | null; error: unknown };
           },
           { action: 'create', resource: 'purchase_requisitions', userId, organizationId },
+          waitUntil,
         ) as { id: string; requisition_number: string };
 
         const lineItems = items.map((i, idx) => ({
@@ -607,62 +609,20 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
         confirmed: z.boolean().default(false).describe('Set to true to execute.'),
       }),
       execute: async ({ id, confirmed }) => {
-        const { data: receipt, error } = await db
-          .from('purchase_receipts')
-          .select('id, receipt_number, status, warehouse_id, purchase_order_id, items:purchase_receipt_items(id, product_id, quantity, lot_number, purchase_order_item_id)')
-          .eq('id', id)
-          .eq('organization_id', organizationId)
-          .is('deleted_at', null)
-          .single();
-        if (error || !receipt) throw new Error('Purchase receipt not found');
-        if (receipt.status !== 'draft') throw new Error(`Cannot confirm receipt in status '${receipt.status}'`);
-        if (!receipt.warehouse_id) throw new Error('Warehouse is required to confirm a receipt');
-
         if (!confirmed) {
+          const { data: receipt, error } = await db
+            .from('purchase_receipts')
+            .select('id, receipt_number, status')
+            .eq('id', id)
+            .eq('organization_id', organizationId)
+            .is('deleted_at', null)
+            .single();
+          if (error || !receipt) throw new Error('Purchase receipt not found');
           return { preview: true, message: 'Dry-run — set confirmed=true to confirm receipt (will add stock)', id: receipt.id, receiptNumber: receipt.receipt_number };
         }
 
-        const { data: updated } = await atomicStatusTransition(
-          db, 'purchase_receipts', id, organizationId, 'draft',
-          { status: 'confirmed', confirmed_by: userId, confirmed_at: new Date().toISOString() },
-          'id, receipt_number',
-        );
-        if (!updated) throw new Error('Purchase receipt status changed concurrently; please retry');
-
-        const items = (receipt as any).items ?? [];
-        if (items.length > 0) {
-          await batchCreateStockTransactions(db, items.map((item: any) => ({
-            organizationId,
-            warehouseId: receipt.warehouse_id!,
-            productId: item.product_id,
-            transactionType: 'in' as const,
-            qty: Number(item.quantity),
-            referenceType: 'purchase_receipt',
-            referenceId: receipt.id,
-            lotNumber: item.lot_number ?? undefined,
-            createdBy: userId,
-          })));
-
-          await Promise.all(
-            items
-              .filter((item: any) => item.purchase_order_item_id)
-              .map((item: any) =>
-                db.rpc('increment_po_received_qty', {
-                  p_poi_id: item.purchase_order_item_id,
-                  p_qty: Number(item.quantity),
-                })
-              )
-          );
-        }
-
-        if (receipt.purchase_order_id) {
-          await db.rpc('update_po_status_from_items', {
-            p_po_id: receipt.purchase_order_id,
-            p_org_id: organizationId,
-          });
-        }
-
-        return { id: receipt.id, receiptNumber: receipt.receipt_number, status: 'confirmed' };
+        const result = await confirmPurchaseReceipt({ db, id, organizationId, userId });
+        return { id: result.id, receiptNumber: result.receiptNumber, status: result.status };
       },
     }),
 

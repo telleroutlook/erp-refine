@@ -26,19 +26,20 @@ export interface ToolRegistryOptions {
   organizationId: string;
   userId: string;
   domains?: DomainScope[];
+  waitUntil?: (promise: PromiseLike<unknown>) => void;
 }
 
 /** Build a ToolSet for the Execution Agent based on requested domains */
 export function buildToolSet(options: ToolRegistryOptions): ToolSet {
-  const { db, organizationId, userId, domains = ['all'] } = options;
+  const { db, organizationId, userId, domains = ['all'], waitUntil } = options;
   const includeAll = domains.includes('all');
   const tools: ToolSet = {};
 
   const include = (d: DomainScope) => includeAll || domains.includes(d);
 
   if (include('inventory')) Object.assign(tools, createInventoryTools(db, organizationId, userId));
-  if (include('procurement')) Object.assign(tools, createProcurementTools(db, organizationId, userId));
-  if (include('sales')) Object.assign(tools, createSalesTools(db, organizationId, userId));
+  if (include('procurement')) Object.assign(tools, createProcurementTools(db, organizationId, userId, waitUntil));
+  if (include('sales')) Object.assign(tools, createSalesTools(db, organizationId, userId, waitUntil));
   if (include('finance')) Object.assign(tools, createFinanceTools(db, organizationId, userId));
   if (include('master-data')) Object.assign(tools, createMasterDataTools(db, organizationId));
   if (include('reporting')) Object.assign(tools, createReportingTools(db, organizationId));

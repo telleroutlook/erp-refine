@@ -32,15 +32,30 @@ export interface ToolResult<T = unknown> {
   fromCache?: boolean;
 }
 
-const breakers = new Map<string, CircuitBreaker>();
+const breakers = new Map<string, { breaker: CircuitBreaker; lastAccess: number }>();
 const CACHE_TTL_SECONDS = 300; // 5 minutes for D0 tool results
+const BREAKER_TTL_MS = 10 * 60_000; // evict breakers unused for 10 minutes
+const BREAKER_MAX_SIZE = 5_000;
+
+function evictStaleBreakers(): void {
+  if (breakers.size <= BREAKER_MAX_SIZE) return;
+  const now = Date.now();
+  for (const [key, entry] of breakers) {
+    if (now - entry.lastAccess > BREAKER_TTL_MS) breakers.delete(key);
+  }
+}
 
 function getBreaker(toolName: string, organizationId: string): CircuitBreaker {
   const key = `${toolName}:${organizationId}`;
-  if (!breakers.has(key)) {
-    breakers.set(key, new CircuitBreaker({ failureThreshold: 3, timeout: 60_000 }));
+  const existing = breakers.get(key);
+  if (existing) {
+    existing.lastAccess = Date.now();
+    return existing.breaker;
   }
-  return breakers.get(key)!;
+  evictStaleBreakers();
+  const breaker = new CircuitBreaker({ failureThreshold: 3, timeout: 60_000 });
+  breakers.set(key, { breaker, lastAccess: Date.now() });
+  return breaker;
 }
 
 async function withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
