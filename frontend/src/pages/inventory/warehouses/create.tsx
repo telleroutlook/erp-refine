@@ -30,12 +30,12 @@ export const WarehouseCreate: React.FC = () => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Form.Item label={fl('warehouses', 'type')} name="type" initialValue="standard">
+            <Form.Item label={fl('warehouses', 'type')} name="type" initialValue="finished_goods">
               <Select options={[
-                { label: t('enums.warehouseType.standard'), value: 'standard' },
-                { label: t('enums.warehouseType.cold_storage'), value: 'cold_storage' },
-                { label: t('enums.warehouseType.hazardous'), value: 'hazardous' },
-                { label: t('enums.warehouseType.bonded'), value: 'bonded' },
+                { label: t('enums.warehouseType.finished_goods'), value: 'finished_goods' },
+                { label: t('enums.warehouseType.raw_materials'), value: 'raw_materials' },
+                { label: t('enums.warehouseType.semi_finished'), value: 'semi_finished' },
+                { label: t('enums.warehouseType.transit'), value: 'transit' },
                 { label: t('enums.warehouseType.virtual'), value: 'virtual' },
               ]} />
             </Form.Item>

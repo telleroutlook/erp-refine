@@ -5,6 +5,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { atomicStatusTransition, executeWithAudit } from '../utils/database';
+import { batchCreateStockTransactions } from '../utils/stock-helpers';
 
 export function createSalesTools(db: SupabaseClient, organizationId: string, userId: string) {
   return {
@@ -338,13 +339,14 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
       execute: async ({ id, confirmed }) => {
         const { data: shipment, error } = await db
           .from('sales_shipments')
-          .select('id, shipment_number, status')
+          .select('id, shipment_number, status, warehouse_id, sales_order_id, items:sales_shipment_items(id, product_id, quantity, sales_order_item_id)')
           .eq('id', id)
           .eq('organization_id', organizationId)
           .is('deleted_at', null)
           .single();
         if (error || !shipment) throw new Error('Sales shipment not found');
         if (shipment.status !== 'draft') throw new Error(`Cannot confirm shipment in status '${shipment.status}'`);
+        if (!shipment.warehouse_id) throw new Error('Warehouse is required to confirm a shipment');
 
         if (!confirmed) {
           return { preview: true, message: 'Dry-run — set confirmed=true to confirm shipment (will deduct stock)', id: shipment.id, shipmentNumber: shipment.shipment_number };
@@ -352,10 +354,42 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
 
         const { data: updated } = await atomicStatusTransition(
           db, 'sales_shipments', id, organizationId, 'draft',
-          { status: 'confirmed', confirmed_at: new Date().toISOString() },
+          { status: 'confirmed', confirmed_by: userId, confirmed_at: new Date().toISOString() },
           'id, shipment_number',
         );
         if (!updated) throw new Error('Shipment status changed concurrently; please retry');
+
+        const items = (shipment as any).items ?? [];
+        if (items.length > 0) {
+          await batchCreateStockTransactions(db, items.map((item: any) => ({
+            organizationId,
+            warehouseId: shipment.warehouse_id!,
+            productId: item.product_id,
+            transactionType: 'out' as const,
+            qty: Number(item.quantity),
+            referenceType: 'sales_shipment',
+            referenceId: shipment.id,
+            createdBy: userId,
+          })));
+
+          await Promise.all(
+            items
+              .filter((item: any) => item.sales_order_item_id)
+              .map((item: any) =>
+                db.rpc('increment_so_shipped_qty', {
+                  p_soi_id: item.sales_order_item_id,
+                  p_qty: Number(item.quantity),
+                })
+              )
+          );
+        }
+
+        if (shipment.sales_order_id) {
+          await db.rpc('update_so_status_from_items', {
+            p_so_id: shipment.sales_order_id,
+            p_org_id: organizationId,
+          });
+        }
 
         return { id: shipment.id, shipmentNumber: shipment.shipment_number, status: 'confirmed' };
       },

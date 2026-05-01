@@ -643,6 +643,13 @@
       "sales_return": "销售退货",
       "in_process": "制程检验",
       "final": "成品检验"
+    },
+    "warehouseType": {
+      "finished_goods": "成品仓",
+      "raw_materials": "原料仓",
+      "semi_finished": "半成品仓",
+      "transit": "在途仓",
+      "virtual": "虚拟仓"
     }
   },
   "tools": {
@@ -1661,7 +1668,13 @@
     "confirmShipmentPrompt": "确认此发货单？系统将自动创建出库记录。",
     "receiptConfirmed": "已确认。入库记录：{{stock}}，创建质检单：{{inspections}}",
     "shipmentConfirmed": "发货单已确认，已创建出库记录。",
-    "inspectionCompleted": "质检已完成。"
+    "inspectionCompleted": "质检已完成。",
+    "confirmFailed": "确认失败"
+  },
+  "documentFlow": {
+    "title": "凭证流转",
+    "loadError": "无法加载凭证流转图",
+    "noRelated": "暂无关联单据"
   },
   "placeholders": {
     "select": "选择{{field}}",

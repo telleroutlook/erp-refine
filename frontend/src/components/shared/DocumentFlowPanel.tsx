@@ -51,11 +51,11 @@ export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defau
   if (isLoading) {
     content = <Skeleton active paragraph={{ rows: 2 }} style={{ padding: '8px 0' }} />;
   } else if (error) {
-    content = <Alert type="warning" message={t('documentFlow.loadError', '无法加载凭证流转图')} description={error} showIcon style={{ margin: '8px 0' }} />;
+    content = <Alert type="warning" message={t('documentFlow.loadError')} description={error} showIcon style={{ margin: '8px 0' }} />;
   } else if (!hasData) {
     content = (
       <Typography.Text type="secondary" style={{ display: 'block', padding: '16px 0', textAlign: 'center' }}>
-        {t('documentFlow.noRelated', '暂无关联单据')}
+        {t('documentFlow.noRelated')}
       </Typography.Text>
     );
   } else {
@@ -76,7 +76,7 @@ export const DocumentFlowPanel: React.FC<Props> = ({ objectType, objectId, defau
           label: (
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
               <ApartmentOutlined />
-              {t('documentFlow.title', '凭证流转')}
+              {t('documentFlow.title')}
             </span>
           ),
           children: content,

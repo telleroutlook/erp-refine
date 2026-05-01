@@ -32,10 +32,11 @@ export const WarehouseEdit: React.FC = () => {
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('warehouses', 'type')} name="type">
               <Select options={[
-                { label: t('enums.warehouseType.raw_material'), value: 'raw_material' },
                 { label: t('enums.warehouseType.finished_goods'), value: 'finished_goods' },
-                { label: t('enums.warehouseType.wip'), value: 'wip' },
-                { label: t('enums.warehouseType.returns'), value: 'returns' },
+                { label: t('enums.warehouseType.raw_materials'), value: 'raw_materials' },
+                { label: t('enums.warehouseType.semi_finished'), value: 'semi_finished' },
+                { label: t('enums.warehouseType.transit'), value: 'transit' },
+                { label: t('enums.warehouseType.virtual'), value: 'virtual' },
               ]} />
             </Form.Item>
           </Col>

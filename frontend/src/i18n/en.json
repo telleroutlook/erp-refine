@@ -643,6 +643,13 @@
       "sales_return": "Sales Return",
       "in_process": "In-Process",
       "final": "Final"
+    },
+    "warehouseType": {
+      "finished_goods": "Finished Goods",
+      "raw_materials": "Raw Materials",
+      "semi_finished": "Semi-Finished",
+      "transit": "In Transit",
+      "virtual": "Virtual"
     }
   },
   "tools": {
@@ -1661,7 +1668,13 @@
     "confirmShipmentPrompt": "Confirm this shipment? Stock-out transactions will be created.",
     "receiptConfirmed": "Confirmed. Stock-in: {{stock}}, Inspections created: {{inspections}}",
     "shipmentConfirmed": "Shipment confirmed. Stock-out transactions created.",
-    "inspectionCompleted": "Inspection completed."
+    "inspectionCompleted": "Inspection completed.",
+    "confirmFailed": "Confirm failed"
+  },
+  "documentFlow": {
+    "title": "Document Flow",
+    "loadError": "Failed to load document flow",
+    "noRelated": "No related documents"
   },
   "placeholders": {
     "select": "Select {{field}}",
