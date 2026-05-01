@@ -111,7 +111,6 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const lineItems = items.map((i, idx) => ({
           purchase_order_id: po.id,
-          organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
           quantity: i.qty,
@@ -388,7 +387,6 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const lineItems = items.map((i, idx) => ({
           purchase_requisition_id: pr.id,
-          organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
           quantity: i.quantity,

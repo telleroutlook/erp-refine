@@ -62,6 +62,3 @@ bindings = [
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["ERPChatAgent", "RateLimiterDO"]
-
-[triggers]
-crons = ["0 */6 * * *"]

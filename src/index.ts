@@ -173,12 +173,4 @@ export default {
   async queue(batch: MessageBatch<ERPEvent>, env: Env): Promise<void> {
     await handleQueueBatch(batch, env);
   },
-
-  // Cron trigger — cleanup expired AI drafts every 6 hours
-  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
-    const { createServiceClient } = await import('./utils/supabase');
-    const db = createServiceClient(env);
-    await db.rpc('cleanup_expired_drafts');
-    await db.rpc('purge_old_drafts');
-  },
 };

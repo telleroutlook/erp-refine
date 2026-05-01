@@ -299,11 +299,11 @@ chat.post('/stream', async (c) => {
             const tc = chunk as { type: 'tool-call'; toolName: string; toolCallId: string };
             enqueue('tool', { type: 'tool_start', name: tc.toolName, callId: tc.toolCallId });
           } else if (chunk.type === 'tool-result') {
-            const tr = chunk as { type: 'tool-result'; toolName: string; toolCallId: string; result?: unknown };
+            const tr = chunk as { type: 'tool-result'; toolName: string; toolCallId: string; output?: unknown };
             enqueue('tool', { type: 'tool_end', name: tr.toolName, callId: tr.toolCallId });
             // Emit draft card if tool result contains draft metadata
-            if (tr.result && typeof tr.result === 'object') {
-              const toolResult = tr.result as Record<string, unknown>;
+            if (tr.output && typeof tr.output === 'object') {
+              const toolResult = tr.output as Record<string, unknown>;
               if (toolResult._draft_card && toolResult.draft_id) {
                 enqueue('draft', {
                   type: 'draft_card',

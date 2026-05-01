@@ -215,7 +215,6 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
 
         const lineItems = items.map((i, idx) => ({
           sales_order_id: so.id,
-          organization_id: organizationId,
           line_number: idx + 1,
           product_id: i.productId,
           quantity: i.qty,

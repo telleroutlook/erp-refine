@@ -98,17 +98,23 @@ drafts.post('/:id/commit', async (c) => {
     waitUntil: (p) => c.executionCtx.waitUntil(p as Promise<unknown>),
   });
 
-  const result = await commitDraft({
-    db,
-    draftId: id,
-    organizationId: user.organizationId,
-    userId: user.userId,
-    contentOverride: body.content,
-    toolSet,
-    waitUntil: (p) => c.executionCtx.waitUntil(p as Promise<unknown>),
-  });
+  try {
+    const result = await commitDraft({
+      db,
+      draftId: id,
+      organizationId: user.organizationId,
+      userId: user.userId,
+      contentOverride: body.content,
+      toolSet,
+      waitUntil: (p) => c.executionCtx.waitUntil(p as Promise<unknown>),
+    });
 
-  return c.json({ data: result });
+    return c.json({ data: result });
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    const message = err instanceof Error ? err.message : 'Unknown commit error';
+    throw ApiError.database(`Draft commit failed: ${message}`);
+  }
 });
 
 // POST /api/drafts/:id/discard — mark as discarded
