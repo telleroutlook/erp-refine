@@ -210,16 +210,8 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
           };
         }
 
-        const { data: stock, error: stockErr } = await db
-          .from('stock_records')
-          .select('id, available_quantity')
-          .eq('organization_id', organizationId)
-          .eq('product_id', productId)
-          .eq('warehouse_id', fromWarehouseId)
-          .single();
-
-        if (stockErr || !stock) throw new Error('No stock record found for source warehouse');
-        if ((stock.available_quantity ?? 0) < quantity) throw new Error(`Insufficient stock: available=${stock.available_quantity}, requested=${quantity}`);
+        // Availability is enforced atomically by adjust_stock() (called via
+        // tr_stock_transaction_update trigger) — no client-side pre-check needed.
 
         const txnBase = {
           organization_id: organizationId,
