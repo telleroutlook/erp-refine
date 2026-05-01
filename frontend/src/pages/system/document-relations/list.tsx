@@ -34,15 +34,15 @@ export const DocumentRelationList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="from_object_type" title={t('menu.documentRelations')} width={120} />
-        <Table.Column dataIndex="from_object_id" title={t('menu.documentRelations')} width={200} ellipsis />
-        <Table.Column dataIndex="relation_type" title={t('menu.documentRelations')} width={120} />
-        <Table.Column dataIndex="to_object_type" title={t('menu.documentRelations')} width={120} />
-        <Table.Column dataIndex="to_object_id" title={t('menu.documentRelations')} width={200} ellipsis />
-        <Table.Column dataIndex="label" title={t('menu.documentRelations')} />
+        <Table.Column dataIndex="from_object_type" title={fl('document_relations', 'from_object_type')} width={120} />
+        <Table.Column dataIndex="from_object_id" title={fl('document_relations', 'from_object_id')} width={200} ellipsis />
+        <Table.Column dataIndex="relation_type" title={fl('document_relations', 'relation_type')} width={120} />
+        <Table.Column dataIndex="to_object_type" title={fl('document_relations', 'to_object_type')} width={120} />
+        <Table.Column dataIndex="to_object_id" title={fl('document_relations', 'to_object_id')} width={200} ellipsis />
+        <Table.Column dataIndex="label" title={fl('document_relations', 'label')} />
         <Table.Column
           dataIndex="created_at"
-          title={t('menu.documentRelations')}
+          title={fl('document_relations', 'created_at')}
           width={160}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '-'}
         />

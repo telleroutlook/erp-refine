@@ -249,7 +249,7 @@ export function createFinanceTools(db: SupabaseClient, organizationId: string, u
 
         const { error: entryErr } = await db.from('voucher_entries').insert(entryRows);
         if (entryErr) {
-          await db.from('vouchers').delete().eq('id', voucher.id).eq('organization_id', organizationId);
+          await db.from('vouchers').update({ deleted_at: new Date().toISOString() }).eq('id', voucher.id).eq('organization_id', organizationId);
           throw new Error(entryErr.message);
         }
 

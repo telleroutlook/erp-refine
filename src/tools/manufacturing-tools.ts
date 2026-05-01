@@ -156,7 +156,8 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         const { data: bomItems, error: bomErr } = await db
           .from('bom_items')
           .select('product_id, quantity')
-          .eq('bom_header_id', bomHeaderId);
+          .eq('bom_header_id', bomHeaderId)
+          .eq('organization_id', organizationId);
         if (bomErr) throw new Error(bomErr.message);
 
         const materials = (bomItems ?? []).map(bi => ({

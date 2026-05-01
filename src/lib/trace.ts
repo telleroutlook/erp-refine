@@ -72,8 +72,8 @@ export class TraceContext {
         organization_id: this.organizationId,
         session_id: this.sessionId,
         agent_id: 'orchestrator',
-        risk_level: 'low',
-        execution_status: success ? 'completed' : 'failed',
+        risk_level: 'D0',
+        execution_status: success ? 'success' : 'failed',
         reasoning_summary: {
           traceId: this.traceId,
           userId: this.userId,

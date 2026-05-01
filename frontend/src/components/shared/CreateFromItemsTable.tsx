@@ -100,7 +100,7 @@ export const CreateFromItemsTable: React.FC<CreateFromItemsTableProps> = ({
         bordered
         summary={() => {
           const total = items.reduce(
-            (sum, item) => sum + (item.quantity as number ?? 0) * (item.unit_price as number ?? 0),
+            (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
             0
           );
           return (

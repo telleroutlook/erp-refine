@@ -165,7 +165,7 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
         productId: z.string().uuid().optional(),
         warehouseId: z.string().uuid().optional(),
         referenceType: z.string().optional().describe('e.g. sales_orders'),
-        status: z.enum(['active', 'released', 'expired']).optional(),
+        status: z.enum(['active', 'released', 'cancelled', 'expired', 'consumed']).optional(),
         limit: z.number().min(1).max(100).default(50),
       }),
       execute: async ({ productId, warehouseId, referenceType, status, limit }) => {

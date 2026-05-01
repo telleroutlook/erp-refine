@@ -28,16 +28,15 @@ export function errorHandler(err: Error, c: Context): Response {
     method: c.req.method,
   });
 
-  const status = err.message.includes('not found') || err.message.includes('Not found') ? 404 : 500;
   const problem: ApiProblem = {
-    type: status === 404 ? ErrorCode.NOT_FOUND : ErrorCode.INTERNAL_ERROR,
-    status,
-    title: status === 404 ? 'Not Found' : 'Internal Server Error',
-    detail: status === 404 ? 'The requested resource was not found.' : 'An unexpected error occurred.',
+    type: ErrorCode.INTERNAL_ERROR,
+    status: 500,
+    title: 'Internal Server Error',
+    detail: 'An unexpected error occurred.',
     request_id: requestId,
     timestamp: new Date().toISOString(),
-    hint: status === 500 ? `Contact support with request_id '${requestId}' for investigation.` : undefined,
+    hint: `Contact support with request_id '${requestId}' for investigation.`,
   };
 
-  return c.json(problem, status as any) as unknown as Response;
+  return c.json(problem, 500 as any) as unknown as Response;
 }

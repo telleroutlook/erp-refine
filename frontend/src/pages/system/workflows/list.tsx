@@ -30,25 +30,25 @@ export const WorkflowList: React.FC = () => {
     <List title={t('menu.workflows')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="workflow_type" title={t('menu.workflows')} width={140} />
-        <Table.Column dataIndex="entity_type" title={t('menu.workflows')} width={120} />
-        <Table.Column dataIndex="entity_id" title={t('menu.workflows')} width={200} ellipsis />
+        <Table.Column dataIndex="workflow_type" title={fl('workflows', 'workflow_type')} width={140} />
+        <Table.Column dataIndex="entity_type" title={fl('workflows', 'entity_type')} width={120} />
+        <Table.Column dataIndex="entity_id" title={fl('workflows', 'entity_id')} width={200} ellipsis />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}
           width={100}
           render={(status) => <StatusTag status={status} />}
         />
-        <Table.Column dataIndex="current_step" title={t('menu.workflows')} width={120} />
+        <Table.Column dataIndex="current_step" title={fl('workflows', 'current_step')} width={120} />
         <Table.Column
           dataIndex="started_at"
-          title={t('menu.workflows')}
+          title={fl('workflows', 'started_at')}
           width={160}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '-'}
         />
         <Table.Column
           dataIndex="completed_at"
-          title={t('menu.workflows')}
+          title={fl('workflows', 'completed_at')}
           width={160}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '-'}
         />

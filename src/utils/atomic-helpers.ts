@@ -43,7 +43,7 @@ export interface AtomicUpdateConfig {
   /** Whether header table uses soft-delete (default true). Set false for hard-delete tables like vouchers. */
   softDeleteHeader?: boolean;
   /** Auto-recalculate a header sum from item fields */
-  autoSum?: { headerField: string; itemAmountExpr: (item: Record<string, unknown>) => number; };
+  autoSum?: { headerField: string; itemAmountExpr: (item: Record<string, unknown>) => number; itemSelectFields?: string; };
 }
 
 export interface AtomicUpdateInput {
@@ -116,11 +116,12 @@ export async function atomicUpdateWithItems(
   }
 
   if (autoSum) {
-    let q = db.from(itemsTable).select('*').eq(headerFk, headerId);
+    const selectFields = autoSum.itemSelectFields ?? 'quantity, unit_price, amount, planned_amount, line_amount, total_price, qty_offered';
+    let q = db.from(itemsTable).select(selectFields).eq(headerFk, headerId);
     if (softDeleteItems) q = q.is('deleted_at', null);
     const { data: allItems, error: sumErr } = await q;
     if (sumErr) throw ApiError.database(sumErr.message, requestId, 'Failed to recalculate totals');
-    const total = (allItems ?? []).reduce(
+    const total = ((allItems ?? []) as unknown as Record<string, unknown>[]).reduce(
       (sum: number, it: Record<string, unknown>) => sum + autoSum.itemAmountExpr(it),
       0,
     );

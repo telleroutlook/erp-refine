@@ -116,7 +116,7 @@ export function requireRole(...roles: string[]): MiddlewareHandler<{ Bindings: E
 export function writeMethodGuard(): MiddlewareHandler<{ Bindings: Env }> {
   return async (c: Context<{ Bindings: Env }>, next: Next) => {
     const method = c.req.method;
-    if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+    if (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') {
       const user = c.get('user') as UserContext;
       if (user.role === 'viewer') {
         return c.json({ type: 'FORBIDDEN', status: 403, title: 'Forbidden', detail: 'Viewers cannot perform write operations', request_id: c.get('requestId') ?? 'unknown', timestamp: new Date().toISOString() }, 403);

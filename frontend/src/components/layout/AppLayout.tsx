@@ -85,9 +85,7 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
   const { token } = theme.useToken();
   const translate = useTranslate();
   const breakpoint = Grid.useBreakpoint();
-  const isMobile = typeof breakpoint.lg === 'undefined'
-    ? (typeof window !== 'undefined' && window.innerWidth < 992)
-    : !breakpoint.lg;
+  const isMobile = typeof breakpoint.lg === 'undefined' ? false : !breakpoint.lg;
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     return localStorage.getItem(COLLAPSED_KEY) === 'true';

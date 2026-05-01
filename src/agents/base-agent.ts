@@ -80,8 +80,8 @@ export abstract class BaseAgent {
         organization_id: ctx.organizationId,
         session_id: ctx.sessionId,
         agent_id: this.name,
-        risk_level: 'low',
-        execution_status: status === 'success' ? 'completed' : 'failed',
+        risk_level: 'D0',
+        execution_status: status === 'success' ? 'success' : 'failed',
         error_message: error ?? null,
         reasoning_summary: { traceId, userId: ctx.userId, durationMs },
       }).select('id').single();

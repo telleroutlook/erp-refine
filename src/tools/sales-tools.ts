@@ -91,7 +91,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
     list_sales_returns: tool({
       description: 'List sales returns (RMA)',
       inputSchema: z.object({
-        status: z.enum(['draft','approved','received','cancelled']).optional(),
+        status: z.enum(['draft','approved','received','rejected','cancelled']).optional(),
         customerId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -135,7 +135,7 @@ export function createSalesTools(db: SupabaseClient, organizationId: string, use
     list_sales_shipments: tool({
       description: 'List sales shipments (delivery orders)',
       inputSchema: z.object({
-        status: z.enum(['draft','confirmed','shipped','cancelled']).optional(),
+        status: z.enum(['draft','confirmed','shipped','delivered','cancelled']).optional(),
         salesOrderId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

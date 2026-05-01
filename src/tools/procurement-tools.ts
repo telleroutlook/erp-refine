@@ -148,7 +148,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_purchase_requisitions: tool({
       description: 'List purchase requisitions with optional status or department filter',
       inputSchema: z.object({
-        status: z.enum(['draft','submitted','approved','rejected','closed']).optional(),
+        status: z.enum(['draft','submitted','approved','rejected','cancelled','converted']).optional(),
         departmentId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),
@@ -259,7 +259,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_supplier_invoices: tool({
       description: 'List supplier invoices (AP invoices)',
       inputSchema: z.object({
-        status: z.enum(['draft','submitted','approved','paid','cancelled']).optional(),
+        status: z.enum(['draft','received','verified','approved','paid','disputed','cancelled']).optional(),
         supplierId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

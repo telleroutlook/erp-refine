@@ -25,11 +25,11 @@ export const NumberSequenceList: React.FC = () => {
     <List title={t('menu.numberSequences')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="sequence_name" title={t('menu.numberSequences')} width={200} />
-        <Table.Column dataIndex="prefix" title={t('menu.numberSequences')} width={120} />
-        <Table.Column dataIndex="current_value" title={t('menu.numberSequences')} width={120} align="right" />
-        <Table.Column dataIndex="padding" title={t('menu.numberSequences')} width={100} align="right" />
-        <Table.Column dataIndex="increment_by" title={t('menu.numberSequences')} width={80} align="right" />
+        <Table.Column dataIndex="sequence_name" title={fl('number_sequences', 'sequence_name')} width={200} />
+        <Table.Column dataIndex="prefix" title={fl('number_sequences', 'prefix')} width={120} />
+        <Table.Column dataIndex="current_value" title={fl('number_sequences', 'current_value')} width={120} align="right" />
+        <Table.Column dataIndex="padding" title={fl('number_sequences', 'padding')} width={100} align="right" />
+        <Table.Column dataIndex="increment_by" title={fl('number_sequences', 'increment_by')} width={80} align="right" />
         <Table.Column
           title={t('common.actions')}
           width={100}

@@ -28,9 +28,9 @@ export const AssetMaintenanceCreate: React.FC = () => {
             <Form.Item label={fl('asset_maintenance_records', 'maintenance_type')} name="maintenance_type">
               <Select
                 options={[
-                  { value: 'preventive', label: t('enums.maintenanceType.preventive') },
-                  { value: 'corrective', label: t('enums.maintenanceType.corrective') },
-                  { value: 'inspection', label: t('enums.maintenanceType.inspection') },
+                  { value: 'routine', label: t('enums.maintenanceType.routine') },
+                  { value: 'repair', label: t('enums.maintenanceType.repair') },
+                  { value: 'overhaul', label: t('enums.maintenanceType.overhaul') },
                 ]}
               />
             </Form.Item>

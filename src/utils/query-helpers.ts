@@ -27,7 +27,7 @@ export function parseRefineQuery(c: Context, defaultSort = 'created_at'): Refine
   };
 }
 
-const RESERVED_PARAMS = new Set(['_page', '_limit', '_sort', '_order']);
+const RESERVED_PARAMS = new Set(['_page', '_limit', '_sort', '_order', '_start', '_end']);
 const DENIED_FIELDS = new Set(['organization_id', 'deleted_at', 'created_by', 'updated_by']);
 const FIELD_RE = /^[a-z][a-z0-9_]*$/;
 

@@ -65,7 +65,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         limit: z.number().min(1).max(100).default(36),
       }),
       execute: async ({ assetId, limit }) => {
-        await assertOwnership(db, 'fixed_assets', assetId, organizationId, 'Asset', { checkDeleted: true });
+        await assertOwnership(db, 'fixed_assets', assetId, organizationId, 'Asset', );
 
         const { data, error } = await db
           .from('asset_depreciations')
@@ -87,7 +87,7 @@ export function createAssetsTools(db: SupabaseClient, organizationId: string) {
         limit: z.number().min(1).max(50).default(20),
       }),
       execute: async ({ assetId, limit }) => {
-        await assertOwnership(db, 'fixed_assets', assetId, organizationId, 'Asset', { checkDeleted: true });
+        await assertOwnership(db, 'fixed_assets', assetId, organizationId, 'Asset', );
 
         const { data, error } = await db
           .from('asset_maintenance_records')

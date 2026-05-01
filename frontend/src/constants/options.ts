@@ -18,10 +18,10 @@ export const PO_STATUS_OPTIONS = [
   { value: 'draft' },
   { value: 'submitted' },
   { value: 'approved' },
+  { value: 'rejected' },
   { value: 'in_transit' },
   { value: 'partially_received' },
   { value: 'received' },
-  { value: 'invoiced' },
   { value: 'closed' },
   { value: 'cancelled' },
 ];
@@ -69,6 +69,7 @@ export const PAYMENT_REQUEST_STATUS_OPTIONS = [
   { value: 'submitted' },
   { value: 'approved' },
   { value: 'paid' },
+  { value: 'rejected' },
   { value: 'cancelled' },
 ];
 
@@ -168,6 +169,8 @@ export const CONTRACT_STATUS_OPTIONS = [
   { value: 'active' },
   { value: 'expired' },
   { value: 'terminated' },
+  { value: 'cancelled' },
+  { value: 'completed' },
 ];
 
 export const CONTRACT_TYPE_OPTIONS = [
@@ -180,6 +183,7 @@ export const CONTRACT_TYPE_OPTIONS = [
 export const EMPLOYEE_STATUS_OPTIONS = [
   { value: 'active' },
   { value: 'inactive' },
+  { value: 'terminated' },
 ];
 
 export const DEPARTMENT_STATUS_OPTIONS = [
@@ -251,8 +255,8 @@ export const ASN_STATUS_OPTIONS = [
 export const RECONCILIATION_STATUS_OPTIONS = [
   { value: 'draft' },
   { value: 'confirmed' },
-  { value: 'disputed' },
   { value: 'closed' },
+  { value: 'cancelled' },
 ];
 
 export const TRANSACTION_TYPE_OPTIONS = [
@@ -271,7 +275,8 @@ export const IMPORT_STATUS_OPTIONS = [
 export const AGENT_SESSION_STATUS_OPTIONS = [
   { value: 'active' },
   { value: 'completed' },
-  { value: 'failed' },
+  { value: 'aborted' },
+  { value: 'expired' },
 ];
 
 export const WORKFLOW_STATUS_OPTIONS = [
@@ -315,7 +320,6 @@ export const MATCH_STATUS_OPTIONS = [
 export const ORGANIZATION_STATUS_OPTIONS = [
   { value: 'active' },
   { value: 'inactive' },
-  { value: 'suspended' },
 ];
 
 export const COST_METHOD_OPTIONS = [

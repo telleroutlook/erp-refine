@@ -213,10 +213,10 @@ export async function assertOwnership(
   id: string,
   organizationId: string,
   label: string,
-  opts?: { checkDeleted?: boolean }
+  opts?: { skipDeletedCheck?: boolean }
 ): Promise<void> {
   let q = db.from(table).select('id').eq('id', id).eq('organization_id', organizationId);
-  if (opts?.checkDeleted) q = q.is('deleted_at', null);
+  if (!opts?.skipDeletedCheck) q = q.is('deleted_at', null);
   const { data, error } = await q.maybeSingle();
   if (error) throw new ApiError({ code: ErrorCode.NOT_FOUND, detail: error.message });
   if (!data) throw ApiError.notFound(label, id);

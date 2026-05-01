@@ -1,5 +1,5 @@
 import React from 'react';
-import { Space, Button, Typography, Dropdown } from 'antd';
+import { Space, Button, Typography, Dropdown, theme } from 'antd';
 import { CloseOutlined, DownOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -20,6 +20,7 @@ interface BulkActionBarProps {
 
 export const BulkActionBar: React.FC<BulkActionBarProps> = ({ selectedCount, actions, onClear, dropdownActions }) => {
   const { t } = useTranslation();
+  const { token } = theme.useToken();
 
   if (selectedCount === 0) return null;
 
@@ -28,15 +29,15 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({ selectedCount, act
       style={{
         padding: '8px 16px',
         marginBottom: 8,
-        background: '#e6f4ff',
-        border: '1px solid #91caff',
+        background: token.colorPrimaryBg,
+        border: `1px solid ${token.colorPrimaryBorder}`,
         borderRadius: 6,
         display: 'flex',
         alignItems: 'center',
         gap: 12,
       }}
     >
-      <Typography.Text style={{ color: '#1677ff', fontWeight: 500, whiteSpace: 'nowrap' }}>
+      <Typography.Text style={{ color: token.colorPrimary, fontWeight: 500, whiteSpace: 'nowrap' }}>
         {t('buttons.selectedCount', { count: selectedCount })}
       </Typography.Text>
       <Space wrap>
@@ -68,7 +69,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({ selectedCount, act
         type="text"
         icon={<CloseOutlined />}
         onClick={onClear}
-        style={{ marginLeft: 'auto', color: '#8c8c8c' }}
+        style={{ marginLeft: 'auto', color: token.colorTextSecondary }}
       >
         {t('buttons.clearSelection')}
       </Button>

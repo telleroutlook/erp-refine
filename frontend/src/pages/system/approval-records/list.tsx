@@ -31,25 +31,25 @@ export const ApprovalRecordList: React.FC = () => {
     <List title={t('menu.approvalRecords')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="document_type" title={t('menu.approvalRecords')} width={140} />
-        <Table.Column dataIndex="document_id" title={t('menu.approvalRecords')} width={200} ellipsis />
-        <Table.Column dataIndex="decision_level" title={t('menu.approvalRecords')} width={100} align="center" />
+        <Table.Column dataIndex="document_type" title={fl('approval_records', 'document_type')} width={140} />
+        <Table.Column dataIndex="document_id" title={fl('approval_records', 'document_id')} width={200} ellipsis />
+        <Table.Column dataIndex="decision_level" title={fl('approval_records', 'decision_level')} width={100} align="center" />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}
           width={120}
           render={(v) => <StatusTag status={v} />}
         />
-        <Table.Column dataIndex="decision_by" title={t('menu.approvalRecords')} width={200} ellipsis />
+        <Table.Column dataIndex="decision_by" title={fl('approval_records', 'decision_by')} width={200} ellipsis />
         <Table.Column
           dataIndex="decision_at"
-          title={t('menu.approvalRecords')}
+          title={fl('approval_records', 'decision_at')}
           width={160}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '-'}
         />
         <Table.Column
           dataIndex="created_at"
-          title={t('menu.approvalRecords')}
+          title={fl('approval_records', 'created_at')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
