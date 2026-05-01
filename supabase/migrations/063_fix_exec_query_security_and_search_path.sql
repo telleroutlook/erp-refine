@@ -1,14 +1,13 @@
--- Fix critical security and correctness issues found during code review
+-- Fix exec_query security: migration 062 used wrong function signature (TEXT, TEXT) instead of (TEXT)
+-- Also add SET search_path = public to SECURITY DEFINER functions
 
--- 1. CRITICAL: exec_query allows arbitrary SQL execution by any authenticated user
--- Revoke access from public and restrict to service_role only
+-- 1. Lock down exec_query(TEXT) — the actual function signature
 REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.exec_query(TEXT) FROM authenticated;
 GRANT EXECUTE ON FUNCTION public.exec_query(TEXT) TO service_role;
 
--- 2. CRITICAL: update_po_status_from_items references non-existent organization_id on purchase_order_items
--- The parent filter (purchase_order_id = p_po_id) already guarantees org isolation
+-- 2. Recreate update_po_status_from_items with SET search_path = public
 CREATE OR REPLACE FUNCTION update_po_status_from_items(
   p_po_id UUID,
   p_org_id UUID
@@ -56,7 +55,7 @@ BEGIN
 END;
 $$;
 
--- 3. CRITICAL: update_so_status_from_items references non-existent organization_id on sales_order_items
+-- 3. Recreate update_so_status_from_items with SET search_path = public
 CREATE OR REPLACE FUNCTION update_so_status_from_items(
   p_so_id UUID,
   p_org_id UUID
@@ -103,36 +102,3 @@ BEGIN
   RETURN v_new_status;
 END;
 $$;
-
--- 4. Fix RLS policies using non-functional current_setting GUC
-DROP POLICY IF EXISTS supplier_contacts_org_isolation ON supplier_contacts;
-CREATE POLICY supplier_contacts_org_isolation ON supplier_contacts
-  FOR ALL TO authenticated
-  USING (organization_id = get_user_org_id());
-
-DROP POLICY IF EXISTS supplier_certificates_org_isolation ON supplier_certificates;
-CREATE POLICY supplier_certificates_org_isolation ON supplier_certificates
-  FOR ALL TO authenticated
-  USING (organization_id = get_user_org_id());
-
-DROP POLICY IF EXISTS profile_change_requests_org_isolation ON profile_change_requests;
-CREATE POLICY profile_change_requests_org_isolation ON profile_change_requests
-  FOR ALL TO authenticated
-  USING (organization_id = get_user_org_id() OR organization_id IS NULL);
-
--- 5. Fix auth_events INSERT policy allowing cross-tenant writes
-DROP POLICY IF EXISTS "auth_events_insert" ON auth_events;
-CREATE POLICY "auth_events_insert" ON auth_events
-  FOR INSERT TO authenticated
-  WITH CHECK (organization_id = get_user_org_id());
-
--- 6. Add missing GRANT EXECUTE for reporting RPCs
-GRANT EXECUTE ON FUNCTION rpc_procurement_summary(UUID, DATE, DATE) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_sales_summary_by_month(UUID, DATE, DATE) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_sales_summary_by_customer(UUID, DATE, DATE) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_sales_summary_by_product(UUID, DATE, DATE) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_manufacturing_summary(UUID, DATE, DATE) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_inventory_valuation(UUID, UUID) TO authenticated;
-
--- 7. Add missing GRANT EXECUTE for atomic_create_with_items
-GRANT EXECUTE ON FUNCTION public.atomic_create_with_items(TEXT, TEXT, TEXT, JSONB, JSONB, TEXT, TEXT, BOOLEAN) TO authenticated;

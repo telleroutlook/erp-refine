@@ -629,7 +629,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
     list_three_way_match_results: tool({
       description: 'List three-way match results (PO vs receipt vs invoice) for AP verification',
       inputSchema: z.object({
-        matchStatus: z.string().optional().describe('e.g. matched, mismatched, pending'),
+        matchStatus: z.string().optional().describe('e.g. matched, mismatch, partial, pending, disputed'),
         purchaseOrderId: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(20),
       }),

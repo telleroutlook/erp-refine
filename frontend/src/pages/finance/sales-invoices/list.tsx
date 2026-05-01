@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { INVOICE_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { SALES_INVOICE_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
 import { useFieldLabel } from '../../../hooks';
 
 export const SalesInvoiceList: React.FC = () => {
@@ -22,7 +22,7 @@ export const SalesInvoiceList: React.FC = () => {
 
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'invoice_number', label: fl('sales_invoices', 'invoice_number'), placeholder: t('filters.searchPlaceholder') },
-    { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(INVOICE_STATUS_OPTIONS, t) },
+    { type: 'status', field: 'status', label: t('common.status'), options: translateOptions(SALES_INVOICE_STATUS_OPTIONS, t) },
     { type: 'entity', field: 'customer_id', label: fl('sales_invoices', 'customer_id'), resource: 'customers' },
     { type: 'dateRange', field: 'invoice_date', label: fl('sales_invoices', 'invoice_date') },
     { type: 'itemProduct', field: '_item_product_id', label: fl('sales_invoices', 'product_id'), placeholder: t('filters.itemProductPlaceholder') },

@@ -534,7 +534,9 @@
     "partial_match": "部分匹配",
     "weighted_average": "加权平均",
     "fifo": "先进先出",
-    "standard": "标准成本"
+    "standard": "标准成本",
+    "mismatch": "不匹配",
+    "unpaid": "未付款"
   },
   "enums": {
     "defectSeverity": {
@@ -593,13 +595,13 @@
       "ltl": "零担",
       "ftl": "整车",
       "air": "空运",
-      "ocean": "海运",
-      "rail": "铁路运输"
+      "ocean": "海运"
     },
     "budgetType": {
       "annual": "年度",
       "quarterly": "季度",
-      "monthly": "月度"
+      "monthly": "月度",
+      "project": "项目"
     },
     "yesNo": {
       "yes": "是",
@@ -613,10 +615,9 @@
       "expense": "费用"
     },
     "maintenanceType": {
-      "preventive": "预防性维护",
-      "corrective": "纠正性维护",
-      "inspection": "检查",
-      "other": "其他"
+      "routine": "日常维护",
+      "repair": "维修",
+      "overhaul": "大修"
     },
     "assetStatus": {
       "active": "在用",
@@ -627,7 +628,9 @@
     },
     "rateType": {
       "spot": "即期",
-      "average": "平均"
+      "average": "平均",
+      "budget": "预算",
+      "closing": "期末"
     },
     "successFail": {
       "success": "成功",

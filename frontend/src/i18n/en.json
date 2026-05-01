@@ -534,7 +534,9 @@
     "partial_match": "Partial Match",
     "weighted_average": "Weighted Average",
     "fifo": "FIFO",
-    "standard": "Standard"
+    "standard": "Standard",
+    "mismatch": "Mismatch",
+    "unpaid": "Unpaid"
   },
   "enums": {
     "defectSeverity": {
@@ -593,13 +595,13 @@
       "ltl": "LTL",
       "ftl": "FTL",
       "air": "Air Freight",
-      "ocean": "Ocean Freight",
-      "rail": "Rail"
+      "ocean": "Ocean Freight"
     },
     "budgetType": {
       "annual": "Annual",
       "quarterly": "Quarterly",
-      "monthly": "Monthly"
+      "monthly": "Monthly",
+      "project": "Project"
     },
     "yesNo": {
       "yes": "Yes",
@@ -613,10 +615,9 @@
       "expense": "Expense"
     },
     "maintenanceType": {
-      "preventive": "Preventive",
-      "corrective": "Corrective",
-      "inspection": "Inspection",
-      "other": "Other"
+      "routine": "Routine",
+      "repair": "Repair",
+      "overhaul": "Overhaul"
     },
     "assetStatus": {
       "active": "Active",
@@ -627,7 +628,9 @@
     },
     "rateType": {
       "spot": "Spot",
-      "average": "Average"
+      "average": "Average",
+      "budget": "Budget",
+      "closing": "Closing"
     },
     "successFail": {
       "success": "Success",

@@ -30,7 +30,7 @@ for (const tool of tools) {
     const hasRule = allRules.includes(tool.name) || allRules.includes(tool.name.replace(/_/g, '-'));
     if (!hasRule) {
       console.warn(`⚠️  D${tool.level} tool '${tool.name}' (${tool.domain}) has no explicit policy rule`);
-      warnings++;
+      errors++;
     }
   }
 }

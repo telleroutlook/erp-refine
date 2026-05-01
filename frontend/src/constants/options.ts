@@ -64,6 +64,15 @@ export const INVOICE_STATUS_OPTIONS = [
   { value: 'cancelled' },
 ];
 
+export const SALES_INVOICE_STATUS_OPTIONS = [
+  { value: 'draft' },
+  { value: 'issued' },
+  { value: 'paid' },
+  { value: 'overdue' },
+  { value: 'voided' },
+  { value: 'cancelled' },
+];
+
 export const PAYMENT_REQUEST_STATUS_OPTIONS = [
   { value: 'draft' },
   { value: 'submitted' },
@@ -244,6 +253,7 @@ export const PRODUCT_STATUS_OPTIONS = [
   { value: 'active' },
   { value: 'inactive' },
   { value: 'discontinued' },
+  { value: 'draft' },
 ];
 
 export const ASN_STATUS_OPTIONS = [
@@ -311,10 +321,11 @@ export const NOTIFICATION_TYPE_OPTIONS = [
 ];
 
 export const MATCH_STATUS_OPTIONS = [
-  { value: 'matched' },
-  { value: 'partial_match' },
-  { value: 'mismatched' },
   { value: 'pending' },
+  { value: 'matched' },
+  { value: 'partial' },
+  { value: 'mismatch' },
+  { value: 'disputed' },
 ];
 
 export const ORGANIZATION_STATUS_OPTIONS = [

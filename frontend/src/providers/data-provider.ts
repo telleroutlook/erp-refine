@@ -4,6 +4,16 @@
 import { type DataProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
 
+class HttpError extends Error {
+  status: number;
+  statusCode: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+    this.statusCode = status;
+  }
+}
+
 const ADMIN_RESOURCES = new Set([
   'roles', 'user-roles', 'role-permissions', 'approval-rules', 'approval-rule-steps',
   'approval-records',
@@ -84,7 +94,7 @@ export const dataProvider: DataProvider = {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ detail: 'Request failed' }));
-      throw new Error(err.detail ?? err.error ?? 'Request failed');
+      throw new HttpError(err.detail ?? err.error ?? 'Request failed', response.status);
     }
 
     const json = await response.json();
@@ -98,7 +108,7 @@ export const dataProvider: DataProvider = {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new Error(err.detail ?? err.error ?? `HTTP ${response.status}`);
+      throw new HttpError(err.detail ?? err.error ?? `HTTP ${response.status}`, response.status);
     }
     const json = await response.json();
     return { data: json.data };
@@ -113,7 +123,7 @@ export const dataProvider: DataProvider = {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ detail: 'Create failed' }));
-      throw new Error(err.detail ?? err.error ?? 'Create failed');
+      throw new HttpError(err.detail ?? err.error ?? 'Create failed', response.status);
     }
 
     const json = await response.json();
@@ -129,7 +139,7 @@ export const dataProvider: DataProvider = {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ detail: 'Update failed' }));
-      throw new Error(err.detail ?? err.error ?? 'Update failed');
+      throw new HttpError(err.detail ?? err.error ?? 'Update failed', response.status);
     }
 
     const json = await response.json();
@@ -144,7 +154,7 @@ export const dataProvider: DataProvider = {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ detail: 'Delete failed' }));
-      throw new Error(err.detail ?? err.error ?? 'Delete failed');
+      throw new HttpError(err.detail ?? err.error ?? 'Delete failed', response.status);
     }
     const json = response.status !== 204
       ? await response.json().catch(() => ({}))

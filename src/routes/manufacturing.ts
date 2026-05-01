@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard } from '../middleware/auth';
-import { buildCrudRoutes, performHardDelete } from '../utils/crud-factory';
+import { buildCrudRoutes, performHardDelete, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters, parseItemFilters } from '../utils/query-helpers';
 import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyItemFilters } from '../utils/database';
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
@@ -128,7 +128,7 @@ manufacturing.put('/bom-headers/:id', async (c) => {
 
 manufacturing.delete('/bom-headers/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  await performHardDelete(db, 'bom_headers', c.req.param('id'), user.organizationId, 'BomHeader', requestId);
+  await performSoftDelete(db, 'bom_headers', c.req.param('id'), user.organizationId, 'BomHeader', requestId);
   return c.json({ data: { success: true } });
 });
 
@@ -301,7 +301,23 @@ manufacturing.put('/work-orders/:id', async (c) => {
 
 manufacturing.delete('/work-orders/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
-  await performHardDelete(db, 'work_orders', c.req.param('id'), user.organizationId, 'WorkOrder', requestId);
+  const id = c.req.param('id');
+
+  const { data: wo, error: woErr } = await db
+    .from('work_orders')
+    .select('id, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (woErr || !wo) throw ApiError.notFound('Work Order', id, requestId);
+  if (!['draft', 'released'].includes(wo.status)) {
+    throw ApiError.invalidState('Work Order', wo.status, 'delete', requestId,
+      'Only draft or released work orders can be deleted');
+  }
+
+  await performSoftDelete(db, 'work_orders', id, user.organizationId, 'WorkOrder', requestId);
   return c.json({ data: { success: true } });
 });
 
