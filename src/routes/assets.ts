@@ -8,6 +8,7 @@ import { buildCrudRoutes, performSoftDelete } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
 import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
+import { asset_maintenance_records } from '../schema/columns';
 
 const assets = new Hono<{ Bindings: Env }>();
 assets.use('*', authMiddleware());
@@ -182,7 +183,7 @@ assets.route('', buildCrudRoutes({
   path: '/asset-maintenance',
   resourceName: 'Asset Maintenance Record',
   listSelect: 'id, maintenance_type, description, cost, performed_by, performed_at, next_due_at',
-  detailSelect: '*',
+  detailSelect: asset_maintenance_records.join(', '),
   createReturnSelect: 'id, maintenance_type, performed_at',
   defaultSort: 'performed_at',
   softDelete: true,

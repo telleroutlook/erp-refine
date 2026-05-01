@@ -10,6 +10,7 @@ import { applyFilters, atomicStatusTransition, resolveEmployeeId } from '../util
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 import { createStockTransaction } from '../utils/stock-helpers';
+import { defect_codes, quality_standard_items, quality_inspection_items } from '../schema/columns';
 
 const quality = new Hono<{ Bindings: Env }>();
 quality.use('*', authMiddleware());
@@ -22,7 +23,7 @@ quality.route('', buildCrudRoutes({
   path: '/defect-codes',
   resourceName: 'Defect Code',
   listSelect: 'id, code, name, category, severity, is_active',
-  detailSelect: '*',
+  detailSelect: defect_codes.join(', '),
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
   softDelete: true,
@@ -342,7 +343,7 @@ quality.route('', buildCrudRoutes({
   path: '/quality-standard-items',
   resourceName: 'QualityStandardItem',
   listSelect: 'id, sequence_order, item_name, check_method, acceptance_criteria, is_mandatory',
-  detailSelect: '*',
+  detailSelect: quality_standard_items.join(', '),
   createReturnSelect: 'id, sequence_order, item_name',
   defaultSort: 'sequence_order',
   softDelete: true,
@@ -357,7 +358,7 @@ quality.route('', buildCrudRoutes({
   path: '/quality-inspection-items',
   resourceName: 'QualityInspectionItem',
   listSelect: 'id, check_item, check_standard, measured_value, check_result, notes',
-  detailSelect: '*',
+  detailSelect: quality_inspection_items.join(', '),
   createReturnSelect: 'id, check_item, check_result',
   defaultSort: 'id',
   softDelete: false,

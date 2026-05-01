@@ -9,6 +9,9 @@ import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
+import {
+  approval_rules, approval_records, approval_rule_steps, role_permissions,
+} from '../schema/columns';
 
 const admin = new Hono<{ Bindings: Env }>();
 admin.use('*', authMiddleware());
@@ -38,7 +41,7 @@ const approvalRulesConfig: CrudConfig = {
   resourceName: 'ApprovalRule',
   listSelect:
     'id, rule_name, document_type, min_amount, max_amount, required_roles, sequence_order, is_active',
-  detailSelect: '*',
+  detailSelect: approval_rules.join(', '),
   createReturnSelect: 'id, rule_name, document_type, sequence_order',
   defaultSort: 'document_type',
   softDelete: true,
@@ -57,7 +60,7 @@ const approvalRecordsConfig: CrudConfig = {
   resourceName: 'ApprovalRecord',
   listSelect:
     'id, document_type, document_id, rule_id, decision_level, decision_by, decision_at, status, created_at',
-  detailSelect: '*',
+  detailSelect: approval_records.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: true,
@@ -78,7 +81,7 @@ const approvalRuleStepsConfig: CrudConfig = {
   path: '/approval-rule-steps',
   resourceName: 'ApprovalRuleStep',
   listSelect: 'id, rule_id, step_order, approval_type, approver_role, min_approvers, timeout_hours, created_at',
-  detailSelect: '*',
+  detailSelect: approval_rule_steps.join(', '),
   createReturnSelect: 'id, rule_id, step_order',
   defaultSort: 'step_order',
   softDelete: false,
@@ -111,7 +114,7 @@ const rolePermissionsConfig: CrudConfig = {
   path: '/role-permissions',
   resourceName: 'RolePermission',
   listSelect: 'id, role_id, resource, action, conditions, created_at',
-  detailSelect: '*',
+  detailSelect: role_permissions.join(', '),
   createReturnSelect: 'id, role_id, resource, action',
   defaultSort: 'resource',
   softDelete: false,

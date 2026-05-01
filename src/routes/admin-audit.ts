@@ -10,6 +10,11 @@ import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/que
 import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
+import {
+  token_usage, tool_call_metrics, agent_sessions, agent_decisions,
+  business_events, auth_events, import_logs, semantic_metadata,
+  component_whitelist, schema_versions, failed_login_attempts,
+} from '../schema/columns';
 
 const adminAudit = new Hono<{ Bindings: Env }>();
 adminAudit.use('*', authMiddleware());
@@ -34,7 +39,7 @@ const tokenUsageConfig: CrudConfig = {
   path: '/token-usage',
   resourceName: 'TokenUsage',
   listSelect: 'id, session_id, model, variant, input_tokens, output_tokens, total_tokens, cost_estimate, created_at',
-  detailSelect: '*',
+  detailSelect: token_usage.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,
@@ -53,7 +58,7 @@ const toolCallMetricsConfig: CrudConfig = {
   path: '/tool-call-metrics',
   resourceName: 'ToolCallMetric',
   listSelect: 'id, session_id, tool_name, success, cache_hit, duration_ms, error_message, created_at',
-  detailSelect: '*',
+  detailSelect: tool_call_metrics.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,
@@ -72,7 +77,7 @@ const agentSessionsConfig: CrudConfig = {
   path: '/agent-sessions',
   resourceName: 'AgentSession',
   listSelect: 'id, agent_id, session_type, user_id, status, message_count, started_at, ended_at, created_at',
-  detailSelect: '*',
+  detailSelect: agent_sessions.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,
@@ -91,7 +96,7 @@ const agentDecisionsConfig: CrudConfig = {
   path: '/agent-decisions',
   resourceName: 'AgentDecision',
   listSelect: 'id, agent_id, session_id, risk_level, approval_status, execution_status, confidence, model_profile, created_at',
-  detailSelect: '*',
+  detailSelect: agent_decisions.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,
@@ -110,7 +115,7 @@ const businessEventsConfig: CrudConfig = {
   path: '/business-events',
   resourceName: 'BusinessEvent',
   listSelect: 'id, event_type, entity_type, entity_id, severity, source_system, processed, occurred_at',
-  detailSelect: '*',
+  detailSelect: business_events.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'occurred_at',
   softDelete: false,
@@ -129,7 +134,7 @@ const authEventsConfig: CrudConfig = {
   path: '/auth-events',
   resourceName: 'AuthEvent',
   listSelect: 'id, event_type, user_id, ip_address, user_agent, created_at',
-  detailSelect: '*',
+  detailSelect: auth_events.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,
@@ -182,7 +187,7 @@ adminAudit.get('/failed-login-attempts/:id', async (c) => {
 
   const { data, error } = await db
     .from('failed_login_attempts')
-    .select('*')
+    .select(failed_login_attempts.join(', '))
     .eq('id', id)
     .in('username', emails)
     .single();
@@ -199,7 +204,7 @@ const importLogsConfig: CrudConfig = {
   path: '/import-logs',
   resourceName: 'ImportLog',
   listSelect: 'id, resource_type, file_name, status, total_rows, success_count, error_count, imported_by, started_at, completed_at',
-  detailSelect: '*',
+  detailSelect: import_logs.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'started_at',
   softDelete: false,
@@ -253,7 +258,7 @@ const semanticMetadataConfig: CrudConfig = {
   path: '/semantic-metadata',
   resourceName: 'SemanticMetadata',
   listSelect: 'id, table_name, column_name, display_name, data_type, description, version, created_at',
-  detailSelect: '*',
+  detailSelect: semantic_metadata.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'table_name',
   softDelete: false,
@@ -272,7 +277,7 @@ const componentWhitelistConfig: CrudConfig = {
   path: '/component-whitelist',
   resourceName: 'ComponentWhitelist',
   listSelect: 'id, component_name, component_type, description, allowed_roles, created_at',
-  detailSelect: '*',
+  detailSelect: component_whitelist.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'component_name',
   softDelete: false,
@@ -291,7 +296,7 @@ const schemaVersionsConfig: CrudConfig = {
   path: '/schema-versions',
   resourceName: 'SchemaVersion',
   listSelect: 'id, schema_id, version, created_by, created_at',
-  detailSelect: '*',
+  detailSelect: schema_versions.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,

@@ -8,6 +8,7 @@ import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { buildCrudRoutes, buildNestedCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
+import { profile_change_requests } from '../schema/columns';
 
 const partners = new Hono<{ Bindings: Env }>();
 partners.use('*', authMiddleware());
@@ -190,7 +191,7 @@ const profileChangeRequestsConfig: CrudConfig = {
   path: '/profile-change-requests',
   resourceName: 'ProfileChangeRequest',
   listSelect: 'id, supplier_id, request_type, change_request_id, status, created_by, created_at, updated_at',
-  detailSelect: '*',
+  detailSelect: profile_change_requests.join(', '),
   createReturnSelect: 'id, request_type, status, change_request_id',
   defaultSort: 'created_at',
   softDelete: false,

@@ -6,6 +6,7 @@ import type { Env } from '../types/env';
 import { authMiddleware, writeMethodGuard, requireRole } from '../middleware/auth';
 import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser } from '../utils/query-helpers';
+import { organizations, exchange_rates, number_sequences } from '../schema/columns';
 
 const infrastructure = new Hono<{ Bindings: Env }>();
 infrastructure.use('*', authMiddleware());
@@ -54,7 +55,7 @@ const organizationsConfig: CrudConfig = {
   path: '/organizations',
   resourceName: 'Organization',
   listSelect: 'id, name, code, email, phone, plan, status, tax_number, created_at',
-  detailSelect: '*',
+  detailSelect: organizations.join(', '),
   createReturnSelect: 'id, name, status',
   defaultSort: 'name',
   softDelete: false,
@@ -114,7 +115,7 @@ const exchangeRatesConfig: CrudConfig = {
   path: '/exchange-rates',
   resourceName: 'ExchangeRate',
   listSelect: 'id, from_currency, to_currency, rate, rate_type, effective_date, expiry_date',
-  detailSelect: '*',
+  detailSelect: exchange_rates.join(', '),
   createReturnSelect: 'id, from_currency, to_currency, rate, effective_date',
   defaultSort: 'effective_date',
   softDelete: false,
@@ -132,7 +133,7 @@ const numberSequencesConfig: CrudConfig = {
   path: '/number-sequences',
   resourceName: 'NumberSequence',
   listSelect: 'id, sequence_name, prefix, current_value, padding, increment_by, created_at',
-  detailSelect: '*',
+  detailSelect: number_sequences.join(', '),
   createReturnSelect: 'id, sequence_name, prefix',
   defaultSort: 'sequence_name',
   softDelete: false,

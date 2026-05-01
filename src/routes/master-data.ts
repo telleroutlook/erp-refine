@@ -10,6 +10,7 @@ import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/que
 import { applyFilters } from '../utils/database';
 import { atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
+import { carriers, organization_currencies, organization_uoms, product_cost_history } from '../schema/columns';
 
 const masterData = new Hono<{ Bindings: Env }>();
 masterData.use('*', authMiddleware());
@@ -298,7 +299,7 @@ const carriersConfig: CrudConfig = {
   path: '/carriers',
   resourceName: 'Carrier',
   listSelect: 'id, code, name, carrier_type, contact, phone, tracking_url_template, is_active',
-  detailSelect: '*',
+  detailSelect: carriers.join(', '),
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
   softDelete: true,
@@ -315,7 +316,7 @@ const orgCurrenciesConfig: CrudConfig = {
   path: '/organization-currencies',
   resourceName: 'OrganizationCurrency',
   listSelect: 'id, currency_code, is_default, organization_id, created_at',
-  detailSelect: '*',
+  detailSelect: organization_currencies.join(', '),
   createReturnSelect: 'id, currency_code, is_default',
   defaultSort: 'currency_code',
   softDelete: false,
@@ -332,7 +333,7 @@ const orgUomsConfig: CrudConfig = {
   path: '/organization-uoms',
   resourceName: 'OrganizationUoM',
   listSelect: 'id, uom_id, is_default, organization_id, created_at',
-  detailSelect: '*',
+  detailSelect: organization_uoms.join(', '),
   createReturnSelect: 'id, uom_id, is_default',
   defaultSort: 'created_at',
   softDelete: false,
@@ -349,7 +350,7 @@ const productCostHistoryConfig: CrudConfig = {
   path: '/product-cost-history',
   resourceName: 'ProductCostHistory',
   listSelect: 'id, product_id, cost_method, unit_cost, total_value, total_quantity, effective_date, reference_type, created_at',
-  detailSelect: '*',
+  detailSelect: product_cost_history.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'effective_date',
   softDelete: false,

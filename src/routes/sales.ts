@@ -12,6 +12,7 @@ import { createStockTransaction, batchCreateStockTransactions } from '../utils/s
 import { ApiError } from '../utils/api-error';
 import { findFlow } from '../utils/document-flow';
 import { fetchSourceWithOpenQuantities, buildPrefilledData, createDocumentRelation, validateItemsAgainstSource } from '../utils/create-from-helpers';
+import { shipment_tracking_events } from '../schema/columns';
 
 const sales = new Hono<{ Bindings: Env }>();
 sales.use('*', authMiddleware());
@@ -521,7 +522,7 @@ const shipmentTrackingEventsConfig: CrudConfig = {
   path: '/shipment-tracking-events',
   resourceName: 'ShipmentTrackingEvent',
   listSelect: 'id, shipment_id, event_type, location, occurred_at, notes, created_at',
-  detailSelect: '*',
+  detailSelect: shipment_tracking_events.join(', '),
   createReturnSelect: 'id, shipment_id, event_type',
   defaultSort: 'occurred_at',
   softDelete: false,

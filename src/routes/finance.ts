@@ -11,6 +11,7 @@ import { applyFilters, atomicStatusTransition, buildSelectWithItemFilter, applyI
 import { atomicCreateWithItems, atomicUpdateWithItems, type AtomicUpdateConfig } from '../utils/atomic-helpers';
 import { ApiError } from '../utils/api-error';
 import { createDocumentRelation } from '../utils/create-from-helpers';
+import { payment_records } from '../schema/columns';
 
 const finance = new Hono<{ Bindings: Env }>();
 finance.use('*', authMiddleware());
@@ -489,7 +490,7 @@ const paymentRecordsConfig: CrudConfig = {
   path: '/payment-records',
   resourceName: 'PaymentRecord',
   listSelect: 'id, payment_number, payment_date, payment_type, partner_type, amount, payment_method, status, created_at',
-  detailSelect: '*',
+  detailSelect: payment_records.join(', '),
   createReturnSelect: 'id, payment_number, payment_type',
   defaultSort: 'created_at',
   softDelete: false,

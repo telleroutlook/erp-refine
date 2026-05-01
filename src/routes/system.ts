@@ -9,6 +9,10 @@ import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
 import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
+import {
+  document_attachments, document_relations, workflows,
+  message_feedback, approval_records, workflow_steps, dynamic_form_data,
+} from '../schema/columns';
 
 const system = new Hono<{ Bindings: Env }>();
 system.use('*', authMiddleware());
@@ -33,7 +37,7 @@ const documentAttachmentsConfig: CrudConfig = {
   path: '/document-attachments',
   resourceName: 'DocumentAttachment',
   listSelect: 'id, entity_type, entity_id, file_name, file_path, file_size, mime_type, uploaded_by, created_at',
-  detailSelect: '*',
+  detailSelect: document_attachments.join(', '),
   createReturnSelect: 'id, file_name, file_path',
   defaultSort: 'created_at',
   softDelete: false,
@@ -358,7 +362,7 @@ const documentRelationsConfig: CrudConfig = {
   path: '/document-relations',
   resourceName: 'DocumentRelation',
   listSelect: 'id, from_object_type, from_object_id, to_object_type, to_object_id, relation_type, label, created_at',
-  detailSelect: '*',
+  detailSelect: document_relations.join(', '),
   createReturnSelect: 'id, relation_type',
   defaultSort: 'created_at',
   softDelete: false,
@@ -375,7 +379,7 @@ const workflowsConfig: CrudConfig = {
   path: '/workflows',
   resourceName: 'Workflow',
   listSelect: 'id, workflow_type, entity_type, entity_id, status, current_step, started_by, started_at, completed_at, created_at',
-  detailSelect: '*',
+  detailSelect: workflows.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: false,
@@ -395,7 +399,7 @@ const messageFeedbackConfig: CrudConfig = {
   path: '/message-feedback',
   resourceName: 'MessageFeedback',
   listSelect: 'id, session_id, message_id, user_id, feedback, comment, created_at',
-  detailSelect: '*',
+  detailSelect: message_feedback.join(', '),
   createReturnSelect: 'id, feedback',
   defaultSort: 'created_at',
   softDelete: false,
@@ -415,7 +419,7 @@ const approvalRecordsConfig: CrudConfig = {
   resourceName: 'ApprovalRecord',
   listSelect:
     'id, document_type, document_id, rule_id, decision_level, decision_by, decision_at, status, comments, created_at',
-  detailSelect: '*',
+  detailSelect: approval_records.join(', '),
   createReturnSelect: 'id',
   defaultSort: 'created_at',
   softDelete: true,
@@ -435,7 +439,7 @@ const workflowStepsConfig: CrudConfig = {
   path: '/workflow-steps',
   resourceName: 'WorkflowStep',
   listSelect: 'id, workflow_id, step_name, step_order, step_type, assignee_role, status, completed_by, completed_at, created_at',
-  detailSelect: '*',
+  detailSelect: workflow_steps.join(', '),
   createReturnSelect: 'id, workflow_id, step_order',
   defaultSort: 'step_order',
   softDelete: false,
@@ -453,7 +457,7 @@ const dynamicFormDataConfig: CrudConfig = {
   path: '/dynamic-form-data',
   resourceName: 'DynamicFormData',
   listSelect: 'id, schema_registry_id, is_sandbox, created_by, created_at',
-  detailSelect: '*',
+  detailSelect: dynamic_form_data.join(', '),
   createReturnSelect: 'id, schema_registry_id, is_sandbox',
   defaultSort: 'created_at',
   softDelete: true,
