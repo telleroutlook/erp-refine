@@ -112,7 +112,9 @@ drafts.post('/:id/commit', async (c) => {
     return c.json({ data: result });
   } catch (err) {
     if (err instanceof ApiError) throw err;
-    const message = err instanceof Error ? err.message : 'Unknown commit error';
+    const message = err instanceof Error ? err.message
+      : (err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message)
+      : JSON.stringify(err);
     throw ApiError.database(`Draft commit failed: ${message}`);
   }
 });
