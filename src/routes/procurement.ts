@@ -86,7 +86,17 @@ procurement.post('/purchase-orders', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate PO number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, _sourceRef, ...headerFields } = body;
+  const { items, _sourceRef, ...rawFields } = body;
+
+  const PERMITTED_PO_CREATE = new Set([
+    'supplier_id', 'order_date', 'expected_date', 'delivery_date',
+    'currency', 'payment_terms', 'notes', 'warehouse_id', 'contact_person',
+  ]);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_PO_CREATE.has(k)) headerFields[k] = v;
+  }
+
   const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
   const result = await atomicCreateWithItems(
     db,

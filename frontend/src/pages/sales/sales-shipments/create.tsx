@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col, Divider } from 'antd';
 import { PageSpinner } from '../../../components/shared/PageSpinner';
-import { FULL_WIDTH } from '../../../constants/styles';
+import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle, useCreateFrom } from '../../../hooks';
 import { CreateFromItemsTable } from '../../../components/shared/CreateFromItemsTable';
@@ -72,7 +72,7 @@ export const SalesShipmentCreate: React.FC = () => {
               label={fl('sales_shipments', 'shipment_date')}
               name="shipment_date"
               rules={[{ required: true, message: t('validation.required_shipment_date') }]}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>

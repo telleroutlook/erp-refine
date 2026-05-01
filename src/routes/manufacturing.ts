@@ -85,7 +85,7 @@ manufacturing.post('/bom-headers', async (c) => {
       created_by: user.userId,
     },
     items: items ?? [],
-  });
+  }, { userId: user.userId, organizationId: user.organizationId, requestId, action: 'create_bom', resource: 'bom_headers' });
 
   return c.json({ data: result.header }, 201);
 });

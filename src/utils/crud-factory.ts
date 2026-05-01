@@ -421,6 +421,7 @@ export function buildNestedCrudRoutes(config: NestedCrudConfig): Hono<{ Bindings
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', id)
         .eq(parentFk, parentId)
+        .is('deleted_at', null)
         .select('id')
         .maybeSingle();
       if (error) throw ApiError.database(error.message, requestId);

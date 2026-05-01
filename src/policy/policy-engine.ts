@@ -46,18 +46,22 @@ export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
   // 1. Find matching rule FIRST — registered rules take priority over keyword heuristics
   const rule = REGISTERED_RULES.find((r) => matchesRule(r, ctx));
 
-  // 2. Check deny keywords — but only for UNREGISTERED actions
-  //    Registered read tools (e.g. list_workflows) must not be blocked by substring matches
+  // 2. For unregistered actions: check deny keywords only on WRITE operations
+  //    Read-only actions (list_workflows, get_batch_status) must not be blocked by substring matches
   if (!rule) {
-    for (const kw of DENY_KEYWORDS) {
-      if (action.includes(kw)) {
-        return {
-          decision: 'deny',
-          level: DecisionLevel.D5,
-          reason: `Action contains denied keyword: ${kw}`,
-          requiresConfirmation: false,
-          requiresApproval: false,
-        };
+    const READ_PREFIXES = ['get', 'list', 'search', 'query', 'check', 'show', 'count', 'fetch', 'find'];
+    const isRead = READ_PREFIXES.some((p) => action.startsWith(p));
+    if (!isRead) {
+      for (const kw of DENY_KEYWORDS) {
+        if (action.includes(kw)) {
+          return {
+            decision: 'deny',
+            level: DecisionLevel.D5,
+            reason: `Unregistered write action contains denied keyword: ${kw}`,
+            requiresConfirmation: false,
+            requiresApproval: false,
+          };
+        }
       }
     }
   }

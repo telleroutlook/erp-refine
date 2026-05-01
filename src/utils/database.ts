@@ -94,7 +94,11 @@ export async function executeWithAudit<T>(
     }).then(({ error: e }) => {
       if (e) logger.warn('Failed to write business_event', e);
     });
-    if (waitUntil) waitUntil(auditPromise);
+    if (waitUntil) {
+      waitUntil(auditPromise);
+    } else {
+      await auditPromise;
+    }
   }
 }
 

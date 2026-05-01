@@ -345,6 +345,7 @@
     "select_customer": "Select customer",
     "select_department": "Select department",
     "select_purchase_order": "Select purchase order",
+    "select_supplier_invoice": "Select supplier invoice",
     "select_severity": "Select severity",
     "select_inspection_result": "Select result",
     "select_payment_method": "Select payment method",

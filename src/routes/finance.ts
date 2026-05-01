@@ -206,6 +206,11 @@ finance.put('/vouchers/:id', async (c) => {
       .eq('voucher_id', id);
     const totalDebit = (entries ?? []).filter((e: any) => e.entry_type === 'debit').reduce((s: number, e: any) => s + Number(e.amount), 0);
     const totalCredit = (entries ?? []).filter((e: any) => e.entry_type === 'credit').reduce((s: number, e: any) => s + Number(e.amount), 0);
+
+    if (Math.abs(totalDebit - totalCredit) > 0.001) {
+      throw ApiError.badRequest(`Voucher entries are unbalanced: debit=${totalDebit}, credit=${totalCredit}`, requestId);
+    }
+
     await db.from('vouchers').update({ total_debit: totalDebit, total_credit: totalCredit })
       .eq('id', id).eq('organization_id', user.organizationId);
 

@@ -79,6 +79,19 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
   const isExpired = draft ? new Date(draft.expires_at) < new Date() : false;
   const isPending = draft?.status === 'pending';
 
+  const translateField = (key: string): string => {
+    const resource = draft?.resource_type;
+    if (resource) {
+      const resourceKey = `fields.${resource}.${key}`;
+      const resourceLabel = t(resourceKey, { defaultValue: '' });
+      if (resourceLabel && resourceLabel !== resourceKey) return resourceLabel;
+    }
+    const commonKey = `fields.common.${key}`;
+    const commonLabel = t(commonKey, { defaultValue: '' });
+    if (commonLabel && commonLabel !== commonKey) return commonLabel;
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
   const renderFormFields = () => {
     if (!draft) return null;
     const data = (draft.content.header ?? draft.content) as Record<string, unknown>;
@@ -87,7 +100,7 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
     );
 
     return fields.map(([key, value]) => {
-      const label = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const label = translateField(key);
 
       if (typeof value === 'number') {
         return (
@@ -126,7 +139,7 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
     const columns = Object.keys(sampleItem)
       .filter((key) => !['id', 'organization_id', 'created_at', 'updated_at', 'deleted_at'].includes(key))
       .map((key) => ({
-        title: key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        title: translateField(key),
         dataIndex: key,
         key,
         ellipsis: true,
@@ -233,7 +246,7 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
 
           {/* Diff view for updates */}
           {draft.action_type === 'update' && draft.original_content && (
-            <DraftDiffView original={draft.original_content} draft={draft.content} />
+            <DraftDiffView original={draft.original_content} draft={draft.content} resourceType={draft.resource_type} />
           )}
 
           {/* Editable form */}

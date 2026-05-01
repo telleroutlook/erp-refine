@@ -97,7 +97,16 @@ salesFinance.post('/sales-invoices', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, _sourceRef, ...headerFields } = body;
+  const { items, _sourceRef, ...rawFields } = body;
+
+  const PERMITTED_INVOICE_CREATE = new Set([
+    'customer_id', 'invoice_date', 'due_date', 'currency', 'payment_terms',
+    'notes', 'sales_order_id', 'shipment_id',
+  ]);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_INVOICE_CREATE.has(k)) headerFields[k] = v;
+  }
 
   // Validate quantities against source open items
   if (_sourceRef?.type && _sourceRef?.id && items?.length) {
@@ -286,7 +295,17 @@ salesFinance.post('/sales-returns', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate return number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, ...headerFields } = body;
+  const { items, ...rawReturnFields } = body;
+
+  const PERMITTED_RETURN_CREATE = new Set([
+    'customer_id', 'return_date', 'reason', 'notes', 'currency',
+    'sales_order_id', 'sales_invoice_id', 'warehouse_id',
+  ]);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawReturnFields)) {
+    if (PERMITTED_RETURN_CREATE.has(k)) headerFields[k] = v;
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {

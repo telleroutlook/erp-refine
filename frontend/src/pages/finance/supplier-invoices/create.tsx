@@ -3,7 +3,7 @@ import { useForm, useSelect, Create } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, Row, Col, Divider } from 'antd';
 import { PageSpinner } from '../../../components/shared/PageSpinner';
 import { CURRENCY_OPTIONS } from '../../../constants/options';
-import { FULL_WIDTH } from '../../../constants/styles';
+import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
 import { useFieldLabel, usePageTitle, useCreateFrom } from '../../../hooks';
 import { CreateFromItemsTable } from '../../../components/shared/CreateFromItemsTable';
@@ -68,7 +68,7 @@ export const SupplierInvoiceCreate: React.FC = () => {
               label={fl('supplier_invoices', 'invoice_date')}
               name="invoice_date"
               rules={[{ required: true, message: t('validation.required_invoice_date') }]}
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>
@@ -77,7 +77,7 @@ export const SupplierInvoiceCreate: React.FC = () => {
             <Form.Item
               label={fl('supplier_invoices', 'due_date')}
               name="due_date"
-              getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
+              {...dateFormItemProps}
             >
               <DatePicker style={FULL_WIDTH} />
             </Form.Item>

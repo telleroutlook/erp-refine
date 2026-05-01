@@ -18,6 +18,7 @@ export interface FieldDiff {
 interface DraftDiffViewProps {
   original: Record<string, unknown>;
   draft: Record<string, unknown>;
+  resourceType?: string;
 }
 
 const SKIP_KEYS = new Set([
@@ -57,12 +58,26 @@ export function computeDiff(original: Record<string, unknown>, draft: Record<str
   return diffs;
 }
 
-export const DraftDiffView: React.FC<DraftDiffViewProps> = ({ original, draft }) => {
+export const DraftDiffView: React.FC<DraftDiffViewProps> = ({ original, draft, resourceType }) => {
   const { token } = theme.useToken();
   const { t } = useTranslation();
   const diffs = computeDiff(original, draft);
 
-  if (diffs.length === 0) {
+  const translateField = (key: string): string => {
+    if (resourceType) {
+      const resourceKey = `fields.${resourceType}.${key}`;
+      const resourceLabel = t(resourceKey, { defaultValue: '' });
+      if (resourceLabel && resourceLabel !== resourceKey) return resourceLabel;
+    }
+    const commonKey = `fields.common.${key}`;
+    const commonLabel = t(commonKey, { defaultValue: '' });
+    if (commonLabel && commonLabel !== commonKey) return commonLabel;
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const translatedDiffs = diffs.map((d) => ({ ...d, label: translateField(d.path) }));
+
+  if (translatedDiffs.length === 0) {
     return <Text type="secondary">{t('ai.draft.noChanges')}</Text>;
   }
 
@@ -120,13 +135,13 @@ export const DraftDiffView: React.FC<DraftDiffViewProps> = ({ original, draft })
         column={1}
         style={{ marginBottom: 8 }}
       >
-        <Descriptions.Item label={t('ai.draft.itemsChanged', { count: diffs.length })}>
-          {diffs.filter((d) => d.type === 'changed').length} {t('ai.draft.update')}
-          {diffs.filter((d) => d.type === 'added').length > 0 && `, ${diffs.filter((d) => d.type === 'added').length} ${t('ai.draft.create')}`}
+        <Descriptions.Item label={t('ai.draft.itemsChanged', { count: translatedDiffs.length })}>
+          {translatedDiffs.filter((d) => d.type === 'changed').length} {t('ai.draft.update')}
+          {translatedDiffs.filter((d) => d.type === 'added').length > 0 && `, ${translatedDiffs.filter((d) => d.type === 'added').length} ${t('ai.draft.create')}`}
         </Descriptions.Item>
       </Descriptions>
       <Table
-        dataSource={diffs}
+        dataSource={translatedDiffs}
         columns={columns}
         rowKey="path"
         size="small"

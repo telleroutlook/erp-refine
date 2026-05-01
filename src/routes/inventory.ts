@@ -312,9 +312,9 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
     throw ApiError.badRequest(`${unfilledLines.length} count line(s) have no counted_quantity. Complete all lines before finalizing.`, requestId);
   }
 
-  // 3. Atomic status transition FIRST: in_progress → completed
+  // 3. Atomic status transition FIRST: in_progress|counted → completed
   const { data, error } = await atomicStatusTransition(db, 'inventory_counts', id, user.organizationId,
-    ['in_progress'], { status: 'completed' }, 'id, count_number, status');
+    ['in_progress', 'counted'], { status: 'completed' }, 'id, count_number, status');
   if (error) throw ApiError.database((error as any).message, requestId);
   if (!data) throw ApiError.invalidState('InventoryCount', 'unknown', 'complete', requestId);
 

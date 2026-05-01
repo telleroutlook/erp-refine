@@ -345,6 +345,7 @@
     "select_customer": "选择客户",
     "select_department": "选择部门",
     "select_purchase_order": "选择采购订单",
+    "select_supplier_invoice": "选择供应商发票",
     "select_severity": "选择严重程度",
     "select_inspection_result": "选择检验结果",
     "select_payment_method": "选择收款方式",

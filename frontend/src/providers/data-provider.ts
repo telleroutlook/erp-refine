@@ -3,7 +3,7 @@
 
 import { type DataProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
-import { getAuthHeaders } from './token';
+import { getAuthHeaders, getAccessToken } from './token';
 
 class HttpError extends Error {
   status: number;
@@ -151,9 +151,14 @@ export const dataProvider: DataProvider = {
   },
 
   deleteOne: async ({ resource, id }) => {
+    const token = getAccessToken();
+    const headers: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
+
     const response = await fetch(`${resolveUrl(resource)}/${id}`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers,
     });
 
     if (!response.ok) {

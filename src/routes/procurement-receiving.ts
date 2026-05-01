@@ -86,7 +86,16 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate receipt number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, _sourceRef, ...headerFields } = body;
+  const { items, _sourceRef, ...rawFields } = body;
+
+  const PERMITTED_RECEIPT_CREATE = new Set([
+    'supplier_id', 'receipt_date', 'warehouse_id', 'notes', 'currency',
+    'purchase_order_id', 'contact_person',
+  ]);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawFields)) {
+    if (PERMITTED_RECEIPT_CREATE.has(k)) headerFields[k] = v;
+  }
 
   // Validate quantities against source open items
   if (_sourceRef?.type === 'purchase_order' && _sourceRef?.id && items?.length) {
