@@ -79,12 +79,11 @@ export abstract class BaseAgent {
       const { data } = await db.from('agent_decisions').insert({
         organization_id: ctx.organizationId,
         session_id: ctx.sessionId,
-        agent_type: this.name,
-        trace_id: traceId,
-        user_id: ctx.userId,
-        status,
+        agent_id: this.name,
+        risk_level: 'low',
+        execution_status: status === 'success' ? 'completed' : 'failed',
         error_message: error ?? null,
-        duration_ms: durationMs,
+        reasoning_summary: { traceId, userId: ctx.userId, durationMs },
       }).select('id').single();
       return data?.id;
     } catch (e) {

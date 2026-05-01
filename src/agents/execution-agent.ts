@@ -10,6 +10,7 @@ import type { ToolSet } from 'ai';
 import { evaluatePolicy } from '../policy/policy-engine';
 import type { AgentStrategy } from '../orchestrator/intent-router';
 import { executeWithRecovery } from '../lib/recovery';
+import { withKeyRotation, getApiKeys } from '../runtime/key-rotator';
 
 export interface ExecutionRequest {
   action: string;
@@ -88,10 +89,7 @@ export class ExecutionAgent extends BaseAgent {
     }
 
     // Policy allows — execute
-    const glm = createOpenAI({
-      apiKey: env.AI_API_KEY,
-      baseURL: env.AI_BASE_URL,
-    });
+    const apiKeys = getApiKeys(env);
 
     const strategy = request.strategy;
     const systemPrompt = strategy?.promptSuffix
@@ -119,14 +117,17 @@ export class ExecutionAgent extends BaseAgent {
 
       const recoveryResult = await executeWithRecovery(
         async (params) => {
-          const { text } = await generateText({
-            model: glm.chat(params.primaryModel),
-            system: params.systemPrompt,
-            prompt: params.prompt,
-            tools,
-            stopWhen: stepCountIs(strategy?.stepLimit ?? 5),
-            temperature: params.temperature,
-            maxOutputTokens: params.maxTokens,
+          const { text } = await withKeyRotation(apiKeys, async (apiKey) => {
+            const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
+            return generateText({
+              model: glm.chat(params.primaryModel),
+              system: params.systemPrompt,
+              prompt: params.prompt,
+              tools,
+              stopWhen: stepCountIs(strategy?.stepLimit ?? 5),
+              temperature: params.temperature,
+              maxOutputTokens: params.maxTokens,
+            });
           });
           return text;
         },

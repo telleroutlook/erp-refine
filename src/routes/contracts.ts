@@ -94,7 +94,7 @@ contracts.put('/contracts/:id', async (c) => {
   const body = await c.req.json();
 
   const permitted = ['start_date', 'end_date', 'total_amount', 'currency',
-    'payment_terms', 'status', 'notes', 'contract_type'];
+    'payment_terms', 'notes', 'contract_type'];
 
   if (body.items) {
     const updateConfig: AtomicUpdateConfig = {

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useGetIdentity, useMenu, useLink } from '@refinedev/core';
 import { GlobalOutlined, BarsOutlined } from '@ant-design/icons';
 import { useThemedLayoutContext } from '@refinedev/antd';
-import { useLocation } from 'react-router-dom';
 
 const { Header: AntHeader } = Layout;
 
@@ -17,7 +16,6 @@ export const Header: React.FC = () => {
   const { setMobileSiderOpen } = useThemedLayoutContext();
   const { menuItems, selectedKey } = useMenu();
   const Link = useLink();
-  const location = useLocation();
 
   const toggleLang = () => {
     i18n.changeLanguage(i18n.language === 'zh-CN' ? 'en' : 'zh-CN');

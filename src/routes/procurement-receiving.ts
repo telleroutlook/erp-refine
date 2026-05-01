@@ -134,7 +134,7 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
       headerTable: 'purchase_receipts',
       itemsTable: 'purchase_receipt_items',
       headerFk: 'purchase_receipt_id',
-      headerPermittedFields: ['status', 'notes', 'receipt_date', 'warehouse_id'],
+      headerPermittedFields: ['notes', 'receipt_date', 'warehouse_id'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
@@ -143,7 +143,7 @@ procurementReceiving.put('/purchase-receipts/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes', 'receipt_date', 'warehouse_id']);
+  const PERMITTED = new Set(['notes', 'receipt_date', 'warehouse_id']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -433,7 +433,7 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
       headerTable: 'supplier_invoices',
       itemsTable: 'supplier_invoice_items',
       headerFk: 'supplier_invoice_id',
-      headerPermittedFields: ['status', 'notes', 'due_date', 'tax_amount', 'currency'],
+      headerPermittedFields: ['notes', 'due_date', 'tax_amount', 'currency'],
       itemsReturnSelect: '*, product:products(id,name,code)',
       headerReturnSelect: 'id',
       autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
@@ -442,7 +442,7 @@ procurementReceiving.put('/supplier-invoices/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes', 'due_date', 'tax_amount', 'currency']);
+  const PERMITTED = new Set(['notes', 'due_date', 'tax_amount', 'currency']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -775,7 +775,7 @@ procurementReceiving.put('/advance-shipment-notices/:id', async (c) => {
       headerTable: 'advance_shipment_notices',
       itemsTable: 'asn_lines',
       headerFk: 'asn_id',
-      headerPermittedFields: ['status', 'expected_date', 'remark'],
+      headerPermittedFields: ['expected_date', 'remark'],
       itemsReturnSelect: '*, item:products!item_id(id,name,code)',
       headerReturnSelect: 'id',
       softDeleteItems: true,
@@ -784,7 +784,7 @@ procurementReceiving.put('/advance-shipment-notices/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'expected_date', 'remark']);
+  const PERMITTED = new Set(['expected_date', 'remark']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;
@@ -929,7 +929,7 @@ procurementReceiving.put('/reconciliation-statements/:id', async (c) => {
       headerTable: 'reconciliation_statements',
       itemsTable: 'reconciliation_lines',
       headerFk: 'statement_id',
-      headerPermittedFields: ['status', 'notes', 'paid_amount'],
+      headerPermittedFields: ['notes', 'paid_amount'],
       itemsReturnSelect: '*, item:products!item_id(id,name,code)',
       headerReturnSelect: 'id',
       autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.line_amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
@@ -938,7 +938,7 @@ procurementReceiving.put('/reconciliation-statements/:id', async (c) => {
     return c.json({ data: result.header });
   }
 
-  const PERMITTED = new Set(['status', 'notes', 'paid_amount']);
+  const PERMITTED = new Set(['notes', 'paid_amount']);
   const updateData: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (PERMITTED.has(k)) updateData[k] = v;

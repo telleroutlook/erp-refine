@@ -4,6 +4,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createLogger } from './logger';
 import { ApiError } from './api-error';
+import { ErrorCode } from '../types/errors';
 
 import type { ItemFilter } from './query-helpers';
 
@@ -217,6 +218,6 @@ export async function assertOwnership(
   let q = db.from(table).select('id').eq('id', id).eq('organization_id', organizationId);
   if (opts?.checkDeleted) q = q.is('deleted_at', null);
   const { data, error } = await q.maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error(`${label} not found or access denied`);
+  if (error) throw new ApiError({ code: ErrorCode.NOT_FOUND, detail: error.message });
+  if (!data) throw ApiError.notFound(label, id);
 }

@@ -99,6 +99,14 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List material requirements for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
+        const { count } = await db
+          .from('work_orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('id', workOrderId)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+        if (!count) throw new Error('Work order not found');
+
         const { data, error } = await db
           .from('work_order_materials')
           .select('id, required_quantity, issued_quantity, status, notes, product:products(id,name,code)')
@@ -112,6 +120,14 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
       description: 'List production records (output entries) for a work order',
       inputSchema: z.object({ workOrderId: z.string().uuid() }),
       execute: async ({ workOrderId }) => {
+        const { count } = await db
+          .from('work_orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('id', workOrderId)
+          .eq('organization_id', organizationId)
+          .is('deleted_at', null);
+        if (!count) throw new Error('Work order not found');
+
         const { data, error } = await db
           .from('work_order_productions')
           .select('id, production_date, quantity, qualified_quantity, defective_quantity, notes, created_by')

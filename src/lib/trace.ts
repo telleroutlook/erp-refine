@@ -71,12 +71,13 @@ export class TraceContext {
       await db.from('agent_decisions').insert({
         organization_id: this.organizationId,
         session_id: this.sessionId,
-        agent_type: 'orchestrator',
-        trace_id: this.traceId,
-        user_id: this.userId,
-        status: success ? 'success' : 'error',
-        duration_ms: this.totalDurationMs,
-        metadata: {
+        agent_id: 'orchestrator',
+        risk_level: 'low',
+        execution_status: success ? 'completed' : 'failed',
+        reasoning_summary: {
+          traceId: this.traceId,
+          userId: this.userId,
+          durationMs: this.totalDurationMs,
           phases,
           inputTokens: this.inputTokens,
           outputTokens: this.outputTokens,

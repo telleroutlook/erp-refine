@@ -74,13 +74,12 @@ export class SchemaRegistry {
   }
 
   /** Activate a draft schema */
-  async activate(schemaId: string, userId: string): Promise<SchemaRecord> {
+  async activate(schemaId: string, _userId: string): Promise<SchemaRecord> {
     const { data, error } = await this.db
       .from('schema_registry')
       .update({
         status: 'active',
         activated_at: new Date().toISOString(),
-        activated_by: userId,
         expires_at: null,
       })
       .eq('id', schemaId)

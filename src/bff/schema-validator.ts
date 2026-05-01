@@ -55,14 +55,31 @@ export function validateSchema(jsonSchema: Record<string, unknown>, uiSchema?: R
   }
 
   // Reject system/protected field names that must never appear in AI-generated schemas
-  const systemFields = ['organization_id', 'deleted_at', 'created_by', '__proto__', 'constructor'];
+  const systemFields = ['organization_id', 'deleted_at', 'created_by', '__proto__', 'constructor', 'prototype'];
   if (properties) {
-    for (const field of systemFields) {
-      if (field in properties) {
-        errors.push(`Field '${field}' is a protected system field and must not appear in generated schemas`);
-      }
-    }
+    validatePropertiesRecursive(properties, systemFields, errors, '');
   }
 
   return { valid: errors.length === 0, errors, warnings };
+}
+
+function validatePropertiesRecursive(
+  properties: Record<string, unknown>,
+  systemFields: string[],
+  errors: string[],
+  path: string
+): void {
+  for (const field of systemFields) {
+    if (field in properties) {
+      const fullPath = path ? `${path}.${field}` : field;
+      errors.push(`Field '${fullPath}' is a protected system field and must not appear in generated schemas`);
+    }
+  }
+  for (const [fieldName, fieldDef] of Object.entries(properties)) {
+    const def = fieldDef as Record<string, unknown> | undefined;
+    if (def && typeof def === 'object' && def['properties']) {
+      const nested = def['properties'] as Record<string, unknown>;
+      validatePropertiesRecursive(nested, systemFields, errors, path ? `${path}.${fieldName}` : fieldName);
+    }
+  }
 }
