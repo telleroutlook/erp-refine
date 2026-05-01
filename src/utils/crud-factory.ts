@@ -177,6 +177,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
           .from(table)
           .select(`id, ${parentAlias}`)
           .eq('id', id)
+          .is('deleted_at', null)
           .eq(`${parentOwnership.parentTable}.organization_id`, user.organizationId)
           .single();
         if (childErr || !child) throw ApiError.notFound(resourceName, id, requestId);
@@ -223,6 +224,7 @@ export function buildCrudRoutes(config: CrudConfig): Hono<{ Bindings: Env }> {
           .from(table)
           .select(`id, ${parentAlias}`)
           .eq('id', id)
+          .is('deleted_at', null)
           .eq(`${parentOwnership.parentTable}.organization_id`, user.organizationId)
           .single();
         if (childErr || !child) throw ApiError.notFound(resourceName, id, requestId);

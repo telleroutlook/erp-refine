@@ -32,10 +32,10 @@ export const UserRoleList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="user_id" title={t('menu.userRoles')} width={280} />
-        <Table.Column dataIndex={['role', 'name']} title={t('menu.userRoles')} />
-        <Table.Column dataIndex="assigned_by" title={t('menu.userRoles')} width={280} />
-        <Table.Column dataIndex="assigned_at" title={t('menu.userRoles')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="user_id" title={fl('user_roles', 'user_id')} width={280} />
+        <Table.Column dataIndex={['role', 'name']} title={fl('user_roles', 'role_id')} />
+        <Table.Column dataIndex="assigned_by" title={fl('user_roles', 'assigned_by')} width={280} />
+        <Table.Column dataIndex="assigned_at" title={fl('user_roles', 'assigned_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

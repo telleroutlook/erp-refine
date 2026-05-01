@@ -32,10 +32,10 @@ export const RoleList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="name" title={t('menu.roles')} width={160} />
-        <Table.Column dataIndex="description" title={t('menu.roles')} />
-        <Table.Column dataIndex="is_system" title={t('menu.roles')} width={100} render={(v) => v ? <Tag color="blue">{t('enums.yesNo.yes')}</Tag> : <Tag>{t('enums.yesNo.no')}</Tag>} />
-        <Table.Column dataIndex="created_at" title={t('menu.roles')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
+        <Table.Column dataIndex="name" title={fl('roles', 'name')} width={160} />
+        <Table.Column dataIndex="description" title={fl('roles', 'description')} />
+        <Table.Column dataIndex="is_system" title={fl('roles', 'is_system')} width={100} render={(v) => v ? <Tag color="blue">{t('enums.yesNo.yes')}</Tag> : <Tag>{t('enums.yesNo.no')}</Tag>} />
+        <Table.Column dataIndex="created_at" title={fl('roles', 'created_at')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column
           title={t('common.actions')}
           width={100}

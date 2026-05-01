@@ -119,7 +119,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const { error: lineErr } = await db.from('purchase_order_items').insert(lineItems);
         if (lineErr) {
-          await db.from('purchase_orders').delete().eq('id', po.id).eq('organization_id', organizationId);
+          await db.from('purchase_orders').update({ deleted_at: new Date().toISOString() }).eq('id', po.id).eq('organization_id', organizationId);
           throw new Error(lineErr.message);
         }
 
@@ -397,7 +397,7 @@ export function createProcurementTools(db: SupabaseClient, organizationId: strin
 
         const { error: lineErr } = await db.from('purchase_requisition_lines').insert(lineItems);
         if (lineErr) {
-          await db.from('purchase_requisitions').delete().eq('id', pr.id).eq('organization_id', organizationId);
+          await db.from('purchase_requisitions').update({ deleted_at: new Date().toISOString() }).eq('id', pr.id).eq('organization_id', organizationId);
           throw new Error(lineErr.message);
         }
 

@@ -37,8 +37,8 @@ export const DepartmentList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title={t('menu.departments')} width={120} />
-        <Table.Column dataIndex="name" title={t('menu.departments')} />
+        <Table.Column dataIndex="code" title={fl('departments', 'code')} width={120} />
+        <Table.Column dataIndex="name" title={fl('departments', 'name')} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

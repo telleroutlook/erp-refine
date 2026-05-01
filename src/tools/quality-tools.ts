@@ -159,7 +159,7 @@ export function createQualityTools(db: SupabaseClient, organizationId: string, u
           }));
           const { error: itemErr } = await db.from('quality_inspection_items').insert(checkItems);
           if (itemErr) {
-            await db.from('quality_inspections').delete().eq('id', qi.id).eq('organization_id', organizationId);
+            await db.from('quality_inspections').update({ deleted_at: new Date().toISOString() }).eq('id', qi.id).eq('organization_id', organizationId);
             throw new Error(itemErr.message);
           }
         }

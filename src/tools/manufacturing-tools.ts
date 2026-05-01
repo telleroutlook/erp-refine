@@ -202,7 +202,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
           }));
           const { error: matErr } = await db.from('work_order_materials').insert(matRows);
           if (matErr) {
-            await db.from('work_orders').delete().eq('id', wo.id).eq('organization_id', organizationId);
+            await db.from('work_orders').update({ deleted_at: new Date().toISOString() }).eq('id', wo.id).eq('organization_id', organizationId);
             throw new Error(matErr.message);
           }
         }

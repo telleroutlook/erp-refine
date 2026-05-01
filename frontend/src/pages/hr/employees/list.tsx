@@ -38,12 +38,12 @@ export const EmployeeList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="employee_number" title={t('menu.employees')} width={120} />
-        <Table.Column dataIndex="name" title={t('menu.employees')} />
-        <Table.Column dataIndex={['department', 'name']} title={t('menu.employees')} />
-        <Table.Column dataIndex="position" title={t('menu.employees')} />
-        <Table.Column dataIndex="email" title={t('menu.employees')} />
-        <Table.Column dataIndex="phone" title={t('menu.employees')} />
+        <Table.Column dataIndex="employee_number" title={fl('employees', 'employee_number')} width={120} />
+        <Table.Column dataIndex="name" title={fl('employees', 'name')} />
+        <Table.Column dataIndex={['department', 'name']} title={fl('employees', 'department_id')} />
+        <Table.Column dataIndex="position" title={fl('employees', 'position')} />
+        <Table.Column dataIndex="email" title={fl('employees', 'email')} />
+        <Table.Column dataIndex="phone" title={fl('employees', 'phone')} />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}

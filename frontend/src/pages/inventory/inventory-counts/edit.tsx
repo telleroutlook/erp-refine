@@ -20,7 +20,7 @@ export const InventoryCountEdit: React.FC = () => {
     { dataIndex: 'system_quantity', title: fl('inventory_count_lines', 'system_quantity'), width: 100, align: 'right' },
     { dataIndex: 'counted_quantity', title: fl('inventory_count_lines', 'counted_quantity'), width: 100, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'variance_quantity', title: fl('inventory_count_lines', 'variance_quantity'), width: 100, align: 'right',
-      computed: (row) => { const s = Number(row['system_quantity']) || 0; const c = Number(row['counted_quantity']) || 0; return c ? (c - s).toFixed(2) : null; } },
+      computed: (row) => { const s = Number(row['system_quantity']) || 0; const counted = row['counted_quantity']; if (counted === null || counted === undefined || counted === '') return null; return (Number(counted) - s).toFixed(2); } },
     { dataIndex: 'notes', title: t('common.notes'), editable: true },
   ];
 

@@ -257,20 +257,23 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
   let depth = 0;
 
   while (frontier.length > 0 && depth < MAX_DEPTH && visitedNodes.size < MAX_NODES) {
-    const frontierIds = frontier.map(f => f.id);
-    const frontierTypes = [...new Set(frontier.map(f => f.type))];
+    // Build composite OR filter to avoid cross-join false positives
+    const outFilter = frontier
+      .map(f => `and(from_object_type.eq.${f.type},from_object_id.eq.${f.id})`)
+      .join(',');
+    const inFilter = frontier
+      .map(f => `and(to_object_type.eq.${f.type},to_object_id.eq.${f.id})`)
+      .join(',');
 
     const [outRes, inRes] = await Promise.all([
       db.from('document_relations')
         .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
         .eq('organization_id', orgId)
-        .in('from_object_type', frontierTypes)
-        .in('from_object_id', frontierIds),
+        .or(outFilter),
       db.from('document_relations')
         .select('id, from_object_type, from_object_id, to_object_type, to_object_id, label')
         .eq('organization_id', orgId)
-        .in('to_object_type', frontierTypes)
-        .in('to_object_id', frontierIds),
+        .or(inFilter),
     ]);
 
     const nextFrontier: Array<{ type: string; id: string }> = [];

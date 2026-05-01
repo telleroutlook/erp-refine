@@ -25,13 +25,13 @@ export const TokenUsageList: React.FC = () => {
     <List title={t('menu.tokenUsage')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="session_id" title={t('menu.tokenUsage')} width={280} ellipsis />
-        <Table.Column dataIndex="model" title={t('menu.tokenUsage')} width={140} />
-        <Table.Column dataIndex="input_tokens" title={t('menu.tokenUsage')} width={100} align="right" />
-        <Table.Column dataIndex="output_tokens" title={t('menu.tokenUsage')} width={100} align="right" />
-        <Table.Column dataIndex="total_tokens" title={t('menu.tokenUsage')} width={100} align="right" />
-        <Table.Column dataIndex="cost_estimate" title={t('menu.tokenUsage')} width={100} align="right" render={(v) => v != null ? `$${Number(v).toFixed(4)}` : '—'} />
-        <Table.Column dataIndex="created_at" title={t('menu.tokenUsage')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="session_id" title={fl('token_usage', 'session_id')} width={280} ellipsis />
+        <Table.Column dataIndex="model" title={fl('token_usage', 'model')} width={140} />
+        <Table.Column dataIndex="input_tokens" title={fl('token_usage', 'input_tokens')} width={100} align="right" />
+        <Table.Column dataIndex="output_tokens" title={fl('token_usage', 'output_tokens')} width={100} align="right" />
+        <Table.Column dataIndex="total_tokens" title={fl('token_usage', 'total_tokens')} width={100} align="right" />
+        <Table.Column dataIndex="cost_estimate" title={fl('token_usage', 'cost_estimate')} width={100} align="right" render={(v) => v != null ? `$${Number(v).toFixed(4)}` : '—'} />
+        <Table.Column dataIndex="created_at" title={fl('token_usage', 'created_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('token-usage', r.id)} />} />
       </Table>
     </List>

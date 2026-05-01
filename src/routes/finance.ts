@@ -196,6 +196,17 @@ finance.put('/vouchers/:id', async (c) => {
       softDeleteItems: false,
     };
     const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
+
+    // Recalculate total_debit/total_credit from entries
+    const { data: entries } = await db
+      .from('voucher_entries')
+      .select('entry_type, amount')
+      .eq('voucher_id', id);
+    const totalDebit = (entries ?? []).filter((e: any) => e.entry_type === 'debit').reduce((s: number, e: any) => s + Number(e.amount), 0);
+    const totalCredit = (entries ?? []).filter((e: any) => e.entry_type === 'credit').reduce((s: number, e: any) => s + Number(e.amount), 0);
+    await db.from('vouchers').update({ total_debit: totalDebit, total_credit: totalCredit })
+      .eq('id', id).eq('organization_id', user.organizationId);
+
     return c.json({ data: result.header });
   }
 
@@ -207,6 +218,7 @@ finance.put('/vouchers/:id', async (c) => {
     .update(allowed)
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .neq('status', 'posted')
     .is('deleted_at', null)
     .select('id')
     .single();

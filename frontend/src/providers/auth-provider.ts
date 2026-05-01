@@ -120,6 +120,10 @@ export const authProvider: AuthProvider = {
 
   onError: async (error) => {
     if (error?.status === 401) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        return { error };
+      }
       return { logout: true, redirectTo: '/login', error };
     }
     return { error };

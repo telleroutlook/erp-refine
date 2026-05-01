@@ -40,6 +40,12 @@ export class ERPChatAgent {
 
     if (url.pathname.endsWith('/message') && request.method === 'POST') {
       const { role, content } = await request.json<Message>();
+      if (role !== 'user' && role !== 'assistant') {
+        return new Response('Invalid role', { status: 400 });
+      }
+      if (typeof content !== 'string' || content.length > 50_000) {
+        return new Response('Invalid content', { status: 400 });
+      }
       const messages = await this.state.storage.get<Message[]>('messages') ?? [];
       messages.push({ role, content, timestamp: new Date().toISOString() });
 

@@ -266,7 +266,7 @@ inventory.route('', buildCrudRoutes({
   table: 'inventory_count_lines',
   path: '/inventory-count-lines',
   resourceName: 'InventoryCountLine',
-  listSelect: 'id, inventory_count_id, product_id, system_quantity, counted_quantity, variance_quantity, notes, created_at, product:products(id,name,code)',
+  listSelect: 'id, inventory_count_id, product_id, system_quantity, counted_quantity, variance_quantity, notes, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code)',
   createReturnSelect: 'id, product_id, system_quantity, counted_quantity, variance_quantity, notes',
   orgScoped: false,
@@ -295,6 +295,10 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
   // 2. Validate status before running side effects (must be 'in_progress' or 'counted')
   if (countDoc.status !== 'in_progress') {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
+  }
+
+  if (!countDoc.warehouse_id) {
+    throw ApiError.badRequest('Warehouse is required to complete an inventory count.', requestId);
   }
 
   // 2b. Validate all lines have counted_quantity
