@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
+import { Form, Input, DatePicker, Select, Row, Col, InputNumber } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
 import { SO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../constants/options';
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
@@ -36,7 +36,9 @@ export const SalesOrderEdit: React.FC = () => {
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'order_number')} name="order_number"><Input disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(SO_STATUS_OPTIONS, t)} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'order_date')} name="order_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} disabled /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'delivery_date')} name="delivery_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'currency')} name="currency"><Select options={CURRENCY_OPTIONS} /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'payment_terms')} name="payment_terms"><InputNumber style={FULL_WIDTH} min={0} /></Form.Item></Col>
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>

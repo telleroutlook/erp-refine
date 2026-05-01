@@ -39,7 +39,8 @@ export const SalesShipmentList: React.FC = () => {
             key: 'createInvoice',
             label: t('buttons.createSalesInvoice'),
             icon: <FileTextOutlined />,
-            onClick: () => push(`/finance/sales-invoices/create?createFrom=sales-shipment&sourceId=${selectedRowKeys[0]}`),
+            onClick: () => { if (selectedRowKeys.length === 1) push(`/finance/sales-invoices/create?createFrom=sales-shipment&sourceId=${selectedRowKeys[0]}`); },
+            disabled: selectedRowKeys.length !== 1,
           },
         ]}
       />

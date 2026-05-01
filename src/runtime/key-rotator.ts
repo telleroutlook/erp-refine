@@ -80,20 +80,20 @@ export async function withKeyRotation<T>(
 ): Promise<T> {
   const key = pickAvailableKey(keys);
   try {
-    const result = await fn(key);
-    return result;
+    return await fn(key);
   } catch (err) {
-    if (isRateLimitError(err)) {
-      markKeyExhausted(key);
-      const remaining = keys.filter((k) => k !== key);
-      if (remaining.length > 0) {
-        const nextKey = pickAvailableKey(remaining);
-        try {
-          return await fn(nextKey);
-        } catch (err2) {
-          if (isRateLimitError(err2)) markKeyExhausted(nextKey);
-          throw err2;
+    if (!isRateLimitError(err)) throw err;
+    markKeyExhausted(key);
+    const remaining = keys.filter((k) => k !== key);
+    for (const nextKey of remaining) {
+      try {
+        return await fn(nextKey);
+      } catch (err2) {
+        if (isRateLimitError(err2)) {
+          markKeyExhausted(nextKey);
+          continue;
         }
+        throw err2;
       }
     }
     throw err;

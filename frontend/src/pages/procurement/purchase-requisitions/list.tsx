@@ -48,7 +48,8 @@ export const PurchaseRequisitionList: React.FC = () => {
             key: 'createPO',
             label: t('buttons.createPurchaseOrder'),
             icon: <ShoppingCartOutlined />,
-            onClick: () => push(`/procurement/purchase-orders/create?createFrom=purchase-requisition&sourceId=${selectedRowKeys[0]}`),
+            onClick: () => { if (selectedRowKeys.length === 1) push(`/procurement/purchase-orders/create?createFrom=purchase-requisition&sourceId=${selectedRowKeys[0]}`); },
+            disabled: selectedRowKeys.length !== 1,
           },
         ]}
       />

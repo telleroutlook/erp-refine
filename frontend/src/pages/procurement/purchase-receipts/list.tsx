@@ -40,7 +40,8 @@ export const PurchaseReceiptList: React.FC = () => {
             key: 'createInvoice',
             label: t('buttons.createSupplierInvoice'),
             icon: <FileTextOutlined />,
-            onClick: () => push(`/finance/supplier-invoices/create?createFrom=purchase-receipt&sourceId=${selectedRowKeys[0]}`),
+            onClick: () => { if (selectedRowKeys.length === 1) push(`/finance/supplier-invoices/create?createFrom=purchase-receipt&sourceId=${selectedRowKeys[0]}`); },
+            disabled: selectedRowKeys.length !== 1,
           },
         ]}
       />

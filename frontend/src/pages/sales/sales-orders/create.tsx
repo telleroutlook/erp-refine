@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, useSelect, Create } from '@refinedev/antd';
-import { Form, Input, DatePicker, Select, Row, Col } from 'antd';
+import { Form, Input, DatePicker, Select, Row, Col, InputNumber } from 'antd';
 import { CURRENCY_OPTIONS } from '../../../constants/options';
 import { FULL_WIDTH } from '../../../constants/styles';
 import { useTranslation } from 'react-i18next';
@@ -52,7 +52,7 @@ export const SalesOrderCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('sales_orders', 'payment_terms')} name="payment_terms">
-              <Input />
+              <InputNumber style={FULL_WIDTH} min={0} />
             </Form.Item>
           </Col>
           <Col span={24}>

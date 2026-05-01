@@ -287,13 +287,15 @@ system.get('/document-relations/chain/:objectType/:objectId', async (c) => {
       allRelations.set(rel.id, rel);
 
       const targetKey = `${rel.to_object_type}:${rel.to_object_id}`;
-      if (!visitedNodes.has(targetKey) && visitedNodes.size < MAX_NODES) {
+      if (!visitedNodes.has(targetKey) && visitedNodes.size < MAX_NODES
+          && DOC_TABLE[rel.to_object_type] && UUID_RE.test(rel.to_object_id)) {
         visitedNodes.add(targetKey);
         nextFrontier.push({ type: rel.to_object_type, id: rel.to_object_id });
       }
 
       const sourceKey = `${rel.from_object_type}:${rel.from_object_id}`;
-      if (!visitedNodes.has(sourceKey) && visitedNodes.size < MAX_NODES) {
+      if (!visitedNodes.has(sourceKey) && visitedNodes.size < MAX_NODES
+          && DOC_TABLE[rel.from_object_type] && UUID_RE.test(rel.from_object_id)) {
         visitedNodes.add(sourceKey);
         nextFrontier.push({ type: rel.from_object_type, id: rel.from_object_id });
       }

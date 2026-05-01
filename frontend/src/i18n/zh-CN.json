@@ -308,12 +308,36 @@
     "welcome": "欢迎使用 ERP Refine"
   },
   "validation": {
-    "required": "请输入{{field}}",
+    "required": "{{field}}为必填项",
     "requiredSelect": "请选择{{field}}",
-    "email": "请输入有效邮箱",
-    "min": "{{field}}不能小于{{min}}",
-    "max": "{{field}}不能大于{{max}}",
-    "requiredField": "必填"
+    "email": "请输入有效的电子邮件",
+    "min": "{{field}}最小值为{{min}}",
+    "max": "{{field}}最大值为{{max}}",
+    "requiredField": "必填",
+    "required_supplier": "请选择供应商",
+    "required_supplier_name": "供应商名称为必填项",
+    "required_supplier_code": "供应商编码为必填项",
+    "required_customer": "请选择客户",
+    "required_customer_name": "客户名称为必填项",
+    "required_customer_code": "客户编码为必填项",
+    "required_order_date": "订单日期为必填项",
+    "required_amount": "金额为必填项",
+    "required_name": "名称为必填项",
+    "required_code": "编码为必填项",
+    "required_warehouse": "请选择仓库",
+    "required_due_date": "到期日期为必填项",
+    "required_expected_date": "预计日期为必填项",
+    "required_invoice_date": "发票日期为必填项",
+    "required_receipt_date": "收货日期为必填项",
+    "required_request_date": "申请日期为必填项",
+    "required_request_type": "请选择申请类型",
+    "required_return_date": "退货日期为必填项",
+    "required_shipment_date": "发货日期为必填项",
+    "required_sales_order": "请选择销售订单",
+    "required_period_start": "期间开始日期为必填项",
+    "required_period_end": "期间结束日期为必填项",
+    "required_change_request_id": "请选择变更请求",
+    "valid_email": "请输入有效的电子邮件地址"
   },
   "placeholder": {
     "select_supplier": "选择供应商",
@@ -1739,5 +1763,9 @@
     "budget": "预算",
     "contract": "合同",
     "fixed_asset": "固定资产"
+  },
+  "dashboard": {
+    "welcome": "欢迎使用 ERP Refine",
+    "selectModule": "请从左侧菜单选择一个模块开始使用。"
   }
 }

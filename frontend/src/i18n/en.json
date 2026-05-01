@@ -313,7 +313,31 @@
     "email": "Please enter a valid email",
     "min": "{{field}} must be at least {{min}}",
     "max": "{{field}} must be at most {{max}}",
-    "requiredField": "Required"
+    "requiredField": "Required",
+    "required_supplier": "Supplier is required",
+    "required_supplier_name": "Supplier name is required",
+    "required_supplier_code": "Supplier code is required",
+    "required_customer": "Customer is required",
+    "required_customer_name": "Customer name is required",
+    "required_customer_code": "Customer code is required",
+    "required_order_date": "Order date is required",
+    "required_amount": "Amount is required",
+    "required_name": "Name is required",
+    "required_code": "Code is required",
+    "required_warehouse": "Warehouse is required",
+    "required_due_date": "Due date is required",
+    "required_expected_date": "Expected date is required",
+    "required_invoice_date": "Invoice date is required",
+    "required_receipt_date": "Receipt date is required",
+    "required_request_date": "Request date is required",
+    "required_request_type": "Request type is required",
+    "required_return_date": "Return date is required",
+    "required_shipment_date": "Shipment date is required",
+    "required_sales_order": "Sales order is required",
+    "required_period_start": "Period start date is required",
+    "required_period_end": "Period end date is required",
+    "required_change_request_id": "Change request is required",
+    "valid_email": "Please enter a valid email address"
   },
   "placeholder": {
     "select_supplier": "Select supplier",
@@ -1739,5 +1763,9 @@
     "budget": "Budget",
     "contract": "Contract",
     "fixed_asset": "Fixed Asset"
+  },
+  "dashboard": {
+    "welcome": "Welcome to ERP Refine",
+    "selectModule": "Select a module from the left menu to get started."
   }
 }

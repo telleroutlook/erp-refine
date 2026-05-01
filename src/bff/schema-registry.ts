@@ -66,6 +66,7 @@ export class SchemaRegistry {
         status: 'draft',
         version: 1,
         risk_score: riskScore.score,
+        risk_level: riskScore.level,
         created_by: userId,
         expires_at: expiresAt,
         trace_id: traceId ?? null,
@@ -79,6 +80,13 @@ export class SchemaRegistry {
 
   /** Activate a draft schema */
   async activate(schemaId: string, _userId: string): Promise<SchemaRecord> {
+    const existing = await this.get(schemaId);
+    if (!existing) throw new Error('Schema not found');
+    if (existing.status !== 'draft') throw new Error('Only draft schemas can be activated');
+    if (existing.risk_level === 'high') {
+      throw new Error('High-risk schemas require additional approval before activation');
+    }
+
     const { data, error } = await this.db
       .from('schema_registry')
       .update({

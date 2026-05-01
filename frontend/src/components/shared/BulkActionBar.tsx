@@ -8,6 +8,7 @@ export interface BulkAction {
   label: string;
   icon?: React.ReactNode;
   onClick: () => void;
+  disabled?: boolean;
 }
 
 interface BulkActionBarProps {

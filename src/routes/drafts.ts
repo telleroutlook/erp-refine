@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard } from '../middleware/auth';
 import { getDbAndUser } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 import { commitDraft } from '../utils/draft-commit';
@@ -11,6 +11,7 @@ import { buildToolSet } from '../tools/tool-registry';
 
 const drafts = new Hono<{ Bindings: Env }>();
 drafts.use('*', authMiddleware());
+drafts.use('*', writeMethodGuard());
 
 // GET /api/drafts — list pending drafts for current user
 drafts.get('/', async (c) => {
@@ -166,6 +167,8 @@ drafts.post('/:id/renew', async (c) => {
     .update({ expires_at: newExpiry, renewed_count: draft.renewed_count + 1 })
     .eq('id', id)
     .eq('status', 'pending')
+    .eq('organization_id', user.organizationId)
+    .eq('created_by', user.userId)
     .select('id, expires_at, renewed_count')
     .single();
 

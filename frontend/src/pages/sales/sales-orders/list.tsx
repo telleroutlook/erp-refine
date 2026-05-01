@@ -35,13 +35,15 @@ export const SalesOrderList: React.FC = () => {
       key: 'createShipment',
       label: t('buttons.createSalesShipment'),
       icon: <CarOutlined />,
-      onClick: () => push(`/sales/sales-shipments/create?createFrom=sales-order&sourceId=${selectedRowKeys[0]}`),
+      onClick: () => { if (selectedRowKeys.length === 1) push(`/sales/sales-shipments/create?createFrom=sales-order&sourceId=${selectedRowKeys[0]}`); },
+      disabled: selectedRowKeys.length !== 1,
     },
     {
       key: 'createInvoice',
       label: t('buttons.createSalesInvoice'),
       icon: <FileTextOutlined />,
-      onClick: () => push(`/finance/sales-invoices/create?createFrom=sales-order&sourceId=${selectedRowKeys[0]}`),
+      onClick: () => { if (selectedRowKeys.length === 1) push(`/finance/sales-invoices/create?createFrom=sales-order&sourceId=${selectedRowKeys[0]}`); },
+      disabled: selectedRowKeys.length !== 1,
     },
   ];
 

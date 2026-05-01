@@ -183,8 +183,7 @@ finance.put('/vouchers/:id', async (c) => {
   if (fetchErr || !existing) throw ApiError.notFound('Voucher', id, requestId);
   if (existing.status === 'posted') throw ApiError.invalidState('Voucher', 'posted', 'update', requestId);
 
-  const permitted = ['voucher_date', 'voucher_type', 'notes',
-    'approved_by', 'approved_at'];
+  const permitted = ['voucher_date', 'voucher_type', 'notes'];
 
   if (body.items) {
     const updateConfig: AtomicUpdateConfig = {

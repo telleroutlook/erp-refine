@@ -293,7 +293,7 @@ inventory.post('/inventory-counts/:id/complete', async (c) => {
   if (fetchError || !countDoc) throw ApiError.notFound('InventoryCount', id, requestId);
 
   // 2. Validate status before running side effects (must be 'in_progress' or 'counted')
-  if (countDoc.status !== 'in_progress') {
+  if (countDoc.status !== 'in_progress' && countDoc.status !== 'counted') {
     throw ApiError.invalidState('InventoryCount', countDoc.status, 'complete', requestId);
   }
 
