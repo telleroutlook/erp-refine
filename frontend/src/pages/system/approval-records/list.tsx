@@ -31,7 +31,7 @@ export const ApprovalRecordList: React.FC = () => {
     <List title={t('menu.approvalRecords')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="document_type" title={fl('approval_records', 'document_type')} width={140} />
+        <Table.Column dataIndex="document_type" title={fl('approval_records', 'document_type')} width={140} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="document_id" title={fl('approval_records', 'document_id')} width={200} ellipsis />
         <Table.Column dataIndex="decision_level" title={fl('approval_records', 'decision_level')} width={100} align="center" />
         <Table.Column

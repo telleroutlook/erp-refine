@@ -678,6 +678,69 @@
       "semi_finished": "Semi-Finished",
       "transit": "In Transit",
       "virtual": "Virtual"
+    },
+    "paymentType": {
+      "receivable": "Receivable",
+      "payable": "Payable"
+    },
+    "defectCategory": {
+      "general": "General",
+      "material": "Material",
+      "process": "Process",
+      "design": "Design",
+      "environmental": "Environmental",
+      "human": "Human"
+    },
+    "costMethod": {
+      "weighted_average": "Weighted Average",
+      "fifo": "FIFO",
+      "standard": "Standard Cost"
+    },
+    "uomCategory": {
+      "unit": "Unit",
+      "weight": "Weight",
+      "volume": "Volume",
+      "length": "Length",
+      "area": "Area",
+      "time": "Time"
+    },
+    "documentType": {
+      "purchase_order": "Purchase Order",
+      "sales_order": "Sales Order",
+      "payment_request": "Payment Request",
+      "supplier_invoice": "Supplier Invoice",
+      "sales_invoice": "Sales Invoice",
+      "budget": "Budget",
+      "work_order": "Work Order",
+      "inventory": "Inventory",
+      "system": "System",
+      "contract": "Contract",
+      "fixed_asset": "Fixed Asset",
+      "quality_inspection": "Quality Inspection",
+      "purchase_receipt": "Purchase Receipt",
+      "sales_shipment": "Sales Shipment",
+      "sales_return": "Sales Return",
+      "payment_record": "Payment Record",
+      "customer_receipt": "Customer Receipt",
+      "voucher": "Voucher"
+    },
+    "relationTypes": {
+      "parent": "Parent",
+      "child": "Child",
+      "reference": "Reference",
+      "derived_from": "Derived From",
+      "related": "Related"
+    },
+    "eventSeverity": {
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error",
+      "critical": "Critical"
+    },
+    "requestType": {
+      "update": "Update",
+      "create": "Create",
+      "delete": "Delete"
     }
   },
   "tools": {

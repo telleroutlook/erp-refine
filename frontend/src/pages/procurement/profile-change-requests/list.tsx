@@ -37,7 +37,7 @@ export const ProfileChangeRequestList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="change_request_id" title={fl('profile_change_requests', 'change_request_id')} width={180} />
-        <Table.Column dataIndex="request_type" title={fl('profile_change_requests', 'request_type')} width={140} />
+        <Table.Column dataIndex="request_type" title={fl('profile_change_requests', 'request_type')} width={140} render={(v) => v ? t(`enums.requestType.${v}`, v) : '-'} />
         <Table.Column dataIndex="supplier_id" title={fl('profile_change_requests', 'supplier_id')} width={200} ellipsis />
         <Table.Column
           dataIndex="status"

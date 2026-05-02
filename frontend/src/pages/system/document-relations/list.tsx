@@ -34,10 +34,10 @@ export const DocumentRelationList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="from_object_type" title={fl('document_relations', 'from_object_type')} width={120} />
+        <Table.Column dataIndex="from_object_type" title={fl('document_relations', 'from_object_type')} width={120} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="from_object_id" title={fl('document_relations', 'from_object_id')} width={200} ellipsis />
-        <Table.Column dataIndex="relation_type" title={fl('document_relations', 'relation_type')} width={120} />
-        <Table.Column dataIndex="to_object_type" title={fl('document_relations', 'to_object_type')} width={120} />
+        <Table.Column dataIndex="relation_type" title={fl('document_relations', 'relation_type')} width={120} render={(v) => v ? t(`enums.relationTypes.${v}`, v) : '-'} />
+        <Table.Column dataIndex="to_object_type" title={fl('document_relations', 'to_object_type')} width={120} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="to_object_id" title={fl('document_relations', 'to_object_id')} width={200} ellipsis />
         <Table.Column dataIndex="label" title={fl('document_relations', 'label')} />
         <Table.Column

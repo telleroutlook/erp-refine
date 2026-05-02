@@ -28,7 +28,7 @@ export const ImportLogList: React.FC = () => {
     <List title={t('menu.importLogs')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="resource_type" title={t('menu.importLogs')} width={140} />
+        <Table.Column dataIndex="resource_type" title={fl('import_logs', 'resource_type')} width={140} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="file_name" title={t('menu.importLogs')} />
         <Table.Column dataIndex="status" title={t('common.status')} width={100} render={(s) => <StatusTag status={s} />} />
         <Table.Column dataIndex="total_rows" title={t('menu.importLogs')} width={80} align="right" />

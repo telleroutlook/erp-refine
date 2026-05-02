@@ -47,7 +47,7 @@ export const VoucherList: React.FC = () => {
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
-        <Table.Column dataIndex="voucher_type" title={fl('vouchers', 'voucher_type')} />
+        <Table.Column dataIndex="voucher_type" title={fl('vouchers', 'voucher_type')} render={(v) => v ? t(`enums.voucherType.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="total_debit"
           title={fl('vouchers', 'total_debit')}

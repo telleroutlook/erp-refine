@@ -29,7 +29,7 @@ export const ProductCostHistoryList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
-        <Table.Column dataIndex="cost_method" title={fl('product_cost_history', 'cost_method')} width={140} />
+        <Table.Column dataIndex="cost_method" title={fl('product_cost_history', 'cost_method')} width={140} render={(v) => v ? t(`enums.costMethod.${v}`, v) : '-'} />
         <Table.Column dataIndex="unit_cost" title={fl('product_cost_history', 'unit_cost')} width={120} align="right" />
         <Table.Column dataIndex="total_quantity" title={fl('product_cost_history', 'total_quantity')} width={120} align="right" />
         <Table.Column dataIndex="total_value" title={fl('product_cost_history', 'total_value')} width={120} align="right" />

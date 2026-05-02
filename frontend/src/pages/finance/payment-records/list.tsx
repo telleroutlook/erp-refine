@@ -39,8 +39,8 @@ export const PaymentRecordList: React.FC = () => {
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
-        <Table.Column dataIndex="payment_type" title={fl('payment_records', 'payment_type')} />
-        <Table.Column dataIndex="payment_method" title={fl('payment_records', 'payment_method')} />
+        <Table.Column dataIndex="payment_type" title={fl('payment_records', 'payment_type')} render={(v) => v ? t(`enums.paymentType.${v}`, v) : '-'} />
+        <Table.Column dataIndex="payment_method" title={fl('payment_records', 'payment_method')} render={(v) => v ? t(`enums.paymentMethod.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="amount"
           title={t('common.amount')}

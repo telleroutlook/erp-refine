@@ -36,7 +36,7 @@ export const InventoryReservationList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="reference_type" title={fl('inventory_reservations', 'reference_type')} width={120} />
+        <Table.Column dataIndex="reference_type" title={fl('inventory_reservations', 'reference_type')} width={120} render={(v) => v ? t(`enums.referenceType.${v}`, v) : '-'} />
         <Table.Column dataIndex="reference_id" title={fl('inventory_reservations', 'reference_id')} width={160} render={(v) => v?.slice(0, 8) ?? '-'} />
         <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
         <Table.Column dataIndex={['warehouse', 'name']} title={fl('warehouses', 'name')} />

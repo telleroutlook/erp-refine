@@ -36,7 +36,7 @@ export const ApprovalRuleList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="rule_name" title={fl('approval_rules', 'rule_name')} />
-        <Table.Column dataIndex="document_type" title={fl('approval_rules', 'document_type')} width={140} />
+        <Table.Column dataIndex="document_type" title={fl('approval_rules', 'document_type')} width={140} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="min_amount"
           title={fl('approval_rules', 'min_amount')}

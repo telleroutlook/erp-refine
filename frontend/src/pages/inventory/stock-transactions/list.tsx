@@ -32,9 +32,9 @@ export const StockTransactionList: React.FC = () => {
         <Table.Column dataIndex="transaction_date" title={fl('stock_transactions', 'transaction_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column dataIndex={['product', 'name']} title={fl('products', 'name')} />
         <Table.Column dataIndex={['warehouse', 'name']} title={fl('warehouses', 'name')} />
-        <Table.Column dataIndex="transaction_type" title={fl('stock_transactions', 'transaction_type')} width={120} />
+        <Table.Column dataIndex="transaction_type" title={fl('stock_transactions', 'transaction_type')} width={120} render={(v) => v ? t(`enums.transactionType.${v}`, v) : '-'} />
         <Table.Column dataIndex="quantity" title={fl('stock_transactions', 'quantity')} width={100} align="right" />
-        <Table.Column dataIndex="reference_type" title={fl('stock_transactions', 'reference_type')} width={120} />
+        <Table.Column dataIndex="reference_type" title={fl('stock_transactions', 'reference_type')} width={120} render={(v) => v ? t(`enums.referenceType.${v}`, v) : '-'} />
         <Table.Column dataIndex="reference_id" title={fl('stock_transactions', 'reference_id')} width={140} />
         <Table.Column
           title={t('common.actions')}

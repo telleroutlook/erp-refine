@@ -678,6 +678,69 @@
       "semi_finished": "半成品仓",
       "transit": "在途仓",
       "virtual": "虚拟仓"
+    },
+    "paymentType": {
+      "receivable": "应收",
+      "payable": "应付"
+    },
+    "defectCategory": {
+      "general": "一般",
+      "material": "材料",
+      "process": "工艺",
+      "design": "设计",
+      "environmental": "环境",
+      "human": "人为"
+    },
+    "costMethod": {
+      "weighted_average": "加权平均",
+      "fifo": "先进先出",
+      "standard": "标准成本"
+    },
+    "uomCategory": {
+      "unit": "个数",
+      "weight": "重量",
+      "volume": "体积",
+      "length": "长度",
+      "area": "面积",
+      "time": "时间"
+    },
+    "documentType": {
+      "purchase_order": "采购订单",
+      "sales_order": "销售订单",
+      "payment_request": "付款申请",
+      "supplier_invoice": "供应商发票",
+      "sales_invoice": "销售发票",
+      "budget": "预算",
+      "work_order": "工单",
+      "inventory": "库存",
+      "system": "系统",
+      "contract": "合同",
+      "fixed_asset": "固定资产",
+      "quality_inspection": "质检单",
+      "purchase_receipt": "采购入库",
+      "sales_shipment": "销售发货",
+      "sales_return": "销售退货",
+      "payment_record": "付款记录",
+      "customer_receipt": "收款记录",
+      "voucher": "凭证"
+    },
+    "relationTypes": {
+      "parent": "父级",
+      "child": "子级",
+      "reference": "引用",
+      "derived_from": "衍生自",
+      "related": "相关"
+    },
+    "eventSeverity": {
+      "info": "信息",
+      "warning": "警告",
+      "error": "错误",
+      "critical": "严重"
+    },
+    "requestType": {
+      "update": "变更",
+      "create": "新建",
+      "delete": "删除"
     }
   },
   "tools": {

@@ -30,7 +30,7 @@ export const UomList: React.FC = () => {
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="uom_code" title={t('menu.uoms')} width={100} />
         <Table.Column dataIndex="uom_name" title={t('menu.uoms')} />
-        <Table.Column dataIndex="uom_type" title={t('menu.uoms')} />
+        <Table.Column dataIndex="uom_type" title={t('menu.uoms')} render={(v) => v ? t(`enums.uomCategory.${v}`, v) : '-'} />
         <Table.Column dataIndex="conversion_factor" title={t('menu.uoms')} width={100} />
         <Table.Column
           title={t('common.actions')}

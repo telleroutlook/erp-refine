@@ -25,8 +25,8 @@ export const CarrierList: React.FC = () => {
   const carrierTypeLabels: Record<string, string> = {
     express: t('enums.carrierType.express'),
     freight: t('enums.carrierType.freight'),
-    ltl: 'LTL',
-    ftl: 'FTL',
+    ltl: t('enums.carrierType.ltl'),
+    ftl: t('enums.carrierType.ftl'),
     ocean: t('enums.carrierType.ocean'),
     air: t('enums.carrierType.air'),
   };

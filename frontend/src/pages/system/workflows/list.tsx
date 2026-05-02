@@ -30,8 +30,8 @@ export const WorkflowList: React.FC = () => {
     <List title={t('menu.workflows')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="workflow_type" title={fl('workflows', 'workflow_type')} width={140} />
-        <Table.Column dataIndex="entity_type" title={fl('workflows', 'entity_type')} width={120} />
+        <Table.Column dataIndex="workflow_type" title={fl('workflows', 'workflow_type')} width={140} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
+        <Table.Column dataIndex="entity_type" title={fl('workflows', 'entity_type')} width={120} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="entity_id" title={fl('workflows', 'entity_id')} width={200} ellipsis />
         <Table.Column
           dataIndex="status"

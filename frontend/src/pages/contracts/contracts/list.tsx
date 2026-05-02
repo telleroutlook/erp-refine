@@ -42,8 +42,8 @@ export const ContractList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="contract_number" title={fl('contracts', 'contract_number')} width={160} />
-        <Table.Column dataIndex="contract_type" title={fl('contracts', 'contract_type')} />
-        <Table.Column dataIndex="party_type" title={fl('contracts', 'party_type')} />
+        <Table.Column dataIndex="contract_type" title={fl('contracts', 'contract_type')} render={(v) => v ? t(`enums.contractType.${v}`, v) : '-'} />
+        <Table.Column dataIndex="party_type" title={fl('contracts', 'party_type')} render={(v) => v ? t(`enums.partyType.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="start_date"
           title={fl('contracts', 'start_date')}

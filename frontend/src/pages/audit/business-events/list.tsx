@@ -28,10 +28,10 @@ export const BusinessEventList: React.FC = () => {
     <List title={t('menu.businessEvents')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="event_type" title={t('menu.businessEvents')} width={160} />
-        <Table.Column dataIndex="entity_type" title={t('menu.businessEvents')} width={140} />
+        <Table.Column dataIndex="event_type" title={fl('business_events', 'event_type')} width={160} />
+        <Table.Column dataIndex="entity_type" title={fl('business_events', 'entity_type')} width={140} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="entity_id" title={t('menu.businessEvents')} width={280} ellipsis />
-        <Table.Column dataIndex="severity" title={t('menu.businessEvents')} width={80} render={(v) => <Tag color={SEVERITY_COLORS[v] ?? 'default'}>{v}</Tag>} />
+        <Table.Column dataIndex="severity" title={fl('business_events', 'severity')} width={80} render={(v) => <Tag color={SEVERITY_COLORS[v] ?? 'default'}>{v ? String(t(`enums.eventSeverity.${v}`, v)) : '-'}</Tag>} />
         <Table.Column dataIndex="source_system" title={t('menu.businessEvents')} width={120} />
         <Table.Column dataIndex="processed" title={t('menu.businessEvents')} width={80} render={(v) => v ? <Tag color="success">{t('enums.yesNo.yes')}</Tag> : <Tag>{t('enums.yesNo.no')}</Tag>} />
         <Table.Column dataIndex="occurred_at" title={t('menu.businessEvents')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />

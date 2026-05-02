@@ -40,7 +40,7 @@ export const BudgetList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="budget_name" title={fl('budgets', 'budget_name')} />
-        <Table.Column dataIndex="budget_type" title={fl('budgets', 'budget_type')} />
+        <Table.Column dataIndex="budget_type" title={fl('budgets', 'budget_type')} render={(v) => v ? t(`enums.budgetType.${v}`, v) : '-'} />
         <Table.Column dataIndex="budget_year" title={fl('budgets', 'budget_year')} width={100} />
         <Table.Column dataIndex="currency" title={fl('budgets', 'currency')} width={80} />
         <Table.Column

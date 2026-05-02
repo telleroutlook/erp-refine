@@ -43,7 +43,7 @@ export const DocumentAttachmentList: React.FC = () => {
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="file_name" title={fl('document_attachments', 'file_name')} />
-        <Table.Column dataIndex="entity_type" title={fl('document_attachments', 'entity_type')} width={120} />
+        <Table.Column dataIndex="entity_type" title={fl('document_attachments', 'entity_type')} width={120} render={(v) => v ? t(`enums.documentType.${v}`, v) : '-'} />
         <Table.Column dataIndex="entity_id" title={fl('document_attachments', 'entity_id')} width={200} ellipsis />
         <Table.Column dataIndex="mime_type" title={fl('document_attachments', 'mime_type')} width={140} />
         <Table.Column

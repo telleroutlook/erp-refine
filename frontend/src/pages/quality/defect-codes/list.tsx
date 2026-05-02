@@ -37,8 +37,8 @@ export const DefectCodeList: React.FC = () => {
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="code" title={fl('defect_codes', 'code')} width={120} />
         <Table.Column dataIndex="name" title={fl('defect_codes', 'name')} />
-        <Table.Column dataIndex="category" title={fl('defect_codes', 'category')} />
-        <Table.Column dataIndex="severity" title={fl('defect_codes', 'severity')} />
+        <Table.Column dataIndex="category" title={fl('defect_codes', 'category')} render={(v) => v ? t(`enums.defectCategory.${v}`, v) : '-'} />
+        <Table.Column dataIndex="severity" title={fl('defect_codes', 'severity')} render={(v) => v ? t(`enums.defectSeverity.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="is_active"
           title={t('common.status')}

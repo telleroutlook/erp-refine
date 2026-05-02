@@ -38,7 +38,7 @@ export const ExchangeRateList: React.FC = () => {
         <Table.Column dataIndex="from_currency" title={t('menu.exchangeRates')} />
         <Table.Column dataIndex="to_currency" title={t('menu.exchangeRates')} />
         <Table.Column dataIndex="rate" title={t('menu.exchangeRates')} />
-        <Table.Column dataIndex="rate_type" title={t('menu.exchangeRates')} />
+        <Table.Column dataIndex="rate_type" title={fl('exchange_rates', 'rate_type')} render={(v) => v ? t(`enums.rateType.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="effective_date"
           title={t('menu.exchangeRates')}

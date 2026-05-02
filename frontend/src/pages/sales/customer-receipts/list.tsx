@@ -42,7 +42,7 @@ export const CustomerReceiptList: React.FC = () => {
         <Table.Column dataIndex={['customer', 'name']} title={fl('customer_receipts', 'customer_id')} />
         <Table.Column dataIndex="receipt_date" title={fl('customer_receipts', 'receipt_date')} width={120} render={(v) => <DateField value={v} format="YYYY-MM-DD" />} />
         <Table.Column dataIndex="amount" title={fl('customer_receipts', 'amount')} width={140} align="right" render={(v) => <AmountDisplay value={v} />} />
-        <Table.Column dataIndex="payment_method" title={fl('customer_receipts', 'payment_method')} width={120} />
+        <Table.Column dataIndex="payment_method" title={fl('customer_receipts', 'payment_method')} width={120} render={(v) => v ? t(`enums.paymentMethod.${v}`, v) : '-'} />
         <Table.Column dataIndex="status" title={t('common.status')} width={120} render={(s) => <StatusTag status={s} />} />
         <Table.Column
           title={t('common.actions')}

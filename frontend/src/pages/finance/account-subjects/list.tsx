@@ -38,7 +38,7 @@ export const AccountSubjectList: React.FC = () => {
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="code" title={fl('account_subjects', 'code')} width={120} />
         <Table.Column dataIndex="name" title={fl('account_subjects', 'name')} />
-        <Table.Column dataIndex="category" title={fl('account_subjects', 'category')} />
+        <Table.Column dataIndex="category" title={fl('account_subjects', 'category')} render={(v) => v ? t(`enums.accountCategory.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="balance_direction"
           title={fl('account_subjects', 'balance_direction')}

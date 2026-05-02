@@ -40,7 +40,7 @@ export const AssetMaintenanceList: React.FC = () => {
           dataIndex={['asset', 'asset_name']}
           title={fl('asset_maintenance_records', 'asset_id')}
         />
-        <Table.Column dataIndex="maintenance_type" title={fl('asset_maintenance_records', 'maintenance_type')} />
+        <Table.Column dataIndex="maintenance_type" title={fl('asset_maintenance_records', 'maintenance_type')} render={(v) => v ? t(`enums.maintenanceType.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="performed_at"
           title={fl('asset_maintenance_records', 'performed_at')}
