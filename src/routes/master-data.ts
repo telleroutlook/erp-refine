@@ -188,6 +188,7 @@ const currenciesConfig: CrudConfig = {
   listSelect: 'currency_code, currency_name, symbol, decimal_places, is_active',
   detailSelect: 'currency_code, currency_name, symbol, decimal_places, is_active',
   createReturnSelect: 'currency_code, currency_name',
+  defaultSort: 'currency_code',
   softDelete: false,
   orgScoped: false,
   disableCreate: true,
