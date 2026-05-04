@@ -101,7 +101,27 @@ export class ExecutionAgent extends BaseAgent {
     for (const [name, t] of Object.entries(tools)) {
       if (allowedToolNames.has(name)) filteredTools[name] = t;
     }
-    const effectiveTools = Object.keys(filteredTools).length > 0 ? filteredTools : {};
+
+    // SECURITY: Prevent LLM from self-confirming D2+ writes.
+    // Override `confirmed` parameter in tool calls to match request-level state.
+    const effectiveTools: ToolSet = {};
+    for (const [name, tool] of Object.entries(filteredTools)) {
+      const meta = TOOL_REGISTRY_META.find(m => m.name === name);
+      if (meta && meta.level >= 2 && tool && typeof tool === 'object' && 'execute' in tool) {
+        const originalExecute = (tool as any).execute;
+        effectiveTools[name] = {
+          ...tool,
+          execute: (args: any, options: any) => {
+            if (args && typeof args === 'object') {
+              args.confirmed = request.confirmed ?? false;
+            }
+            return originalExecute(args, options);
+          },
+        } as any;
+      } else {
+        effectiveTools[name] = tool;
+      }
+    }
 
     const apiKeys = getApiKeys(env);
 

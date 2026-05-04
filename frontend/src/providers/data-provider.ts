@@ -3,7 +3,8 @@
 
 import { type DataProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
-import { getAuthHeaders, getAccessToken } from './token';
+import { getAuthHeaders } from './token';
+import { refreshAccessToken } from './auth-provider';
 
 class HttpError extends Error {
   status: number;
@@ -31,6 +32,18 @@ function resolveUrl(resource: string): string {
 
 function getHeaders(): Record<string, string> {
   return getAuthHeaders();
+}
+
+async function fetchWithRetry(url: string, init?: RequestInit): Promise<Response> {
+  let response = await fetch(url, init);
+  if (response.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      const retryInit = { ...init, headers: getHeaders() };
+      response = await fetch(url, retryInit);
+    }
+  }
+  return response;
 }
 
 export const dataProvider: DataProvider = {
@@ -89,7 +102,7 @@ export const dataProvider: DataProvider = {
       }
     }
 
-    const response = await fetch(`${resolveUrl(resource)}?${params}`, {
+    const response = await fetchWithRetry(`${resolveUrl(resource)}?${params}`, {
       headers: getHeaders(),
     });
 
@@ -103,7 +116,7 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: async ({ resource, id }) => {
-    const response = await fetch(`${resolveUrl(resource)}/${id}`, {
+    const response = await fetchWithRetry(`${resolveUrl(resource)}/${id}`, {
       headers: getHeaders(),
     });
 
@@ -117,7 +130,7 @@ export const dataProvider: DataProvider = {
   },
 
   create: async ({ resource, variables }) => {
-    const response = await fetch(`${resolveUrl(resource)}`, {
+    const response = await fetchWithRetry(`${resolveUrl(resource)}`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(variables),
@@ -134,7 +147,7 @@ export const dataProvider: DataProvider = {
   },
 
   update: async ({ resource, id, variables }) => {
-    const response = await fetch(`${resolveUrl(resource)}/${id}`, {
+    const response = await fetchWithRetry(`${resolveUrl(resource)}/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(variables),
@@ -151,14 +164,9 @@ export const dataProvider: DataProvider = {
   },
 
   deleteOne: async ({ resource, id }) => {
-    const token = getAccessToken();
-    const headers: Record<string, string> = token
-      ? { Authorization: `Bearer ${token}` }
-      : {};
-
-    const response = await fetch(`${resolveUrl(resource)}/${id}`, {
+    const response = await fetchWithRetry(`${resolveUrl(resource)}/${id}`, {
       method: 'DELETE',
-      headers,
+      headers: getHeaders(),
     });
 
     if (!response.ok) {

@@ -123,9 +123,14 @@ export async function atomicCreateWithItems(
   const { headerTable, itemsTable, headerFk, headerReturnSelect, itemsReturnSelect } = config;
   const { header, items } = input;
 
-  const HEADER_BLOCKED = new Set(['id', 'deleted_at', 'created_at', 'approved_by', 'approved_at', 'posted_at']);
+  const HEADER_BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'approved_by', 'approved_at', 'posted_at']);
   const sanitizedHeader = Object.fromEntries(
     Object.entries(header).filter(([k]) => !HEADER_BLOCKED.has(k))
+  );
+
+  const ITEM_BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'created_by', headerFk]);
+  const sanitizedItems = (items ?? []).map(item =>
+    Object.fromEntries(Object.entries(item).filter(([k]) => !ITEM_BLOCKED.has(k)))
   );
 
   // Use Postgres RPC for true transactional atomicity
@@ -134,7 +139,7 @@ export async function atomicCreateWithItems(
     p_items_table: itemsTable,
     p_header_fk: headerFk,
     p_header_data: sanitizedHeader,
-    p_items_data: items,
+    p_items_data: sanitizedItems,
     p_header_return_select: headerReturnSelect,
     p_items_return_select: itemsReturnSelect,
     p_auto_line_number: config.autoLineNumber ?? false,

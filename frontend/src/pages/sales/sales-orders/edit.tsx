@@ -34,7 +34,7 @@ export const SalesOrderEdit: React.FC = () => {
       <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'order_number')} name="order_number"><Input disabled /></Form.Item></Col>
-          <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(SO_STATUS_OPTIONS, t)} /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(SO_STATUS_OPTIONS, t)} disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'order_date')} name="order_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'delivery_date')} name="delivery_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('sales_orders', 'currency')} name="currency"><Select options={CURRENCY_OPTIONS} /></Form.Item></Col>

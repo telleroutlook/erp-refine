@@ -479,6 +479,7 @@ manufacturing.post('/work-order-productions', async (c) => {
   if (data.work_order_id) {
     const { error: rpcErr } = await db.rpc('increment_completed_qty', {
       p_work_order_id: data.work_order_id,
+      p_organization_id: user.organizationId,
       p_delta: data.qualified_quantity ?? 0,
     });
     if (rpcErr) throw ApiError.database(rpcErr.message, requestId);
@@ -522,6 +523,7 @@ manufacturing.put('/work-order-productions/:id', async (c) => {
     if (delta !== 0) {
       const { error: rpcErr } = await db.rpc('increment_completed_qty', {
         p_work_order_id: (prod.work_order as any).id,
+        p_organization_id: user.organizationId,
         p_delta: delta,
       });
       if (rpcErr) throw ApiError.database(rpcErr.message, requestId);
@@ -554,6 +556,7 @@ manufacturing.delete('/work-order-productions/:id', async (c) => {
   if (qty > 0) {
     const { error: rpcErr } = await db.rpc('increment_completed_qty', {
       p_work_order_id: (prod.work_order as any).id,
+      p_organization_id: user.organizationId,
       p_delta: -qty,
     });
     if (rpcErr) throw ApiError.database(rpcErr.message, requestId);

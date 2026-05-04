@@ -1469,10 +1469,20 @@
       "created_at": "Time"
     },
     "agent_decisions": {
-      "created_at": "Time"
+      "created_at": "Time",
+      "agent_id": "Agent",
+      "risk_level": "Risk Level",
+      "approval_status": "Approval Status",
+      "execution_status": "Execution Status",
+      "confidence": "Confidence"
     },
     "agent_sessions": {
-      "created_at": "Time"
+      "created_at": "Time",
+      "agent_id": "Agent",
+      "session_type": "Session Type",
+      "message_count": "Messages",
+      "started_at": "Started",
+      "ended_at": "Ended"
     },
     "business_events": {
       "severity": "Severity Level"

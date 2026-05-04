@@ -7,7 +7,7 @@ import { getAccessToken, setAccessToken, removeAccessToken } from './token';
 
 let _refreshPromise: Promise<boolean> | null = null;
 
-async function refreshAccessToken(): Promise<boolean> {
+export async function refreshAccessToken(): Promise<boolean> {
   if (_refreshPromise) return _refreshPromise;
   _refreshPromise = (async () => {
     try {
@@ -132,7 +132,7 @@ export const authProvider: AuthProvider = {
     if (error?.status === 401) {
       const refreshed = await refreshAccessToken();
       if (refreshed) {
-        return { error };
+        return {};
       }
       return { logout: true, redirectTo: '/login', error };
     }

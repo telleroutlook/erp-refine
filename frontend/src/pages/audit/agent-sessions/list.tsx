@@ -28,12 +28,12 @@ export const AgentSessionList: React.FC = () => {
     <List title={t('menu.agentSessions')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="agent_id" title="Agent" width={160} />
-        <Table.Column dataIndex="session_type" title={t('menu.agentSessions')} width={120} />
+        <Table.Column dataIndex="agent_id" title={fl('agent_sessions', 'agent_id')} width={160} />
+        <Table.Column dataIndex="session_type" title={fl('agent_sessions', 'session_type')} width={120} />
         <Table.Column dataIndex="status" title={t('common.status')} width={100} render={(s) => <StatusTag status={s} />} />
-        <Table.Column dataIndex="message_count" title={t('menu.agentSessions')} width={80} align="right" />
-        <Table.Column dataIndex="started_at" title={t('menu.agentSessions')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
-        <Table.Column dataIndex="ended_at" title={t('menu.agentSessions')} width={160} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '—'} />
+        <Table.Column dataIndex="message_count" title={fl('agent_sessions', 'message_count')} width={80} align="right" />
+        <Table.Column dataIndex="started_at" title={fl('agent_sessions', 'started_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
+        <Table.Column dataIndex="ended_at" title={fl('agent_sessions', 'ended_at')} width={160} render={(v) => v ? <DateField value={v} format="YYYY-MM-DD HH:mm" /> : '—'} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('agent-sessions', r.id)} />} />
       </Table>
     </List>

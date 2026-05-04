@@ -213,62 +213,18 @@ export function createInventoryTools(db: SupabaseClient, organizationId: string,
         // Availability is enforced atomically by adjust_stock() (called via
         // tr_stock_transaction_update trigger) — no client-side pre-check needed.
 
-        const txnBase = {
-          organization_id: organizationId,
-          product_id: productId,
-          reference_type: 'stock_transfer',
-          notes: notes ?? null,
-        };
+        const { data: rpcResult, error: rpcError } = await db.rpc('transfer_stock', {
+          p_organization_id: organizationId,
+          p_product_id: productId,
+          p_from_warehouse_id: fromWarehouseId,
+          p_to_warehouse_id: toWarehouseId,
+          p_quantity: quantity,
+          p_notes: notes ?? null,
+        });
 
-        const outTxn = await executeWithAudit(
-          db,
-          async () => {
-            const result = await db.from('stock_transactions').insert({
-              ...txnBase,
-              warehouse_id: fromWarehouseId,
-              transaction_type: 'out',
-              quantity,
-            }).select('id').single();
-            return result as { data: { id: string } | null; error: unknown };
-          },
-          { action: 'stock_transfer_out', resource: 'stock_transactions', userId, organizationId },
-        ) as { id: string };
+        if (rpcError) throw new Error(`Stock transfer failed: ${rpcError.message}`);
 
-        try {
-          await executeWithAudit(
-            db,
-            async () => {
-              const result = await db.from('stock_transactions').insert({
-                ...txnBase,
-                warehouse_id: toWarehouseId,
-                transaction_type: 'in',
-                quantity,
-              }).select('id').single();
-              return result as { data: { id: string } | null; error: unknown };
-            },
-            { action: 'stock_transfer_in', resource: 'stock_transactions', userId, organizationId },
-          );
-        } catch (inErr) {
-          try {
-            await db.from('stock_transactions').insert({
-              ...txnBase,
-              warehouse_id: fromWarehouseId,
-              transaction_type: 'in',
-              quantity,
-              notes: `Reversal of failed transfer (out txn: ${outTxn.id})`,
-            });
-          } catch (reversalErr) {
-            console.error('[transfer_stock] CRITICAL: reversal failed, ledger inconsistent', {
-              outTxnId: outTxn.id, productId, fromWarehouseId, quantity, reversalErr,
-            });
-            throw new Error(
-              `Stock transfer partially failed and reversal also failed. OUT txn ${outTxn.id} is orphaned. Manual intervention required.`
-            );
-          }
-          throw inErr;
-        }
-
-        return { success: true, productId, fromWarehouseId, toWarehouseId, quantity };
+        return { success: true, productId, fromWarehouseId, toWarehouseId, quantity, ...rpcResult };
       },
     }),
   };

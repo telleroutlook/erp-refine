@@ -401,7 +401,16 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate invoice number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
-  const { items, _sourceRef, ...headerFields } = body;
+  const { items, _sourceRef, ...rawInvoiceFields } = body;
+
+  const PERMITTED_INVOICE_CREATE = new Set([
+    'supplier_id', 'invoice_date', 'due_date', 'currency', 'notes',
+    'purchase_order_id', 'external_invoice_number', 'payment_terms',
+  ]);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawInvoiceFields)) {
+    if (PERMITTED_INVOICE_CREATE.has(k)) headerFields[k] = v;
+  }
 
   // Validate quantities against source open items
   if (_sourceRef?.type && _sourceRef?.id && items?.length) {

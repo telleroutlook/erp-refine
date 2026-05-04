@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -32,6 +32,8 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
+  const onNodeClickRef = useRef(onNodeClick);
+  onNodeClickRef.current = onNodeClick;
 
   const flatNodes = useMemo(
     () => chain.nodes.map((n) => ({ id: n.id, parentId: null })),
@@ -63,7 +65,7 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
       data: {
         ...n,
         isDimmed: false,
-        onClick: onNodeClick,
+        onClick: (type: string, id: string) => onNodeClickRef.current(type, id),
       } satisfies DocumentFlowNodeData,
     }));
 
@@ -72,7 +74,7 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
       setEdges(result.edges);
       requestAnimationFrame(() => fitView({ padding: 0.2, duration: 300 }));
     });
-  }, [chain, rfEdges, onNodeClick, setNodes, setEdges, fitView]);
+  }, [chain, rfEdges, setNodes, setEdges, fitView]);
 
   useEffect(() => {
     runLayout();

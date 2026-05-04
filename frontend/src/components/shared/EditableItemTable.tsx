@@ -134,11 +134,16 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
 
     for (const [id, changes] of Object.entries(currentEdits)) {
       if (currentDeletedIds.has(id)) continue;
+      const original = (currentItems ?? []).find((item: any) => item.id === id);
       const values: Record<string, any> = { id };
       currentColumns.forEach((col) => {
         if (!col.editable) return;
         const key = flatKey(col.dataIndex);
-        if (key in changes) values[fieldName(col.dataIndex)] = changes[key];
+        if (key in changes) {
+          values[fieldName(col.dataIndex)] = changes[key];
+        } else if (original) {
+          values[fieldName(col.dataIndex)] = getNestedValue(original, col.dataIndex);
+        }
       });
       if (Object.keys(values).length > 1) upsert.push(values);
     }

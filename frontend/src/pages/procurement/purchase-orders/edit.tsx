@@ -35,7 +35,7 @@ export const PurchaseOrderEdit: React.FC = () => {
       <Form {...formProps} layout="vertical" onFinish={handleFinish}>
         <Row gutter={16}>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('purchase_orders', 'order_number')} name="order_number"><Input disabled /></Form.Item></Col>
-          <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(PO_STATUS_OPTIONS, t)} /></Form.Item></Col>
+          <Col xs={24} sm={24} md={12}><Form.Item label={t('common.status')} name="status"><Select options={translateOptions(PO_STATUS_OPTIONS, t)} disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('purchase_orders', 'order_date')} name="order_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} disabled /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('purchase_orders', 'expected_date')} name="expected_date" {...dateFormItemProps}><DatePicker style={FULL_WIDTH} /></Form.Item></Col>
           <Col xs={24} sm={24} md={12}><Form.Item label={fl('purchase_orders', 'currency')} name="currency"><Select options={CURRENCY_OPTIONS} /></Form.Item></Col>

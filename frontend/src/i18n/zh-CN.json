@@ -1469,10 +1469,20 @@
       "created_at": "时间"
     },
     "agent_decisions": {
-      "created_at": "时间"
+      "created_at": "时间",
+      "agent_id": "代理",
+      "risk_level": "风险等级",
+      "approval_status": "审批状态",
+      "execution_status": "执行状态",
+      "confidence": "置信度"
     },
     "agent_sessions": {
-      "created_at": "时间"
+      "created_at": "时间",
+      "agent_id": "代理",
+      "session_type": "会话类型",
+      "message_count": "消息数",
+      "started_at": "开始时间",
+      "ended_at": "结束时间"
     },
     "business_events": {
       "severity": "级别"
