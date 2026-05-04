@@ -118,6 +118,12 @@
 
 /* ── Sidebar scrollbar ──────────────────────────────── */
 
+.ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .erp-sider-menu-scroll::-webkit-scrollbar {
   width: 4px;
 }

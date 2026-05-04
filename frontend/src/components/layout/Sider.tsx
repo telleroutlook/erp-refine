@@ -124,7 +124,7 @@ export const Sider: React.FC = () => {
   };
 
   const renderMenu = () => (
-    <div className="erp-sider-menu-scroll" style={{ overflow: 'auto', height: 'calc(100% - var(--header-height))' }}>
+    <div className="erp-sider-menu-scroll" style={{ overflow: 'auto', flex: 1, minHeight: 0 }}>
       <Menu
         className="erp-accordion-menu"
         theme="dark"
@@ -223,6 +223,10 @@ export const Sider: React.FC = () => {
       style={{
         backgroundColor: 'var(--sider-bg)',
         borderRight: 'none',
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        overflow: 'hidden',
       }}
       collapsible
       collapsed={siderCollapsed}
