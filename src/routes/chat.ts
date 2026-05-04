@@ -7,7 +7,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import type { Env } from '../types/env';
 import { authMiddleware } from '../middleware/auth';
 import { orchestrator } from '../orchestrator/orchestrator';
-import { createAuthenticatedClient } from '../utils/supabase';
+import { createAuthenticatedClient, createServiceClient } from '../utils/supabase';
 import { buildToolSet, TOOL_REGISTRY_META } from '../tools/tool-registry';
 import { evaluatePolicy } from '../policy/policy-engine';
 import type { Message } from '../do/chat-agent-do';
@@ -121,11 +121,12 @@ chat.post('/', async (c) => {
  * (D2/D3) cannot be invoked from the streaming endpoint without policy approval.
  * Read-only tools (level 0/1) pass through immediately.
  * D2 tools: execute dry-run → save as draft → return draft card data.
+ * All tools: record execution metrics to tool_call_metrics.
  */
 function wrapToolsWithPolicy(
   tools: ReturnType<typeof buildToolSet>,
   user: { userId: string; role: string; organizationId: string },
-  opts: { db: SupabaseClient; sessionId: string; requestConfirmed?: boolean },
+  opts: { db: SupabaseClient; svcDb: SupabaseClient; sessionId: string; requestConfirmed?: boolean; waitUntil?: (p: Promise<unknown>) => void },
 ): ReturnType<typeof buildToolSet> {
   const wrapped: ReturnType<typeof buildToolSet> = {};
   for (const [name, toolDef] of Object.entries(tools)) {
@@ -133,65 +134,72 @@ function wrapToolsWithPolicy(
     const level = meta?.level ?? 0;
     const domain = meta?.domain ?? 'system';
 
-    if (level === 0 || level === 1) {
-      wrapped[name] = toolDef;
-      continue;
-    }
-
-    // D2+ tools: run policy check before delegating to the real execute
     const originalExecute = (toolDef as unknown as { execute: (args: unknown, opts: unknown) => Promise<unknown> }).execute;
-    wrapped[name] = {
-      ...toolDef,
-      execute: async (args: Record<string, unknown>, execOpts: unknown) => {
-        const policy = evaluatePolicy({
-          action: name,
-          domain,
-          userId: user.userId,
-          role: user.role,
-          organizationId: user.organizationId,
-          confirmed: opts.requestConfirmed,
-        });
-        if (policy.decision === 'deny') {
-          throw new Error(`Policy denied: ${policy.reason}`);
-        }
-        if (policy.decision === 'require_confirmation') {
-          // Execute dry-run to get preview data
-          const previewResult = await originalExecute({ ...args, confirmed: false }, execOpts);
-          const previewObj = (previewResult && typeof previewResult === 'object') ? previewResult as Record<string, unknown> : {};
 
-          // Save as draft
-          const actionType = inferActionType(name);
-          const resourceType = inferResourceType(name);
-          const summary = buildDraftSummary(name, previewObj, args);
-          const draft = await saveDraft({
-            db: opts.db,
-            organizationId: user.organizationId,
+    const wrappedExecute = async (args: Record<string, unknown>, execOpts: unknown) => {
+      const start = Date.now();
+      let success = true;
+      let errorMsg: string | undefined;
+      try {
+        if (level >= 2) {
+          const policy = evaluatePolicy({
+            action: name,
+            domain,
             userId: user.userId,
-            sessionId: opts.sessionId,
-            toolName: name,
-            toolArgs: args,
-            actionType,
-            resourceType,
-            targetId: (args.id as string) ?? undefined,
-            content: previewObj,
-            originalContent: previewObj.original ? previewObj.original as Record<string, unknown> : undefined,
-            summary,
+            role: user.role,
+            organizationId: user.organizationId,
+            confirmed: opts.requestConfirmed,
           });
+          if (policy.decision === 'deny') {
+            throw new Error(`Policy denied: ${policy.reason}`);
+          }
+          if (policy.decision === 'require_confirmation') {
+            const previewResult = await originalExecute({ ...args, confirmed: false }, execOpts);
+            const previewObj = (previewResult && typeof previewResult === 'object') ? previewResult as Record<string, unknown> : {};
+            const actionType = inferActionType(name);
+            const resourceType = inferResourceType(name);
+            const summary = buildDraftSummary(name, previewObj, args);
+            const draft = await saveDraft({
+              db: opts.db,
+              organizationId: user.organizationId,
+              userId: user.userId,
+              sessionId: opts.sessionId,
+              toolName: name,
+              toolArgs: args,
+              actionType,
+              resourceType,
+              targetId: (args.id as string) ?? undefined,
+              content: previewObj,
+              originalContent: previewObj.original ? previewObj.original as Record<string, unknown> : undefined,
+              summary,
+            });
+            return { ...previewObj, draft_id: draft.id, _draft_card: draft.summary, _draft_action_type: draft.action_type, _draft_resource_type: draft.resource_type };
+          }
+          if (policy.decision === 'require_approval') {
+            return { requiresApproval: true, toolName: name, message: `Approval required: ${policy.reason}. This action requires formal approval and cannot be self-approved.` };
+          }
+        }
+        return await originalExecute(args, execOpts);
+      } catch (err) {
+        success = false;
+        errorMsg = err instanceof Error ? err.message : String(err);
+        throw err;
+      } finally {
+        const durationMs = Date.now() - start;
+        const metricPromise = Promise.resolve(opts.svcDb.from('tool_call_metrics').insert({
+          organization_id: user.organizationId,
+          tool_name: name,
+          session_id: opts.sessionId,
+          duration_ms: durationMs,
+          success,
+          error_message: errorMsg ?? null,
+          cache_hit: false,
+        })).then(() => {});
+        if (opts.waitUntil) opts.waitUntil(metricPromise);
+      }
+    };
 
-          return {
-            ...previewObj,
-            draft_id: draft.id,
-            _draft_card: draft.summary,
-            _draft_action_type: draft.action_type,
-            _draft_resource_type: draft.resource_type,
-          };
-        }
-        if (policy.decision === 'require_approval') {
-          return { requiresApproval: true, toolName: name, message: `Approval required: ${policy.reason}. This action requires formal approval and cannot be self-approved.` };
-        }
-        return originalExecute(args, execOpts);
-      },
-    } as typeof toolDef;
+    wrapped[name] = { ...toolDef, execute: wrappedExecute } as typeof toolDef;
   }
   return wrapped;
 }
@@ -207,12 +215,32 @@ chat.post('/stream', async (c) => {
   const sessionId = body.sessionId ?? crypto.randomUUID();
   const glm = createOpenAI({ apiKey: c.env.AI_API_KEY, baseURL: c.env.AI_BASE_URL });
   const db = createAuthenticatedClient(c.env, c.req.header('Authorization')!.slice(7));
+  const svcDb = createServiceClient(c.env);
+  const waitUntil = (p: Promise<unknown>) => c.executionCtx.waitUntil(p);
   const rawTools = buildToolSet({ db, organizationId: user.organizationId, userId: user.userId, waitUntil: (p) => c.executionCtx.waitUntil(p as Promise<unknown>) });
-  const tools = wrapToolsWithPolicy(rawTools, user, { db, sessionId, requestConfirmed: body.confirmed });
+  const tools = wrapToolsWithPolicy(rawTools, user, { db, svcDb, sessionId, requestConfirmed: body.confirmed, waitUntil });
   const { messages: historyMsgs, summary } = await loadRecentHistory(c.env, user.userId, sessionId);
   const historyContext = buildHistoryContext(historyMsgs, summary);
 
+  const modelName = c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo';
   const systemPrompt = `You are an ERP assistant for organization ${user.organizationId}. You have access to tools for querying ERP data. Always be helpful and concise. Respond in the same language as the user's message.`;
+
+  // Lookup employee ID for session FK (fast single-row query)
+  const { data: empRow } = await svcDb.from('employees').select('id').eq('user_id', user.userId).eq('organization_id', user.organizationId).maybeSingle();
+
+  // Record session start (must be awaited so tool_call_metrics FK is satisfied)
+  const sessionStartTime = new Date().toISOString();
+  await svcDb.from('agent_sessions').insert({
+    id: sessionId,
+    organization_id: user.organizationId,
+    session_type: 'chat',
+    agent_id: 'stream-agent',
+    user_id: empRow?.id ?? null,
+    context: { topic: body.message.slice(0, 100) },
+    status: 'active',
+    started_at: sessionStartTime,
+    message_count: 1,
+  });
 
   // Build messages array with history as prior turns (not in system prompt)
   const historyMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
@@ -269,8 +297,8 @@ chat.post('/stream', async (c) => {
   // Persist user message
   appendMessage(c.env, c.executionCtx, user.userId, sessionId, 'user', body.message);
 
-  const { fullStream } = streamText({
-    model: glm.chat(c.env.AI_MODEL_TOOLS ?? 'GLM-5-Turbo'),
+  const streamResult = streamText({
+    model: glm.chat(modelName),
     system: systemPrompt,
     messages: compactedMessages,
     tools,
@@ -279,6 +307,7 @@ chat.post('/stream', async (c) => {
 
   const encoder = new TextEncoder();
   let assistantReply = '';
+  let messageCount = 1;
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -290,7 +319,7 @@ chat.post('/stream', async (c) => {
       };
 
       try {
-        for await (const chunk of fullStream) {
+        for await (const chunk of streamResult.fullStream) {
           if (chunk.type === 'text-delta') {
             const delta = (chunk as { type: 'text-delta'; text: string }).text;
             assistantReply += delta;
@@ -301,7 +330,6 @@ chat.post('/stream', async (c) => {
           } else if (chunk.type === 'tool-result') {
             const tr = chunk as { type: 'tool-result'; toolName: string; toolCallId: string; output?: unknown };
             enqueue('tool', { type: 'tool_end', name: tr.toolName, callId: tr.toolCallId });
-            // Emit draft card if tool result contains draft metadata
             if (tr.output && typeof tr.output === 'object') {
               const toolResult = tr.output as Record<string, unknown>;
               if (toolResult._draft_card && toolResult.draft_id) {
@@ -317,6 +345,7 @@ chat.post('/stream', async (c) => {
           } else if (chunk.type === 'start-step') {
             enqueue('step', { type: 'step_start' });
           } else if (chunk.type === 'finish-step') {
+            messageCount++;
             enqueue('step', { type: 'step_finish' });
           } else if (chunk.type === 'finish') {
             const f = chunk as { type: 'finish'; finishReason: string };
@@ -331,6 +360,30 @@ chat.post('/stream', async (c) => {
       } catch (err) {
         enqueue('error', { type: 'error', message: 'An error occurred processing your request' });
       } finally {
+        // Record session completion + token usage (fire-and-forget)
+        waitUntil(
+          Promise.resolve(streamResult.usage).then((usage) => {
+            const inputTokens = usage.inputTokens ?? 0;
+            const outputTokens = usage.outputTokens ?? 0;
+            const costEstimate = (inputTokens * 0.003 + outputTokens * 0.006) / 1000;
+            return Promise.all([
+              Promise.resolve(svcDb.from('agent_sessions').update({
+                status: 'completed',
+                ended_at: new Date().toISOString(),
+                message_count: messageCount,
+              }).eq('id', sessionId)).then(() => {}),
+              Promise.resolve(svcDb.from('token_usage').insert({
+                organization_id: user.organizationId,
+                session_id: sessionId,
+                model: modelName,
+                input_tokens: inputTokens,
+                output_tokens: outputTokens,
+                cost_estimate: costEstimate,
+                variant: 'tools',
+              })).then(() => {}),
+            ]);
+          }).catch(() => {})
+        );
         controller.close();
       }
     },

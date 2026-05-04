@@ -87,6 +87,20 @@ export class TraceContext {
           query: this.query.slice(0, 200),
         },
       });
+
+      // Record token usage if available
+      if (this.inputTokens > 0 || this.outputTokens > 0) {
+        const costEstimate = (this.inputTokens * 0.003 + this.outputTokens * 0.006) / 1000;
+        await db.from('token_usage').insert({
+          organization_id: this.organizationId,
+          session_id: this.sessionId,
+          model: this.modelUsed || 'unknown',
+          input_tokens: this.inputTokens,
+          output_tokens: this.outputTokens,
+          cost_estimate: costEstimate,
+          variant: 'tools',
+        });
+      }
     } catch (e) {
       logger.warn('trace.flush.failed', { traceId: this.traceId, error: String(e) });
     }
