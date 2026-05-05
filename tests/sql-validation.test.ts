@@ -15,6 +15,7 @@ function buildTestDb() {
 
   const migrationsDir = join(process.cwd(), 'supabase/migrations');
   const files = readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
+  const skippedMigrations: string[] = [];
 
   for (const file of files) {
     let sql = readFileSync(join(migrationsDir, file), 'utf-8');
@@ -54,20 +55,24 @@ function buildTestDb() {
 
     try {
       db.exec(sql);
-    } catch {
-      // Some migrations may fail due to PG-specific syntax — that's OK for column name testing
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      skippedMigrations.push(`${file}: ${msg}`);
     }
   }
 
-  return db;
+  return { db, skippedMigrations };
 }
 
 describe('SQL Schema Validation', () => {
-  let db: ReturnType<typeof buildTestDb> | null = null;
+  let db: Database.Database | null = null;
   let dbBuildError: unknown = null;
+  let skippedMigrations: string[] = [];
 
   try {
-    db = buildTestDb();
+    const result = buildTestDb();
+    db = result.db;
+    skippedMigrations = result.skippedMigrations;
   } catch (e) {
     dbBuildError = e;
   }
@@ -81,41 +86,50 @@ describe('SQL Schema Validation', () => {
     });
   });
 
+  it('SQLite test DB should build without critical errors', () => {
+    if (!db) {
+      expect.fail(`SQLite DB build failed entirely: ${dbBuildError}`);
+    }
+    if (skippedMigrations.length > 0) {
+      console.warn(`[sql-validation] ${skippedMigrations.length} migrations skipped in SQLite:\n  ${skippedMigrations.join('\n  ')}`);
+    }
+  });
+
   it('purchase_orders should use order_number not po_no', () => {
     if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
-    try {
-      const tableInfo = db.pragma('table_info(purchase_orders)') as Array<{ name: string }>;
-      const columns = tableInfo.map((c) => c.name);
-      expect(columns).toContain('order_number');
-      expect(columns).not.toContain('po_no');
-    } catch {
-      // Table might not exist in SQLite due to PG-specific syntax — skip
+    const tableInfo = db.pragma('table_info(purchase_orders)') as Array<{ name: string }>;
+    if (tableInfo.length === 0) {
+      console.warn('[sql-validation] purchase_orders table not created in SQLite — skipping column check');
+      return;
     }
+    const columns = tableInfo.map((c) => c.name);
+    expect(columns).toContain('order_number');
+    expect(columns).not.toContain('po_no');
   });
 
   it('sales_invoices should use invoice_number not invoice_no', () => {
     if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
-    try {
-      const tableInfo = db.pragma('table_info(sales_invoices)') as Array<{ name: string }>;
-      const columns = tableInfo.map((c) => c.name);
-      expect(columns).toContain('invoice_number');
-      expect(columns).not.toContain('invoice_no');
-    } catch {
-      // Skip if table not accessible
+    const tableInfo = db.pragma('table_info(sales_invoices)') as Array<{ name: string }>;
+    if (tableInfo.length === 0) {
+      console.warn('[sql-validation] sales_invoices table not created in SQLite — skipping column check');
+      return;
     }
+    const columns = tableInfo.map((c) => c.name);
+    expect(columns).toContain('invoice_number');
+    expect(columns).not.toContain('invoice_no');
   });
 
   it('payment_requests should have ok_to_pay boolean column', () => {
     if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
-    try {
-      const tableInfo = db.pragma('table_info(payment_requests)') as Array<{ name: string; type: string }>;
-      const columns = tableInfo.map((c) => c.name);
-      expect(columns).toContain('ok_to_pay');
-      expect(columns).toContain('currency');
-      expect(columns).toContain('request_number');
-    } catch {
-      // Skip
+    const tableInfo = db.pragma('table_info(payment_requests)') as Array<{ name: string; type: string }>;
+    if (tableInfo.length === 0) {
+      console.warn('[sql-validation] payment_requests table not created in SQLite — skipping column check');
+      return;
     }
+    const columns = tableInfo.map((c) => c.name);
+    expect(columns).toContain('ok_to_pay');
+    expect(columns).toContain('currency');
+    expect(columns).toContain('request_number');
   });
 
   it('all business tables should have organization_id', () => {
@@ -126,17 +140,24 @@ describe('SQL Schema Validation', () => {
 
     if (!db) { expect.fail(`SQLite DB build failed: ${dbBuildError}`); return; }
 
+    const missingOrgId: string[] = [];
+    const notAccessible: string[] = [];
+
     for (const table of businessTables) {
-      try {
-        const tableInfo = db.pragma(`table_info(${table})`) as Array<{ name: string }>;
-        if (tableInfo.length === 0) continue; // Table not accessible
-        const columns = tableInfo.map((c) => c.name);
-        expect(columns).toContain('organization_id');
-        expect(columns).not.toContain('tenant_id');
-      } catch {
-        // Skip
+      const tableInfo = db.pragma(`table_info(${table})`) as Array<{ name: string }>;
+      if (tableInfo.length === 0) {
+        notAccessible.push(table);
+        continue;
       }
+      const columns = tableInfo.map((c) => c.name);
+      if (!columns.includes('organization_id')) missingOrgId.push(table);
+      expect(columns).not.toContain('tenant_id');
     }
+
+    if (notAccessible.length > 0) {
+      console.warn(`[sql-validation] Tables not accessible in SQLite: ${notAccessible.join(', ')}`);
+    }
+    expect(missingOrgId).toEqual([]);
   });
 });
 

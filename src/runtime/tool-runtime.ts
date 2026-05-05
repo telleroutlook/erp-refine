@@ -52,8 +52,8 @@ function evictStaleBreakers(): void {
   }
 }
 
-function getBreaker(toolName: string, organizationId: string): CircuitBreaker {
-  const key = `${toolName}:${organizationId}`;
+function getBreaker(toolName: string, organizationId: string, userId: string): CircuitBreaker {
+  const key = `${toolName}:${organizationId}:${userId}`;
   const existing = breakers.get(key);
   if (existing) {
     existing.lastAccess = Date.now();
@@ -109,7 +109,7 @@ export async function executeTool<T>(
     }
   }
 
-  const breaker = getBreaker(toolName, organizationId);
+  const breaker = getBreaker(toolName, organizationId, userId);
   const start = Date.now();
   let attempts = 0;
 

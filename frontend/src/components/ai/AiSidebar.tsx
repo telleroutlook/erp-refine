@@ -43,6 +43,8 @@ interface AiSidebarProps {
 }
 
 export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
+  const MAX_VISIBLE_MESSAGES = 50;
+
   const { token } = theme.useToken();
   const { t } = useTranslation();
   const { mutate: logout } = useLogout();
@@ -88,7 +90,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     if (!text.trim() || streaming) return;
     userScrolledUpRef.current = false;
     setInput('');
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text, timestamp: new Date() }]);
+    setMessages((prev) => {
+      const next = [...prev, { id: crypto.randomUUID(), role: 'user' as const, content: text, timestamp: new Date() }];
+      return next.length > MAX_VISIBLE_MESSAGES ? next.slice(-MAX_VISIBLE_MESSAGES) : next;
+    });
     setStreaming(true);
     setStreamingText('');
     setActiveTools([]);
@@ -174,23 +179,29 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
         if (streamEnded) break;
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: accText || `(${t('ai.networkError')})`,
-          timestamp: new Date(),
-          toolEvents: toolEventsForMsg.length > 0 ? [...toolEventsForMsg] : undefined,
-          draftCards: draftCardsForMsg.length > 0 ? [...draftCardsForMsg] : undefined,
-        },
-      ]);
+      setMessages((prev) => {
+        const next = [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant' as const,
+            content: accText || `(${t('ai.networkError')})`,
+            timestamp: new Date(),
+            toolEvents: toolEventsForMsg.length > 0 ? [...toolEventsForMsg] : undefined,
+            draftCards: draftCardsForMsg.length > 0 ? [...draftCardsForMsg] : undefined,
+          },
+        ];
+        return next.length > MAX_VISIBLE_MESSAGES ? next.slice(-MAX_VISIBLE_MESSAGES) : next;
+      });
     } catch (err: unknown) {
       if ((err as Error).name !== 'AbortError') {
-        setMessages((prev) => [
-          ...prev,
-          { id: crypto.randomUUID(), role: 'assistant', content: t('ai.networkError'), timestamp: new Date() },
-        ]);
+        setMessages((prev) => {
+          const next = [
+            ...prev,
+            { id: crypto.randomUUID(), role: 'assistant' as const, content: t('ai.networkError'), timestamp: new Date() },
+          ];
+          return next.length > MAX_VISIBLE_MESSAGES ? next.slice(-MAX_VISIBLE_MESSAGES) : next;
+        });
       }
     } finally {
       setStreaming(false);
