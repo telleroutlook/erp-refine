@@ -8,9 +8,12 @@ interface ActiveStatusTagProps {
 
 export const ActiveStatusTag: React.FC<ActiveStatusTagProps> = ({ value }) => {
   const { t } = useTranslation();
+  if (value === null || value === undefined) {
+    return <Tag>{t('status.unknown')}</Tag>;
+  }
   return (
-    <Tag color={value !== false ? 'green' : 'default'}>
-      {value !== false ? t('status.active') : t('status.inactive')}
+    <Tag color={value ? 'green' : 'default'}>
+      {value ? t('status.active') : t('status.inactive')}
     </Tag>
   );
 };

@@ -534,6 +534,7 @@
     "in_stock": "在库",
     "returned": "已退回",
     "inactive": "停用",
+    "unknown": "未知",
     "suspended": "暂停",
     "partially_received": "部分收货",
     "partially_shipped": "部分发货",
@@ -922,7 +923,13 @@
       "loadingDraft": "加载草稿详情...",
       "cardAmount": "金额",
       "cardItems": "{{count}} 项明细",
-      "cardFields": "关键字段"
+      "cardFields": "关键字段",
+      "loadFailed": "加载草稿失败",
+      "discardSuccess": "草稿已放弃",
+      "discardFailed": "放弃草稿失败",
+      "renewFailed": "延长有效期失败",
+      "updateFailed": "更新草稿失败",
+      "subtitle": "企业智能助手"
     }
   },
   "layout": {

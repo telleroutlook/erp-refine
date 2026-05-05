@@ -1,8 +1,9 @@
 // frontend/src/hooks/useDraft.ts
 // Hook for managing a single AI draft — fetch, commit, discard, renew, update
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNotification, useInvalidate } from '@refinedev/core';
+import { useTranslation } from 'react-i18next';
 import { API_URL } from '../constants/api';
 import { getAuthHeaders } from '../providers/token';
 
@@ -53,7 +54,12 @@ export function useDraft(draftId: string | null) {
   const [draft, setDraft] = useState<DraftFull | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { open: notify } = useNotification();
+  const { t } = useTranslation();
   const invalidate = useInvalidate();
+  const tRef = useRef(t);
+  tRef.current = t;
+  const notifyRef = useRef(notify);
+  notifyRef.current = notify;
 
   const fetchDraft = useCallback(async (id: string) => {
     setIsLoading(true);
@@ -63,13 +69,13 @@ export function useDraft(draftId: string | null) {
       const { data } = await res.json();
       setDraft(data);
       return data as DraftFull;
-    } catch (err) {
-      notify?.({ type: 'error', message: 'Failed to load draft' });
+    } catch {
+      notifyRef.current?.({ type: 'error', message: tRef.current('ai.draft.loadFailed') });
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [notify]);
+  }, []);
 
   const commit = useCallback(async (contentOverride?: Record<string, unknown>): Promise<CommitResult | null> => {
     if (!draftId) return null;
@@ -86,16 +92,16 @@ export function useDraft(draftId: string | null) {
       }
       const { data } = await res.json();
       setDraft((prev) => prev ? { ...prev, status: 'committed' } : null);
-      notify?.({ type: 'success', message: 'Draft committed successfully' });
+      notifyRef.current?.({ type: 'success', message: tRef.current('ai.draft.commitSuccess') });
       invalidate({ resource: data.resourceType, invalidates: ['list', 'detail'] });
       return data as CommitResult;
     } catch (err) {
-      notify?.({ type: 'error', message: `Commit failed: ${(err as Error).message}` });
+      notifyRef.current?.({ type: 'error', message: tRef.current('ai.draft.commitFailed', { error: (err as Error).message }) });
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [draftId, notify, invalidate]);
+  }, [draftId, invalidate]);
 
   const discard = useCallback(async () => {
     if (!draftId) return;
@@ -107,13 +113,13 @@ export function useDraft(draftId: string | null) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDraft((prev) => prev ? { ...prev, status: 'discarded' } : null);
-      notify?.({ type: 'success', message: 'Draft discarded' });
+      notifyRef.current?.({ type: 'success', message: tRef.current('ai.draft.discardSuccess') });
     } catch {
-      notify?.({ type: 'error', message: 'Failed to discard draft' });
+      notifyRef.current?.({ type: 'error', message: tRef.current('ai.draft.discardFailed') });
     } finally {
       setIsLoading(false);
     }
-  }, [draftId, notify]);
+  }, [draftId]);
 
   const renew = useCallback(async () => {
     if (!draftId) return;
@@ -125,11 +131,11 @@ export function useDraft(draftId: string | null) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { data } = await res.json();
       setDraft((prev) => prev ? { ...prev, expires_at: data.expires_at, renewed_count: data.renewed_count } : null);
-      notify?.({ type: 'success', message: 'Draft renewed for 24 hours' });
+      notifyRef.current?.({ type: 'success', message: tRef.current('ai.draft.renewed') });
     } catch {
-      notify?.({ type: 'error', message: 'Failed to renew draft' });
+      notifyRef.current?.({ type: 'error', message: tRef.current('ai.draft.renewFailed') });
     }
-  }, [draftId, notify]);
+  }, [draftId]);
 
   const update = useCallback(async (content: Record<string, unknown>) => {
     if (!draftId) return;
@@ -143,9 +149,9 @@ export function useDraft(draftId: string | null) {
       const { data } = await res.json();
       setDraft((prev) => prev ? { ...prev, content: data.content, updated_at: data.updated_at } : null);
     } catch {
-      notify?.({ type: 'error', message: 'Failed to update draft' });
+      notifyRef.current?.({ type: 'error', message: tRef.current('ai.draft.updateFailed') });
     }
-  }, [draftId, notify]);
+  }, [draftId]);
 
   return { draft, isLoading, fetchDraft, commit, discard, renew, update };
 }

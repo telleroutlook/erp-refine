@@ -50,6 +50,7 @@ drafts.get('/:id', async (c) => {
     .select('*')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
+    .eq('created_by', user.userId)
     .is('deleted_at', null)
     .single();
 

@@ -61,6 +61,18 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [changeSeq, setChangeSeq] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevItemsRef = useRef(items);
+
+  useEffect(() => {
+    if (prevItemsRef.current !== items) {
+      prevItemsRef.current = items;
+      setEdits({});
+      setNewRows([]);
+      setDeletedIds(new Set());
+      setChangeSeq(0);
+      tempSeqRef.current = 0;
+    }
+  }, [items]);
 
   const isDirty = Object.keys(edits).length > 0 || newRows.length > 0 || deletedIds.size > 0;
   const isDirtyRef = useRef(isDirty);

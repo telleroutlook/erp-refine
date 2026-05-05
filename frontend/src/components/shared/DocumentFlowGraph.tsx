@@ -73,6 +73,8 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
       setNodes(result.nodes);
       setEdges(result.edges);
       requestAnimationFrame(() => fitView({ padding: 0.2, duration: 300 }));
+    }).catch(() => {
+      // Layout failure (e.g. empty graph, WASM init) — render nodes without positions
     });
   }, [chain, rfEdges, setNodes, setEdges, fitView]);
 

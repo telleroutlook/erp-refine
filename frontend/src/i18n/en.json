@@ -534,6 +534,7 @@
     "in_stock": "In Stock",
     "returned": "Returned",
     "inactive": "Inactive",
+    "unknown": "Unknown",
     "suspended": "Suspended",
     "partially_received": "Partially Received",
     "partially_shipped": "Partially Shipped",
@@ -922,7 +923,13 @@
       "loadingDraft": "Loading draft details...",
       "cardAmount": "Amount",
       "cardItems": "{{count}} items",
-      "cardFields": "Key Fields"
+      "cardFields": "Key Fields",
+      "loadFailed": "Failed to load draft",
+      "discardSuccess": "Draft discarded",
+      "discardFailed": "Failed to discard draft",
+      "renewFailed": "Failed to renew draft",
+      "updateFailed": "Failed to update draft",
+      "subtitle": "Enterprise Intelligence"
     }
   },
   "layout": {

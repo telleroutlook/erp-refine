@@ -38,12 +38,14 @@ export const PurchaseOrderList: React.FC = () => {
       key: 'createReceipt',
       label: t('buttons.createPurchaseReceipt'),
       icon: <InboxOutlined />,
+      disabled: selectedRowKeys.length !== 1,
       onClick: () => { if (selectedRowKeys.length === 1) push(`/procurement/purchase-receipts/create?createFrom=purchase-order&sourceId=${selectedRowKeys[0]}`); },
     },
     {
       key: 'createInvoice',
       label: t('buttons.createSupplierInvoice'),
       icon: <FileTextOutlined />,
+      disabled: selectedRowKeys.length !== 1,
       onClick: () => { if (selectedRowKeys.length === 1) push(`/finance/supplier-invoices/create?createFrom=purchase-order&sourceId=${selectedRowKeys[0]}`); },
     },
   ];

@@ -249,7 +249,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, minWidth: 0 }}>
             <Text strong style={{ color: 'var(--sider-text-active)', fontSize: 14 }}>{t('ai.assistant')}</Text>
-            <Text style={{ color: 'var(--ai-subtitle-color)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Enterprise Intelligence</Text>
+            <Text style={{ color: 'var(--ai-subtitle-color)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('ai.draft.subtitle')}</Text>
           </div>
         </div>
         <Tooltip title={t('ai.clearChat')}>
