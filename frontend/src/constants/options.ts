@@ -227,6 +227,16 @@ export const PRICE_LIST_STATUS_OPTIONS = [
   { value: 'inactive' },
 ];
 
+export const PRICE_TYPE_OPTIONS = [
+  { value: 'sales' },
+  { value: 'purchase' },
+];
+
+export const PARTNER_TYPE_OPTIONS = [
+  { value: 'customer' },
+  { value: 'supplier' },
+];
+
 export const CUSTOMER_RECEIPT_STATUS_OPTIONS = [
   { value: 'draft' },
   { value: 'confirmed' },

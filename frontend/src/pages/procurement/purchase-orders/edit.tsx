@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm, Edit } from '@refinedev/antd';
 import { Form, Input, DatePicker, Select, InputNumber, Row, Col } from 'antd';
 import { FULL_WIDTH, dateFormItemProps } from '../../../constants/styles';
@@ -6,7 +6,7 @@ import { PO_STATUS_OPTIONS, CURRENCY_OPTIONS, translateOptions } from '../../../
 import { AmountDisplay } from '../../../components/shared/AmountDisplay';
 import { EditableItemTable, type ColumnConfig, type ItemsPayload } from '../../../components/shared/EditableItemTable';
 import { useTranslation } from 'react-i18next';
-import { useFieldLabel, usePageTitle, useProductSearch } from '../../../hooks';
+import { useFieldLabel, usePageTitle, useProductSearch, usePriceResolver } from '../../../hooks';
 
 export const PurchaseOrderEdit: React.FC = () => {
   const { formProps, saveButtonProps, queryResult, onFinish } = useForm({ resource: 'purchase-orders' });
@@ -15,9 +15,23 @@ export const PurchaseOrderEdit: React.FC = () => {
   const pt = usePageTitle();
   const record = queryResult?.data?.data as any;
   const { selectProps: productSelectProps, productsMap } = useProductSearch();
+  const { resolvePrice } = usePriceResolver();
 
   const [itemsPayload, setItemsPayload] = useState<ItemsPayload>({ upsert: [], delete: [] });
   const handleFinish = async (values: any) => onFinish({ ...values, items: itemsPayload });
+
+  const handleResolvePrice = useCallback(async (productId: string) => {
+    const result = await resolvePrice({
+      product_id: productId,
+      price_type: 'purchase',
+      partner_id: record?.supplier_id,
+      partner_type: 'supplier',
+      quantity: 1,
+      date: record?.order_date,
+    });
+    if (!result || !result.found) return null;
+    return { unit_price: result.unit_price, discount_rate: result.discount_rate, source: result.source };
+  }, [resolvePrice, record?.supplier_id, record?.order_date]);
 
   const itemColumns: ColumnConfig[] = [
     { dataIndex: 'line_number', title: fl('purchase_order_items', 'line_number'), width: 60 },
@@ -43,7 +57,7 @@ export const PurchaseOrderEdit: React.FC = () => {
           <Col span={24}><Form.Item label={t('common.notes')} name="notes"><Input.TextArea rows={3} /></Form.Item></Col>
         </Row>
       </Form>
-      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={t('sections.orderLines')} onChange={setItemsPayload} productsMap={productsMap} priceField="cost_price" />
+      <EditableItemTable items={record?.items ?? []} columns={itemColumns} title={t('sections.orderLines')} onChange={setItemsPayload} productsMap={productsMap} priceField="cost_price" onResolvePrice={handleResolvePrice} />
     </Edit>
   );
 };

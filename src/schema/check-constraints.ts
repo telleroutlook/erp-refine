@@ -68,6 +68,8 @@ export const CHECK_CONSTRAINTS: CheckConstraint[] = [
   { table: 'payment_requests', column: 'status', values: ['draft', 'submitted', 'approved', 'paid', 'rejected', 'cancelled'] },
   { table: 'portal_users', column: 'role', values: ['supplier', 'supplier_admin'] },
   { table: 'portal_users', column: 'status', values: ['active', 'inactive', 'suspended'] },
+  { table: 'price_lists', column: 'partner_type', values: ['customer', 'supplier'] },
+  { table: 'price_lists', column: 'price_type', values: ['sales', 'purchase'] },
   { table: 'price_lists', column: 'status', values: ['active', 'inactive', 'draft'] },
   { table: 'product_cost_history', column: 'cost_method', values: ['weighted_average', 'fifo', 'standard'] },
   { table: 'product_cost_history', column: 'reference_type', values: ['purchase_receipt', 'sales_shipment', 'work_order', 'adjustment', 'inventory_count', 'initial', 'return', 'sales_return', 'transfer'] },

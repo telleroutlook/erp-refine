@@ -221,6 +221,10 @@ const PriceListList = loadable(() => import('./pages/master-data/price-lists/lis
 const PriceListShow = loadable(() => import('./pages/master-data/price-lists/show').then((m) => ({ default: m.PriceListShow })));
 const PriceListCreate = loadable(() => import('./pages/master-data/price-lists/create').then((m) => ({ default: m.PriceListCreate })));
 const PriceListEdit = loadable(() => import('./pages/master-data/price-lists/edit').then((m) => ({ default: m.PriceListEdit })));
+const ProductUomConversionList = loadable(() => import('./pages/master-data/product-uom-conversions/list').then((m) => ({ default: m.ProductUomConversionList })));
+const ProductUomConversionCreate = loadable(() => import('./pages/master-data/product-uom-conversions/create').then((m) => ({ default: m.ProductUomConversionCreate })));
+const ProductUomConversionEdit = loadable(() => import('./pages/master-data/product-uom-conversions/edit').then((m) => ({ default: m.ProductUomConversionEdit })));
+const ProductUomConversionShow = loadable(() => import('./pages/master-data/product-uom-conversions/show').then((m) => ({ default: m.ProductUomConversionShow })));
 const CurrencyList = loadable(() => import('./pages/master-data/currencies/list').then((m) => ({ default: m.CurrencyList })));
 const CurrencyShow = loadable(() => import('./pages/master-data/currencies/show').then((m) => ({ default: m.CurrencyShow })));
 const UomList = loadable(() => import('./pages/master-data/uoms/list').then((m) => ({ default: m.UomList })));
@@ -726,6 +730,14 @@ const App: React.FC = () => {
                 meta: { parent: 'masterData', icon: <DatabaseOutlined /> },
               },
               {
+                name: 'product-uom-conversions',
+                list: '/master-data/product-uom-conversions',
+                show: '/master-data/product-uom-conversions/:id',
+                edit: '/master-data/product-uom-conversions/:id/edit',
+                create: '/master-data/product-uom-conversions/create',
+                meta: { parent: 'masterData', icon: <DatabaseOutlined /> },
+              },
+              {
                 name: 'currencies',
                 list: '/master-data/currencies',
                 show: '/master-data/currencies/:id',
@@ -1105,6 +1117,10 @@ const App: React.FC = () => {
                   <Route path="/master-data/price-lists/create" element={<PriceListCreate />} />
                   <Route path="/master-data/price-lists/:id" element={<PriceListShow />} />
                   <Route path="/master-data/price-lists/:id/edit" element={<PriceListEdit />} />
+                  <Route path="/master-data/product-uom-conversions" element={<ProductUomConversionList />} />
+                  <Route path="/master-data/product-uom-conversions/create" element={<ProductUomConversionCreate />} />
+                  <Route path="/master-data/product-uom-conversions/:id" element={<ProductUomConversionShow />} />
+                  <Route path="/master-data/product-uom-conversions/:id/edit" element={<ProductUomConversionEdit />} />
                   <Route path="/master-data/currencies" element={<CurrencyList />} />
                   <Route path="/master-data/currencies/:id" element={<CurrencyShow />} />
                   <Route path="/master-data/uoms" element={<UomList />} />

@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useFieldLabel } from '../../../hooks';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { ListFilters, type FilterFieldConfig } from '../../../components/shared/ListFilters';
-import { PRICE_LIST_STATUS_OPTIONS, translateOptions } from '../../../constants/options';
+import { PRICE_LIST_STATUS_OPTIONS, PRICE_TYPE_OPTIONS, translateOptions } from '../../../constants/options';
 
 export const PriceListList: React.FC = () => {
   const { t } = useTranslation();
@@ -24,6 +24,7 @@ export const PriceListList: React.FC = () => {
   const filterConfig: FilterFieldConfig[] = [
     { type: 'search', field: 'name', label: t('filters.name') },
     { type: 'status', field: 'status', label: t('filters.status'), options: translateOptions(PRICE_LIST_STATUS_OPTIONS, t) },
+    { type: 'status', field: 'price_type', label: fl('price_lists', 'price_type'), options: translateOptions(PRICE_TYPE_OPTIONS, t) },
   ];
 
   return (
@@ -39,34 +40,41 @@ export const PriceListList: React.FC = () => {
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="code" title={fl('price_lists', 'code')} width={120} />
         <Table.Column dataIndex="name" title={fl('price_lists', 'name')} />
-        <Table.Column dataIndex="currency" title={fl('price_lists', 'currency')} />
+        <Table.Column
+          dataIndex="price_type"
+          title={fl('price_lists', 'price_type')}
+          width={100}
+          render={(v) => <Tag color={v === 'sales' ? 'blue' : 'orange'}>{t(`enums.price_type.${v}`)}</Tag>}
+        />
+        <Table.Column dataIndex="currency" title={fl('price_lists', 'currency')} width={80} />
+        <Table.Column dataIndex="priority" title={fl('price_lists', 'priority')} width={70} align="center" />
         <Table.Column
           dataIndex="effective_from"
           title={fl('price_lists', 'effective_from')}
-          width={120}
+          width={110}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
           dataIndex="effective_to"
           title={fl('price_lists', 'effective_to')}
-          width={120}
+          width={110}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />
         <Table.Column
-          dataIndex="is_default"
-          title={fl('price_lists', 'is_default')}
-          width={80}
-          render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
+          dataIndex="partner_type"
+          title={fl('price_lists', 'partner_type')}
+          width={100}
+          render={(v) => v ? t(`enums.partner_type.${v}`) : t('common.general')}
         />
         <Table.Column
           dataIndex="status"
           title={t('common.status')}
-          width={100}
+          width={90}
           render={(status) => <StatusTag status={status} />}
         />
         <Table.Column
           title={t('common.actions')}
-          width={120}
+          width={100}
           render={(_, record: any) => (
             <Space>
               <Button size="small" icon={<EyeOutlined />} onClick={() => show('price-lists', record.id)} />

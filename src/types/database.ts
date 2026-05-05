@@ -773,13 +773,6 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "auth_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "portal_users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       bom_headers: {
@@ -1631,6 +1624,7 @@ export type Database = {
           created_by: string | null
           credit_limit: number | null
           default_address_id: string | null
+          default_price_list_id: string | null
           deleted_at: string | null
           email: string | null
           id: string
@@ -1652,6 +1646,7 @@ export type Database = {
           created_by?: string | null
           credit_limit?: number | null
           default_address_id?: string | null
+          default_price_list_id?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
@@ -1673,6 +1668,7 @@ export type Database = {
           created_by?: string | null
           credit_limit?: number | null
           default_address_id?: string | null
+          default_price_list_id?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
@@ -1692,6 +1688,13 @@ export type Database = {
             columns: ["default_address_id"]
             isOneToOne: false
             referencedRelation: "customer_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_default_price_list_id_fkey"
+            columns: ["default_price_list_id"]
+            isOneToOne: false
+            referencedRelation: "price_lists"
             referencedColumns: ["id"]
           },
           {
@@ -3081,6 +3084,7 @@ export type Database = {
           price_list_id: string
           product_id: string
           unit_price: number
+          uom_id: string | null
         }
         Insert: {
           created_at?: string
@@ -3093,6 +3097,7 @@ export type Database = {
           price_list_id: string
           product_id: string
           unit_price: number
+          uom_id?: string | null
         }
         Update: {
           created_at?: string
@@ -3105,6 +3110,7 @@ export type Database = {
           price_list_id?: string
           product_id?: string
           unit_price?: number
+          uom_id?: string | null
         }
         Relationships: [
           {
@@ -3121,6 +3127,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "price_list_lines_uom_id_fkey"
+            columns: ["uom_id"]
+            isOneToOne: false
+            referencedRelation: "uoms"
+            referencedColumns: ["id"]
+          },
         ]
       }
       price_lists: {
@@ -3129,12 +3142,17 @@ export type Database = {
           created_at: string
           currency: string
           deleted_at: string | null
+          description: string | null
           effective_from: string | null
           effective_to: string | null
           id: string
           is_default: boolean
           name: string
           organization_id: string
+          partner_id: string | null
+          partner_type: string | null
+          price_type: string
+          priority: number
           status: string
           updated_at: string
         }
@@ -3143,12 +3161,17 @@ export type Database = {
           created_at?: string
           currency?: string
           deleted_at?: string | null
+          description?: string | null
           effective_from?: string | null
           effective_to?: string | null
           id?: string
           is_default?: boolean
           name: string
           organization_id: string
+          partner_id?: string | null
+          partner_type?: string | null
+          price_type?: string
+          priority?: number
           status?: string
           updated_at?: string
         }
@@ -3157,12 +3180,17 @@ export type Database = {
           created_at?: string
           currency?: string
           deleted_at?: string | null
+          description?: string | null
           effective_from?: string | null
           effective_to?: string | null
           id?: string
           is_default?: boolean
           name?: string
           organization_id?: string
+          partner_id?: string | null
+          partner_type?: string | null
+          price_type?: string
+          priority?: number
           status?: string
           updated_at?: string
         }
@@ -3287,6 +3315,74 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_uom_conversions: {
+        Row: {
+          conversion_factor: number
+          created_at: string
+          deleted_at: string | null
+          from_uom_id: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          product_id: string | null
+          to_uom_id: string
+          updated_at: string
+        }
+        Insert: {
+          conversion_factor: number
+          created_at?: string
+          deleted_at?: string | null
+          from_uom_id: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          product_id?: string | null
+          to_uom_id: string
+          updated_at?: string
+        }
+        Update: {
+          conversion_factor?: number
+          created_at?: string
+          deleted_at?: string | null
+          from_uom_id?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          product_id?: string | null
+          to_uom_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_uom_conversions_from_uom_id_fkey"
+            columns: ["from_uom_id"]
+            isOneToOne: false
+            referencedRelation: "uoms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_uom_conversions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_uom_conversions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_uom_conversions_to_uom_id_fkey"
+            columns: ["to_uom_id"]
+            isOneToOne: false
+            referencedRelation: "uoms"
             referencedColumns: ["id"]
           },
         ]
@@ -6412,6 +6508,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           currency: string
+          default_price_list_id: string | null
           default_site_id: string | null
           deleted_at: string | null
           id: string
@@ -6436,6 +6533,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string
+          default_price_list_id?: string | null
           default_site_id?: string | null
           deleted_at?: string | null
           id?: string
@@ -6460,6 +6558,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string
+          default_price_list_id?: string | null
           default_site_id?: string | null
           deleted_at?: string | null
           id?: string
@@ -6483,6 +6582,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["currency_code"]
+          },
+          {
+            foreignKeyName: "suppliers_default_price_list_id_fkey"
+            columns: ["default_price_list_id"]
+            isOneToOne: false
+            referencedRelation: "price_lists"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "suppliers_default_site_id_fkey"
@@ -7538,31 +7644,56 @@ export type Database = {
       }
     }
     Functions: {
-      adjust_stock: {
-        Args: {
-          p_org_id: string
-          p_product_id: string
-          p_qty_delta: number
-          p_reserved_delta?: number
-          p_warehouse_id: string
-        }
-        Returns: {
-          available_quantity: number | null
-          id: string
-          organization_id: string
-          product_id: string
-          quantity: number
-          reserved_quantity: number
-          updated_at: string
-          warehouse_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "stock_records"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      adjust_stock:
+        | {
+            Args: {
+              p_org_id: string
+              p_product_id: string
+              p_qty_delta: number
+              p_reserved_delta?: number
+              p_warehouse_id: string
+            }
+            Returns: {
+              available_quantity: number | null
+              id: string
+              organization_id: string
+              product_id: string
+              quantity: number
+              reserved_quantity: number
+              updated_at: string
+              warehouse_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "stock_records"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_delta: number
+              p_organization_id: string
+              p_product_id: string
+              p_warehouse_id: string
+            }
+            Returns: {
+              available_quantity: number | null
+              id: string
+              organization_id: string
+              product_id: string
+              quantity: number
+              reserved_quantity: number
+              updated_at: string
+              warehouse_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "stock_records"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       apply_updated_at_trigger: {
         Args: { table_name: string }
         Returns: undefined
@@ -7580,7 +7711,35 @@ export type Database = {
         }
         Returns: Json
       }
+      atomic_update_with_items: {
+        Args: {
+          p_auto_line_number?: boolean
+          p_auto_sum_expr?: string
+          p_auto_sum_field?: string
+          p_header_data: Json
+          p_header_fk: string
+          p_header_id: string
+          p_header_return_select?: string
+          p_header_table: string
+          p_items_delete: string[]
+          p_items_return_select?: string
+          p_items_table: string
+          p_items_upsert: Json
+          p_organization_id: string
+          p_soft_delete_header?: boolean
+          p_soft_delete_items?: boolean
+        }
+        Returns: Json
+      }
       cleanup_expired_drafts: { Args: never; Returns: number }
+      confirm_purchase_receipt: {
+        Args: { p_org_id: string; p_receipt_id: string; p_user_id: string }
+        Returns: Json
+      }
+      confirm_sales_shipment: {
+        Args: { p_org_id: string; p_shipment_id: string; p_user_id: string }
+        Returns: Json
+      }
       debug_exec_command: {
         Args: { command_params?: string; command_text: string }
         Returns: string
@@ -7594,10 +7753,15 @@ export type Database = {
         Returns: Json
       }
       exec_transaction: { Args: { statements: string }; Returns: undefined }
-      get_next_sequence: {
-        Args: { p_organization_id: string; p_sequence_name: string }
-        Returns: string
-      }
+      get_next_sequence:
+        | {
+            Args: { p_entity_type?: string; p_org_id: string; p_prefix: string }
+            Returns: string
+          }
+        | {
+            Args: { p_organization_id: string; p_sequence_name: string }
+            Returns: string
+          }
       get_next_sequence_batch: {
         Args: {
           p_count: number
@@ -7638,6 +7802,14 @@ export type Database = {
       }
       get_user_org_id: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
+      increment_completed_qty: {
+        Args: {
+          p_delta: number
+          p_organization_id: string
+          p_work_order_id: string
+        }
+        Returns: undefined
+      }
       increment_po_received_qty: {
         Args: { p_poi_id: string; p_qty: number }
         Returns: undefined
@@ -7664,6 +7836,24 @@ export type Database = {
         Returns: string
       }
       purge_old_drafts: { Args: never; Returns: number }
+      receive_sales_return: {
+        Args: { p_org_id: string; p_return_id: string; p_user_id: string }
+        Returns: Json
+      }
+      resolve_price: {
+        Args: {
+          p_currency?: string
+          p_date?: string
+          p_organization_id: string
+          p_partner_id?: string
+          p_partner_type?: string
+          p_price_type: string
+          p_product_id: string
+          p_quantity?: number
+          p_uom_id?: string
+        }
+        Returns: Json
+      }
       rpc_inventory_valuation: {
         Args: { p_org_id: string; p_warehouse_id?: string }
         Returns: {
@@ -7717,7 +7907,22 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      transfer_stock: {
+        Args: {
+          p_from_warehouse_id: string
+          p_notes?: string
+          p_organization_id: string
+          p_product_id: string
+          p_quantity: number
+          p_to_warehouse_id: string
+        }
+        Returns: Json
+      }
       unaccent: { Args: { "": string }; Returns: string }
+      update_invoice_payment_status: {
+        Args: { p_invoice_id: string; p_organization_id: string }
+        Returns: Json
+      }
       update_po_status_from_items: {
         Args: { p_org_id: string; p_po_id: string }
         Returns: string

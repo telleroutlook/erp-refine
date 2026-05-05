@@ -9,3 +9,5 @@ export type { CreateFromData, CreateFromSource, UseCreateFromResult } from './us
 export { useDocumentChain } from './useDocumentChain';
 export type { DocumentChain, ChainNode, ChainEdge } from './useDocumentChain';
 export { useProductSearch } from './useProductSearch';
+export { usePriceResolver } from './usePriceResolver';
+export type { PriceResolveParams, PriceResolveResult } from './usePriceResolver';

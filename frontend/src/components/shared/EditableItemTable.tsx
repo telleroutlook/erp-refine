@@ -30,12 +30,17 @@ export interface ItemsPayload {
   delete: string[];
 }
 
+export interface PriceResolveFn {
+  (productId: string, quantity?: number): Promise<{ unit_price: number; discount_rate?: number; source?: string } | null>;
+}
+
 interface EditableItemTableProps {
   items: any[];
   columns: ColumnConfig[];
   title: string;
   productsMap?: Map<string, ProductInfo>;
   priceField?: 'cost_price' | 'sale_price';
+  onResolvePrice?: PriceResolveFn;
   onChange: (payload: ItemsPayload) => void;
 }
 
@@ -45,6 +50,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   title,
   productsMap,
   priceField,
+  onResolvePrice,
   onChange,
 }) => {
   const { t } = useTranslation();
@@ -116,10 +122,31 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       'product.code': product.code,
       'product.uom': product.uom,
     };
-    if (priceField && product[priceField] != null) {
+    if (!onResolvePrice && priceField && product[priceField] != null) {
       sideEffects['unit_price'] = product[priceField];
     }
     return sideEffects;
+  };
+
+  const triggerPriceResolve = (rowId: string, productId: string, isNew: boolean) => {
+    if (!onResolvePrice) return;
+    onResolvePrice(productId).then((result) => {
+      if (!result) return;
+      if (isNew) {
+        setNewRows((prev) =>
+          prev.map((r) => r.tempId === rowId
+            ? { ...r, values: { ...r.values, unit_price: result.unit_price, ...(result.discount_rate != null ? { discount_rate: result.discount_rate } : {}) } }
+            : r
+          )
+        );
+      } else {
+        setEdits((prev) => ({
+          ...prev,
+          [rowId]: { ...prev[rowId], unit_price: result.unit_price, ...(result.discount_rate != null ? { discount_rate: result.discount_rate } : {}) },
+        }));
+      }
+      notifyChange();
+    });
   };
 
   // Emit payload to parent after state settles — use refs to avoid stale closures
@@ -187,6 +214,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       }
       return { ...prev, [recordId]: rowEdits };
     });
+    if (key === 'product_id' && value) {
+      triggerPriceResolve(recordId, value, false);
+    }
     notifyChange();
   };
 
@@ -202,6 +232,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
         return { ...r, values: newVals };
       })
     );
+    if (key === 'product_id' && value) {
+      triggerPriceResolve(tempId, value, true);
+    }
     notifyChange();
   };
 

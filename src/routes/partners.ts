@@ -22,7 +22,7 @@ const customersConfig: CrudConfig = {
   path: '/customers',
   resourceName: 'Customer',
   listSelect:
-    'id, name, code, type, classification, contact, email, phone, status, credit_limit, payment_terms',
+    'id, name, code, type, classification, contact, email, phone, status, credit_limit, payment_terms, default_price_list_id',
   detailSelect:
     '*, addresses:customer_addresses!customer_addresses_customer_id_fkey(id, address_type, contact_name, contact_phone, address, city, province, postal_code, country, is_default), bank_accounts:customer_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',
@@ -41,6 +41,7 @@ const customersConfig: CrudConfig = {
     payment_terms: z.number().optional().nullable(),
     classification: z.string().optional().nullable(),
     status: z.string().optional(),
+    default_price_list_id: z.string().uuid().optional().nullable(),
   }).strip(),
 };
 
@@ -87,7 +88,7 @@ const suppliersConfig: CrudConfig = {
   path: '/suppliers',
   resourceName: 'Supplier',
   listSelect:
-    'id, name, code, supplier_type, contact_person, contact_email, contact_phone, status, currency, payment_terms, lead_time_days, reliability_score',
+    'id, name, code, supplier_type, contact_person, contact_email, contact_phone, status, currency, payment_terms, lead_time_days, reliability_score, default_price_list_id',
   detailSelect:
     '*, sites:supplier_sites!supplier_sites_supplier_id_fkey(id, site_code, site_name, address, city, province, postal_code, country, contact_name, contact_phone, is_active), bank_accounts:supplier_bank_accounts(id, bank_name, account_number, account_name, swift_code, currency, is_default)',
   createReturnSelect: 'id, name, code',
@@ -110,6 +111,7 @@ const suppliersConfig: CrudConfig = {
     notes: z.string().optional().nullable(),
     lead_time_days: z.number().optional().nullable(),
     reliability_score: z.number().optional().nullable(),
+    default_price_list_id: z.string().uuid().optional().nullable(),
   }).strip(),
 };
 

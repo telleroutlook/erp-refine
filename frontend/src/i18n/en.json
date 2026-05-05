@@ -305,6 +305,7 @@
     "currency": "Currency",
     "notes": "Notes",
     "total": "Total",
+    "general": "General",
     "welcome": "Welcome to ERP Refine"
   },
   "validation": {
@@ -479,6 +480,7 @@
     "organizationCurrencies": "Org Currencies",
     "organizationUoms": "Org UoMs",
     "productCostHistory": "Cost History",
+    "productUomConversions": "UOM Conversions",
     "threeWayMatch": "Three-Way Match",
     "portalUsers": "Portal Users"
   },
@@ -631,6 +633,14 @@
     "yesNo": {
       "yes": "Yes",
       "no": "No"
+    },
+    "price_type": {
+      "sales": "Sales",
+      "purchase": "Purchase"
+    },
+    "partner_type": {
+      "customer": "Customer",
+      "supplier": "Supplier"
     },
     "accountCategory": {
       "asset": "Asset",
@@ -1566,6 +1576,20 @@
     },
     "sales_orders": {
       "delivery_date": "Delivery Date"
+    },
+    "price_lists": {
+      "price_type": "Price Type",
+      "priority": "Priority",
+      "partner_type": "Partner Type",
+      "partner_id": "Partner",
+      "description": "Description"
+    },
+    "product_uom_conversions": {
+      "product_id": "Product",
+      "from_uom_id": "From UOM",
+      "to_uom_id": "To UOM",
+      "conversion_factor": "Conversion Factor",
+      "is_active": "Active"
     }
   },
   "titles": {
@@ -1735,6 +1759,11 @@
       "create": "Create Price List",
       "edit": "Edit Price List"
     },
+    "product_uom_conversions": {
+      "create": "Create UOM Conversion",
+      "edit": "Edit UOM Conversion",
+      "show": "UOM Conversion Details"
+    },
     "carriers": {
       "create": "Create Carrier",
       "edit": "Edit Carrier"
@@ -1841,5 +1870,8 @@
   "dashboard": {
     "welcome": "Welcome to ERP Refine",
     "selectModule": "Select a module from the left menu to get started."
+  },
+  "product-uom-conversions": {
+    "product-uom-conversions": "UOM Conversions"
   }
 }

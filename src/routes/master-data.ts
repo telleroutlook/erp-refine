@@ -226,7 +226,7 @@ masterData.put('/price-lists/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
-  const permitted = ['code', 'name', 'currency', 'effective_from', 'effective_to', 'is_default', 'status'];
+  const permitted = ['code', 'name', 'currency', 'effective_from', 'effective_to', 'is_default', 'status', 'price_type', 'priority', 'partner_type', 'partner_id', 'description'];
 
   if (body.items) {
     const updateConfig: AtomicUpdateConfig = {
@@ -263,7 +263,7 @@ const priceListsConfig: CrudConfig = {
   table: 'price_lists',
   path: '/price-lists',
   resourceName: 'PriceList',
-  listSelect: 'id, code, name, currency, effective_from, effective_to, is_default, status',
+  listSelect: 'id, code, name, price_type, currency, effective_from, effective_to, is_default, status, priority, partner_type, partner_id, description',
   detailSelect: '*, lines:price_list_lines(*, product:products(id,name,code))',
   createReturnSelect: 'id, code, name',
   defaultSort: 'code',
@@ -281,7 +281,7 @@ const priceListLinesConfig: CrudConfig = {
   table: 'price_list_lines',
   path: '/price-list-lines',
   resourceName: 'PriceListLine',
-  listSelect: 'id, unit_price, min_quantity, discount_rate, product:products(id,name,code)',
+  listSelect: 'id, unit_price, min_quantity, discount_rate, uom_id, effective_from, effective_to, product:products(id,name,code)',
   detailSelect: '*, product:products(id,name,code), price_list:price_lists(id,code,name)',
   createReturnSelect: 'id, unit_price, min_quantity',
   defaultSort: 'created_at',
@@ -361,5 +361,22 @@ const productCostHistoryConfig: CrudConfig = {
   disableDelete: true,
 };
 masterData.route('', buildCrudRoutes(productCostHistoryConfig));
+
+// ────────────────────────────────────────────────────────────────────────────
+// Product UOM Conversions — product-specific unit conversion factors
+// ────────────────────────────────────────────────────────────────────────────
+
+const productUomConversionsConfig: CrudConfig = {
+  table: 'product_uom_conversions',
+  path: '/product-uom-conversions',
+  resourceName: 'ProductUomConversion',
+  listSelect: 'id, product_id, from_uom_id, to_uom_id, conversion_factor, is_active, created_at',
+  detailSelect: 'id, organization_id, product_id, from_uom_id, to_uom_id, conversion_factor, is_active, deleted_at, created_at, updated_at',
+  createReturnSelect: 'id, product_id, from_uom_id, to_uom_id, conversion_factor',
+  defaultSort: 'created_at',
+  softDelete: true,
+  orgScoped: true,
+};
+masterData.route('', buildCrudRoutes(productUomConversionsConfig));
 
 export default masterData;

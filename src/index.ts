@@ -31,6 +31,7 @@ import systemRoutes from './routes/system';
 import adminAuditRoutes from './routes/admin-audit';
 import storageRoutes from './routes/storage';
 import draftRoutes from './routes/drafts';
+import pricingRoutes from './routes/pricing';
 
 // Policy rules (register on startup)
 import './policy/rules/procurement-rules';
@@ -155,6 +156,7 @@ app.route('/api', qualityRoutes);
 app.route('/api', contractsRoutes);
 app.route('/api', assetsRoutes);
 app.route('/api', systemRoutes);
+app.route('/api', pricingRoutes);
 app.route('/api', storageRoutes);
 
 // --- Error handler ---

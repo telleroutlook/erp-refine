@@ -305,6 +305,7 @@
     "currency": "货币",
     "notes": "备注",
     "total": "合计",
+    "general": "通用",
     "welcome": "欢迎使用 ERP Refine"
   },
   "validation": {
@@ -479,6 +480,7 @@
     "organizationCurrencies": "组织币种",
     "organizationUoms": "组织计量单位",
     "productCostHistory": "成本历史",
+    "productUomConversions": "单位换算",
     "threeWayMatch": "三单匹配",
     "portalUsers": "门户用户"
   },
@@ -631,6 +633,14 @@
     "yesNo": {
       "yes": "是",
       "no": "否"
+    },
+    "price_type": {
+      "sales": "销售",
+      "purchase": "采购"
+    },
+    "partner_type": {
+      "customer": "客户",
+      "supplier": "供应商"
     },
     "accountCategory": {
       "asset": "资产",
@@ -1566,6 +1576,20 @@
     },
     "sales_orders": {
       "delivery_date": "交货日期"
+    },
+    "price_lists": {
+      "price_type": "价格类型",
+      "priority": "优先级",
+      "partner_type": "合作伙伴类型",
+      "partner_id": "合作伙伴",
+      "description": "描述"
+    },
+    "product_uom_conversions": {
+      "product_id": "产品",
+      "from_uom_id": "源单位",
+      "to_uom_id": "目标单位",
+      "conversion_factor": "换算系数",
+      "is_active": "启用"
     }
   },
   "titles": {
@@ -1735,6 +1759,11 @@
       "create": "新建价格表",
       "edit": "编辑价格表"
     },
+    "product_uom_conversions": {
+      "create": "新建单位换算",
+      "edit": "编辑单位换算",
+      "show": "单位换算详情"
+    },
     "carriers": {
       "create": "新建承运商",
       "edit": "编辑承运商"
@@ -1841,5 +1870,8 @@
   "dashboard": {
     "welcome": "欢迎使用 ERP Refine",
     "selectModule": "请从左侧菜单选择一个模块开始使用。"
+  },
+  "product-uom-conversions": {
+    "product-uom-conversions": "单位换算"
   }
 }
