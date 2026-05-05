@@ -4,10 +4,11 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { createSupabaseClient, createAuthenticatedClient, createServiceClient } from '../utils/supabase';
+import { authRateLimitMiddleware } from '../middleware/rate-limit';
 
 const auth = new Hono<{ Bindings: Env }>();
 
-auth.post('/login', async (c) => {
+auth.post('/login', authRateLimitMiddleware({ limit: 10, period: 60 }), async (c) => {
   const body = await c.req.json<{ email: string; password: string }>();
   if (!body.email || !body.password) {
     return c.json({ error: 'Email and password required' }, 400);

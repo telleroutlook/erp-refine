@@ -68,12 +68,13 @@ export interface RecoveryResult {
   text: string;
   modelUsed: string;
   recoverySteps: string[];
+  usage?: { input: number; output: number };
 }
 
 // ─── Recovery chain ───────────────────────────────────────────────────────────
 
 export async function executeWithRecovery(
-  fn: (params: RecoveryParams) => Promise<string>,
+  fn: (params: RecoveryParams) => Promise<string | { text: string; usage?: { input: number; output: number } }>,
   params: RecoveryParams,
   env: Env,
   maxAttempts = 3
@@ -84,13 +85,15 @@ export async function executeWithRecovery(
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const text = await fn(current);
+      const raw = await fn(current);
+      const text = typeof raw === 'string' ? raw : raw.text;
+      const usage = typeof raw === 'object' ? raw.usage : undefined;
 
       if (isEmptyOrRefusal(text)) {
         throw new Error('content refusal detected');
       }
 
-      return { text, modelUsed: current.primaryModel, recoverySteps };
+      return { text, modelUsed: current.primaryModel, recoverySteps, usage };
     } catch (err) {
       lastError = err;
       logger.warn('recovery.attempt', { attempt, error: String(err).slice(0, 200) });

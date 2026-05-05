@@ -50,9 +50,9 @@ export class IntentAgent extends BaseAgent {
     ctx: AgentContext,
     env: Env,
     recentContext?: string
-  ): Promise<RequirementSpec> {
+  ): Promise<RequirementSpec & { _usage?: { input: number; output: number } }> {
     const result = await this.execute(async () => {
-      const { text } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
+      const { text, usage } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
         const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
         return generateText({
           model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
@@ -71,7 +71,8 @@ export class IntentAgent extends BaseAgent {
       // Strip markdown code fences if present
       const cleaned = stripJsonFences(text);
       const parsed = JSON.parse(cleaned);
-      return RequirementSpecSchema.parse(parsed);
+      const spec = RequirementSpecSchema.parse(parsed);
+      return { ...spec, _usage: { input: usage.inputTokens ?? 0, output: usage.outputTokens ?? 0 } };
     }, ctx);
 
     if (!result.success || !result.data) {

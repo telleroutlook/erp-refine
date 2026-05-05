@@ -17,7 +17,7 @@ export const ProductCategoryShow: React.FC = () => {
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('product_categories', 'code')}>{record?.code}</Descriptions.Item>
         <Descriptions.Item label={fl('product_categories', 'name')}>{record?.name}</Descriptions.Item>
-        <Descriptions.Item label={fl('product_categories', 'parent_id')}>{record?.parent_id}</Descriptions.Item>
+        <Descriptions.Item label={fl('product_categories', 'parent_id')}>{record?.parent?.name ?? record?.parent_id ?? '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('product_categories', 'level')}>{record?.level}</Descriptions.Item>
         <Descriptions.Item label={fl('product_categories', 'is_active')}>
           <ActiveStatusTag value={record?.is_active} />

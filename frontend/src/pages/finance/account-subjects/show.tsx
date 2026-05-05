@@ -21,7 +21,7 @@ export const AccountSubjectShow: React.FC = () => {
         <Descriptions.Item label={fl('account_subjects', 'balance_direction')}>
           {record?.balance_direction === 'debit' ? t('enums.balanceDirection.debit') : t('enums.balanceDirection.credit')}
         </Descriptions.Item>
-        <Descriptions.Item label={fl('account_subjects', 'parent_id')}>{record?.parent_id}</Descriptions.Item>
+        <Descriptions.Item label={fl('account_subjects', 'parent_id')}>{record?.parent?.name ?? record?.parent_id ?? '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('account_subjects', 'is_leaf')}>
           <Tag color={record?.is_leaf ? 'green' : 'default'}>{record?.is_leaf ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>
         </Descriptions.Item>

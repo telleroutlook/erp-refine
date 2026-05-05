@@ -17,8 +17,8 @@ export const DepartmentShow: React.FC = () => {
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('departments', 'code')}>{record?.code}</Descriptions.Item>
         <Descriptions.Item label={fl('departments', 'name')}>{record?.name}</Descriptions.Item>
-        <Descriptions.Item label={fl('departments', 'parent_id')}>{record?.parent_id}</Descriptions.Item>
-        <Descriptions.Item label={fl('departments', 'manager_id')}>{record?.manager_id}</Descriptions.Item>
+        <Descriptions.Item label={fl('departments', 'parent_id')}>{record?.parent?.name ?? record?.parent_id ?? '-'}</Descriptions.Item>
+        <Descriptions.Item label={fl('departments', 'manager_id')}>{record?.manager?.name ?? record?.manager_id ?? '-'}</Descriptions.Item>
         <Descriptions.Item label={t('common.status')}>
           <StatusTag status={record?.status} />
         </Descriptions.Item>

@@ -58,6 +58,9 @@ export class Orchestrator {
         spec = await trace.phase('intent', () =>
           intentAgent.parseIntent(message, ctx, env, recentContext)
         );
+        if (spec._usage) {
+          trace.addTokens(spec._usage.input, spec._usage.output);
+        }
       } catch (err) {
         return { pipeline: 'error', error: `Intent parsing failed: ${err instanceof Error ? err.message : String(err)}`, traceId: trace.traceId };
       }
@@ -106,6 +109,9 @@ export class Orchestrator {
             executionTools
           )
         );
+        if (result._usage) {
+          trace.addTokens(result._usage.input, result._usage.output);
+        }
         success = result.success;
         return { pipeline: 'query', intent: spec, executionResult: result, traceId: trace.traceId };
       }
@@ -115,6 +121,9 @@ export class Orchestrator {
           const schemaOutput = await trace.phase('schema', () =>
             schemaArchitectAgent.generateSchemaDiff(spec, ctx, env)
           );
+          if (schemaOutput._usage) {
+            trace.addTokens(schemaOutput._usage.input, schemaOutput._usage.output);
+          }
           success = true;
           return { pipeline: 'schema-generation', intent: spec, schemaOutput, traceId: trace.traceId };
         } catch (err) {
@@ -140,6 +149,9 @@ export class Orchestrator {
         )
       );
 
+      if (result._usage) {
+        trace.addTokens(result._usage.input, result._usage.output);
+      }
       success = result.success;
       return {
         pipeline: 'execution',

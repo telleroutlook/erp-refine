@@ -64,9 +64,9 @@ export class SchemaArchitectAgent extends BaseAgent {
     spec: RequirementSpec,
     ctx: AgentContext,
     env: Env
-  ): Promise<SchemaOutput> {
+  ): Promise<SchemaOutput & { _usage?: { input: number; output: number } }> {
     const result = await this.execute(async () => {
-      const { text } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
+      const { text, usage } = await withKeyRotation(getApiKeys(env), async (apiKey) => {
         const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
         return generateText({
           model: glm.chat(env.AI_MODEL_NO_TOOLS ?? 'GLM-4.5-Air'),
@@ -76,7 +76,8 @@ export class SchemaArchitectAgent extends BaseAgent {
       });
       const cleaned = stripJsonFences(text);
       const parsed = JSON.parse(cleaned);
-      return SchemaOutputSchema.parse(parsed);
+      const output = SchemaOutputSchema.parse(parsed);
+      return { ...output, _usage: { input: usage.inputTokens ?? 0, output: usage.outputTokens ?? 0 } };
     }, ctx);
 
     if (!result.success || !result.data) {

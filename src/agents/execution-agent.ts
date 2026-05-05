@@ -31,6 +31,7 @@ export interface ExecutionResponse {
   confirmationPrompt?: string;
   policyDecision?: string;
   error?: string;
+  _usage?: { input: number; output: number };
 }
 
 const BASE_SYSTEM_PROMPT = `You are an ERP Execution Agent. Your job is to fulfill the user's request by calling the available tools.
@@ -157,7 +158,7 @@ export class ExecutionAgent extends BaseAgent {
 
       const recoveryResult = await executeWithRecovery(
         async (params) => {
-          const { text } = await withKeyRotation(apiKeys, async (apiKey) => {
+          const { text, usage } = await withKeyRotation(apiKeys, async (apiKey) => {
             const glm = createOpenAI({ apiKey, baseURL: env.AI_BASE_URL });
             return generateText({
               model: glm.chat(params.primaryModel),
@@ -169,7 +170,7 @@ export class ExecutionAgent extends BaseAgent {
               maxOutputTokens: params.maxTokens,
             });
           });
-          return text;
+          return { text, usage: { input: usage.inputTokens ?? 0, output: usage.outputTokens ?? 0 } };
         },
         {
           systemPrompt,
@@ -182,14 +183,15 @@ export class ExecutionAgent extends BaseAgent {
         env
       );
 
-      return { text: recoveryResult.text, toolResults: [], recoverySteps: recoveryResult.recoverySteps };
+      return { text: recoveryResult.text, toolResults: [], recoverySteps: recoveryResult.recoverySteps, usage: recoveryResult.usage };
     }, ctx, undefined, resolvedLevel);
 
     if (!agentResult.success) {
       return { success: false, error: agentResult.error };
     }
 
-    return { success: true, result: agentResult.data, policyDecision: 'allow' };
+    const execUsage = (agentResult.data as any)?.usage as { input: number; output: number } | undefined;
+    return { success: true, result: agentResult.data, policyDecision: 'allow', _usage: execUsage };
   }
 }
 

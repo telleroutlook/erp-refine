@@ -80,7 +80,7 @@ const departmentsConfig: CrudConfig = {
   path: '/departments',
   resourceName: 'Department',
   listSelect: 'id, name, code, parent_id, manager_id, status',
-  detailSelect: '*, manager:employees!fk_departments_manager(id, name)',
+  detailSelect: '*, parent:departments!parent_id(id,code,name), manager:employees!fk_departments_manager(id, name)',
   createReturnSelect: 'id, name, code',
   defaultSort: 'name',
   softDelete: false,

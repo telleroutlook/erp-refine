@@ -56,6 +56,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const { t } = useTranslation();
   const tempSeqRef = useRef(0);
   const nextTempId = useCallback(() => `__new_${++tempSeqRef.current}`, []);
+  const isMountedRef = useRef(true);
   const [edits, setEdits] = useState<Record<string, Record<string, any>>>({});
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
@@ -98,6 +99,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     };
     window.addEventListener('beforeunload', handler);
     return () => {
+      isMountedRef.current = false;
       window.removeEventListener('beforeunload', handler);
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
@@ -143,7 +145,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const triggerPriceResolve = (rowId: string, productId: string, isNew: boolean) => {
     if (!onResolvePrice) return;
     onResolvePrice(productId).then((result) => {
-      if (!result) return;
+      if (!result || !isMountedRef.current) return;
       if (isNew) {
         setNewRows((prev) =>
           prev.map((r) => r.tempId === rowId

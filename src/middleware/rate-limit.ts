@@ -36,6 +36,38 @@ export function rateLimitMiddleware(): MiddlewareHandler<{ Bindings: Env }> {
 }
 
 /**
+ * Stricter per-IP rate limiter for auth endpoints (login/refresh).
+ * Uses a separate bucket namespace to enforce tighter limits (default 10 req/60s).
+ */
+export function authRateLimitMiddleware(opts?: { limit?: number; period?: number }): MiddlewareHandler<{ Bindings: Env }> {
+  return async (c, next) => {
+    const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
+    const key = `ratelimit:auth:${ip}`;
+
+    try {
+      const id = c.env.RATE_LIMITER_DO.idFromName(key);
+      const stub = c.env.RATE_LIMITER_DO.get(id);
+      const limit = opts?.limit ?? 10;
+      const period = opts?.period ?? 60;
+
+      const res = await stub.fetch(
+        new Request(`https://internal/check?limit=${limit}&period=${period}`, {
+          method: 'POST',
+        })
+      );
+
+      if (res.status === 429) {
+        return c.json({ error: 'Too many login attempts, please try again later' }, 429);
+      }
+    } catch (e) {
+      console.warn('[rate-limit] auth DO unavailable, failing open:', e);
+    }
+
+    await next();
+  };
+}
+
+/**
  * Per-user rate limiter — runs after authMiddleware so user context is available.
  * Applies tighter per-user limits to prevent individual abuse.
  */

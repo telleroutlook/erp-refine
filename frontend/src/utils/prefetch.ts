@@ -66,6 +66,14 @@ const routeImports: Record<string, () => Promise<unknown>> = {
   '/audit/business-events': () => import('../pages/audit/business-events/list'),
   '/audit/auth-events': () => import('../pages/audit/auth-events/list'),
   '/audit/import-logs': () => import('../pages/audit/import-logs/list'),
+  '/audit/failed-login-attempts': () => import('../pages/audit/failed-login-attempts/list'),
+  '/master-data/organization-currencies': () => import('../pages/master-data/organization-currencies/list'),
+  '/master-data/organization-uoms': () => import('../pages/master-data/organization-uoms/list'),
+  '/master-data/product-cost-history': () => import('../pages/master-data/product-cost-history/list'),
+  '/master-data/product-uom-conversions': () => import('../pages/master-data/product-uom-conversions/list'),
+  '/procurement/three-way-match': () => import('../pages/procurement/three-way-match/list'),
+  '/system/organizations': () => import('../pages/system/organizations/list'),
+  '/system/portal-users': () => import('../pages/system/portal-users/list'),
 };
 
 export function prefetchRoute(route: string | undefined): void {
