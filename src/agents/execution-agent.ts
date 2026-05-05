@@ -137,8 +137,12 @@ export class ExecutionAgent extends BaseAgent {
 
       const effectiveParams = request.parameters;
 
+      const limitedHistory = request.historyContext
+        ? request.historyContext.split('\n').slice(-12).join('\n')
+        : undefined;
+
       const promptParts = [
-        request.historyContext ? `Conversation context:\n${request.historyContext}` : null,
+        limitedHistory ? `Conversation context:\n${limitedHistory}` : null,
         `Available tools: ${availableTools}`,
         `Action requested: ${request.action}`,
         `Domain: ${request.domain}`,

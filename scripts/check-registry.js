@@ -47,6 +47,16 @@ function hasRegexMatch(rulesText, toolName) {
   });
 }
 
+// Reverse check: policy rules referencing non-existent tools
+const toolNames = new Set(tools.map(t => t.name));
+const actionPatternLiterals = [...allRules.matchAll(/actionPattern:\s*'([^']+)'/g)];
+for (const [, pattern] of actionPatternLiterals) {
+  if (!toolNames.has(pattern) && !toolNames.has(pattern.replace(/-/g, '_'))) {
+    console.error(`❌ Policy rule references '${pattern}' but no matching tool exists in TOOL_REGISTRY_META`);
+    errors++;
+  }
+}
+
 console.log(`\n✅ Registry check complete: ${tools.length} tools found`);
 if (warnings > 0) console.log(`⚠️  ${warnings} warnings`);
 if (errors > 0) {
