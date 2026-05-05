@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { API_URL } from '../constants/api';
+import { getAuthHeaders } from '../providers/token';
 
 export interface PriceResolveParams {
   product_id: string;
@@ -36,13 +37,9 @@ export function usePriceResolver() {
     abortRef.current = controller;
 
     try {
-      const token = localStorage.getItem('access_token');
       const res = await fetch(`${API_URL}/pricing/resolve`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(params),
         signal: controller.signal,
       });
@@ -60,13 +57,9 @@ export function usePriceResolver() {
     params: Omit<PriceResolveParams, 'product_id' | 'quantity' | 'uom_id'>
   ): Promise<(PriceResolveResult & { product_id: string })[]> => {
     try {
-      const token = localStorage.getItem('access_token');
       const res = await fetch(`${API_URL}/pricing/resolve-batch`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ items, ...params }),
       });
 

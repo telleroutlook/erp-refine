@@ -42,7 +42,7 @@ assets.get('/fixed-assets/:id', async (c) => {
 
   const { data, error } = await db
     .from('fixed_assets')
-    .select('*, cost_center:cost_centers(id,name,code), custodian:employees!custodian_id(id,name), depreciations:asset_depreciations(id,period_year,period_month,depreciation_amount,accumulated_depreciation,book_value_after,posted), maintenance:asset_maintenance_records(id,maintenance_type,performed_at,cost,description)')
+    .select('id, asset_number, asset_name, category, status, acquisition_date, acquisition_cost, useful_life_months, depreciation_method, salvage_value, current_book_value, location, department, notes, cost_center_id, custodian_id, created_at, updated_at, cost_center:cost_centers(id,name,code), custodian:employees!custodian_id(id,name), depreciations:asset_depreciations(id,period_year,period_month,depreciation_amount,accumulated_depreciation,book_value_after,posted), maintenance:asset_maintenance_records(id,maintenance_type,performed_at,cost,description)')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)

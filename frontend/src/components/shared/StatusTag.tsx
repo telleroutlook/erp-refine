@@ -107,6 +107,7 @@ interface StatusTagProps {
 
 export const StatusTag: React.FC<StatusTagProps> = ({ status, label }) => {
   const { t } = useTranslation();
+  if (!status && !label) return null;
   const style = STATUS_STYLES[status?.toLowerCase()] ?? CHIP_GRAY;
 
   return (

@@ -45,7 +45,7 @@ infrastructure.get('/organizations/:id', async (c) => {
   }
   const { data, error } = await db
     .from('organizations')
-    .select('*')
+    .select('id, name, code, email, phone, address, plan, status, tax_number, settings, created_at, updated_at')
     .eq('id', id)
     .single();
   if (error) throw new ApiError({ code: ErrorCode.DATABASE_ERROR, detail: error.message, requestId: c.get('requestId') });

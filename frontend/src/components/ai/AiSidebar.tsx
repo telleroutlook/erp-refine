@@ -147,7 +147,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
             if (line.startsWith('event:')) {
               eventType = line.slice(6).trim();
             } else if (line.startsWith('data:')) {
-              dataLine = line.slice(5).trim();
+              dataLine += (dataLine ? '\n' : '') + line.slice(5).trim();
             }
           }
 

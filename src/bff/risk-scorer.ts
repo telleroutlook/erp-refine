@@ -5,7 +5,7 @@ import type { SchemaOutput } from '../agents/schema-architect-agent';
 
 export interface RiskScore {
   score: number;        // 0-100
-  level: 'low' | 'medium' | 'high' | 'critical';
+  level: 'low' | 'medium' | 'high';
   factors: string[];
   autoApprove: boolean;
 }
@@ -68,8 +68,7 @@ export function scoreSchema(schema: SchemaOutput): RiskScore {
     factors.push('Agent assessed risk as medium');
   }
 
-  const level =
-    score >= 70 ? 'critical' :
+  const level: RiskScore['level'] =
     score >= 40 ? 'high' :
     score >= 20 ? 'medium' : 'low';
 

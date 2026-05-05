@@ -650,6 +650,8 @@ procurementReceiving.post('/advance-shipment-notices', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate ASN number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
+  const PERMITTED_ASN = new Set(['supplier_id', 'po_id', 'warehouse_id', 'expected_date', 'carrier', 'tracking_number', 'remark']);
+  const permittedHeader = Object.fromEntries(Object.entries(headerFields).filter(([k]) => PERMITTED_ASN.has(k)));
   const result = await atomicCreateWithItems(
     db,
     {
@@ -661,7 +663,7 @@ procurementReceiving.post('/advance-shipment-notices', async (c) => {
     },
     {
       header: {
-        ...headerFields,
+        ...permittedHeader,
         asn_no: seqData,
         organization_id: user.organizationId,
         status: 'open',
@@ -809,6 +811,8 @@ procurementReceiving.post('/reconciliation-statements', async (c) => {
   if (seqError || !seqData) throw ApiError.database(`Failed to generate statement number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
   const { items, ...headerFields } = body;
+  const PERMITTED_STMT = new Set(['supplier_id', 'period_start', 'period_end', 'currency', 'notes', 'paid_amount']);
+  const permittedHeader = Object.fromEntries(Object.entries(headerFields).filter(([k]) => PERMITTED_STMT.has(k)));
   const result = await atomicCreateWithItems(
     db,
     {
@@ -820,7 +824,7 @@ procurementReceiving.post('/reconciliation-statements', async (c) => {
     },
     {
       header: {
-        ...headerFields,
+        ...permittedHeader,
         statement_no: seqData,
         organization_id: user.organizationId,
         status: 'draft',

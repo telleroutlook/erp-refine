@@ -57,15 +57,17 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
   }, [draft, form]);
 
   const handleCommit = async () => {
-    setCommitting(true);
     try {
-      const values = form.getFieldsValue();
+      const values = await form.validateFields();
+      setCommitting(true);
       const content = draft?.content.header ? { header: values, items: draft.content.items } : values;
       const result = await commit(content);
       if (result) {
         onCommitted?.(result.resourceType, result.recordId);
         onClose();
       }
+    } catch {
+      // validation failed — do not commit
     } finally {
       setCommitting(false);
     }

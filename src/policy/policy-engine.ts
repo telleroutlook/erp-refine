@@ -1,7 +1,7 @@
 // src/policy/policy-engine.ts
 // Centralized policy engine — condition → action mapping, default-safe
 
-import { DecisionLevel, DENY_KEYWORDS } from './risk-levels';
+import { DecisionLevel, DENY_KEYWORDS, WRITE_TRIGGER_KEYWORDS } from './risk-levels';
 
 export interface PolicyContext {
   action: string;         // e.g. 'create_purchase_order'
@@ -68,8 +68,7 @@ export function evaluatePolicy(ctx: PolicyContext): PolicyResult {
 
   // 3. No rule found — allow reads, deny writes
   if (!rule) {
-    const WRITE_KEYWORDS = ['create', 'update', 'delete', 'workflow', 'batch', 'approve', 'close', 'submit', 'post', 'void', 'reverse', 'pay', 'receive', 'ship', 'issue', 'confirm', 'reject', 'cancel'];
-    const isWrite = WRITE_KEYWORDS.some((kw) => action.includes(kw));
+    const isWrite = WRITE_TRIGGER_KEYWORDS.some((kw) => action.includes(kw));
     if (isWrite) {
       return {
         decision: 'deny',
