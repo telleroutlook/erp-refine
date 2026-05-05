@@ -42,7 +42,7 @@ const routeImports: Record<string, () => Promise<unknown>> = {
   '/contracts/contracts': () => import('../pages/contracts/contracts/list'),
   '/hr/departments': () => import('../pages/hr/departments/list'),
   '/hr/employees': () => import('../pages/hr/employees/list'),
-  '/hr/exchange-rates': () => import('../pages/hr/exchange-rates/list'),
+  '/master-data/exchange-rates': () => import('../pages/master-data/exchange-rates/list'),
   '/master-data/products': () => import('../pages/master-data/products/list'),
   '/master-data/carriers': () => import('../pages/master-data/carriers/list'),
   '/master-data/product-categories': () => import('../pages/master-data/product-categories/list'),

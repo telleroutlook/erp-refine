@@ -195,10 +195,10 @@ const EmployeeList = loadable(() => import('./pages/hr/employees/list').then((m)
 const EmployeeShow = loadable(() => import('./pages/hr/employees/show').then((m) => ({ default: m.EmployeeShow })));
 const EmployeeCreate = loadable(() => import('./pages/hr/employees/create').then((m) => ({ default: m.EmployeeCreate })));
 const EmployeeEdit = loadable(() => import('./pages/hr/employees/edit').then((m) => ({ default: m.EmployeeEdit })));
-const ExchangeRateList = loadable(() => import('./pages/hr/exchange-rates/list').then((m) => ({ default: m.ExchangeRateList })));
-const ExchangeRateShow = loadable(() => import('./pages/hr/exchange-rates/show').then((m) => ({ default: m.ExchangeRateShow })));
-const ExchangeRateCreate = loadable(() => import('./pages/hr/exchange-rates/create').then((m) => ({ default: m.ExchangeRateCreate })));
-const ExchangeRateEdit = loadable(() => import('./pages/hr/exchange-rates/edit').then((m) => ({ default: m.ExchangeRateEdit })));
+const ExchangeRateList = loadable(() => import('./pages/master-data/exchange-rates/list').then((m) => ({ default: m.ExchangeRateList })));
+const ExchangeRateShow = loadable(() => import('./pages/master-data/exchange-rates/show').then((m) => ({ default: m.ExchangeRateShow })));
+const ExchangeRateCreate = loadable(() => import('./pages/master-data/exchange-rates/create').then((m) => ({ default: m.ExchangeRateCreate })));
+const ExchangeRateEdit = loadable(() => import('./pages/master-data/exchange-rates/edit').then((m) => ({ default: m.ExchangeRateEdit })));
 
 // ── Master Data ──
 const ProductList = loadable(() => import('./pages/master-data/products/list').then((m) => ({ default: m.ProductList })));
@@ -675,16 +675,16 @@ const App: React.FC = () => {
                 create: '/hr/employees/create',
                 meta: { parent: 'hr', icon: <IdcardOutlined /> },
               },
-              {
-                name: 'exchange-rates',
-                list: '/hr/exchange-rates',
-                show: '/hr/exchange-rates/:id',
-                edit: '/hr/exchange-rates/:id/edit',
-                create: '/hr/exchange-rates/create',
-                meta: { parent: 'hr', icon: <SwapOutlined /> },
-              },
               // ── Master Data ──
               { name: 'masterData' },
+              {
+                name: 'exchange-rates',
+                list: '/master-data/exchange-rates',
+                show: '/master-data/exchange-rates/:id',
+                edit: '/master-data/exchange-rates/:id/edit',
+                create: '/master-data/exchange-rates/create',
+                meta: { parent: 'masterData', icon: <SwapOutlined /> },
+              },
               {
                 name: 'products',
                 list: '/master-data/products',
@@ -1079,12 +1079,12 @@ const App: React.FC = () => {
                   <Route path="/hr/employees/create" element={<EmployeeCreate />} />
                   <Route path="/hr/employees/:id" element={<EmployeeShow />} />
                   <Route path="/hr/employees/:id/edit" element={<EmployeeEdit />} />
-                  <Route path="/hr/exchange-rates" element={<ExchangeRateList />} />
-                  <Route path="/hr/exchange-rates/create" element={<ExchangeRateCreate />} />
-                  <Route path="/hr/exchange-rates/:id" element={<ExchangeRateShow />} />
-                  <Route path="/hr/exchange-rates/:id/edit" element={<ExchangeRateEdit />} />
 
                   {/* Master Data */}
+                  <Route path="/master-data/exchange-rates" element={<ExchangeRateList />} />
+                  <Route path="/master-data/exchange-rates/create" element={<ExchangeRateCreate />} />
+                  <Route path="/master-data/exchange-rates/:id" element={<ExchangeRateShow />} />
+                  <Route path="/master-data/exchange-rates/:id/edit" element={<ExchangeRateEdit />} />
                   <Route path="/master-data/products" element={<ProductList />} />
                   <Route path="/master-data/products/create" element={<ProductCreate />} />
                   <Route path="/master-data/products/:id" element={<ProductShow />} />
