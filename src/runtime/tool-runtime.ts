@@ -35,13 +35,20 @@ export interface ToolResult<T = unknown> {
 const breakers = new Map<string, { breaker: CircuitBreaker; lastAccess: number }>();
 const CACHE_TTL_SECONDS = 300; // 5 minutes for D0 tool results
 const BREAKER_TTL_MS = 10 * 60_000; // evict breakers unused for 10 minutes
-const BREAKER_MAX_SIZE = 5_000;
+const BREAKER_MAX_SIZE = 500;
 
 function evictStaleBreakers(): void {
   if (breakers.size <= BREAKER_MAX_SIZE) return;
   const now = Date.now();
+  // First pass: remove entries older than TTL
   for (const [key, entry] of breakers) {
     if (now - entry.lastAccess > BREAKER_TTL_MS) breakers.delete(key);
+  }
+  // If still over limit, evict least-recently-used entries
+  if (breakers.size > BREAKER_MAX_SIZE) {
+    const sorted = [...breakers.entries()].sort((a, b) => a[1].lastAccess - b[1].lastAccess);
+    const toEvict = sorted.slice(0, breakers.size - BREAKER_MAX_SIZE);
+    for (const [key] of toEvict) breakers.delete(key);
   }
 }
 

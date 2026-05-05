@@ -54,6 +54,7 @@ export interface ConfirmReceiptResult {
   receiptNumber: string;
   status: 'confirmed';
   stockTransactionsCreated: number;
+  inspectionsCreated: number;
 }
 
 export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Promise<ConfirmReceiptResult> {
@@ -67,7 +68,7 @@ export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Prom
 
   if (error) throw new ApiError({ code: ErrorCode.DATABASE_ERROR, detail: error.message, requestId: requestId ?? '' });
 
-  const result = data as { success: boolean; error?: string; current_status?: string; id?: string; receipt_number?: string; stock_transactions_created?: number };
+  const result = data as { success: boolean; error?: string; current_status?: string; id?: string; receipt_number?: string; stock_transactions_created?: number; inspections_created?: number };
   if (!result.success) {
     if (result.error === 'receipt_not_found') throw new ApiError({ code: ErrorCode.NOT_FOUND, detail: 'Purchase receipt not found', requestId: requestId ?? '' });
     if (result.error === 'invalid_status') throw new ApiError({ code: ErrorCode.INVALID_STATE, detail: `Cannot confirm receipt in status '${result.current_status}'`, requestId: requestId ?? '' });
@@ -75,7 +76,7 @@ export async function confirmPurchaseReceipt(params: ConfirmReceiptParams): Prom
     throw new ApiError({ code: ErrorCode.DATABASE_ERROR, detail: result.error ?? 'Unknown error', requestId: requestId ?? '' });
   }
 
-  return { id: result.id!, receiptNumber: result.receipt_number!, status: 'confirmed', stockTransactionsCreated: result.stock_transactions_created ?? 0 };
+  return { id: result.id!, receiptNumber: result.receipt_number!, status: 'confirmed', stockTransactionsCreated: result.stock_transactions_created ?? 0, inspectionsCreated: result.inspections_created ?? 0 };
 }
 
 export interface ConfirmSalesReturnParams {

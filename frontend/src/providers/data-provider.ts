@@ -34,15 +34,27 @@ function getHeaders(): Record<string, string> {
   return getAuthHeaders();
 }
 
-async function fetchWithRetry(url: string, init?: RequestInit): Promise<Response> {
+async function fetchWithRetry(url: string, init?: RequestInit, attempt = 0): Promise<Response> {
+  const MAX_RETRIES = 3;
   let response = await fetch(url, init);
+
   if (response.status === 401) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       const retryInit = { ...init, headers: getHeaders() };
       response = await fetch(url, retryInit);
     }
+    return response;
   }
+
+  if ((response.status === 429 || response.status === 503) && attempt < MAX_RETRIES) {
+    const retryAfter = response.headers.get('Retry-After');
+    const baseDelay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);
+    const jitter = Math.random() * 500;
+    await new Promise((r) => setTimeout(r, baseDelay + jitter));
+    return fetchWithRetry(url, init, attempt + 1);
+  }
+
   return response;
 }
 
