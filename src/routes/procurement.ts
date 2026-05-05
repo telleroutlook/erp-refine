@@ -140,6 +140,17 @@ procurement.put('/purchase-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  // Only draft POs can be edited
+  const { data: existing, error: fetchErr } = await db
+    .from('purchase_orders')
+    .select('id, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+  if (fetchErr || !existing) throw ApiError.notFound('PurchaseOrder', id, requestId);
+  if (existing.status !== 'draft') throw ApiError.invalidState('PurchaseOrder', existing.status, 'update', requestId);
+
   if (body.items) {
     const updateConfig: AtomicUpdateConfig = {
       headerTable: 'purchase_orders',

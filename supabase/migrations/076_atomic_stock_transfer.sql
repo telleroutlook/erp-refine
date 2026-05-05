@@ -17,11 +17,11 @@ DECLARE
   v_in_id UUID;
 BEGIN
   INSERT INTO stock_transactions (organization_id, product_id, warehouse_id, transaction_type, quantity, reference_type, notes)
-  VALUES (p_organization_id, p_product_id, p_from_warehouse_id, 'out', p_quantity, 'stock_transfer', p_notes)
+  VALUES (p_organization_id, p_product_id, p_from_warehouse_id, 'out', p_quantity, 'transfer', p_notes)
   RETURNING id INTO v_out_id;
 
   INSERT INTO stock_transactions (organization_id, product_id, warehouse_id, transaction_type, quantity, reference_type, notes)
-  VALUES (p_organization_id, p_product_id, p_to_warehouse_id, 'in', p_quantity, 'stock_transfer', p_notes)
+  VALUES (p_organization_id, p_product_id, p_to_warehouse_id, 'in', p_quantity, 'transfer', p_notes)
   RETURNING id INTO v_in_id;
 
   RETURN jsonb_build_object('out_id', v_out_id, 'in_id', v_in_id);

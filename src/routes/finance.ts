@@ -188,6 +188,21 @@ finance.put('/vouchers/:id', async (c) => {
   const permitted = ['voucher_date', 'voucher_type', 'notes'];
 
   if (body.items) {
+    // Pre-validate balance from incoming items before committing
+    const upsertItems = body.items.upsert ?? body.items;
+    if (Array.isArray(upsertItems)) {
+      const deleteIds = new Set(body.items.delete ?? []);
+      const totalDebit = upsertItems
+        .filter((e: any) => e.entry_type === 'debit' && !deleteIds.has(e.id))
+        .reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
+      const totalCredit = upsertItems
+        .filter((e: any) => e.entry_type === 'credit' && !deleteIds.has(e.id))
+        .reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
+      if (Math.abs(totalDebit - totalCredit) > 0.001) {
+        throw ApiError.badRequest(`Voucher entries would be unbalanced: debit=${totalDebit}, credit=${totalCredit}`, requestId);
+      }
+    }
+
     const updateConfig: AtomicUpdateConfig = {
       headerTable: 'vouchers',
       itemsTable: 'voucher_entries',
@@ -199,17 +214,13 @@ finance.put('/vouchers/:id', async (c) => {
     };
     const result = await atomicUpdateWithItems(db, updateConfig, id, user.organizationId, { header: body, items: body.items }, requestId);
 
-    // Recalculate total_debit/total_credit from entries
+    // Recalculate total_debit/total_credit from committed entries
     const { data: entries } = await db
       .from('voucher_entries')
       .select('entry_type, amount')
       .eq('voucher_id', id);
     const totalDebit = (entries ?? []).filter((e: any) => e.entry_type === 'debit').reduce((s: number, e: any) => s + Number(e.amount), 0);
     const totalCredit = (entries ?? []).filter((e: any) => e.entry_type === 'credit').reduce((s: number, e: any) => s + Number(e.amount), 0);
-
-    if (Math.abs(totalDebit - totalCredit) > 0.001) {
-      throw ApiError.badRequest(`Voucher entries are unbalanced: debit=${totalDebit}, credit=${totalCredit}`, requestId);
-    }
 
     await db.from('vouchers').update({ total_debit: totalDebit, total_credit: totalCredit })
       .eq('id', id).eq('organization_id', user.organizationId);

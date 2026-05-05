@@ -126,6 +126,17 @@ sales.put('/sales-orders/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
 
+  // Only draft SOs can be edited
+  const { data: existing, error: fetchErr } = await db
+    .from('sales_orders')
+    .select('id, status')
+    .eq('id', id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+  if (fetchErr || !existing) throw ApiError.notFound('SalesOrder', id, requestId);
+  if (existing.status !== 'draft') throw ApiError.invalidState('SalesOrder', existing.status, 'update', requestId);
+
   const permitted = ['notes', 'delivery_date', 'warehouse_id', 'payment_terms',
     'currency', 'customer_id'];
 

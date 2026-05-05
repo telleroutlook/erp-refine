@@ -52,7 +52,8 @@ async function fetchWithRetry(url: string, init?: RequestInit, attempt = 0): Pro
     const baseDelay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);
     const jitter = Math.random() * 500;
     await new Promise((r) => setTimeout(r, baseDelay + jitter));
-    return fetchWithRetry(url, init, attempt + 1);
+    const retryInit = { ...init, headers: getHeaders() };
+    return fetchWithRetry(url, retryInit, attempt + 1);
   }
 
   return response;

@@ -382,8 +382,8 @@ function check1d(resources: ResourceDef[]) {
 function check1e() {
   const content = readFileSync(APP_TSX, 'utf-8');
 
-  // Match: React.lazy(() => import('path')) or lazy(() => import('path'))
-  const lazyRe = /lazy\(\s*\(\)\s*=>\s*import\(\s*'([^']+)'\s*\)/g;
+  // Match: React.lazy(() => import('path')), lazy(() => import('path')), or loadable(() => import('path'))
+  const lazyRe = /(?:lazy|loadable)\(\s*\(\)\s*=>\s*import\(\s*'([^']+)'\s*\)/g;
   let m: RegExpExecArray | null;
   while ((m = lazyRe.exec(content)) !== null) {
     const importPath = m[1]!;
