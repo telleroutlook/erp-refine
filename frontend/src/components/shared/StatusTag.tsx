@@ -82,6 +82,7 @@ const STATUS_STYLES: Record<string, ChipStyle> = {
   shipped: CHIP_CYAN,
   returned: CHIP_CYAN,
   converted: CHIP_CYAN,
+  contracted: CHIP_CYAN,
   consumed: CHIP_CYAN,
   under_maintenance: CHIP_CYAN,
 

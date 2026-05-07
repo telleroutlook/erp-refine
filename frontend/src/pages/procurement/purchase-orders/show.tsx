@@ -1,8 +1,8 @@
 import React from 'react';
 import { useShow, useNavigation } from '@refinedev/core';
 import { Show, DateField } from '@refinedev/antd';
-import { Descriptions, Table, Divider, Button, Space, Dropdown } from 'antd';
-import { DownOutlined, InboxOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Descriptions, Table, Divider, Button, Dropdown, Tag, Tooltip } from 'antd';
+import { DownOutlined, InboxOutlined, FileTextOutlined, LinkOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { StatusTag } from '../../../components/shared/StatusTag';
 import { DocumentFlowPanel } from '../../../components/shared/DocumentFlowPanel';
@@ -61,6 +61,32 @@ export const PurchaseOrderShow: React.FC = () => {
         <Descriptions.Item label={t('common.total')}>
           <AmountDisplay value={record?.total_amount} currency={record?.currency} />
         </Descriptions.Item>
+        {record?.contract_id && (
+          <Descriptions.Item label={t('fields.contract', 'Contract')}>
+            <Button
+              type="link"
+              size="small"
+              icon={<LinkOutlined />}
+              onClick={() => push(`/contracts/contracts/show/${record.contract_id}`)}
+              style={{ padding: 0 }}
+            >
+              {record.contract?.contract_number ?? t('common.view')}
+            </Button>
+          </Descriptions.Item>
+        )}
+        {record?.source_requisition_id && (
+          <Descriptions.Item label={t('fields.sourceRequisition', 'Source PR')}>
+            <Button
+              type="link"
+              size="small"
+              icon={<LinkOutlined />}
+              onClick={() => push(`/procurement/purchase-requisitions/show/${record.source_requisition_id}`)}
+              style={{ padding: 0 }}
+            >
+              {record.source_requisition?.requisition_number ?? t('common.view')}
+            </Button>
+          </Descriptions.Item>
+        )}
         {record?.notes && <Descriptions.Item label={t('common.notes')} span={2}>{record.notes}</Descriptions.Item>}
       </Descriptions>
 
@@ -80,6 +106,29 @@ export const PurchaseOrderShow: React.FC = () => {
               { dataIndex: 'received_quantity', title: t('fields.received_quantity', 'Received'), width: 80, align: 'right' },
               { dataIndex: 'invoiced_quantity', title: t('fields.invoiced_quantity', 'Invoiced'), width: 80, align: 'right' },
               { dataIndex: 'unit_price', title: fl('purchase_order_items', 'unit_price'), width: 100, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
+              {
+                dataIndex: 'contract_unit_price',
+                title: t('fields.contractPrice', 'Contract Price'),
+                width: 110,
+                align: 'right' as const,
+                render: (v: number | null, row: any) => {
+                  if (v == null) return '-';
+                  const actual = Number(row.unit_price ?? 0);
+                  const diff = actual - v;
+                  return (
+                    <Tooltip title={diff !== 0 ? `${t('common.variance')}: ${diff > 0 ? '+' : ''}${diff.toFixed(2)}` : t('common.matched')}>
+                      <span>
+                        <AmountDisplay value={v} currency={record?.currency} />
+                        {diff !== 0 && (
+                          <Tag color={diff > 0 ? 'red' : 'green'} style={{ marginLeft: 4, fontSize: 10 }}>
+                            {diff > 0 ? '+' : ''}{diff.toFixed(2)}
+                          </Tag>
+                        )}
+                      </span>
+                    </Tooltip>
+                  );
+                },
+              },
               { dataIndex: 'amount', title: fl('purchase_order_items', 'line_total'), width: 120, align: 'right', render: (v: number | string | null | undefined) => <AmountDisplay value={v} currency={record?.currency} /> },
             ]}
           />

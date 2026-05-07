@@ -53,7 +53,7 @@ procurement.get('/purchase-orders/:id', async (c) => {
 
   const { data, error } = await db
     .from('purchase_orders')
-    .select('*, supplier:suppliers(id,name,code,contact_email,contact_phone), items:purchase_order_items(*, product:products(id,name,code))')
+    .select('*, supplier:suppliers(id,name,code,contact_email,contact_phone), contract:contracts(id,contract_number,status), source_requisition:purchase_requisitions(id,requisition_number), items:purchase_order_items(*, product:products(id,name,code))')
     .eq('id', id)
     .eq('organization_id', user.organizationId)
     .is('deleted_at', null)
@@ -295,6 +295,7 @@ procurement.post('/purchase-orders', async (c) => {
   const PERMITTED_PO_CREATE = new Set([
     'supplier_id', 'order_date', 'expected_date', 'delivery_date',
     'currency', 'payment_terms', 'notes', 'warehouse_id', 'contact_person',
+    'contract_id', 'source_requisition_id',
   ]);
   const headerFields: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(rawFields)) {
