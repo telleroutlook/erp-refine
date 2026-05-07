@@ -35,19 +35,19 @@ export const ExchangeRateList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="from_currency" title={t('menu.exchangeRates')} />
-        <Table.Column dataIndex="to_currency" title={t('menu.exchangeRates')} />
-        <Table.Column dataIndex="rate" title={t('menu.exchangeRates')} />
+        <Table.Column dataIndex="from_currency" title={fl('exchange_rates', 'from_currency')} />
+        <Table.Column dataIndex="to_currency" title={fl('exchange_rates', 'to_currency')} />
+        <Table.Column dataIndex="rate" title={fl('exchange_rates', 'rate')} />
         <Table.Column dataIndex="rate_type" title={fl('exchange_rates', 'rate_type')} render={(v) => v ? t(`enums.rateType.${v}`, v) : '-'} />
         <Table.Column
           dataIndex="effective_date"
-          title={t('menu.exchangeRates')}
+          title={fl('exchange_rates', 'effective_date')}
           width={120}
           render={(v) => <DateField value={v} format="YYYY-MM-DD" />}
         />
         <Table.Column
           dataIndex="expiry_date"
-          title={t('menu.exchangeRates')}
+          title={fl('exchange_rates', 'expiry_date')}
           width={120}
           render={(v) => v ? <DateField value={v} format="YYYY-MM-DD" /> : '-'}
         />

@@ -27,7 +27,7 @@ export const OrganizationCurrencyList: React.FC = () => {
     >
       <Table {...tableProps} rowKey="id" size="small">
         <Table.Column dataIndex="currency_code" title={fl('organization_currencies', 'currency_code')} width={160} />
-        <Table.Column dataIndex="is_default" title={fl('organization_currencies', 'is_default')} width={100} render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? 'Yes' : 'No'}</Tag>} />
+        <Table.Column dataIndex="is_default" title={fl('organization_currencies', 'is_default')} width={100} render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>} />
         <Table.Column dataIndex="created_at" title={fl('organization_currencies', 'created_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('organization-currencies', r.id)} />} />
       </Table>

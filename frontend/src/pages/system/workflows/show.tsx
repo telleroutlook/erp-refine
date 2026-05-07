@@ -19,7 +19,7 @@ export const WorkflowShow: React.FC = () => {
         <Descriptions.Item label={t('common.status')}>
           {record?.status ? <StatusTag status={record.status} /> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label={fl('workflows', 'relation_type')}>{record?.entity_type || '-'}</Descriptions.Item>
+        <Descriptions.Item label={fl('workflows', 'entity_type')}>{record?.entity_type || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('workflows', 'entity_id')}>{record?.entity_id || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('workflows', 'current_step')}>{record?.current_step || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('workflows', 'started_by')}>{record?.started_by || '-'}</Descriptions.Item>

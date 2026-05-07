@@ -35,7 +35,7 @@ export const BudgetCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item label={fl('budgets', 'budget_year')} name="budget_year">
-              <InputNumber style={FULL_WIDTH} min={2020} max={2030} />
+              <InputNumber style={FULL_WIDTH} min={2020} max={new Date().getFullYear() + 10} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={24} md={12}>

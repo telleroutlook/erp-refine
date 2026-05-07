@@ -99,6 +99,12 @@ export async function commitDraft(params: CommitDraftParams): Promise<CommitResu
   }
 }
 
+const IMMUTABLE_FIELDS = new Set([
+  'id', 'organization_id', 'created_at', 'updated_at',
+  'status', 'confirmed', 'approved_at', 'approved_by',
+  'rejected_at', 'rejected_by', 'deleted_at', 'committed_at',
+]);
+
 function mergeContentIntoArgs(
   toolArgs: Record<string, unknown>,
   content: Record<string, unknown>,
@@ -108,7 +114,7 @@ function mergeContentIntoArgs(
   if (content.header && typeof content.header === 'object') {
     const header = content.header as Record<string, unknown>;
     for (const [key, value] of Object.entries(header)) {
-      if (key === 'id' || key === 'organization_id' || key === 'created_at' || key === 'updated_at') continue;
+      if (IMMUTABLE_FIELDS.has(key)) continue;
       if (value !== undefined) toolArgs[key] = value;
     }
   }
@@ -118,7 +124,7 @@ function mergeContentIntoArgs(
   // Flat content (no header/items wrapper)
   if (!content.header && !content.items) {
     for (const [key, value] of Object.entries(content)) {
-      if (key === 'id' || key === 'organization_id' || key === 'created_at' || key === 'updated_at') continue;
+      if (IMMUTABLE_FIELDS.has(key)) continue;
       if (value !== undefined) toolArgs[key] = value;
     }
   }

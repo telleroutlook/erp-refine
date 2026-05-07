@@ -16,7 +16,7 @@ export const OrganizationUomShow: React.FC = () => {
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('organization_uoms', 'uom_id')}>{record?.uom_name ?? record?.uom_id}</Descriptions.Item>
         <Descriptions.Item label={fl('organization_uoms', 'is_default')}>
-          <Tag color={record?.is_default ? 'green' : 'default'}>{record?.is_default ? 'Yes' : 'No'}</Tag>
+          <Tag color={record?.is_default ? 'green' : 'default'}>{record?.is_default ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label={fl('organization_uoms', 'created_at')}><DateField value={record?.created_at} format="YYYY-MM-DD HH:mm:ss" /></Descriptions.Item>
       </Descriptions>

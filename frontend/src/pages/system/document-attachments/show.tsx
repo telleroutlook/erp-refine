@@ -25,7 +25,7 @@ export const DocumentAttachmentShow: React.FC = () => {
         <Descriptions.Item label={fl('document_attachments', 'mime_type')}>{record?.mime_type || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('document_attachments', 'file_size')}>{formatFileSize(record?.file_size)}</Descriptions.Item>
         <Descriptions.Item label={fl('document_attachments', 'file_path')}>{record?.file_path || '-'}</Descriptions.Item>
-        <Descriptions.Item label={fl('document_attachments', 'relation_type')}>{record?.entity_type || '-'}</Descriptions.Item>
+        <Descriptions.Item label={fl('document_attachments', 'entity_type')}>{record?.entity_type || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('document_attachments', 'entity_id')}>{record?.entity_id || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('document_attachments', 'uploaded_by')}>{record?.uploaded_by || '-'}</Descriptions.Item>
         <Descriptions.Item label={fl('document_attachments', 'created_at')}>

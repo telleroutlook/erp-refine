@@ -16,7 +16,7 @@ export const OrganizationCurrencyShow: React.FC = () => {
       <Descriptions bordered size="small" column={{ xs: 1, sm: 1, md: 2 }}>
         <Descriptions.Item label={fl('organization_currencies', 'currency_code')}>{record?.currency_code}</Descriptions.Item>
         <Descriptions.Item label={fl('organization_currencies', 'is_default')}>
-          <Tag color={record?.is_default ? 'green' : 'default'}>{record?.is_default ? 'Yes' : 'No'}</Tag>
+          <Tag color={record?.is_default ? 'green' : 'default'}>{record?.is_default ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label={fl('organization_currencies', 'created_at')}><DateField value={record?.created_at} format="YYYY-MM-DD HH:mm:ss" /></Descriptions.Item>
       </Descriptions>

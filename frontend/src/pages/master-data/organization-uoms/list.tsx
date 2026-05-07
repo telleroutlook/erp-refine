@@ -26,8 +26,8 @@ export const OrganizationUomList: React.FC = () => {
       }
     >
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="uom_id" title={fl('organization_uoms', 'uom_id')} width={160} />
-        <Table.Column dataIndex="is_default" title={fl('organization_uoms', 'is_default')} width={100} render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? 'Yes' : 'No'}</Tag>} />
+        <Table.Column dataIndex="uom_id" title={fl('organization_uoms', 'uom_id')} width={160} render={(_: any, r: any) => r?.uom_name ?? r?.uom_id} />
+        <Table.Column dataIndex="is_default" title={fl('organization_uoms', 'is_default')} width={100} render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>} />
         <Table.Column dataIndex="created_at" title={fl('organization_uoms', 'created_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />
         <Table.Column title={t('common.actions')} width={60} render={(_, r: any) => <Button size="small" icon={<EyeOutlined />} onClick={() => show('organization-uoms', r.id)} />} />
       </Table>

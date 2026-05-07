@@ -28,10 +28,10 @@ export const UomList: React.FC = () => {
     <List title={t('menu.uoms')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="uom_code" title={t('menu.uoms')} width={100} />
-        <Table.Column dataIndex="uom_name" title={t('menu.uoms')} />
-        <Table.Column dataIndex="uom_type" title={t('menu.uoms')} render={(v) => v ? t(`enums.uomCategory.${v}`, v) : '-'} />
-        <Table.Column dataIndex="conversion_factor" title={t('menu.uoms')} width={100} />
+        <Table.Column dataIndex="uom_code" title={fl('uoms', 'uom_code')} width={100} />
+        <Table.Column dataIndex="uom_name" title={fl('uoms', 'uom_name')} />
+        <Table.Column dataIndex="uom_type" title={fl('uoms', 'uom_type')} render={(v) => v ? t(`enums.uomCategory.${v}`, v) : '-'} />
+        <Table.Column dataIndex="conversion_factor" title={fl('uoms', 'conversion_factor')} width={100} />
         <Table.Column
           title={t('common.actions')}
           width={80}

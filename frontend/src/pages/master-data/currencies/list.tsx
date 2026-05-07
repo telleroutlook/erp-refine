@@ -28,13 +28,13 @@ export const CurrencyList: React.FC = () => {
     <List title={t('menu.currencies')}>
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="currency_code" title={t('menu.currencies')} width={100} />
-        <Table.Column dataIndex="currency_name" title={t('menu.currencies')} />
-        <Table.Column dataIndex="symbol" title={t('menu.currencies')} width={60} />
-        <Table.Column dataIndex="decimal_places" title={t('menu.currencies')} width={80} />
+        <Table.Column dataIndex="currency_code" title={fl('currencies', 'currency_code')} width={100} />
+        <Table.Column dataIndex="currency_name" title={fl('currencies', 'currency_name')} />
+        <Table.Column dataIndex="symbol" title={fl('currencies', 'symbol')} width={60} />
+        <Table.Column dataIndex="decimal_places" title={fl('currencies', 'decimal_places')} width={80} />
         <Table.Column
           dataIndex="is_active"
-          title={t('menu.currencies')}
+          title={fl('currencies', 'is_active')}
           width={80}
           render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
         />

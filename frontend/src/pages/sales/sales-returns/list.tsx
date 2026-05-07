@@ -40,7 +40,7 @@ export const SalesReturnList: React.FC = () => {
           title={t('common.amount')}
           width={140}
           align="right"
-          render={(v, r: any) => <AmountDisplay value={v} />}
+          render={(v, r: any) => <AmountDisplay value={v} currency={r?.sales_order?.currency} />}
         />
         <Table.Column
           title={t('common.actions')}

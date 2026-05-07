@@ -34,12 +34,12 @@ export const ProductCategoryList: React.FC = () => {
     >
       <ListFilters config={filterConfig} setFilters={setFilters} />
       <Table {...tableProps} rowKey="id" size="small">
-        <Table.Column dataIndex="code" title={t('menu.productCategories')} width={120} />
-        <Table.Column dataIndex="name" title={t('menu.productCategories')} />
-        <Table.Column dataIndex="level" title={t('menu.productCategories')} width={80} />
+        <Table.Column dataIndex="code" title={fl('product_categories', 'code')} width={120} />
+        <Table.Column dataIndex="name" title={fl('product_categories', 'name')} />
+        <Table.Column dataIndex="level" title={fl('product_categories', 'level')} width={80} />
         <Table.Column
           dataIndex="is_active"
-          title={t('menu.productCategories')}
+          title={fl('product_categories', 'is_active')}
           width={80}
           render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>}
         />

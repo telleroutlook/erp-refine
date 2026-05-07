@@ -129,14 +129,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       let buffer = '';
       let streamEnded = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop() ?? '';
-
+      const processSSEParts = (parts: string[]) => {
         for (const part of parts) {
           if (!part.trim()) continue;
 
@@ -176,6 +169,23 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
             break;
           }
         }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          // Process any remaining data in buffer as a final event
+          if (buffer.trim()) {
+            processSSEParts([buffer]);
+          }
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() ?? '';
+
+        processSSEParts(parts);
         if (streamEnded) break;
       }
 

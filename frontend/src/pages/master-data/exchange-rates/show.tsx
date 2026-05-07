@@ -17,7 +17,7 @@ export const ExchangeRateShow: React.FC = () => {
         <Descriptions.Item label={fl('exchange_rates', 'from_currency')}>{record?.from_currency}</Descriptions.Item>
         <Descriptions.Item label={fl('exchange_rates', 'to_currency')}>{record?.to_currency}</Descriptions.Item>
         <Descriptions.Item label={fl('exchange_rates', 'rate')}>{record?.rate}</Descriptions.Item>
-        <Descriptions.Item label={fl('exchange_rates', 'type')}>{record?.rate_type}</Descriptions.Item>
+        <Descriptions.Item label={fl('exchange_rates', 'rate_type')}>{record?.rate_type}</Descriptions.Item>
         <Descriptions.Item label={fl('exchange_rates', 'effective_date')}>
           <DateField value={record?.effective_date} format="YYYY-MM-DD" />
         </Descriptions.Item>

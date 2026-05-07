@@ -209,12 +209,14 @@ export function createContractsTools(db: SupabaseClient, organizationId: string,
           .from('contract_items')
           .select('product_id, quantity, unit_price, tax_rate, amount, notes')
           .eq('contract_id', id)
+          .eq('organization_id', organizationId)
           .is('deleted_at', null);
 
         if (items && items.length > 0) {
           const newItems = items.map(item => ({
             ...item,
             contract_id: newContract.id,
+            organization_id: organizationId,
           }));
           const { error: itemsErr } = await db.from('contract_items').insert(newItems);
           if (itemsErr) {

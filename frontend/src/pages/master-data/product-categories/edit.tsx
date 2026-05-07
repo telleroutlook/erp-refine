@@ -8,8 +8,12 @@ export const ProductCategoryEdit: React.FC = () => {
   const { t } = useTranslation();
   const fl = useFieldLabel();
   const pt = usePageTitle();
-  const { formProps, saveButtonProps } = useForm({ resource: 'product-categories' });
-  const { selectProps: catSelectProps } = useSelect({ resource: 'product-categories', optionLabel: (r: any) => `${r.code} - ${r.name}` });
+  const { formProps, saveButtonProps, id } = useForm({ resource: 'product-categories' });
+  const { selectProps: catSelectProps } = useSelect({
+    resource: 'product-categories',
+    optionLabel: (r: any) => `${r.code} - ${r.name}`,
+    filters: id ? [{ field: 'id', operator: 'ne', value: id }] : [],
+  });
 
   return (
     <Edit saveButtonProps={saveButtonProps} title={pt('product_categories', 'edit')}>
