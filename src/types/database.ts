@@ -1154,6 +1154,7 @@ export type Database = {
           notes: string | null
           product_id: string | null
           quantity: number
+          source_quotation_line_id: string | null
           status: string
           tax_rate: number | null
           unit_price: number
@@ -1167,6 +1168,7 @@ export type Database = {
           notes?: string | null
           product_id?: string | null
           quantity: number
+          source_quotation_line_id?: string | null
           status?: string
           tax_rate?: number | null
           unit_price?: number
@@ -1180,6 +1182,7 @@ export type Database = {
           notes?: string | null
           product_id?: string | null
           quantity?: number
+          source_quotation_line_id?: string | null
           status?: string
           tax_rate?: number | null
           unit_price?: number
@@ -1197,6 +1200,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_items_source_quotation_line_id_fkey"
+            columns: ["source_quotation_line_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_quotation_lines"
             referencedColumns: ["id"]
           },
         ]
@@ -1221,6 +1231,8 @@ export type Database = {
           party_type: string
           payment_terms: string | null
           renewed_from_id: string | null
+          source_quotation_id: string | null
+          source_rfq_id: string | null
           start_date: string | null
           status: string
           tax_rate: number | null
@@ -1250,6 +1262,8 @@ export type Database = {
           party_type: string
           payment_terms?: string | null
           renewed_from_id?: string | null
+          source_quotation_id?: string | null
+          source_rfq_id?: string | null
           start_date?: string | null
           status?: string
           tax_rate?: number | null
@@ -1279,6 +1293,8 @@ export type Database = {
           party_type?: string
           payment_terms?: string | null
           renewed_from_id?: string | null
+          source_quotation_id?: string | null
+          source_rfq_id?: string | null
           start_date?: string | null
           status?: string
           tax_rate?: number | null
@@ -1309,6 +1325,20 @@ export type Database = {
             columns: ["renewed_from_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_source_quotation_id_fkey"
+            columns: ["source_quotation_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_quotations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_source_rfq_id_fkey"
+            columns: ["source_rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfq_headers"
             referencedColumns: ["id"]
           },
         ]
@@ -3581,6 +3611,8 @@ export type Database = {
       purchase_order_items: {
         Row: {
           amount: number
+          contract_item_id: string | null
+          contract_unit_price: number | null
           deleted_at: string | null
           id: string
           invoiced_quantity: number
@@ -3590,11 +3622,14 @@ export type Database = {
           purchase_order_id: string
           quantity: number
           received_quantity: number
+          requisition_line_id: string | null
           tax_rate: number
           unit_price: number
         }
         Insert: {
           amount?: number
+          contract_item_id?: string | null
+          contract_unit_price?: number | null
           deleted_at?: string | null
           id?: string
           invoiced_quantity?: number
@@ -3604,11 +3639,14 @@ export type Database = {
           purchase_order_id: string
           quantity: number
           received_quantity?: number
+          requisition_line_id?: string | null
           tax_rate?: number
           unit_price?: number
         }
         Update: {
           amount?: number
+          contract_item_id?: string | null
+          contract_unit_price?: number | null
           deleted_at?: string | null
           id?: string
           invoiced_quantity?: number
@@ -3618,10 +3656,18 @@ export type Database = {
           purchase_order_id?: string
           quantity?: number
           received_quantity?: number
+          requisition_line_id?: string | null
           tax_rate?: number
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_contract_item_id_fkey"
+            columns: ["contract_item_id"]
+            isOneToOne: false
+            referencedRelation: "contract_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "purchase_order_items_product_id_fkey"
             columns: ["product_id"]
@@ -3643,12 +3689,20 @@ export type Database = {
             referencedRelation: "v_purchase_order_summary"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "purchase_order_items_requisition_line_id_fkey"
+            columns: ["requisition_line_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_requisition_lines"
+            referencedColumns: ["id"]
+          },
         ]
       }
       purchase_orders: {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          contract_id: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -3664,6 +3718,7 @@ export type Database = {
           rejected_at: string | null
           rejected_by: string | null
           rejection_reason: string | null
+          source_requisition_id: string | null
           status: string
           submitted_at: string | null
           submitted_by: string | null
@@ -3676,6 +3731,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -3691,6 +3747,7 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
+          source_requisition_id?: string | null
           status?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -3703,6 +3760,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -3718,6 +3776,7 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
+          source_requisition_id?: string | null
           status?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -3743,6 +3802,13 @@ export type Database = {
             referencedColumns: ["decision_id"]
           },
           {
+            foreignKeyName: "purchase_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "purchase_orders_currency_fkey"
             columns: ["currency"]
             isOneToOne: false
@@ -3754,6 +3820,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_source_requisition_id_fkey"
+            columns: ["source_requisition_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_requisitions"
             referencedColumns: ["id"]
           },
           {
@@ -7753,6 +7826,23 @@ export type Database = {
         Returns: Json
       }
       exec_transaction: { Args: { statements: string }; Returns: undefined }
+      find_active_contracts_for_product: {
+        Args: {
+          p_date?: string
+          p_organization_id: string
+          p_product_id: string
+        }
+        Returns: {
+          contract_id: string
+          contract_number: string
+          currency: string
+          end_date: string
+          quantity: number
+          remaining_quantity: number
+          supplier_id: string
+          unit_price: number
+        }[]
+      }
       get_next_sequence:
         | {
             Args: { p_entity_type?: string; p_org_id: string; p_prefix: string }

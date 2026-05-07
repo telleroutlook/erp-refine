@@ -63,15 +63,219 @@ procurement.get('/purchase-orders/:id', async (c) => {
   return c.json({ data });
 });
 
-// GET create-from: PR → PO (参考采购申请创建采购订单)
+// GET create-from: PR → PO (enhanced: contract matching + supplier grouping)
+// Returns grouped PO previews, one per supplier, with contract info attached.
 procurement.get('/purchase-orders/create-from/purchase-requisition/:sourceId', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const sourceId = c.req.param('sourceId');
   const flow = findFlow('purchase_requisition', 'purchase_order')!;
   const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
   if (items.length === 0) throw ApiError.badRequest('All items are fully fulfilled', requestId);
-  const preview = buildPrefilledData(flow, source, items);
-  return c.json({ data: preview });
+
+  // For each PR line, find active contracts to determine supplier
+  interface LineWithContract {
+    item: Record<string, unknown>;
+    openQuantity: number;
+    contract?: { contract_id: string; contract_number: string; supplier_id: string; unit_price: number; remaining_quantity: number; currency: string };
+    supplier_id: string | null;
+    needs_selection: boolean;
+    available_contracts?: Array<{ contract_id: string; contract_number: string; supplier_id: string; unit_price: number; remaining_quantity: number; currency: string }>;
+  }
+
+  const enrichedLines: LineWithContract[] = [];
+
+  for (const { item, openQuantity } of items) {
+    const productId = item.product_id as string;
+
+    // Call RPC to find active contracts for this product
+    const { data: contracts } = await db.rpc('find_active_contracts_for_product', {
+      p_organization_id: user.organizationId,
+      p_product_id: productId,
+    });
+
+    const validContracts = (contracts ?? []).filter((ct: any) => ct.remaining_quantity > 0);
+
+    if (validContracts.length === 1) {
+      // Single contract → auto-assign supplier
+      const ct = validContracts[0];
+      enrichedLines.push({
+        item, openQuantity,
+        contract: ct,
+        supplier_id: ct.supplier_id,
+        needs_selection: false,
+      });
+    } else if (validContracts.length > 1) {
+      // Multiple contracts → needs buyer selection
+      enrichedLines.push({
+        item, openQuantity,
+        supplier_id: null,
+        needs_selection: true,
+        available_contracts: validContracts,
+      });
+    } else {
+      // No contract → use suggested_supplier_id from PR line
+      enrichedLines.push({
+        item, openQuantity,
+        supplier_id: (item.suggested_supplier_id as string) ?? null,
+        needs_selection: !(item.suggested_supplier_id),
+      });
+    }
+  }
+
+  // Check if any line needs manual selection
+  const needsSelection = enrichedLines.some((l) => l.needs_selection);
+
+  if (needsSelection) {
+    // Return lines with available contracts for frontend selection UI
+    return c.json({
+      data: {
+        status: 'needs_supplier_selection',
+        source: { id: source.id, type: 'purchase_requisition', number: source.requisition_number },
+        lines: enrichedLines.map((l) => ({
+          requisition_line_id: l.item.id,
+          product_id: l.item.product_id,
+          product: l.item.product,
+          quantity: l.openQuantity,
+          suggested_supplier_id: l.item.suggested_supplier_id ?? null,
+          assigned_supplier_id: l.supplier_id,
+          assigned_contract: l.contract ?? null,
+          needs_selection: l.needs_selection,
+          available_contracts: l.available_contracts ?? [],
+        })),
+      },
+    });
+  }
+
+  // All lines have determined suppliers → group by supplier_id
+  const supplierGroups = new Map<string, LineWithContract[]>();
+  for (const line of enrichedLines) {
+    const sid = line.supplier_id!;
+    if (!supplierGroups.has(sid)) supplierGroups.set(sid, []);
+    supplierGroups.get(sid)!.push(line);
+  }
+
+  // Build one PO preview per supplier
+  const poPreview = Array.from(supplierGroups.entries()).map(([supplierId, lines]) => {
+    const firstContract = lines.find((l) => l.contract);
+    return {
+      supplier_id: supplierId,
+      contract_id: firstContract?.contract?.contract_id ?? null,
+      contract_number: firstContract?.contract?.contract_number ?? null,
+      currency: firstContract?.contract?.currency ?? 'CNY',
+      source_requisition_id: source.id,
+      items: lines.map((l) => ({
+        product_id: l.item.product_id,
+        product: l.item.product,
+        quantity: l.openQuantity,
+        unit_price: l.contract?.unit_price ?? l.item.unit_price ?? (l.item.product as any)?.cost_price ?? 0,
+        contract_item_id: l.contract?.contract_id ? undefined : undefined, // will be resolved on actual create
+        contract_unit_price: l.contract?.unit_price ?? null,
+        requisition_line_id: l.item.id,
+        tax_rate: 0,
+      })),
+    };
+  });
+
+  return c.json({
+    data: {
+      status: 'ready',
+      source: { id: source.id, type: 'purchase_requisition', number: source.requisition_number },
+      purchase_orders: poPreview,
+    },
+  });
+});
+
+// POST /purchase-orders/create-from-requisition — batch create POs from PR (after supplier selection)
+// Body: { source_requisition_id, purchase_orders: [{ supplier_id, contract_id?, items: [...] }] }
+procurement.post('/purchase-orders/create-from-requisition', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const body = await c.req.json();
+  const { source_requisition_id, purchase_orders: poSpecs } = body;
+
+  if (!source_requisition_id || !Array.isArray(poSpecs) || poSpecs.length === 0) {
+    throw ApiError.badRequest('source_requisition_id and purchase_orders array are required', requestId);
+  }
+
+  // Validate source PR is approved
+  const { data: pr, error: prErr } = await db
+    .from('purchase_requisitions')
+    .select('id, status, requisition_number')
+    .eq('id', source_requisition_id)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (prErr || !pr) throw ApiError.notFound('PurchaseRequisition', source_requisition_id, requestId);
+  if (pr.status !== 'approved') throw ApiError.invalidState('PurchaseRequisition', pr.status, 'create-from', requestId);
+
+  const empId = await resolveEmployeeId(db, user.userId, user.organizationId);
+  const createdPOs: Array<{ id: string; order_number: string; supplier_id: string }> = [];
+
+  for (const spec of poSpecs) {
+    const { supplier_id, contract_id, items } = spec;
+    if (!supplier_id || !Array.isArray(items) || items.length === 0) continue;
+
+    // Generate PO number
+    const { data: poNum, error: seqErr } = await db.rpc('get_next_sequence', {
+      p_organization_id: user.organizationId,
+      p_sequence_name: 'purchase_order',
+    });
+    if (seqErr || !poNum) throw ApiError.database(`PO number generation failed: ${seqErr?.message}`, requestId);
+
+    const result = await atomicCreateWithItems(db, {
+      headerTable: 'purchase_orders',
+      itemsTable: 'purchase_order_items',
+      headerFk: 'purchase_order_id',
+      headerReturnSelect: 'id, order_number, status',
+      itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      autoLineNumber: true,
+    }, {
+      header: {
+        order_number: poNum,
+        organization_id: user.organizationId,
+        supplier_id,
+        contract_id: contract_id ?? null,
+        source_requisition_id,
+        order_date: new Date().toISOString().split('T')[0],
+        currency: spec.currency ?? 'CNY',
+        payment_terms: spec.payment_terms ?? null,
+        status: 'draft',
+        created_by: empId,
+      },
+      items: items.map((it: any) => ({
+        product_id: it.product_id,
+        quantity: it.quantity,
+        unit_price: it.unit_price ?? 0,
+        tax_rate: it.tax_rate ?? 0,
+        contract_item_id: it.contract_item_id ?? null,
+        contract_unit_price: it.contract_unit_price ?? null,
+        requisition_line_id: it.requisition_line_id ?? null,
+      })),
+    }, {
+      userId: user.userId,
+      organizationId: user.organizationId,
+      requestId,
+      action: 'create_purchase_order',
+      resource: 'purchase_orders',
+    });
+
+    createdPOs.push({ id: result.header.id as string, order_number: result.header.order_number as string, supplier_id });
+
+    // Document relation
+    await createDocumentRelation(db, user.organizationId,
+      'purchase_requisition', source_requisition_id, 'purchase_order', result.header.id as string,
+      'PR → PO (grouped)');
+  }
+
+  // Mark PR as converted
+  await db
+    .from('purchase_requisitions')
+    .update({ status: 'converted' })
+    .eq('id', source_requisition_id)
+    .eq('organization_id', user.organizationId)
+    .eq('status', 'approved');
+
+  return c.json({ data: { created_purchase_orders: createdPOs } }, 201);
 });
 
 // POST create (atomic: header + items)
@@ -735,6 +939,108 @@ procurement.delete('/supplier-quotations/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   await performSoftDelete(db, 'supplier_quotations', c.req.param('id'), user.organizationId, 'SupplierQuotation', requestId);
   return c.json({ data: { success: true } });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Supplier Quotation → Contract conversion
+// ────────────────────────────────────────────────────────────────────────────
+
+// POST /supplier-quotations/:id/convert-to-contract
+// Converts a selected quotation (or selected lines) into a procurement contract.
+// Body: { line_ids?: string[], start_date?, end_date?, payment_terms?, notes? }
+procurement.post('/supplier-quotations/:id/convert-to-contract', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const quotationId = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+
+  // 1. Fetch quotation with lines
+  const { data: quotation, error: fetchErr } = await db
+    .from('supplier_quotations')
+    .select('*, lines:supplier_quotation_lines(*, product:products(id,name,code)), supplier:suppliers(id,name), rfq:rfq_headers(id,rfq_number)')
+    .eq('id', quotationId)
+    .eq('organization_id', user.organizationId)
+    .is('deleted_at', null)
+    .single();
+
+  if (fetchErr || !quotation) throw ApiError.notFound('SupplierQuotation', quotationId, requestId);
+
+  // Only selected or evaluated quotations can be converted
+  if (!['selected', 'evaluated'].includes(quotation.status)) {
+    throw ApiError.invalidState('SupplierQuotation', quotation.status, 'convert-to-contract', requestId,
+      'Quotation must be in "selected" or "evaluated" status to convert');
+  }
+
+  // 2. Determine which lines to include
+  const allLines = ((quotation.lines ?? []) as any[]).filter((l: any) => !l.deleted_at);
+  const lineIds: string[] | undefined = body.line_ids;
+  const linesToConvert = lineIds
+    ? allLines.filter((l: any) => lineIds.includes(l.id))
+    : allLines;
+
+  if (linesToConvert.length === 0) {
+    throw ApiError.badRequest('No valid quotation lines to convert', requestId);
+  }
+
+  // 3. Generate contract number
+  const { data: contractNum, error: seqErr } = await db.rpc('get_next_sequence', {
+    p_organization_id: user.organizationId,
+    p_sequence_name: 'contract',
+  });
+  if (seqErr || !contractNum) throw ApiError.database(`Contract number generation failed: ${seqErr?.message ?? 'unavailable'}`, requestId);
+
+  // 4. Compute total
+  const totalAmount = linesToConvert.reduce((sum: number, l: any) =>
+    sum + (Number(l.total_price) || Number(l.qty_offered) * Number(l.unit_price) || 0), 0);
+
+  // 5. Create contract with items
+  const result = await atomicCreateWithItems(db, {
+    headerTable: 'contracts',
+    itemsTable: 'contract_items',
+    headerFk: 'contract_id',
+    headerReturnSelect: 'id, contract_number, status',
+    itemsReturnSelect: 'id, product_id, quantity, unit_price, source_quotation_line_id',
+  }, {
+    header: {
+      contract_number: contractNum,
+      organization_id: user.organizationId,
+      contract_type: 'procurement',
+      party_type: 'supplier',
+      party_id: quotation.supplier_id,
+      currency: quotation.currency,
+      total_amount: totalAmount,
+      start_date: body.start_date ?? new Date().toISOString().split('T')[0],
+      end_date: body.end_date ?? null,
+      payment_terms: body.payment_terms ?? null,
+      notes: body.notes ?? `Converted from quotation ${quotation.quotation_number}`,
+      source_quotation_id: quotationId,
+      source_rfq_id: quotation.rfq_id ?? null,
+      status: 'draft',
+      created_by: user.userId,
+    },
+    items: linesToConvert.map((l: any) => ({
+      product_id: l.product_id,
+      quantity: l.qty_offered,
+      unit_price: l.unit_price,
+      amount: Number(l.total_price) || Number(l.qty_offered) * Number(l.unit_price) || 0,
+      tax_rate: 0,
+      source_quotation_line_id: l.id,
+      status: 'active',
+    })),
+  });
+
+  // 6. Update quotation status → contracted
+  await db
+    .from('supplier_quotations')
+    .update({ status: 'contracted' })
+    .eq('id', quotationId)
+    .eq('organization_id', user.organizationId);
+
+  // 7. Record document relation
+  await createDocumentRelation(db, user.organizationId,
+    'supplier_quotation', quotationId, 'contract', result.header.id as string,
+    'Quotation → Contract');
+
+  return c.json({ data: result.header }, 201);
 });
 
 // ────────────────────────────────────────────────────────────────────────────

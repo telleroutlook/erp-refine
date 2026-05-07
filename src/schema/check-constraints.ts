@@ -2,7 +2,7 @@
 // Regenerate with: npm run schema:sync (runs generate-check-constraints.ts)
 // Source: live DB pg_constraint (public schema, CHECK type with ANY/ARRAY pattern)
 
-export const CONSTRAINTS_GENERATED_AT = '2026-04-21T21:55:00.000Z';
+export const CONSTRAINTS_GENERATED_AT = '2026-05-07T12:00:00.000Z';
 
 export interface CheckConstraint {
   table: string;
@@ -97,7 +97,7 @@ export const CHECK_CONSTRAINTS: CheckConstraint[] = [
   { table: 'stock_transactions', column: 'transaction_type', values: ['in', 'out', 'transfer', 'adjust'] },
   { table: 'supplier_certificates', column: 'status', values: ['valid', 'expiring', 'expired'] },
   { table: 'supplier_invoices', column: 'status', values: ['draft', 'received', 'verified', 'approved', 'paid', 'disputed', 'cancelled'] },
-  { table: 'supplier_quotations', column: 'status', values: ['received', 'evaluated', 'selected', 'rejected'] },
+  { table: 'supplier_quotations', column: 'status', values: ['received', 'evaluated', 'selected', 'contracted', 'rejected'] },
   { table: 'suppliers', column: 'status', values: ['active', 'inactive', 'blocked', 'pending_approval'] },
   { table: 'suppliers', column: 'supplier_type', values: ['product', 'service', 'logistics', 'subcontract', 'other'] },
   { table: 'three_way_match_results', column: 'match_status', values: ['pending', 'matched', 'partial', 'mismatch', 'disputed'] },
