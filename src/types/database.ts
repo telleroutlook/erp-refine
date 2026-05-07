@@ -6813,7 +6813,7 @@ export type Database = {
           description: string | null
           domain: string | null
           input_schema: Json
-          organization_id: string | null
+          organization_id: string
           output_schema: Json
           requires_permission: Json
           risk_level: string
@@ -6828,7 +6828,7 @@ export type Database = {
           description?: string | null
           domain?: string | null
           input_schema?: Json
-          organization_id?: string | null
+          organization_id: string
           output_schema?: Json
           requires_permission?: Json
           risk_level?: string
@@ -6843,7 +6843,7 @@ export type Database = {
           description?: string | null
           domain?: string | null
           input_schema?: Json
-          organization_id?: string | null
+          organization_id?: string
           output_schema?: Json
           requires_permission?: Json
           risk_level?: string
@@ -7842,15 +7842,15 @@ export type Database = {
       }
       resolve_price: {
         Args: {
-          p_currency?: string
-          p_date?: string
+          p_currency: string
+          p_date: string
           p_organization_id: string
-          p_partner_id?: string
-          p_partner_type?: string
+          p_partner_id: string
+          p_partner_type: string
           p_price_type: string
           p_product_id: string
-          p_quantity?: number
-          p_uom_id?: string
+          p_quantity: number
+          p_uom_id: string
         }
         Returns: Json
       }
