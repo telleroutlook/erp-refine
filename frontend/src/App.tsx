@@ -299,6 +299,8 @@ const ImportLogList = loadable(() => import('./pages/audit/import-logs/list').th
 const ImportLogShow = loadable(() => import('./pages/audit/import-logs/show').then((m) => ({ default: m.ImportLogShow })));
 const FailedLoginAttemptList = loadable(() => import('./pages/audit/failed-login-attempts/list').then((m) => ({ default: m.FailedLoginAttemptList })));
 const FailedLoginAttemptShow = loadable(() => import('./pages/audit/failed-login-attempts/show').then((m) => ({ default: m.FailedLoginAttemptShow })));
+const ToolRegistryList = loadable(() => import('./pages/audit/tool-registry/list').then((m) => ({ default: m.ToolRegistryList })));
+const ToolRegistryShow = loadable(() => import('./pages/audit/tool-registry/show').then((m) => ({ default: m.ToolRegistryShow })));
 
 // Icons
 import {
@@ -908,6 +910,12 @@ const App: React.FC = () => {
                 show: '/audit/failed-login-attempts/:id',
                 meta: { parent: 'audit', icon: <StopOutlined /> },
               },
+              {
+                name: 'tool-registry',
+                list: '/audit/tool-registry',
+                show: '/audit/tool-registry/:id',
+                meta: { parent: 'audit', icon: <ToolOutlined /> },
+              },
             ]}
             options={{ syncWithLocation: true, warnWhenUnsavedChanges: true }}
           >
@@ -1196,6 +1204,8 @@ const App: React.FC = () => {
                   <Route path="/audit/import-logs/:id" element={<ImportLogShow />} />
                   <Route path="/audit/failed-login-attempts" element={<FailedLoginAttemptList />} />
                   <Route path="/audit/failed-login-attempts/:id" element={<FailedLoginAttemptShow />} />
+                  <Route path="/audit/tool-registry" element={<ToolRegistryList />} />
+                  <Route path="/audit/tool-registry/:id" element={<ToolRegistryShow />} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<ErrorComponent />} />

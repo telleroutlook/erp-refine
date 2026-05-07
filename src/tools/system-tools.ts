@@ -152,5 +152,50 @@ export function createSystemTools(db: SupabaseClient, organizationId: string) {
         return data ?? [];
       },
     }),
+
+    list_user_roles: tool({
+      description: 'List user-role assignments in the organization',
+      inputSchema: z.object({
+        userId: z.string().uuid().optional(),
+        roleId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+      execute: async ({ userId, roleId, limit }) => {
+        let query = db
+          .from('user_roles')
+          .select('id, user_id, role_id, assigned_by, assigned_at, role:roles(id,name)')
+          .eq('organization_id', organizationId);
+
+        if (userId) query = query.eq('user_id', userId);
+        if (roleId) query = query.eq('role_id', roleId);
+
+        const { data, error } = await query.order('assigned_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_portal_users: tool({
+      description: 'List supplier portal users linked to this organization',
+      inputSchema: z.object({
+        status: z.enum(['active', 'inactive', 'locked']).optional(),
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, supplierId, limit }) => {
+        let query = db
+          .from('portal_users')
+          .select('id, username, role, status, supplier_id, last_login_at, created_at, supplier:suppliers!inner(id, organization_id)')
+          .eq('supplier.organization_id', organizationId)
+          .is('deleted_at', null);
+
+        if (status) query = query.eq('status', status);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }

@@ -212,6 +212,9 @@
   "tool-call-metrics": {
     "tool-call-metrics": "Tool Call Metrics"
   },
+  "tool-registry": {
+    "tool-registry": "Tool Registry"
+  },
   "agent-sessions": {
     "agent-sessions": "Agent Sessions"
   },
@@ -476,6 +479,7 @@
     "profileChangeRequests": "Profile Change Requests",
     "schemaManager": "Dynamic Forms",
     "failedLoginAttempts": "Failed Login Attempts",
+    "toolRegistry": "Tool Registry",
     "organizations": "Organizations",
     "organizationCurrencies": "Org Currencies",
     "organizationUoms": "Org UoMs",
@@ -1484,6 +1488,16 @@
     },
     "tool_call_metrics": {
       "created_at": "Time"
+    },
+    "tool_registry": {
+      "tool_name": "Tool Name",
+      "domain": "Domain",
+      "risk_level": "Risk Level",
+      "active": "Active",
+      "audit_required": "Audit Required",
+      "input_schema": "Input Schema",
+      "output_schema": "Output Schema",
+      "requires_permission": "Required Permissions"
     },
     "agent_decisions": {
       "created_at": "Time",

@@ -17,9 +17,10 @@ import { createPartnersTools } from './partners-tools';
 import { createLookupTools } from './lookup-tools';
 import { createSchemaTools } from './schema-tools';
 import { createSystemTools } from './system-tools';
+import { createAuditTools } from './audit-tools';
 import { intentTools } from './intent-tools';
 
-export type DomainScope = 'procurement' | 'sales' | 'inventory' | 'finance' | 'quality' | 'manufacturing' | 'contracts' | 'assets' | 'partners' | 'master-data' | 'reporting' | 'schema' | 'system' | 'all';
+export type DomainScope = 'procurement' | 'sales' | 'inventory' | 'finance' | 'quality' | 'manufacturing' | 'contracts' | 'assets' | 'partners' | 'master-data' | 'reporting' | 'schema' | 'system' | 'audit' | 'all';
 
 export interface ToolRegistryOptions {
   db: SupabaseClient;
@@ -50,6 +51,7 @@ export function buildToolSet(options: ToolRegistryOptions): ToolSet {
   if (include('partners')) Object.assign(tools, createPartnersTools(db, organizationId));
   if (include('schema')) Object.assign(tools, createSchemaTools(db, organizationId));
   if (include('system')) Object.assign(tools, createSystemTools(db, organizationId));
+  if (include('audit')) Object.assign(tools, createAuditTools(db, organizationId));
   Object.assign(tools, createLookupTools(db, organizationId));
 
   return tools;
@@ -140,6 +142,10 @@ export const TOOL_REGISTRY_META = [
   { name: 'get_product', domain: 'master-data', level: 0, cacheable: false },
   { name: 'list_price_list_lines', domain: 'master-data', level: 0, cacheable: false },
   { name: 'get_product_cost_history', domain: 'master-data', level: 0, cacheable: false },
+  { name: 'list_organization_currencies', domain: 'master-data', level: 0, cacheable: true },
+  { name: 'list_organization_uoms', domain: 'master-data', level: 0, cacheable: true },
+  { name: 'list_product_uom_conversions', domain: 'master-data', level: 0, cacheable: false },
+  { name: 'list_profile_change_requests', domain: 'master-data', level: 0, cacheable: false },
   // reporting
   { name: 'get_procurement_summary', domain: 'reporting', level: 0, cacheable: true },
   { name: 'get_sales_summary', domain: 'reporting', level: 0, cacheable: true },
@@ -199,4 +205,15 @@ export const TOOL_REGISTRY_META = [
   { name: 'list_approval_rules', domain: 'system', level: 0, cacheable: true },
   { name: 'list_roles', domain: 'system', level: 0, cacheable: true },
   { name: 'list_workflow_steps', domain: 'system', level: 0, cacheable: false },
+  { name: 'list_user_roles', domain: 'system', level: 0, cacheable: false },
+  { name: 'list_portal_users', domain: 'system', level: 0, cacheable: false },
+  // audit
+  { name: 'list_token_usage', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_tool_call_metrics', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_agent_sessions', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_agent_decisions', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_business_events', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_auth_events', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_failed_login_attempts', domain: 'audit', level: 0, cacheable: false },
+  { name: 'list_import_logs', domain: 'audit', level: 0, cacheable: false },
 ];

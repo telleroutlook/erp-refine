@@ -212,6 +212,9 @@
   "tool-call-metrics": {
     "tool-call-metrics": "工具调用指标"
   },
+  "tool-registry": {
+    "tool-registry": "工具注册表"
+  },
   "agent-sessions": {
     "agent-sessions": "Agent会话"
   },
@@ -476,6 +479,7 @@
     "profileChangeRequests": "变更申请",
     "schemaManager": "动态表单",
     "failedLoginAttempts": "登录失败记录",
+    "toolRegistry": "工具注册表",
     "organizations": "组织管理",
     "organizationCurrencies": "组织币种",
     "organizationUoms": "组织计量单位",
@@ -1484,6 +1488,16 @@
     },
     "tool_call_metrics": {
       "created_at": "时间"
+    },
+    "tool_registry": {
+      "tool_name": "工具名称",
+      "domain": "领域",
+      "risk_level": "风险等级",
+      "active": "启用",
+      "audit_required": "需要审计",
+      "input_schema": "输入模式",
+      "output_schema": "输出模式",
+      "requires_permission": "所需权限"
     },
     "agent_decisions": {
       "created_at": "时间",

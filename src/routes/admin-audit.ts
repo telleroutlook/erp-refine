@@ -11,7 +11,7 @@ import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
 import { ErrorCode } from '../types/errors';
 import {
-  token_usage, tool_call_metrics, agent_sessions, agent_decisions,
+  token_usage, tool_call_metrics, tool_registry, agent_sessions, agent_decisions,
   business_events, auth_events, import_logs, semantic_metadata,
   component_whitelist, schema_versions, failed_login_attempts,
 } from '../schema/columns';
@@ -307,5 +307,24 @@ const schemaVersionsConfig: CrudConfig = {
   disableDelete: true,
 };
 adminAudit.route('', buildCrudRoutes(schemaVersionsConfig));
+
+// ---------------------------------------------------------------------------
+// Tool Registry — AI tool definitions and risk levels (read-only)
+// ---------------------------------------------------------------------------
+const toolRegistryConfig: CrudConfig = {
+  table: 'tool_registry',
+  path: '/tool-registry',
+  resourceName: 'ToolRegistry',
+  listSelect: 'tool_name, domain, risk_level, active, audit_required, version, description, created_at',
+  detailSelect: tool_registry.join(', '),
+  createReturnSelect: 'tool_name',
+  defaultSort: 'tool_name',
+  softDelete: false,
+  orgScoped: true,
+  disableCreate: true,
+  disableUpdate: true,
+  disableDelete: true,
+};
+adminAudit.route('', buildCrudRoutes(toolRegistryConfig));
 
 export default adminAudit;

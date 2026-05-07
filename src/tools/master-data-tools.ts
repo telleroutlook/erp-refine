@@ -290,5 +290,75 @@ export function createMasterDataTools(db: SupabaseClient, organizationId: string
         return data ?? [];
       },
     }),
+
+    list_organization_currencies: tool({
+      description: 'List currencies enabled for this organization',
+      inputSchema: z.object({}),
+      execute: async () => {
+        const { data, error } = await db
+          .from('organization_currencies')
+          .select('id, currency_code, is_default, created_at')
+          .eq('organization_id', organizationId)
+          .order('is_default', { ascending: false });
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_organization_uoms: tool({
+      description: 'List units of measure enabled for this organization',
+      inputSchema: z.object({}),
+      execute: async () => {
+        const { data, error } = await db
+          .from('organization_uoms')
+          .select('id, uom_id, is_default, created_at')
+          .eq('organization_id', organizationId)
+          .order('created_at');
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_product_uom_conversions: tool({
+      description: 'List product-specific UOM conversion factors',
+      inputSchema: z.object({
+        productId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(200).default(50),
+      }),
+      execute: async ({ productId, limit }) => {
+        let query = db
+          .from('product_uom_conversions')
+          .select('id, product_id, from_uom_id, to_uom_id, conversion_factor, created_at')
+          .eq('organization_id', organizationId);
+
+        if (productId) query = query.eq('product_id', productId);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
+
+    list_profile_change_requests: tool({
+      description: 'List supplier profile change requests — tracks supplier self-service updates',
+      inputSchema: z.object({
+        status: z.enum(['pending', 'approved', 'rejected']).optional(),
+        supplierId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(20),
+      }),
+      execute: async ({ status, supplierId, limit }) => {
+        let query = db
+          .from('profile_change_requests')
+          .select('id, supplier_id, request_type, change_request_id, status, created_by, created_at, updated_at')
+          .eq('organization_id', organizationId);
+
+        if (status) query = query.eq('status', status);
+        if (supplierId) query = query.eq('supplier_id', supplierId);
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+        if (error) throw new Error(error.message);
+        return data ?? [];
+      },
+    }),
   };
 }
