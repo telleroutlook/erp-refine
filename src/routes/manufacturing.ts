@@ -62,7 +62,13 @@ manufacturing.get('/bom-headers/:id', async (c) => {
 manufacturing.post('/bom-headers', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const body = await c.req.json();
-  const { items, ...headerFields } = body;
+  const { items, ...rawHeaderFields } = body;
+
+  const PERMITTED_BOM = new Set(['product_id', 'notes', 'quantity', 'effective_date', 'version', 'is_active']);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawHeaderFields)) {
+    if (PERMITTED_BOM.has(k)) headerFields[k] = v;
+  }
 
   // Auto-generate bom_number
   const { data: num, error: seqError } = await db.rpc('get_next_sequence', {

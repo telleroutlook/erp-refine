@@ -337,7 +337,13 @@ sales.post('/sales-shipments', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate shipment number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { items, _sourceRef, ...headerFields } = body;
+  const { items, _sourceRef, ...rawHeaderFields } = body;
+
+  const PERMITTED_SHIPMENT = new Set(['customer_id', 'sales_order_id', 'warehouse_id', 'shipment_date', 'carrier', 'shipping_method', 'tracking_number', 'notes']);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawHeaderFields)) {
+    if (PERMITTED_SHIPMENT.has(k)) headerFields[k] = v;
+  }
 
   // Validate quantities against source open items
   if (_sourceRef?.type === 'sales_order' && _sourceRef?.id && items?.length) {

@@ -55,6 +55,7 @@ export function useDocumentChain(objectType: string | null, objectId: string | n
         if (!controller.signal.aborted) setChain(json.data);
       })
       .catch((err: unknown) => {
+        if (controller.signal.aborted) return;
         if ((err as Error)?.name !== 'AbortError') setError(String(err));
       })
       .finally(() => {

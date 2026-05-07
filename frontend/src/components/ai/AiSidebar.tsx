@@ -58,6 +58,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   const [committedDrafts, setCommittedDrafts] = useState<Set<string>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const streamingRef = useRef(false);
   const sessionId = useRef(crypto.randomUUID());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledUpRef = useRef(false);
@@ -89,7 +90,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   }, []);
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || streaming) return;
+    if (!text.trim() || streamingRef.current) return;
     userScrolledUpRef.current = false;
     setInput('');
     setMessages((prev) => {
@@ -97,6 +98,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       return next.length > MAX_VISIBLE_MESSAGES ? next.slice(-MAX_VISIBLE_MESSAGES) : next;
     });
     setStreaming(true);
+    streamingRef.current = true;
     setStreamingText('');
     setActiveTools([]);
 
@@ -172,11 +174,12 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
       }
     } finally {
       setStreaming(false);
+      streamingRef.current = false;
       setStreamingText('');
       setActiveTools([]);
       abortRef.current = null;
     }
-  }, [streaming, t, logout]);
+  }, [t, logout]);
 
   const handleDraftCommitted = useCallback((resourceType: string, _recordId: string | null) => {
     if (activeDraftId) {

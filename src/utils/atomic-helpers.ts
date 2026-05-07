@@ -123,7 +123,7 @@ export async function atomicCreateWithItems(
   const { headerTable, itemsTable, headerFk, headerReturnSelect, itemsReturnSelect } = config;
   const { header, items } = input;
 
-  const HEADER_BLOCKED = new Set(['id', 'organization_id', 'deleted_at', 'created_at', 'approved_by', 'approved_at', 'posted_at']);
+  const HEADER_BLOCKED = new Set(['id', 'deleted_at', 'created_at', 'approved_by', 'approved_at', 'posted_at']);
   const sanitizedHeader = Object.fromEntries(
     Object.entries(header).filter(([k]) => !HEADER_BLOCKED.has(k))
   );

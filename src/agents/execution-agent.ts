@@ -114,7 +114,7 @@ export class ExecutionAgent extends BaseAgent {
           ...tool,
           execute: (args: any, options: any) => {
             if (args && typeof args === 'object') {
-              args.confirmed = request.confirmed ?? false;
+              args.confirmed = request.confirmed ?? request.approved ?? false;
             }
             return originalExecute(args, options);
           },

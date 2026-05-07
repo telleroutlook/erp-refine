@@ -80,25 +80,21 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
   // Update dim state when hover changes — separate from layout to avoid re-running ELK
   useEffect(() => {
     setNodes((prev) =>
-      prev.map((n) => ({
-        ...n,
-        data: {
-          ...n.data,
-          isDimmed: highlightedNodeIds.size > 0 && !highlightedNodeIds.has(n.id),
-        },
-      }))
+      prev.map((n) => {
+        const shouldDim = highlightedNodeIds.size > 0 && !highlightedNodeIds.has(n.id);
+        if (n.data.isDimmed === shouldDim) return n;
+        return { ...n, data: { ...n.data, isDimmed: shouldDim } };
+      })
     );
   }, [highlightedNodeIds, setNodes]);
 
   useEffect(() => {
     setEdges((prev) =>
-      prev.map((e) => ({
-        ...e,
-        style: {
-          ...e.style,
-          opacity: highlightedEdgeIds.size > 0 && !highlightedEdgeIds.has(e.id) ? 0.15 : 1,
-        },
-      }))
+      prev.map((e) => {
+        const newOpacity = highlightedEdgeIds.size > 0 && !highlightedEdgeIds.has(e.id) ? 0.15 : 1;
+        if (e.style?.opacity === newOpacity) return e;
+        return { ...e, style: { ...e.style, opacity: newOpacity } };
+      })
     );
   }, [highlightedEdgeIds, setEdges]);
 

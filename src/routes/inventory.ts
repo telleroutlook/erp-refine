@@ -184,7 +184,13 @@ inventory.post('/inventory-counts', async (c) => {
   });
   if (seqError || !seqData) throw ApiError.database(`Failed to generate count number: ${seqError?.message ?? 'Sequence unavailable'}`, requestId);
 
-  const { lines, ...headerFields } = body;
+  const { lines, ...rawHeaderFields } = body;
+  const PERMITTED_COUNT = new Set(['warehouse_id', 'count_date', 'notes']);
+  const headerFields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawHeaderFields)) {
+    if (PERMITTED_COUNT.has(k)) headerFields[k] = v;
+  }
+
   const result = await atomicCreateWithItems(
     db,
     {

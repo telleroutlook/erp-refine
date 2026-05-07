@@ -65,7 +65,9 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const prevItemsRef = useRef(items);
 
   useEffect(() => {
-    if (prevItemsRef.current !== items) {
+    const prevIds = prevItemsRef.current.map((i: any) => i.id).join(',');
+    const nextIds = items.map((i: any) => i.id).join(',');
+    if (prevIds !== nextIds) {
       prevItemsRef.current = items;
       setEdits({});
       setNewRows([]);

@@ -155,7 +155,8 @@ export function createAuditTools(db: SupabaseClient, organizationId: string) {
       execute: async ({ username, ipAddress, limit }) => {
         let query = db
           .from('failed_login_attempts')
-          .select('id, username, ip_address, reason, created_at');
+          .select('id, username, ip_address, reason, created_at')
+          .eq('organization_id', organizationId);
 
         if (username) query = query.ilike('username', `%${username}%`);
         if (ipAddress) query = query.eq('ip_address', ipAddress);

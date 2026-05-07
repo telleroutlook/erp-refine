@@ -75,10 +75,12 @@ export const dataProvider: DataProvider = {
     const page = pagination?.current ?? 1;
     const pageSize = pagination?.pageSize ?? 20;
 
-    const params = new URLSearchParams({
-      _page: String(page),
-      _limit: String(pageSize),
-    });
+    const params = new URLSearchParams();
+
+    if (pagination?.mode !== 'off') {
+      params.set('_page', String(page));
+      params.set('_limit', String(pageSize));
+    }
 
     if (sorters && sorters.length > 0) {
       params.set('_sort', sorters.map(s => s.field).join(','));
