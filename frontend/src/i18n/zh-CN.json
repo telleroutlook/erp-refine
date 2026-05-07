@@ -128,6 +128,9 @@
   "contracts": {
     "contracts": "合同"
   },
+  "supplier-contracts": {
+    "supplier-contracts": "供应商合同"
+  },
   "hr": {
     "hr": "人力资源"
   },
@@ -486,6 +489,7 @@
     "productCostHistory": "成本历史",
     "productUomConversions": "单位换算",
     "threeWayMatch": "三单匹配",
+    "supplierContracts": "供应商合同",
     "portalUsers": "门户用户"
   },
   "status": {

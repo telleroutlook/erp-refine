@@ -200,9 +200,15 @@ const PARENT_DIR_MAP: Record<string, string> = {
 function check1a(resources: ResourceDef[], routes: RouteDef[]) {
   const routePaths = new Set(routes.map(r => r.path.replace(/^\//, '')));
 
+  // Frontend resources that are filtered views of another backend resource
+  const ALIAS_RESOURCES: Record<string, string> = {
+    'supplier-contracts': 'contracts',
+  };
+
   for (const res of resources) {
-    if (!routePaths.has(res.name)) {
-      error('1a:resource↔route', `Frontend resource '${res.name}' has no matching backend route path '/${res.name}'`);
+    const backendName = ALIAS_RESOURCES[res.name] ?? res.name;
+    if (!routePaths.has(backendName)) {
+      error('1a:resource↔route', `Frontend resource '${res.name}' has no matching backend route path '/${backendName}'`);
     }
   }
 

@@ -128,6 +128,9 @@
   "contracts": {
     "contracts": "Contracts"
   },
+  "supplier-contracts": {
+    "supplier-contracts": "Supplier Contracts"
+  },
   "hr": {
     "hr": "HR"
   },
@@ -486,6 +489,7 @@
     "productCostHistory": "Cost History",
     "productUomConversions": "UOM Conversions",
     "threeWayMatch": "Three-Way Match",
+    "supplierContracts": "Supplier Contracts",
     "portalUsers": "Portal Users"
   },
   "status": {

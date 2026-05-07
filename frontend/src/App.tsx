@@ -192,6 +192,7 @@ const ContractList = loadable(() => import('./pages/contracts/contracts/list').t
 const ContractShow = loadable(() => import('./pages/contracts/contracts/show').then((m) => ({ default: m.ContractShow })));
 const ContractCreate = loadable(() => import('./pages/contracts/contracts/create').then((m) => ({ default: m.ContractCreate })));
 const ContractEdit = loadable(() => import('./pages/contracts/contracts/edit').then((m) => ({ default: m.ContractEdit })));
+const SupplierContractList = loadable(() => import('./pages/procurement/supplier-contracts/list').then((m) => ({ default: m.SupplierContractList })));
 
 // ── HR ──
 const DepartmentList = loadable(() => import('./pages/hr/departments/list').then((m) => ({ default: m.DepartmentList })));
@@ -351,36 +352,12 @@ const App: React.FC = () => {
               // ── Procurement ──
               { name: 'procurement' },
               {
-                name: 'purchase-orders',
-                list: '/procurement/purchase-orders',
-                show: '/procurement/purchase-orders/:id',
-                edit: '/procurement/purchase-orders/:id/edit',
-                create: '/procurement/purchase-orders/create',
-                meta: { parent: 'procurement', icon: <ShoppingCartOutlined /> },
-              },
-              {
-                name: 'purchase-receipts',
-                list: '/procurement/purchase-receipts',
-                show: '/procurement/purchase-receipts/:id',
-                edit: '/procurement/purchase-receipts/:id/edit',
-                create: '/procurement/purchase-receipts/create',
-                meta: { parent: 'procurement', icon: <FileDoneOutlined /> },
-              },
-              {
                 name: 'suppliers',
                 list: '/procurement/suppliers',
                 show: '/procurement/suppliers/:id',
                 edit: '/procurement/suppliers/:id/edit',
                 create: '/procurement/suppliers/create',
                 meta: { parent: 'procurement', icon: <TeamOutlined /> },
-              },
-              {
-                name: 'purchase-requisitions',
-                list: '/procurement/purchase-requisitions',
-                show: '/procurement/purchase-requisitions/:id',
-                edit: '/procurement/purchase-requisitions/:id/edit',
-                create: '/procurement/purchase-requisitions/create',
-                meta: { parent: 'procurement', icon: <FileSearchOutlined /> },
               },
               {
                 name: 'rfq-headers',
@@ -399,12 +376,25 @@ const App: React.FC = () => {
                 meta: { parent: 'procurement', icon: <ProfileOutlined /> },
               },
               {
-                name: 'profile-change-requests',
-                list: '/procurement/profile-change-requests',
-                show: '/procurement/profile-change-requests/:id',
-                edit: '/procurement/profile-change-requests/:id/edit',
-                create: '/procurement/profile-change-requests/create',
-                meta: { parent: 'procurement', icon: <FormOutlined /> },
+                name: 'supplier-contracts',
+                list: '/procurement/supplier-contracts',
+                meta: { parent: 'procurement', icon: <FileProtectOutlined /> },
+              },
+              {
+                name: 'purchase-requisitions',
+                list: '/procurement/purchase-requisitions',
+                show: '/procurement/purchase-requisitions/:id',
+                edit: '/procurement/purchase-requisitions/:id/edit',
+                create: '/procurement/purchase-requisitions/create',
+                meta: { parent: 'procurement', icon: <FileSearchOutlined /> },
+              },
+              {
+                name: 'purchase-orders',
+                list: '/procurement/purchase-orders',
+                show: '/procurement/purchase-orders/:id',
+                edit: '/procurement/purchase-orders/:id/edit',
+                create: '/procurement/purchase-orders/create',
+                meta: { parent: 'procurement', icon: <ShoppingCartOutlined /> },
               },
               {
                 name: 'advance-shipment-notices',
@@ -413,6 +403,14 @@ const App: React.FC = () => {
                 edit: '/procurement/advance-shipment-notices/:id/edit',
                 create: '/procurement/advance-shipment-notices/create',
                 meta: { parent: 'procurement', icon: <TruckOutlined /> },
+              },
+              {
+                name: 'purchase-receipts',
+                list: '/procurement/purchase-receipts',
+                show: '/procurement/purchase-receipts/:id',
+                edit: '/procurement/purchase-receipts/:id/edit',
+                create: '/procurement/purchase-receipts/create',
+                meta: { parent: 'procurement', icon: <FileDoneOutlined /> },
               },
               {
                 name: 'reconciliation-statements',
@@ -427,6 +425,14 @@ const App: React.FC = () => {
                 list: '/procurement/three-way-match',
                 show: '/procurement/three-way-match/:id',
                 meta: { parent: 'procurement', icon: <ReconciliationOutlined /> },
+              },
+              {
+                name: 'profile-change-requests',
+                list: '/procurement/profile-change-requests',
+                show: '/procurement/profile-change-requests/:id',
+                edit: '/procurement/profile-change-requests/:id/edit',
+                create: '/procurement/profile-change-requests/create',
+                meta: { parent: 'procurement', icon: <FormOutlined /> },
               },
               // ── Sales ──
               { name: 'sales' },
@@ -974,6 +980,7 @@ const App: React.FC = () => {
                   <Route path="/procurement/reconciliation-statements/:id/edit" element={<ReconciliationStatementEdit />} />
                   <Route path="/procurement/three-way-match" element={<ThreeWayMatchList />} />
                   <Route path="/procurement/three-way-match/:id" element={<ThreeWayMatchShow />} />
+                  <Route path="/procurement/supplier-contracts" element={<SupplierContractList />} />
 
                   {/* Sales */}
                   <Route path="/sales/sales-orders" element={<SalesOrderList />} />
