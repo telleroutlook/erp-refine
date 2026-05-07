@@ -24,6 +24,7 @@ const ADMIN_RESOURCES = new Set([
   'business-events', 'auth-events', 'import-logs',
   'failed-login-attempts', 'portal-users',
   'semantic-metadata', 'component-whitelist', 'schema-versions',
+  'tool-registry',
 ]);
 
 function resolveUrl(resource: string): string {
