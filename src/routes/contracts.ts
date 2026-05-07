@@ -40,6 +40,42 @@ contracts.get('/contracts', async (c) => {
   return c.json({ data: data ?? [], total: count ?? 0, page, pageSize });
 });
 
+// GET /contracts/match-product?product_id=...
+// Returns active procurement contracts for a given product (for supplier selection UI)
+// MUST be before /:id to avoid route parameter collision
+contracts.get('/contracts/match-product', async (c) => {
+  const { db, user, requestId } = getDbAndUser(c);
+  const productId = c.req.query('product_id');
+  if (!productId) throw ApiError.badRequest('product_id query parameter is required', requestId);
+
+  const { data, error } = await db.rpc('find_active_contracts_for_product', {
+    p_organization_id: user.organizationId,
+    p_product_id: productId,
+  });
+
+  if (error) throw ApiError.database(error.message, requestId);
+
+  // Enrich with supplier names
+  const supplierIds = (data ?? []).map((r: any) => r.supplier_id).filter(Boolean);
+  let supplierMap: Record<string, string> = {};
+  if (supplierIds.length > 0) {
+    const { data: suppliers } = await db
+      .from('suppliers')
+      .select('id, name')
+      .in('id', supplierIds);
+    for (const s of (suppliers ?? []) as any[]) {
+      supplierMap[s.id] = s.name;
+    }
+  }
+
+  const enriched = (data ?? []).map((r: any) => ({
+    ...r,
+    supplier_name: supplierMap[r.supplier_id] ?? null,
+  }));
+
+  return c.json({ data: enriched });
+});
+
 contracts.get('/contracts/:id', async (c) => {
   const { db, user, requestId } = getDbAndUser(c);
   const id = c.req.param('id');
@@ -145,41 +181,6 @@ contracts.delete('/contracts/:id', async (c) => {
 });
 
 // ─── Contract Workflow Actions ──────────────────────────────────────────────
-
-// GET /contracts/match-product?product_id=...
-// Returns active procurement contracts for a given product (for supplier selection UI)
-contracts.get('/contracts/match-product', async (c) => {
-  const { db, user, requestId } = getDbAndUser(c);
-  const productId = c.req.query('product_id');
-  if (!productId) throw ApiError.badRequest('product_id query parameter is required', requestId);
-
-  const { data, error } = await db.rpc('find_active_contracts_for_product', {
-    p_organization_id: user.organizationId,
-    p_product_id: productId,
-  });
-
-  if (error) throw ApiError.database(error.message, requestId);
-
-  // Enrich with supplier names
-  const contractIds = (data ?? []).map((r: any) => r.supplier_id).filter(Boolean);
-  let supplierMap: Record<string, string> = {};
-  if (contractIds.length > 0) {
-    const { data: suppliers } = await db
-      .from('suppliers')
-      .select('id, name')
-      .in('id', contractIds);
-    for (const s of (suppliers ?? []) as any[]) {
-      supplierMap[s.id] = s.name;
-    }
-  }
-
-  const enriched = (data ?? []).map((r: any) => ({
-    ...r,
-    supplier_name: supplierMap[r.supplier_id] ?? null,
-  }));
-
-  return c.json({ data: enriched });
-});
 
 // POST /contracts/:id/activate — draft → active
 contracts.post('/contracts/:id/activate', async (c) => {
