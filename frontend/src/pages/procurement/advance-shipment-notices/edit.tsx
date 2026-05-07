@@ -22,7 +22,7 @@ export const AdvanceShipmentNoticeEdit: React.FC = () => {
 
   const itemColumns: ColumnConfig[] = [
     { dataIndex: 'line_number', title: fl('asn_lines', 'line_number'), width: 60 },
-    { dataIndex: 'product_id', title: fl('asn_lines', 'product_id'), editable: true, inputType: 'select', selectOptions: productSelectProps.options as any, render: (_: any, r: any) => r?.product?.name },
+    { dataIndex: 'item_id', title: fl('asn_lines', 'item_id'), editable: true, inputType: 'select', selectOptions: productSelectProps.options as any, render: (_: any, r: any) => r?.item?.name },
     { dataIndex: 'quantity', title: fl('asn_lines', 'quantity'), width: 100, align: 'right', editable: true, inputType: 'number' },
     { dataIndex: 'lot_no', title: fl('asn_lines', 'lot_no'), width: 140, editable: true },
   ];

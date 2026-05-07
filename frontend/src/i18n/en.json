@@ -1361,6 +1361,12 @@
       "asn_no": "ASN No.",
       "po_id": "Purchase Order"
     },
+    "asn_lines": {
+      "item_id": "Product",
+      "line_number": "Line",
+      "quantity": "Quantity",
+      "lot_no": "Lot No."
+    },
     "rfq_headers": {
       "rfq_number": "RFQ No.",
       "issued_at": "Issued At",

@@ -353,6 +353,7 @@ interface DataIndexRef {
   file: string;
   line: number;
   column: string;
+  table?: string;
 }
 
 function walkDir(dir: string, ext: string): string[] {
@@ -381,10 +382,13 @@ function extractDataIndexRefs(pagesDir: string): DataIndexRef[] {
     const lines = content.split('\n');
     const relPath = relative(ROOT, file);
 
+    const resourceMatch = content.match(/resource:\s*['"]([a-z0-9-]+)['"]/);
+    const table = resourceMatch ? resourceMatch[1]!.replace(/-/g, '_') : undefined;
+
     for (let i = 0; i < lines.length; i++) {
       const strMatch = lines[i]!.match(/dataIndex:\s*['"](\w+)['"]/);
       if (strMatch) {
-        refs.push({ file: relPath, line: i + 1, column: strMatch[1]! });
+        refs.push({ file: relPath, line: i + 1, column: strMatch[1]!, table });
       }
     }
   }
@@ -470,7 +474,7 @@ for (const { file, line, table, columns, context } of selects) {
   }
 }
 
-// Check 3: Frontend dataIndex
+// Check 3: Frontend dataIndex (table-aware)
 const dataIndexRefs = extractDataIndexRefs(join(ROOT, 'frontend/src/pages'));
 
 const allColumns = new Set<string>();
@@ -479,9 +483,41 @@ for (const cols of tableColumns.values()) {
 }
 const REFINE_FIELDS = new Set(['actions', 'key', 'index']);
 
-for (const { file, line, column } of dataIndexRefs) {
+const RELATED_TABLES: Record<string, string[]> = {
+  budgets: ['budget_lines'],
+  vouchers: ['voucher_entries'],
+  bom_headers: ['bom_items'],
+  work_orders: ['work_order_materials', 'work_order_productions'],
+  inventory_counts: ['inventory_count_lines'],
+  price_lists: ['price_list_lines'],
+  purchase_requisitions: ['purchase_requisition_lines', 'purchase_order_items'],
+  purchase_orders: ['purchase_order_items'],
+  purchase_receipts: ['purchase_receipt_items'],
+  rfq_headers: ['rfq_lines'],
+  supplier_quotations: ['supplier_quotation_lines'],
+  reconciliation_statements: ['reconciliation_lines'],
+  advance_shipment_notices: ['asn_lines'],
+  sales_orders: ['sales_order_items'],
+  sales_returns: ['sales_return_items'],
+  sales_shipments: ['sales_shipment_items'],
+  sales_invoices: ['sales_invoice_items'],
+  supplier_invoices: ['supplier_invoice_items'],
+  contracts: ['contract_items'],
+  quality_standards: ['quality_standard_items'],
+  quality_inspections: ['quality_inspection_items'],
+};
+
+for (const { file, line, column, table } of dataIndexRefs) {
   if (IGNORE_FIELDS.has(column) || REFINE_FIELDS.has(column)) continue;
-  if (!allColumns.has(column)) {
+  if (table && tableColumns.has(table)) {
+    const primaryCols = tableColumns.get(table)!;
+    if (primaryCols.has(column)) continue;
+    const related = RELATED_TABLES[table] ?? [];
+    const inRelated = related.some((rt) => tableColumns.get(rt)?.has(column));
+    if (!inRelated) {
+      violations.push({ file, line, table, column, context: 'dataIndex' });
+    }
+  } else if (!allColumns.has(column)) {
     violations.push({ file, line, table: '(any)', column, context: 'dataIndex' });
   }
 }

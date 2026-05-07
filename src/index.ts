@@ -42,6 +42,7 @@ import './policy/rules/quality-rules';
 import './policy/rules/contracts-rules';
 import './policy/rules/inventory-rules';
 import './policy/rules/system-rules';
+import './policy/rules/audit-rules';
 
 // Queue consumer
 import { handleQueueBatch } from './queues/event-consumer';

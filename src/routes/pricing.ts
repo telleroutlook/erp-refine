@@ -73,28 +73,19 @@ pricing.post('/pricing/resolve-batch', async (c) => {
   const { items, price_type, partner_id, partner_type, date, currency } = parsed.data;
   const resolveDate = date ?? new Date().toISOString().split('T')[0];
 
-  const results = await Promise.all(
-    items.map(async (item) => {
-      const { data, error } = await (db as any).rpc('resolve_price', {
-        p_organization_id: user.organizationId,
-        p_product_id: item.product_id,
-        p_price_type: price_type,
-        p_partner_id: partner_id ?? null,
-        p_partner_type: partner_type ?? null,
-        p_quantity: item.quantity,
-        p_uom_id: item.uom_id ?? null,
-        p_date: resolveDate,
-        p_currency: currency ?? null,
-      });
+  const { data, error } = await (db as any).rpc('resolve_prices_batch', {
+    p_organization_id: user.organizationId,
+    p_items: items,
+    p_price_type: price_type,
+    p_partner_id: partner_id ?? null,
+    p_partner_type: partner_type ?? null,
+    p_date: resolveDate,
+    p_currency: currency ?? null,
+  });
 
-      if (error) {
-        return { product_id: item.product_id, error: error.message, found: false };
-      }
-      return { product_id: item.product_id, ...data };
-    })
-  );
+  if (error) throw ApiError.database(error.message);
 
-  return c.json({ data: results });
+  return c.json({ data });
 });
 
 export default pricing;

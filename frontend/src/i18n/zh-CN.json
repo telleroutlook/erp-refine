@@ -1361,6 +1361,12 @@
       "asn_no": "ASN编号",
       "po_id": "采购订单"
     },
+    "asn_lines": {
+      "item_id": "产品",
+      "line_number": "行号",
+      "quantity": "数量",
+      "lot_no": "批次号"
+    },
     "rfq_headers": {
       "rfq_number": "询价单号",
       "issued_at": "发布时间",
