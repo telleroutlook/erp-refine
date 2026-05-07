@@ -97,6 +97,7 @@ sales.post('/sales-orders', async (c) => {
       headerReturnSelect: 'id, order_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
       autoLineNumber: true,
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {

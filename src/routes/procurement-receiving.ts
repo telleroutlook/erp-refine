@@ -30,7 +30,7 @@ procurementReceiving.get('/purchase-receipts', async (c) => {
   const itemFilters = parseItemFilters(c);
   const itemJoin = { itemsTable: 'purchase_receipt_items' };
 
-  const baseSelect = 'id, receipt_number, receipt_date, status, purchase_order:purchase_orders(id,order_number), supplier:suppliers(id,name), warehouse:warehouses(id,name), created_at';
+  const baseSelect = 'id, receipt_number, receipt_date, status, total_amount, purchase_order:purchase_orders(id,order_number), supplier:suppliers(id,name), warehouse:warehouses(id,name), created_at';
   let query = db
     .from('purchase_receipts')
     .select(buildSelectWithItemFilter(baseSelect, itemJoin, itemFilters), { count: 'exact' })
@@ -111,6 +111,7 @@ procurementReceiving.post('/purchase-receipts', async (c) => {
       headerFk: 'purchase_receipt_id',
       headerReturnSelect: 'id, receipt_number, status',
       itemsReturnSelect: 'id, product_id, quantity',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {
@@ -316,6 +317,7 @@ procurementReceiving.post('/supplier-invoices', async (c) => {
       headerFk: 'supplier_invoice_id',
       headerReturnSelect: 'id, invoice_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {
@@ -821,6 +823,7 @@ procurementReceiving.post('/reconciliation-statements', async (c) => {
       headerFk: 'statement_id',
       headerReturnSelect: 'id, statement_no, status',
       itemsReturnSelect: 'id, line_amount',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.line_amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {

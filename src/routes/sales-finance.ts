@@ -123,6 +123,7 @@ salesFinance.post('/sales-invoices', async (c) => {
       headerFk: 'sales_invoice_id',
       headerReturnSelect: 'id, invoice_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {
@@ -314,6 +315,7 @@ salesFinance.post('/sales-returns', async (c) => {
       headerFk: 'sales_return_id',
       headerReturnSelect: 'id, return_number, status',
       itemsReturnSelect: 'id, product_id, quantity',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {

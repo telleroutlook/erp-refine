@@ -15,6 +15,8 @@ export interface AtomicCreateConfig {
   itemsReturnSelect: string;
   /** Whether to auto-assign line_number to items (only for tables that have this column) */
   autoLineNumber?: boolean;
+  /** Auto-calculate a header sum field from items on create */
+  autoSum?: { headerField: string; itemAmountExpr: (item: Record<string, unknown>) => number };
 }
 
 export interface AtomicCreateInput {
@@ -132,6 +134,11 @@ export async function atomicCreateWithItems(
   const sanitizedItems = (items ?? []).map(item =>
     Object.fromEntries(Object.entries(item).filter(([k]) => !ITEM_BLOCKED.has(k)))
   );
+
+  if (config.autoSum && sanitizedItems.length > 0) {
+    const total = sanitizedItems.reduce((sum, it) => sum + config.autoSum!.itemAmountExpr(it), 0);
+    sanitizedHeader[config.autoSum.headerField] = total;
+  }
 
   // Use Postgres RPC for true transactional atomicity
   const { data: rpcResult, error: rpcError } = await db.rpc('atomic_create_with_items', {

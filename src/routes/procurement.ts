@@ -229,6 +229,7 @@ procurement.post('/purchase-orders/create-from-requisition', async (c) => {
       headerReturnSelect: 'id, order_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
       autoLineNumber: true,
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     }, {
       header: {
         order_number: poNum,
@@ -312,6 +313,7 @@ procurement.post('/purchase-orders', async (c) => {
       headerReturnSelect: 'id, order_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
       autoLineNumber: true,
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {
@@ -530,6 +532,7 @@ procurement.post('/purchase-requisitions', async (c) => {
       headerFk: 'purchase_requisition_id',
       headerReturnSelect: 'id, requisition_number, status',
       itemsReturnSelect: 'id, product_id, quantity, unit_price',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {
@@ -862,6 +865,7 @@ procurement.post('/supplier-quotations', async (c) => {
       headerFk: 'quotation_id',
       headerReturnSelect: 'id, quotation_number, status',
       itemsReturnSelect: 'id, product_id, qty_offered, unit_price',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.total_price) || (Number(it.qty_offered) || 0) * (Number(it.unit_price) || 0) },
     },
     {
       header: {

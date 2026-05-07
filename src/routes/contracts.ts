@@ -120,6 +120,7 @@ contracts.post('/contracts', async (c) => {
     headerFk: 'contract_id',
     headerReturnSelect: 'id, contract_number',
     itemsReturnSelect: 'id, product_id, quantity, unit_price',
+    autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
   }, {
     header: {
       ...headerFields,
@@ -244,6 +245,7 @@ contracts.post('/contracts/:id/renew', async (c) => {
     headerFk: 'contract_id',
     headerReturnSelect: 'id, contract_number, status',
     itemsReturnSelect: 'id, product_id, quantity, unit_price',
+    autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.amount) || (Number(it.quantity) || 0) * (Number(it.unit_price) || 0) },
   }, {
     header: {
       contract_number: seqData,
@@ -253,7 +255,6 @@ contracts.post('/contracts/:id/renew', async (c) => {
       contract_type: original.contract_type,
       start_date: body.start_date ?? original.end_date,
       end_date: body.end_date ?? null,
-      total_amount: original.total_amount,
       currency: original.currency,
       payment_terms: original.payment_terms,
       notes: body.notes ?? `Renewed from ${original.contract_number}`,

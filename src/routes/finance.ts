@@ -393,6 +393,7 @@ finance.post('/budgets', async (c) => {
       headerFk: 'budget_id',
       headerReturnSelect: 'id, budget_name, status',
       itemsReturnSelect: 'id, account_code, planned_amount',
+      autoSum: { headerField: 'total_amount', itemAmountExpr: (it) => Number(it.planned_amount) || 0 },
     },
     {
       header: {
