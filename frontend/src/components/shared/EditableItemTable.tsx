@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Table, Divider, Button, Input, InputNumber, Select, Popconfirm, DatePicker } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -60,8 +60,8 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const [edits, setEdits] = useState<Record<string, Record<string, any>>>({});
   const [newRows, setNewRows] = useState<{ tempId: string; values: Record<string, any> }[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
-  const [changeSeq, setChangeSeq] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstPayload = useRef(true);
   const prevItemsRef = useRef(items);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       setEdits({});
       setNewRows([]);
       setDeletedIds(new Set());
-      setChangeSeq(0);
+      isFirstPayload.current = true;
       tempSeqRef.current = 0;
     }
   }, [items]);
@@ -79,19 +79,8 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
 
-  // Keep refs for values read inside the changeSeq effect to avoid stale closures
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
-  const columnsRef = useRef(columns);
-  columnsRef.current = columns;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const editsRef = useRef(edits);
-  editsRef.current = edits;
-  const newRowsRef = useRef(newRows);
-  newRowsRef.current = newRows;
-  const deletedIdsRef = useRef(deletedIds);
-  deletedIdsRef.current = deletedIds;
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -159,25 +148,18 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
           [rowId]: { ...prev[rowId], unit_price: result.unit_price, ...(result.discount_rate != null ? { discount_rate: result.discount_rate } : {}) },
         }));
       }
-      notifyChange();
     });
   };
 
-  // Emit payload to parent after state settles — use refs to avoid stale closures
-  useEffect(() => {
-    if (changeSeq === 0) return;
-    const currentItems = itemsRef.current;
-    const currentColumns = columnsRef.current;
-    const currentEdits = editsRef.current;
-    const currentNewRows = newRowsRef.current;
-    const currentDeletedIds = deletedIdsRef.current;
+  // Compute payload only when edits/newRows/deletedIds/items actually change
+  const payload = useMemo<ItemsPayload>(() => {
     const upsert: Record<string, any>[] = [];
 
-    for (const [id, changes] of Object.entries(currentEdits)) {
-      if (currentDeletedIds.has(id)) continue;
-      const original = (currentItems ?? []).find((item: any) => item.id === id);
+    for (const [id, changes] of Object.entries(edits)) {
+      if (deletedIds.has(id)) continue;
+      const original = (items ?? []).find((item: any) => item.id === id);
       const values: Record<string, any> = { id };
-      currentColumns.forEach((col) => {
+      columns.forEach((col) => {
         if (!col.editable) return;
         const key = flatKey(col.dataIndex);
         if (key in changes) {
@@ -189,21 +171,20 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       if (Object.keys(values).length > 1) upsert.push(values);
     }
 
-    for (const item of (currentItems ?? [])) {
-      if (currentDeletedIds.has(item.id)) continue;
-      if (currentEdits[item.id]) continue;
+    for (const item of (items ?? [])) {
+      if (deletedIds.has(item.id)) continue;
+      if (edits[item.id]) continue;
       const values: Record<string, any> = { id: item.id };
-      currentColumns.forEach((col) => {
+      columns.forEach((col) => {
         if (!col.editable) return;
-        const key = flatKey(col.dataIndex);
         values[fieldName(col.dataIndex)] = getNestedValue(item, col.dataIndex);
       });
       upsert.push(values);
     }
 
-    for (const row of currentNewRows) {
+    for (const row of newRows) {
       const values: Record<string, any> = {};
-      currentColumns.forEach((col) => {
+      columns.forEach((col) => {
         if (!col.editable) return;
         const key = flatKey(col.dataIndex);
         if (row.values[key] !== undefined) values[fieldName(col.dataIndex)] = row.values[key];
@@ -211,13 +192,15 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
       upsert.push(values);
     }
 
-    onChangeRef.current({ upsert, delete: Array.from(currentDeletedIds) });
-  }, [changeSeq]);
+    return { upsert, delete: Array.from(deletedIds) };
+  }, [edits, newRows, deletedIds, items, columns]);
 
-  const notifyChange = () => {
+  useEffect(() => {
+    // Skip the initial mount emission (no user change yet)
+    if (isFirstPayload.current) { isFirstPayload.current = false; return; }
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setChangeSeq((s) => s + 1), 150);
-  };
+    debounceRef.current = setTimeout(() => onChangeRef.current(payload), 150);
+  }, [payload]);
 
   const updateCell = (recordId: string, col: ColumnConfig, value: any) => {
     const key = flatKey(col.dataIndex);
@@ -231,7 +214,6 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     if (key === 'product_id' && value) {
       triggerPriceResolve(recordId, value, false);
     }
-    notifyChange();
   };
 
   const updateNewRowCell = (tempId: string, col: ColumnConfig, value: any) => {
@@ -249,23 +231,19 @@ export const EditableItemTable: React.FC<EditableItemTableProps> = ({
     if (key === 'product_id' && value) {
       triggerPriceResolve(tempId, value, true);
     }
-    notifyChange();
   };
 
   const addRow = () => {
     setNewRows((prev) => [...prev, { tempId: nextTempId(), values: {} }]);
-    notifyChange();
   };
 
   const removeNewRow = (tempId: string) => {
     setNewRows((prev) => prev.filter((r) => r.tempId !== tempId));
-    notifyChange();
   };
 
   const markDeleted = (id: string) => {
     setDeletedIds((prev) => new Set(prev).add(id));
     setEdits((prev) => { const next = { ...prev }; delete next[id]; return next; });
-    notifyChange();
   };
 
   const renderInput = (col: ColumnConfig, currentVal: any, onValueChange: (v: any) => void) => {

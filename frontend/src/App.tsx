@@ -13,6 +13,13 @@ import '@xyflow/react/dist/style.css';
 import './styles/tokens.css';
 import './styles/responsive.css';
 import i18n from './i18n/i18n';
+import { setStaticMessage } from './utils/static-notification';
+
+function MessageWirer() {
+  const { message } = AntApp.useApp();
+  useEffect(() => { setStaticMessage(message); }, [message]);
+  return null;
+}
 
 import { dataProvider } from './providers/data-provider';
 import { authProvider } from './providers/auth-provider';
@@ -332,6 +339,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <ConfigProvider theme={erpTheme} locale={antdLocale}>
         <AntApp>
+          <MessageWirer />
           <Refine
             dataProvider={dataProvider}
             authProvider={authProvider}

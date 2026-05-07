@@ -35,11 +35,6 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
   const onNodeClickRef = useRef(onNodeClick);
   onNodeClickRef.current = onNodeClick;
 
-  const flatNodes = useMemo(
-    () => chain.nodes.map((n) => ({ id: n.id, parentId: null })),
-    [chain.nodes]
-  );
-
   const rfEdges = useMemo<Edge[]>(
     () =>
       chain.edges.map((e) => ({
@@ -53,7 +48,7 @@ function DocumentFlowInner({ chain, onNodeClick }: Props) {
   );
 
   const { highlightedNodeIds, highlightedEdgeIds, onNodeMouseEnter, onNodeMouseLeave } =
-    useHoverHighlight(flatNodes, rfEdges);
+    useHoverHighlight(rfEdges);
 
   const runLayout = useCallback(() => {
     const rfNodes: Node[] = chain.nodes.map((n) => ({

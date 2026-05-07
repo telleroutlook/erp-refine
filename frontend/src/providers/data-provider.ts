@@ -5,6 +5,7 @@ import { type DataProvider } from '@refinedev/core';
 import { API_URL } from '../constants/api';
 import { getAuthHeaders } from './token';
 import { refreshAccessToken } from './auth-provider';
+import { staticMessage } from '../utils/static-notification';
 
 class HttpError extends Error {
   status: number;
@@ -36,6 +37,7 @@ function getHeaders(): Record<string, string> {
 
 async function fetchWithRetry(url: string, init?: RequestInit, attempt = 0): Promise<Response> {
   const MAX_RETRIES = 3;
+  const signal = init?.signal as AbortSignal | undefined;
   let response = await fetch(url, init);
 
   if (response.status === 401) {
@@ -51,7 +53,15 @@ async function fetchWithRetry(url: string, init?: RequestInit, attempt = 0): Pro
     const retryAfter = response.headers.get('Retry-After');
     const baseDelay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);
     const jitter = Math.random() * 500;
-    await new Promise((r) => setTimeout(r, baseDelay + jitter));
+    const delay = baseDelay + jitter;
+
+    staticMessage()?.loading(`Server busy, retrying… (${attempt + 1}/${MAX_RETRIES})`, delay / 1000 + 0.5);
+
+    await new Promise<void>((resolve, reject) => {
+      const id = setTimeout(resolve, delay);
+      signal?.addEventListener('abort', () => { clearTimeout(id); reject(new DOMException('Aborted', 'AbortError')); }, { once: true });
+    });
+
     const retryInit = { ...init, headers: getHeaders() };
     return fetchWithRetry(url, retryInit, attempt + 1);
   }

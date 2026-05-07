@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { Button, Input, Spin, Tag, Tooltip, Typography, theme } from 'antd';
 import {
   SendOutlined,
@@ -107,7 +108,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     const draftCardsForMsg: DraftCardData[] = [];
 
     try {
-      const res = await fetch('/api/chat/stream', {
+      await fetchEventSource('/api/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,47 +116,22 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
         },
         body: JSON.stringify({ message: text, sessionId: sessionId.current }),
         signal: controller.signal,
-      });
-
-      if (res.status === 401) {
-        setStreaming(false);
-        logout();
-        return;
-      }
-      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let streamEnded = false;
-
-      const processSSEParts = (parts: string[]) => {
-        for (const part of parts) {
-          if (!part.trim()) continue;
-
-          let eventType = 'message';
-          let dataLine = '';
-
-          for (const line of part.split('\n')) {
-            if (line.startsWith('event:')) {
-              eventType = line.slice(6).trim();
-            } else if (line.startsWith('data:')) {
-              dataLine += (dataLine ? '\n' : '') + line.slice(5).trim();
-            }
-          }
-
-          if (!dataLine) continue;
-
+        async onopen(res) {
+          if (res.status === 401) { setStreaming(false); logout(); throw new Error('unauthorized'); }
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        },
+        onmessage(ev) {
           let payload: Record<string, unknown>;
-          try { payload = JSON.parse(dataLine); } catch { continue; }
+          try { payload = JSON.parse(ev.data); } catch { return; }
 
+          const eventType = ev.event || 'message';
           if (eventType === 'message' && payload.type === 'text') {
             accText += payload.delta as string;
             setStreamingText(accText);
           } else if (eventType === 'tool') {
             if (payload.type === 'tool_start') {
-              const ev: ToolEvent = { callId: payload.callId as string, name: payload.name as string, status: 'running' };
-              toolEventsForMsg.push(ev);
+              const ev2: ToolEvent = { callId: payload.callId as string, name: payload.name as string, status: 'running' };
+              toolEventsForMsg.push(ev2);
               setActiveTools([...toolEventsForMsg]);
             } else if (payload.type === 'tool_end') {
               const idx = toolEventsForMsg.findIndex((te) => te.callId === payload.callId);
@@ -164,30 +140,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
             }
           } else if (eventType === 'draft' && payload.type === 'draft_card') {
             draftCardsForMsg.push(payload as unknown as DraftCardData);
-          } else if (eventType === 'done' || eventType === 'error') {
-            streamEnded = true;
-            break;
           }
-        }
-      };
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          // Process any remaining data in buffer as a final event
-          if (buffer.trim()) {
-            processSSEParts([buffer]);
-          }
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop() ?? '';
-
-        processSSEParts(parts);
-        if (streamEnded) break;
-      }
+        },
+        onerror(err) { throw err; },
+      });
 
       setMessages((prev) => {
         const next = [

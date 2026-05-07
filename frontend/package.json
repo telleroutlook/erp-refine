@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.0",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@refinedev/antd": "^5.40.0",
     "@refinedev/core": "^4.47.0",
     "@refinedev/react-router-v6": "^4.5.0",

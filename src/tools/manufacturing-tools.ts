@@ -209,6 +209,7 @@ export function createManufacturingTools(db: SupabaseClient, organizationId: str
         if (materials.length > 0) {
           const matRows = materials.map(m => ({
             work_order_id: wo.id,
+            organization_id: organizationId,
             product_id: m.productId,
             required_quantity: m.requiredQuantity,
             issued_quantity: 0,
