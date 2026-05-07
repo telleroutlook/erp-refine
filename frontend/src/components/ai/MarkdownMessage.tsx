@@ -19,7 +19,7 @@ const sanitizeSchema = {
 };
 
 const REMARK_PLUGINS = [remarkGfm];
-const REHYPE_PLUGINS = [rehypeHighlight, [rehypeSanitize, sanitizeSchema]] as any[];
+const REHYPE_PLUGINS = [[rehypeSanitize, sanitizeSchema], rehypeHighlight] as any[];
 
 const MD_COMPONENTS = {
   pre: ({ children }: any) => (

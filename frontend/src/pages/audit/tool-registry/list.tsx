@@ -26,7 +26,7 @@ export const ToolRegistryList: React.FC = () => {
         <Table.Column dataIndex="tool_name" title={fl('tool_registry', 'tool_name')} width={220} />
         <Table.Column dataIndex="domain" title={fl('tool_registry', 'domain')} width={120} />
         <Table.Column dataIndex="risk_level" title={fl('tool_registry', 'risk_level')} width={80} render={(v) => <Tag color={RISK_COLORS[v] ?? 'default'}>{v}</Tag>} />
-        <Table.Column dataIndex="active" title={fl('tool_registry', 'active')} width={80} render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? 'Yes' : 'No'}</Tag>} />
+        <Table.Column dataIndex="active" title={fl('tool_registry', 'active')} width={80} render={(v) => <Tag color={v ? 'green' : 'default'}>{v ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Tag>} />
         <Table.Column dataIndex="version" title={fl('tool_registry', 'version')} width={80} />
         <Table.Column dataIndex="description" title={fl('tool_registry', 'description')} ellipsis />
         <Table.Column dataIndex="created_at" title={fl('tool_registry', 'created_at')} width={160} render={(v) => <DateField value={v} format="YYYY-MM-DD HH:mm" />} />

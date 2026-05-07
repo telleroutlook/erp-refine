@@ -16,6 +16,10 @@ async function api(method: string, path: string, body?: unknown): Promise<any> {
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(`${method} ${path} → ${resp.status}: ${text.slice(0, 200)}`);
+  }
   return resp.json();
 }
 

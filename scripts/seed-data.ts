@@ -68,12 +68,6 @@ function parseArgs(): SeedConfig {
   const phasesStr = getArg('phases');
   const phases = phasesStr ? phasesStr.split(',').map(Number) : [1, 2, 3, 4, 5, 6, 7];
 
-  if (!token) {
-    console.error('Usage: npx tsx scripts/seed-data.ts --api-url <url> --token <admin-jwt> [--token2 <org2-jwt>] [--dry-run] [--phases 1,2,3] [--clean] [--verbose] [--org1-only] [--org2-only]');
-    console.error('  Or set ADMIN_TOKEN / ADMIN_TOKEN2 env vars');
-    process.exit(1);
-  }
-
   if (hasFlag('help')) {
     console.log(`
 ERP-Refine Seed Data Generator
@@ -100,6 +94,12 @@ Phases:
   7 - Supporting (contracts, budgets)
 `);
     process.exit(0);
+  }
+
+  if (!token) {
+    console.error('Usage: npx tsx scripts/seed-data.ts --api-url <url> --token <admin-jwt> [--token2 <org2-jwt>] [--dry-run] [--phases 1,2,3] [--clean] [--verbose] [--org1-only] [--org2-only]');
+    console.error('  Or set ADMIN_TOKEN / ADMIN_TOKEN2 env vars');
+    process.exit(1);
   }
 
   return { apiUrl, token, token2, dryRun, phases, clean, verbose, org1Only, org2Only };

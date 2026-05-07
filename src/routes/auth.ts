@@ -95,7 +95,7 @@ auth.post('/logout', async (c) => {
   return c.json({ data: { message: 'Logged out' } });
 });
 
-auth.post('/refresh', async (c) => {
+auth.post('/refresh', authRateLimitMiddleware({ limit: 10, period: 60 }), async (c) => {
   const body = await c.req.json<{ refresh_token: string }>();
   if (!body.refresh_token) return c.json({ error: 'Refresh token required' }, 400);
 

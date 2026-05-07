@@ -33,7 +33,7 @@ export const PriceListCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label={fl('price_lists', 'effective_date')}
+              label={fl('price_lists', 'effective_from')}
               name="effective_from"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >
@@ -42,7 +42,7 @@ export const PriceListCreate: React.FC = () => {
           </Col>
           <Col xs={24} sm={24} md={12}>
             <Form.Item
-              label={fl('price_lists', 'expiry_date')}
+              label={fl('price_lists', 'effective_to')}
               name="effective_to"
               getValueFromEvent={(d) => d?.format('YYYY-MM-DD')}
             >

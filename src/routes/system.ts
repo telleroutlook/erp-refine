@@ -9,6 +9,7 @@ import { buildCrudRoutes, type CrudConfig } from '../utils/crud-factory';
 import { getDbAndUser, parseRefineQuery, parseRefineFilters } from '../utils/query-helpers';
 import { applyFilters } from '../utils/database';
 import { ApiError } from '../utils/api-error';
+import { ErrorCode } from '../types/errors';
 import {
   document_attachments, document_relations, workflows,
   message_feedback, approval_records, workflow_steps, dynamic_form_data,
@@ -40,10 +41,24 @@ const documentAttachmentsConfig: CrudConfig = {
   detailSelect: document_attachments.join(', '),
   createReturnSelect: 'id, file_name, file_path',
   defaultSort: 'created_at',
-  softDelete: false,
+  softDelete: true,
   orgScoped: true,
   createSchema: documentAttachmentCreateSchema,
+  createDefaults: (user) => ({ uploaded_by: user.userId }),
 };
+
+// Validate file_path is scoped to the caller's organization before CRUD create
+system.post('/document-attachments', async (c, next) => {
+  const body = await c.req.json();
+  const user = c.get('user');
+  if (body.file_path && !body.file_path.startsWith(`${user.organizationId}/`)) {
+    throw new ApiError({ code: ErrorCode.FORBIDDEN, detail: 'file_path must be scoped to your organization' });
+  }
+  // Re-set body for downstream handler
+  c.req.bodyCache = { json: body };
+  await next();
+});
+
 system.route('', buildCrudRoutes(documentAttachmentsConfig));
 
 // ────────────────────────────────────────────────────────────────────────────

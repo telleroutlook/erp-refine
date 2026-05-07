@@ -17,8 +17,8 @@ export const ToolRegistryShow: React.FC = () => {
         <Descriptions.Item label={fl('tool_registry', 'tool_name')}>{record?.tool_name}</Descriptions.Item>
         <Descriptions.Item label={fl('tool_registry', 'domain')}>{record?.domain}</Descriptions.Item>
         <Descriptions.Item label={fl('tool_registry', 'risk_level')}><Tag>{record?.risk_level}</Tag></Descriptions.Item>
-        <Descriptions.Item label={fl('tool_registry', 'active')}>{record?.active ? 'Yes' : 'No'}</Descriptions.Item>
-        <Descriptions.Item label={fl('tool_registry', 'audit_required')}>{record?.audit_required ? 'Yes' : 'No'}</Descriptions.Item>
+        <Descriptions.Item label={fl('tool_registry', 'active')}>{record?.active ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Descriptions.Item>
+        <Descriptions.Item label={fl('tool_registry', 'audit_required')}>{record?.audit_required ? t('enums.yesNo.yes') : t('enums.yesNo.no')}</Descriptions.Item>
         <Descriptions.Item label={fl('tool_registry', 'version')}>{record?.version}</Descriptions.Item>
         <Descriptions.Item label={fl('tool_registry', 'description')} span={2}>{record?.description}</Descriptions.Item>
         <Descriptions.Item label={fl('tool_registry', 'input_schema')} span={2}>

@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { authMiddleware, writeMethodGuard } from '../middleware/auth';
+import { authMiddleware, writeMethodGuard, requireRole } from '../middleware/auth';
 import { getDbAndUser } from '../utils/query-helpers';
 import { ApiError } from '../utils/api-error';
 import { commitDraft } from '../utils/draft-commit';
@@ -180,8 +180,8 @@ drafts.post('/:id/renew', async (c) => {
   return c.json({ data });
 });
 
-// POST /api/drafts/cleanup — expire old drafts (cron/admin)
-drafts.post('/cleanup', async (c) => {
+// POST /api/drafts/cleanup — expire old drafts (cron/admin only)
+drafts.post('/cleanup', requireRole('admin'), async (c) => {
   const { db } = getDbAndUser(c);
 
   const { data, error } = await db.rpc('cleanup_expired_drafts');

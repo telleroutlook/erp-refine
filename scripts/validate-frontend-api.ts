@@ -18,6 +18,10 @@ const ROUTES_DIR = join(ROOT, 'src/routes');
 const APP_TSX = join(FRONTEND, 'App.tsx');
 const COLUMNS_PATH = join(ROOT, 'src/schema/columns.ts');
 
+const ALIAS_RESOURCES: Record<string, string> = {
+  'supplier-contracts': 'contracts',
+};
+
 interface Issue {
   level: 'error' | 'warn' | 'info';
   check: string;
@@ -200,11 +204,6 @@ const PARENT_DIR_MAP: Record<string, string> = {
 function check1a(resources: ResourceDef[], routes: RouteDef[]) {
   const routePaths = new Set(routes.map(r => r.path.replace(/^\//, '')));
 
-  // Frontend resources that are filtered views of another backend resource
-  const ALIAS_RESOURCES: Record<string, string> = {
-    'supplier-contracts': 'contracts',
-  };
-
   for (const res of resources) {
     const backendName = ALIAS_RESOURCES[res.name] ?? res.name;
     if (!routePaths.has(backendName)) {
@@ -282,7 +281,8 @@ function check1b(resources: ResourceDef[], routes: RouteDef[]) {
 
   for (const res of resources) {
     if (!res.hasActions.list) continue;
-    const route = routeByPath.get(res.name);
+    const backendName = ALIAS_RESOURCES[res.name] ?? res.name;
+    const route = routeByPath.get(backendName);
     if (!route?.listSelect) continue;
     if (route.listSelect === '*') continue;
 
@@ -327,7 +327,8 @@ function check1c(resources: ResourceDef[], routes: RouteDef[], tableColumns: Map
   const IGNORE_FORM_FIELDS = new Set(['items', 'lines', 'entries', 'addresses', 'contacts', 'certificates', 'sites', 'bank_accounts', 'permissions']);
 
   for (const res of resources) {
-    const route = routeByPath.get(res.name);
+    const backendName = ALIAS_RESOURCES[res.name] ?? res.name;
+    const route = routeByPath.get(backendName);
     if (!route?.table) continue;
     const dbCols = tableColumns.get(route.table);
     if (!dbCols) continue;

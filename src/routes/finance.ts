@@ -218,7 +218,8 @@ finance.put('/vouchers/:id', async (c) => {
     const { data: entries } = await db
       .from('voucher_entries')
       .select('entry_type, amount')
-      .eq('voucher_id', id);
+      .eq('voucher_id', id)
+      .eq('organization_id', user.organizationId);
     const totalDebit = (entries ?? []).filter((e: any) => e.entry_type === 'debit').reduce((s: number, e: any) => s + Number(e.amount), 0);
     const totalCredit = (entries ?? []).filter((e: any) => e.entry_type === 'credit').reduce((s: number, e: any) => s + Number(e.amount), 0);
 

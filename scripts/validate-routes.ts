@@ -59,15 +59,7 @@ function loadCreatedByFKTargets(): Map<string, string> {
   const fkRe = /foreignKeyName: "(\w+)_created_by_fkey"\s*\n\s*columns: \["created_by"\]\s*\n\s*isOneToOne: \w+\s*\n\s*referencedRelation: "(\w+)"/g;
   let m: RegExpExecArray | null;
   while ((m = fkRe.exec(src)) !== null) {
-    const tableName = m[1]!.replace(/_created_by$/, '');
     map.set(m[1]!, m[2]!);
-  }
-  // Parse more carefully: extract table from FK name pattern "tablename_created_by_fkey"
-  fkRe.lastIndex = 0;
-  while ((m = fkRe.exec(src)) !== null) {
-    const fkName = m[1]!; // e.g., "purchase_requisitions"
-    const target = m[2]!;  // e.g., "employees"
-    map.set(fkName, target);
   }
   return map;
 }
