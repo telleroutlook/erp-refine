@@ -26,9 +26,45 @@ export const PurchaseOrderCreate: React.FC = () => {
 
   useEffect(() => {
     if (sourceData && formProps.form) {
-      const { header } = sourceData;
-      formProps.form.setFieldsValue(header);
-      setCreateFromItems(sourceData.items);
+      const raw = sourceData as any;
+      if (raw.status === 'ready' && raw.purchase_orders) {
+        const po = raw.purchase_orders[0];
+        if (po) {
+          formProps.form.setFieldsValue({
+            supplier_id: po.supplier_id,
+            currency: po.currency ?? 'CNY',
+          });
+          setCreateFromItems(
+            (po.items ?? []).map((item: any) => ({
+              ...item,
+              _open_quantity: item.quantity,
+              _source_item_id: item.requisition_line_id,
+              _product: item.product ?? null,
+            }))
+          );
+        }
+      } else if (raw.status === 'needs_supplier_selection' && raw.lines) {
+        const lines = raw.lines as any[];
+        const firstAssigned = lines.find((l: any) => l.assigned_supplier_id);
+        if (firstAssigned) {
+          formProps.form.setFieldsValue({ supplier_id: firstAssigned.assigned_supplier_id });
+        }
+        setCreateFromItems(
+          lines.map((line: any) => ({
+            product_id: line.product_id,
+            quantity: line.quantity,
+            unit_price: line.assigned_contract?.unit_price ?? line.product?.cost_price ?? 0,
+            tax_rate: 0,
+            requisition_line_id: line.requisition_line_id,
+            _open_quantity: line.quantity,
+            _source_item_id: line.requisition_line_id,
+            _product: line.product ?? null,
+          }))
+        );
+      } else if (raw.header) {
+        formProps.form.setFieldsValue(raw.header);
+        setCreateFromItems(raw.items ?? []);
+      }
     }
   }, [sourceData, formProps.form]);
 
@@ -40,6 +76,9 @@ export const PurchaseOrderCreate: React.FC = () => {
         return rest;
       });
       payload._sourceRef = sourceRef;
+      if (sourceRef?.id) {
+        payload.source_requisition_id = sourceRef.id;
+      }
     }
     return onFinish(payload);
   };
@@ -101,7 +140,7 @@ export const PurchaseOrderCreate: React.FC = () => {
             <Divider>{t('sections.lineItems', 'Line Items')}</Divider>
             <CreateFromItemsTable
               items={createFromItems}
-              source={sourceData.source}
+              source={(sourceData as any).source}
               onChange={setCreateFromItems}
             />
           </>
