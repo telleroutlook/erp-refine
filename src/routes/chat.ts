@@ -12,7 +12,7 @@ import { buildToolSet, TOOL_REGISTRY_META } from '../tools/tool-registry';
 import { evaluatePolicy } from '../policy/policy-engine';
 import type { Message } from '../do/chat-agent-do';
 import { estimateTokens, classifyComplexity, allocateBudget, truncateToTokenBudget } from '../lib/context/budget';
-import { saveDraft, buildDraftSummary, inferActionType, inferResourceType } from '../utils/draft-helpers';
+import { saveDraft, buildDraftSummary, buildEditableContent, inferActionType, inferResourceType } from '../utils/draft-helpers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const chat = new Hono<{ Bindings: Env }>();
@@ -159,6 +159,7 @@ function wrapToolsWithPolicy(
             const actionType = inferActionType(name);
             const resourceType = inferResourceType(name);
             const summary = buildDraftSummary(name, previewObj, args);
+            const editableContent = buildEditableContent(name, args);
             const draft = await saveDraft({
               db: opts.db,
               organizationId: user.organizationId,
@@ -169,7 +170,7 @@ function wrapToolsWithPolicy(
               actionType,
               resourceType,
               targetId: (args.id as string) ?? undefined,
-              content: previewObj,
+              content: editableContent,
               originalContent: previewObj.original ? previewObj.original as Record<string, unknown> : undefined,
               summary,
             });

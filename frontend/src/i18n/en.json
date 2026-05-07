@@ -933,7 +933,8 @@
       "discardFailed": "Failed to discard draft",
       "renewFailed": "Failed to renew draft",
       "updateFailed": "Failed to update draft",
-      "subtitle": "Enterprise Intelligence"
+      "subtitle": "Enterprise Intelligence",
+      "commitSuccessMessage": "{{resourceType}} executed successfully"
     }
   },
   "layout": {

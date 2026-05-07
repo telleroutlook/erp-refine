@@ -933,7 +933,8 @@
       "discardFailed": "放弃草稿失败",
       "renewFailed": "延长有效期失败",
       "updateFailed": "更新草稿失败",
-      "subtitle": "企业智能助手"
+      "subtitle": "企业智能助手",
+      "commitSuccessMessage": "{{resourceType}} 已成功执行"
     }
   },
   "layout": {

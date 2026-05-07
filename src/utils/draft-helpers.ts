@@ -123,6 +123,20 @@ const ACTION_LABELS: Record<string, { en: string; zh: string }> = {
   status_change: { en: 'Status Change', zh: '状态变更' },
 };
 
+export function buildEditableContent(
+  _toolName: string,
+  args: Record<string, unknown>,
+): Record<string, unknown> {
+  const cleaned = { ...args };
+  delete cleaned.confirmed;
+
+  if (cleaned.items && Array.isArray(cleaned.items)) {
+    const { items, ...header } = cleaned;
+    return { header, items };
+  }
+  return cleaned;
+}
+
 export function buildDraftSummary(
   toolName: string,
   previewResult: Record<string, unknown>,

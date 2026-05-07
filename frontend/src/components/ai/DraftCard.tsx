@@ -8,6 +8,7 @@ import {
   EditOutlined,
   SwapOutlined,
   RightOutlined,
+  CheckCircleOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { DraftCardData } from '../../hooks/useDraft';
@@ -29,9 +30,10 @@ const ACTION_COLORS: Record<string, string> = {
 interface DraftCardProps {
   data: DraftCardData;
   onClick: () => void;
+  committed?: boolean;
 }
 
-export const DraftCard: React.FC<DraftCardProps> = ({ data, onClick }) => {
+export const DraftCard: React.FC<DraftCardProps> = ({ data, onClick, committed }) => {
   const { token } = theme.useToken();
   const { t } = useTranslation();
   const { summary, action_type } = data;
@@ -44,9 +46,10 @@ export const DraftCard: React.FC<DraftCardProps> = ({ data, onClick }) => {
       style={{
         marginTop: 8,
         borderRadius: 8,
-        border: `1px solid ${token.colorBorderSecondary}`,
+        border: `1px solid ${committed ? token.colorSuccessBorder : token.colorBorderSecondary}`,
         cursor: 'pointer',
-        background: token.colorBgElevated,
+        background: committed ? token.colorSuccessBg : token.colorBgElevated,
+        opacity: committed ? 0.85 : 1,
       }}
       styles={{ body: { padding: '10px 12px' } }}
     >
@@ -55,10 +58,10 @@ export const DraftCard: React.FC<DraftCardProps> = ({ data, onClick }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <Tag
               icon={ACTION_ICONS[action_type]}
-              color={ACTION_COLORS[action_type]}
+              color={committed ? 'success' : ACTION_COLORS[action_type]}
               style={{ margin: 0, fontSize: 11 }}
             >
-              {t(`ai.draft.${action_type}`)}
+              {committed ? t('ai.draft.committed') : t(`ai.draft.${action_type}`)}
             </Tag>
             <Text strong style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {summary.title}
@@ -88,7 +91,11 @@ export const DraftCard: React.FC<DraftCardProps> = ({ data, onClick }) => {
           </Space>
         </div>
 
-        <RightOutlined style={{ color: token.colorTextQuaternary, fontSize: 12, flexShrink: 0, marginLeft: 8 }} />
+        {committed ? (
+          <CheckCircleOutlined style={{ color: token.colorSuccess, fontSize: 14, flexShrink: 0, marginLeft: 8 }} />
+        ) : (
+          <RightOutlined style={{ color: token.colorTextQuaternary, fontSize: 12, flexShrink: 0, marginLeft: 8 }} />
+        )}
       </div>
     </Card>
   );

@@ -103,6 +103,9 @@ const IMMUTABLE_FIELDS = new Set([
   'id', 'organization_id', 'created_at', 'updated_at',
   'status', 'confirmed', 'approved_at', 'approved_by',
   'rejected_at', 'rejected_by', 'deleted_at', 'committed_at',
+  'preview', 'message', 'itemCount', 'item_count', 'totalAmount',
+  'total_amount', 'requiresApproval', 'toolName',
+  'draft_id', '_draft_card', '_draft_action_type', '_draft_resource_type',
 ]);
 
 function mergeContentIntoArgs(

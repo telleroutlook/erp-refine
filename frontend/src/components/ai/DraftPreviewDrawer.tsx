@@ -94,12 +94,20 @@ export const DraftPreviewDrawer: React.FC<DraftPreviewDrawerProps> = ({ draftId,
     return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
+  const FORM_EXCLUDED_FIELDS = new Set([
+    'id', 'organization_id', 'created_at', 'updated_at', 'deleted_at',
+    'created_by', 'status', 'order_number', 'requisition_number',
+    'shipment_number', 'receipt_number', 'invoice_number',
+    'preview', 'message', 'itemCount', 'item_count', 'totalAmount',
+    'total_amount', 'requiresApproval', 'toolName',
+    'draft_id', '_draft_card', '_draft_action_type', '_draft_resource_type',
+  ]);
+
   const renderFormFields = () => {
     if (!draft) return null;
+    if (draft.action_type === 'status_change') return null;
     const data = (draft.content.header ?? draft.content) as Record<string, unknown>;
-    const fields = Object.entries(data).filter(([key]) =>
-      !['id', 'organization_id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'status', 'order_number'].includes(key)
-    );
+    const fields = Object.entries(data).filter(([key]) => !FORM_EXCLUDED_FIELDS.has(key));
 
     return fields.map(([key, value]) => {
       const label = translateField(key);

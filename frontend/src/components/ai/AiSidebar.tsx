@@ -55,6 +55,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
   const [streamingText, setStreamingText] = useState('');
   const [activeTools, setActiveTools] = useState<ToolEvent[]>([]);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [committedDrafts, setCommittedDrafts] = useState<Set<string>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const sessionId = useRef(crypto.randomUUID());
@@ -177,11 +178,30 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
     }
   }, [streaming, t, logout]);
 
+  const handleDraftCommitted = useCallback((resourceType: string, _recordId: string | null) => {
+    if (activeDraftId) {
+      setCommittedDrafts(prev => new Set(prev).add(activeDraftId));
+    }
+    setMessages(prev => {
+      const next = [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant' as const,
+          content: t('ai.draft.commitSuccessMessage', { resourceType }),
+          timestamp: new Date(),
+        },
+      ];
+      return next.length > MAX_VISIBLE_MESSAGES ? next.slice(-MAX_VISIBLE_MESSAGES) : next;
+    });
+  }, [activeDraftId, t]);
+
   const clear = useCallback(() => {
     stop();
     setMessages([]);
     setStreamingText('');
     setActiveTools([]);
+    setCommittedDrafts(new Set());
     sessionId.current = crypto.randomUUID();
   }, [stop]);
 
@@ -288,7 +308,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
             {msg.draftCards && msg.draftCards.length > 0 && (
               <div style={{ paddingLeft: 4, maxWidth: '90%' }}>
                 {msg.draftCards.map((card) => (
-                  <DraftCard key={card.draft_id} data={card} onClick={() => setActiveDraftId(card.draft_id)} />
+                  <DraftCard key={card.draft_id} data={card} onClick={() => setActiveDraftId(card.draft_id)} committed={committedDrafts.has(card.draft_id)} />
                 ))}
               </div>
             )}
@@ -391,6 +411,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ onClose }) => {
         draftId={activeDraftId}
         open={!!activeDraftId}
         onClose={() => setActiveDraftId(null)}
+        onCommitted={handleDraftCommitted}
       />
     </div>
   );
