@@ -72,7 +72,7 @@ procurement.get('/purchase-orders/create-from/purchase-requisition/:sourceId', a
   const { source, items } = await fetchSourceWithOpenQuantities(db, flow, sourceId, user.organizationId, requestId);
   if (items.length === 0) throw ApiError.badRequest('All items are fully fulfilled', requestId);
 
-  // For each PR line, find active contracts to determine supplier
+  // Batch-fetch active contracts for all products in one RPC call
   interface LineWithContract {
     item: Record<string, unknown>;
     openQuantity: number;
@@ -82,21 +82,27 @@ procurement.get('/purchase-orders/create-from/purchase-requisition/:sourceId', a
     available_contracts?: Array<{ contract_id: string; contract_number: string; supplier_id: string; unit_price: number; remaining_quantity: number; currency: string }>;
   }
 
+  const productIds = items.map(({ item }) => item.product_id as string);
+  const { data: allContracts } = await db.rpc('find_active_contracts_for_products', {
+    p_organization_id: user.organizationId,
+    p_product_ids: productIds,
+  });
+
+  const contractsByProduct = new Map<string, Array<any>>();
+  for (const ct of (allContracts ?? []) as any[]) {
+    if (ct.remaining_quantity <= 0) continue;
+    const existing = contractsByProduct.get(ct.product_id) ?? [];
+    existing.push(ct);
+    contractsByProduct.set(ct.product_id, existing);
+  }
+
   const enrichedLines: LineWithContract[] = [];
 
   for (const { item, openQuantity } of items) {
     const productId = item.product_id as string;
-
-    // Call RPC to find active contracts for this product
-    const { data: contracts } = await db.rpc('find_active_contracts_for_product', {
-      p_organization_id: user.organizationId,
-      p_product_id: productId,
-    });
-
-    const validContracts = (contracts ?? []).filter((ct: any) => ct.remaining_quantity > 0);
+    const validContracts = contractsByProduct.get(productId) ?? [];
 
     if (validContracts.length === 1) {
-      // Single contract → auto-assign supplier
       const ct = validContracts[0];
       enrichedLines.push({
         item, openQuantity,
@@ -105,7 +111,6 @@ procurement.get('/purchase-orders/create-from/purchase-requisition/:sourceId', a
         needs_selection: false,
       });
     } else if (validContracts.length > 1) {
-      // Multiple contracts → needs buyer selection
       enrichedLines.push({
         item, openQuantity,
         supplier_id: null,
@@ -113,7 +118,6 @@ procurement.get('/purchase-orders/create-from/purchase-requisition/:sourceId', a
         available_contracts: validContracts,
       });
     } else {
-      // No contract → use suggested_supplier_id from PR line
       enrichedLines.push({
         item, openQuantity,
         supplier_id: (item.suggested_supplier_id as string) ?? null,

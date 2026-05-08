@@ -7846,6 +7846,24 @@ export type Database = {
           unit_price: number
         }[]
       }
+      find_active_contracts_for_products: {
+        Args: {
+          p_date?: string
+          p_organization_id: string
+          p_product_ids: string[]
+        }
+        Returns: {
+          contract_id: string
+          contract_number: string
+          currency: string
+          end_date: string
+          product_id: string
+          quantity: number
+          remaining_quantity: number
+          supplier_id: string
+          unit_price: number
+        }[]
+      }
       get_next_sequence:
         | {
             Args: { p_entity_type?: string; p_org_id: string; p_prefix: string }

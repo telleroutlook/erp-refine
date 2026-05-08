@@ -10,6 +10,11 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'html'],
       include: ['src/**/*.ts'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 70,
+      },
     },
   },
   resolve: {
